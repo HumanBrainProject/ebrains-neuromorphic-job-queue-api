@@ -1,6 +1,6 @@
 {
-  "name": "angular-hbp-collaboratory-automator",
-  "description": "Automate and chain operation in the HBP Collaboratory.",
+  "name": "angular-hbp-collaboratory",
+  "description": "Angular tools to develop apps based on the HBP Collaboratory",
   "main": "webpack.config.js",
   "authors": [
     "Olivier Amblet <olivier.amblet@epfl.ch>"
