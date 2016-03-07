@@ -3,7 +3,6 @@ var mainBowerFiles = require('main-bower-files');
 module.exports = function(config) {
   config.set({
     plugins: [
-      'karma-chrome-launcher',
       'karma-phantomjs-launcher',
       'karma-jasmine',
       'karma-spec-reporter',
