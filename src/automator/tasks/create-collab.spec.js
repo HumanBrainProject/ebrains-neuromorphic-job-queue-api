@@ -6,6 +6,7 @@ describe('createCollab', function() {
   var data;
   var scope;
   var store;
+  var storeCreateReturnValue;
 
   beforeEach(function() {
     window.bbpConfig = {
@@ -37,12 +38,15 @@ describe('createCollab', function() {
     automator = hbpCollaboratoryAutomator;
     data = {
       mandatory: {
-        name: 'My test collab',
-        description: 'My test collab description'
+        title: 'My test collab',
+        content: 'My test collab description'
       },
       collab: {id: 11}
     };
-    spyOn(store, 'create').and.returnValue($q.when(data.collab));
+    storeCreateReturnValue = $q.when(data.collab);
+    spyOn(store, 'create').and.callFake(function() {
+      return storeCreateReturnValue;
+    });
   }));
 
   it('should create a collab', function() {
@@ -60,7 +64,7 @@ describe('createCollab', function() {
     expect(collab).toEqual({id: 11});
   });
 
-  ['name', 'description', 'private'].forEach(function(attr) {
+  ['title', 'content', 'private'].forEach(function(attr) {
     it('should use ' + attr + ' parameter', function() {
       var invalidConfig = {
         not: 'a valid param'
@@ -71,6 +75,21 @@ describe('createCollab', function() {
       expect(store.create).toHaveBeenCalledWith(
         angular.extend(testConfig, data.mandatory));
     });
+  });
+
+  describe('error handling', function() {
+    it('should reject promise on error', inject(function($q) {
+      var expected = {type: 'error'};
+      storeCreateReturnValue = $q.reject(expected);
+
+      createCollab(angular.extend(data.mandatory))
+      .then(function() {
+        expect(true).toBe(false, 'Should not resolve the promise.');
+      })
+      .catch(function(err) {
+        expect(err).toBe(expected);
+      });
+    }));
   });
 
   describe('nav items', function() {

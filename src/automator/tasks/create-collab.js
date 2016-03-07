@@ -22,9 +22,9 @@ angular.module('hbpCollaboratoryAutomator')
   function createCollab(options) {
     var attr = hbpCollaboratoryAutomator.extractAttributes(
       options,
-      ['name', 'description', 'private']
+      ['title', 'content', 'private']
     );
-
+    $log.debug('Create collab', options);
     return hbpCollabStore.create(attr).then(function(collab) {
       return $q.when(createNavItems(collab, options.nav)).then(function() {
         return collab;
@@ -51,7 +51,7 @@ angular.module('hbpCollaboratoryAutomator')
       var promise = $q.when();
       angular.forEach(navConfig, function(n) {
         promise.then(function() {
-          hbpCollaboratoryAutomator.task(
+          return hbpCollaboratoryAutomator.task(
             {nav: angular.extend({collab: collab}, n)}
           ).run();
         });

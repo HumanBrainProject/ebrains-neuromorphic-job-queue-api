@@ -31,6 +31,12 @@ describe('createNavItem', function() {
         name: 'My test collab',
         app: 'My Test App'
       },
+      parent: {
+        id: 21,
+        appId: 20,
+        collabId: 1,
+        name: 'My test collab'
+      },
       navItem: {
         appId: 2,
         collabId: 1,
@@ -41,6 +47,7 @@ describe('createNavItem', function() {
 
   it('should create a nav item', inject(function($q) {
     spyOn(appStore, 'findOne').and.returnValue($q.when(data.app));
+    spyOn(navStore, 'getRoot').and.returnValue($q.when(data.parent));
     spyOn(navStore, 'addNode');
     var config = angular.extend({collab: data.collab}, data.mandatory);
     createNavItem(config);
@@ -55,12 +62,14 @@ describe('createNavItem', function() {
   it('should return the nav item', inject(function($q) {
     var nav;
     spyOn(appStore, 'findOne').and.returnValue($q.when(data.app));
+    spyOn(navStore, 'getRoot').and.returnValue($q.when(data.parent));
     spyOn(navStore, 'addNode').and.returnValue($q.when(data.navItem));
     var config = angular.extend({collab: data.collab}, data.mandatory);
     createNavItem(config).then(function(r) {
       nav = r;
     });
     scope.$digest();
+    expect(nav).toBeDefined();
     expect(nav.appId).toBe(data.navItem.appId);
   }));
 });

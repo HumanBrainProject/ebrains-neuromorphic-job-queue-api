@@ -39,6 +39,21 @@ describe('hbpCollaboratoryAutomator', function() {
       scope.$digest();
       expect(spy).toHaveBeenCalledWith(data.collab);
     });
+
+    it('should handle error', inject(function($q, hbpErrorService) {
+      var expected = hbpErrorService.error({});
+      var actual;
+      var spy = jasmine.createSpy('createCollab')
+        .and.returnValue($q.reject(expected));
+      automator.registerHandler('collab', spy);
+      automator.task({
+        collab: data.collab
+      }).run().catch(function(err) {
+        actual = err;
+      });
+      scope.$digest();
+      expect(actual).toBe(expected);
+    }));
   });
 
   describe('extractAttributes(options, attrs)', function() {

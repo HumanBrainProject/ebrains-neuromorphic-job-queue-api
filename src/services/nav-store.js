@@ -1,9 +1,9 @@
 /* eslint camelcase:[2, {properties: "never"}] */
 'use strict';
 
-angular.module('hbpCollaboratoryNavStore', ['hbpCommon'])
+angular.module('hbpCollaboratoryNavStore', ['hbpCommon', 'uuid4'])
 .service('hbpCollaboratoryNavStore', function($q, $http, $log,
-    $cacheFactory, $timeout, orderByFilter,
+    $cacheFactory, $timeout, orderByFilter, uuid4,
     hbpUtil, bbpConfig) {
   var collabApiUrl = bbpConfig.get('api.collab.v0') + '/collab/';
   // a cache with individual nav items
@@ -17,6 +17,9 @@ angular.module('hbpCollaboratoryNavStore', ['hbpCommon'])
     angular.forEach(attr, function(v, k) {
       self[k] = v;
     });
+    if (angular.isUndefined(this.context)) {
+      this.context = uuid4.generate();
+    }
     if (angular.isUndefined(this.children)) {
       this.children = [];
     }

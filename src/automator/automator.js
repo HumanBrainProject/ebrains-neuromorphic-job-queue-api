@@ -1,5 +1,18 @@
 /**
  * @namespace hbpCollaboratoryAutomator
+ *
+ * @example
+ * angular.module('MyModule', ['hbpCollaboratory'])
+ * .run(function(hbpCollaboratoryAutomator, $log) {
+ *   var config = {
+ *     title: 'My Custom Collab',
+ *     content: 'My Collab Content',
+ *     private: false
+ *   }
+ *   hbpCollaboratoryAutomator.task(config).run().then(function(collab) {
+ *   	 $log.info('Created Collab', collab);
+ *   })
+ * })
  */
 angular.module('hbpCollaboratoryAutomator', [
   'bbpConfig',
@@ -58,7 +71,7 @@ angular.module('hbpCollaboratoryAutomator', [
         })
         .catch(function(err) {
           self.errors[name] = err;
-          return $q.reject();
+          return $q.reject(err);
         });
       });
 
@@ -67,9 +80,9 @@ angular.module('hbpCollaboratoryAutomator', [
         self.state = 'success';
         return results;
       })
-      .catch(function() {
+      .catch(function(err) {
         self.state = 'error';
-        return results;
+        return $q.reject(err);
       });
     }
   };

@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>Create a collab</title>
+    <!-- bower:css -->
+    <link rel="stylesheet" href="../bower_components/hbp-collaboratory-theme/dist/css/bootstrap.css" />
+    <link rel="stylesheet" href="../bower_components/angular-hbp-document-client/dist/angular-hbp-document-client.css" />
+    <!-- endbower -->
+  </head>
+  <body ng-app="customCollabApp">
+    <div class="container-fluid" ng-controller="MainController as vm">
+      <h1 class="page_head">Create a custom Collab</h1>
+      <form class="form" ng-submit="vm.handleSubmit($event)">
+        <div class="form-group">
+          <label>Collab Configuration:</label>
+          <textarea class="form-control" name="name" rows="30" cols="80"
+                    ng-model="vm.configJson"></textarea>
+        </div>
+        <button class="btn btn-primary" type="submit">Create Collab</button>
+      </form>
+      <div ng-if="vm.error" class="row" ng-cloak>
+        <div class="col-md-6">
+          <img src="https://placebear.com/500/500" alt="Error Image" />
+        </div>
+        <div class="col-md-6">
+          An error occured:
+          <pre>{{vm.error | json}}</pre>
+        </div>
+      </div>
+    </div>
+    <!-- bower:js -->
+    <script src="../bower_components/angular/angular.js"></script>
+    <script src="../bower_components/angular-bbp-config/angular-bbp-config.js"></script>
+    <script src="../bower_components/angular-ui-router/release/angular-ui-router.js"></script>
+    <script src="../bower_components/angular-bootstrap/ui-bootstrap-tpls.js"></script>
+    <script src="../bower_components/bbp-oidc-client/angular-bbp-oidc-client.js"></script>
+    <script src="../bower_components/jquery/dist/jquery.js"></script>
+    <script src="../bower_components/lodash/lodash.js"></script>
+    <script src="../bower_components/marked-hbp/lib/marked.js"></script>
+    <script src="../bower_components/angular-hbp-common/dist/angular-hbp-common.js"></script>
+    <script src="../bower_components/angular-hbp-document-client/dist/angular-hbp-document-client.js"></script>
+    <script src="../bower_components/angular-uuid4/angular-uuid4.js"></script>
+    <script src="../angular-hbp-collaboratory.js"></script>
+    <!-- endbower -->
+
+    <script src="../bower_components/hbp-collaboratory-app-toolkit/dist/hbp-collaboratory-app-toolkit.js"></script>
+    <script src="./app.js"></script>
+  </body>
+</html>

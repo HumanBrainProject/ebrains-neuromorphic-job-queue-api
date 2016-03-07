@@ -10,6 +10,23 @@ var path = require('path');
 var ngAnnotate = require('gulp-ng-annotate');
 var sourcemaps = require('gulp-sourcemaps');
 var KarmaServer = require('karma').Server;
+var wiredep = require('wiredep').stream;
+var webserver = require('gulp-webserver');
+
+gulp.task('example:build', ['js'], function() {
+  gulp.src('./example/index.html')
+    .pipe(wiredep({includeSelf: true}))
+    .pipe(gulp.dest('./example/'));
+});
+
+gulp.task('example', ['example:build'], function() {
+  gulp.src('.')
+    .pipe(webserver({
+      livereload: false,
+      directoryListing: false,
+      open: '/example'
+    }));
+});
 
 gulp.task('lint', function() {
   return gulp.src(['src/**/*.js'])
@@ -38,7 +55,7 @@ gulp.task('tdd', function() {
   }).start();
 });
 
-gulp.task('js', ['karma', 'lint'], function() {
+gulp.task('js', function() {
   return gulp.src([
     'src/*/*.js',
     'src/**/*.js',
@@ -53,8 +70,10 @@ gulp.task('js', ['karma', 'lint'], function() {
   .pipe(gulp.dest('.'));
 });
 
-gulp.task('default', ['karma:dist']);
+gulp.task('default', ['test', 'js', 'karma:dist']);
+
+gulp.task('test', ['karma', 'lint']);
 
 gulp.task('watch', ['tdd'], function() {
-  gulp.watch(['src/**/*.js'], ['js', 'lint']);
+  gulp.watch(['src/**/*.js'], ['lint', 'js']);
 });
