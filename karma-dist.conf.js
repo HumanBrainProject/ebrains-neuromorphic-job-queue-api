@@ -5,7 +5,7 @@ module.exports = function(config) {
   config.set({
     files: mainBowerFiles({filter: '**/*.js', includeDev: true}).concat([
       'src/**/*.spec.js',
-      'dist/angular-hbp-collaboratory-automator.js'
+      'angular-hbp-collaboratory.js'
     ]),
     reporters: [],
     preprocessors: {}

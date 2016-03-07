@@ -48,9 +48,9 @@ gulp.task('js', ['karma', 'lint'], function() {
   .pipe(plumber())
   .pipe(sourcemaps.init())
     .pipe(ngAnnotate({single_quotes: true}))
-    .pipe(concat('angular-hbp-collaboratory-automator.js'))
+    .pipe(concat('angular-hbp-collaboratory.js'))
   .pipe(sourcemaps.write())
-  .pipe(gulp.dest('./dist'));
+  .pipe(gulp.dest('.'));
 });
 
 gulp.task('default', ['karma:dist']);
