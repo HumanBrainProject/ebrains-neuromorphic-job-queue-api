@@ -1,0 +1,15 @@
+root: true
+extends:
+  - google
+plugins:
+  - jasmine
+globals:
+  angular: false
+  jasmine: false
+  beforeEach: false
+  afterEach: false
+  it: false
+  describe: false
+  spyOn: false
+  inject: false
+  expect: false
