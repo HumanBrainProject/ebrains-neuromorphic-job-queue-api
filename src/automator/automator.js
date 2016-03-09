@@ -1,7 +1,20 @@
 /**
  * @namespace hbpCollaboratoryAutomator
+ * @memberof hbpCollaboratory
+ * @desc
+ * hbpCollaboratoryAutomator is an AngularJS factory that
+ * provide task automation to accomplish a sequence of
+ * common operation in Collaboratory.
  *
- * @example
+ * How to add new tasks
+ * --------------------
+ *
+ * New tasks can be added by calling ``hbpCollaboratoryAutomator.register``.
+ *
+ * @param {object} $q injected dependency
+ * @return {object} hbpCollaboratoryAutomator angular service
+ * @example <caption>Create a Collab with a few navigation items</caption>
+ * // Create a Collab with a few navigation items.
  * angular.module('MyModule', ['hbpCollaboratory'])
  * .run(function(hbpCollaboratoryAutomator, $log) {
  *   var config = {
@@ -47,7 +60,7 @@ angular.module('hbpCollaboratoryAutomator', [
 
   /**
    * @class Task
-   * @memberof hbpCollaboratoryAutomator
+   * @memberof hbpCollaboratory.hbpCollaboratoryAutomator
    * @param {object} config - task configuration
    */
   function Task(config) {

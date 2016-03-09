@@ -18,6 +18,8 @@
     "gulp-sourcemaps": "^1.6.0",
     "gulp-webserver": "^0.9.1",
     "jasmine-core": "^2.4.1",
+    "jsdoc": "^3.4.0",
+    "jsdoc-sphinx": "0.0.1",
     "karma": "^0.13.21",
     "karma-coverage": "^0.5.4",
     "karma-jasmine": "^0.3.7",

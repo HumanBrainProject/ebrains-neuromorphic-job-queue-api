@@ -1,6 +1,6 @@
 {
   "name": "angular-hbp-collaboratory",
-  "description": "Angular tools to develop apps based on the HBP Collaboratory",
+  "description": "An AngularJS tool to develop web application based on the HBP Collaboratory",
   "main": "angular-hbp-collaboratory.js",
   "authors": [
     "Olivier Amblet <olivier.amblet@epfl.ch>"

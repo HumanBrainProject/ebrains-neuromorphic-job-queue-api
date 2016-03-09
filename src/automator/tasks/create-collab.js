@@ -32,7 +32,6 @@ angular.module('hbpCollaboratoryAutomator')
     });
 
     /**
-     * @private
      * Create navigation items for the given collab using
      * information from navConfig.
      *
@@ -40,6 +39,7 @@ angular.module('hbpCollaboratoryAutomator')
      * @param  {Array|object} navConfig configuration for one or more navigation
      *                        item.
      * @return {Promise}      resolve once every nav item has been created.
+     * @private
      */
     function createNavItems(collab, navConfig) {
       if (!navConfig) {

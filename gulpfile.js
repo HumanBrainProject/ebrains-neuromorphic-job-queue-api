@@ -12,6 +12,7 @@ var sourcemaps = require('gulp-sourcemaps');
 var KarmaServer = require('karma').Server;
 var wiredep = require('wiredep').stream;
 var webserver = require('gulp-webserver');
+var child_process = require('child_process');
 
 gulp.task('example:build', ['js'], function() {
   gulp.src('./example/index.html')
@@ -68,6 +69,23 @@ gulp.task('js', function() {
     .pipe(concat('angular-hbp-collaboratory.js'))
   .pipe(sourcemaps.write())
   .pipe(gulp.dest('.'));
+});
+
+gulp.task('doc', function(done) {
+  child_process.exec([
+    'jsdoc',
+    '-t node_modules/jsdoc-sphinx/template',
+    '-d ./docs',
+    '-P ./bower.json',
+    '--debug',
+    './README.rst',
+    './src/*.js',
+    './src/**/*.js'
+  ].join(' '), function(err, stdout, stderr) {
+    console.log(stdout);
+    console.log(stderr);
+    done(err);
+  });
 });
 
 gulp.task('default', ['test', 'js', 'karma:dist']);
