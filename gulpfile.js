@@ -74,13 +74,9 @@ gulp.task('js', function() {
 gulp.task('doc', function(done) {
   child_process.exec([
     'jsdoc',
-    '-t node_modules/jsdoc-sphinx/template',
-    '-d ./docs',
-    '-P ./bower.json',
+    '-c ./jsdoc.conf.json',
     '--debug',
-    './README.rst',
-    './src/*.js',
-    './src/**/*.js'
+    './README.rst'
   ].join(' '), function(err, stdout, stderr) {
     console.log(stdout);
     console.log(stderr);
@@ -88,7 +84,7 @@ gulp.task('doc', function(done) {
   });
 });
 
-gulp.task('default', ['test', 'js', 'karma:dist']);
+gulp.task('default', ['test', 'js', 'karma:dist', 'doc']);
 
 gulp.task('test', ['karma', 'lint']);
 

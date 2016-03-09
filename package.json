@@ -28,6 +28,7 @@
     "main-bower-files": "^2.11.1"
   },
   "dependencies": {
+    "jsdoc-sphinx": "0.0.1",
     "wiredep": "^3.0.0"
   }
 }

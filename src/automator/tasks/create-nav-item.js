@@ -9,6 +9,7 @@ angular.module('hbpCollaboratoryAutomator')
 
   /**
    * Create a new nav item.
+   * @memberof hbpCollaboratory.hbpCollaboratoryAutomator.Tasks
    * @param {object} config a config description
    * @param {string} config.name name of the nav item
    * @param {Collab} config.collab collab in which to add the item in.

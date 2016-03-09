@@ -6,8 +6,9 @@ angular.module('hbpCollaboratoryAutomator')
   hbpCollaboratoryAutomator.registerHandler('collab', createCollab);
 
   /**
-   * @name createCollab
-   * @description
+   * @function createCollab
+   * @memberof hbpCollaboratory.hbpCollaboratoryAutomator.Tasks
+   * @desc
    *  Create a collab defined by the given options.
    * @param {object} options - Parameters to create the collab
    * @param {string} options.name - Name of the collab

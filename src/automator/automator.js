@@ -48,8 +48,15 @@ angular.module('hbpCollaboratoryAutomator', [
   }
 
   /**
+   * @namespace Tasks
+   * @memberof hbpCollaboratory.hbpCollaboratoryAutomator
+   * @desc
+   * Available tasks.
+   */
+
+  /**
    * Create a new task.
-   * @memberof hbpCollaboratoryAutomator
+   * @memberof hbpCollaboratory.hbpCollaboratoryAutomator
    * @param {object} config a configuration object that will determine
    *                        which task to run and in which order.
    * @return {Task} - task
@@ -60,8 +67,11 @@ angular.module('hbpCollaboratoryAutomator', [
 
   /**
    * @class Task
+   * @desc
+   * Instantiate a task given the given `config`.
+   * The task can then be run using the `run()` instance method.
    * @memberof hbpCollaboratory.hbpCollaboratoryAutomator
-   * @param {object} config - task configuration
+   * @param {object} config task configuration
    */
   function Task(config) {
     this.state = 'idle';
@@ -69,6 +79,10 @@ angular.module('hbpCollaboratoryAutomator', [
   }
 
   Task.prototype = {
+    /**
+     * Launch the task.
+     * @return {Promise} promise to return the result of the task
+     */
     run: function() {
       var self = this;
       self.state = 'progress';

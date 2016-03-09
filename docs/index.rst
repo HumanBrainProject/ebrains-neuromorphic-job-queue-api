@@ -18,8 +18,8 @@ README
 
    ------------------------
 
-angular-hbp-collaboratory is an AngularJS libraries to
-develop an application that uses HBP Collaboratory.
+angular-hbp-collaboratory is a collection of AngularJS module to
+develop applications that use HBP Collaboratory.
 
 At the moment the libraries depends on code that is not hosted on Github so
 it requires an EPFL account. Those dependencies should be released during

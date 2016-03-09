@@ -14,6 +14,7 @@ Children
    :maxdepth: 1
    
    hbpCollaboratory.hbpCollaboratoryAutomator.Task
+   hbpCollaboratory.hbpCollaboratoryAutomator.Tasks
    
 Description
 ===========
@@ -27,6 +28,21 @@ How to add new tasks
 
 New tasks can be added by calling ``hbpCollaboratoryAutomator.register``.
 
+
+
+
+Function ``task``
+=================
+
+Create a new task.
+
+.. js:function:: task(config)
+
+    
+    :param object config: a configuration object that will determine
+                           which task to run and in which order.
+    :return Task: - task
+    
 
 Examples
 ========
@@ -46,6 +62,4 @@ Examples
      	 $log.info('Created Collab', collab);
      })
    })
-
-
 

@@ -17,8 +17,8 @@ Children
 Description
 ===========
 
-
-
+Instantiate a task given the given `config`.
+The task can then be run using the `run()` instance method.
 
 
 

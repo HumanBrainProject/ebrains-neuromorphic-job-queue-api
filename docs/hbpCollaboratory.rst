@@ -21,4 +21,3 @@ Provides angular services to work with HBP Collaboratory.
 
 
 
-

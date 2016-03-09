@@ -1,0 +1,14 @@
+{
+  "source": {
+    "include": ["src"],
+    "includePattern": ".+\\.js(doc)?$",
+    "excludePattern": ".+\\.spec\\.js$"
+  },
+  "opts": {
+    "template": "node_modules/jsdoc-sphinx/template",
+    "encoding": "utf8",
+    "destination": "./docs/",
+    "recurse": true,
+    "package": "bower.json"
+  }
+}

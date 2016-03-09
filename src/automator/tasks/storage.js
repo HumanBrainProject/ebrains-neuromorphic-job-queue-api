@@ -7,6 +7,7 @@ angular.module('hbpCollaboratoryAutomator')
 
   /**
    * Copy a file or recursively a folder
+   * @memberof hbpCollaboratory.hbpCollaboratoryAutomator.Tasks
    * @param {array/object}  config a config description
    * @return {array/entity} created entities
    */
