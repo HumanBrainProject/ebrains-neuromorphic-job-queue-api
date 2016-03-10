@@ -64,14 +64,16 @@ Function ``storage``
 
 Copy files and folders to the destination collab storage.
 
-.. js:function:: storage(config, config.storage, config.collab)
+.. js:function:: storage(descriptor, descriptor.storage[, descriptor.collab], context[, context.collab])
 
     
-    :param object config: the task configuration
-    :param object config.storage: a object where keys are the file path in the
+    :param object descriptor: the task configuration
+    :param object descriptor.storage: a object where keys are the file path in the
                                    new collab and value are the UUID of the
                                    entity to copy at this path.
-    :param object config.collab: the collab in which entities will be copied
+    :param object descriptor.collab: id of the collab
+    :param object context: the current task context
+    :param object context.collab: the collab in which entities will be copied
     :return object: created entities where keys are the same as provided in
                      config.storage
     

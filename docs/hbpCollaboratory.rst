@@ -13,6 +13,7 @@ Children
    :maxdepth: 1
    
    hbpCollaboratory.hbpCollaboratoryAutomator
+   hbpCollaboratory.hbpCollaboratoryStorage
    
 Description
 ===========

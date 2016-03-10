@@ -4,7 +4,8 @@
   "version": "0.0.4",
   "main": "angular-hbp-collaboratory.js",
   "authors": [
-    "Olivier Amblet <olivier.amblet@epfl.ch>"
+    "Olivier Amblet <olivier.amblet@epfl.ch>",
+    "Stefano Zaninetta <stefano.zaninetta@epfl.ch>"
   ],
   "license": "MIT",
   "moduleType": [

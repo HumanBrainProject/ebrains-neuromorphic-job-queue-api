@@ -32,7 +32,8 @@ angular.module('hbpCollaboratoryAutomator', [
   'hbpCommon',
   'hbpDocumentClient',
   'hbpCollaboratoryAppStore',
-  'hbpCollaboratoryNavStore'
+  'hbpCollaboratoryNavStore',
+  'hbpCollaboratoryStorage'
 ])
 .factory('hbpCollaboratoryAutomator', function hbpCollaboratoryAutomator(
   $q, $log, hbpErrorService
@@ -152,6 +153,7 @@ angular.module('hbpCollaboratoryAutomator', [
     /**
      * Launch the task.
      *
+     * @memberof hbpCollaboratory.hbpCollaboratoryAutomator.Task
      * @param {object} context current context will be merged into the default
      *                         one.
      * @return {Promise} promise to return the result of the task
@@ -184,6 +186,12 @@ angular.module('hbpCollaboratoryAutomator', [
       return self.promise;
     },
 
+    /**
+     * Run all subtasks of the this tasks.
+     *
+     * @param  {object} context the current context
+     * @return {Array}          all the results in an array
+     */
     runSubtasks: function(context) {
       var promises = [];
       angular.forEach(this.subtasks, function(task) {
@@ -194,9 +202,44 @@ angular.module('hbpCollaboratoryAutomator', [
   };
 
   /**
+   * Return a HbpError when a parameter is missing.
+   * @memberof hbpCollaboratory.hbpCollaboratoryAutomator
+   * @param  {string} key    name of the key
+   * @param  {object} config the invalid configuration object
+   * @return {HbpError}      a HbpError instance
+   * @private
+   */
+  function missingDataError(key, config) {
+    return hbpErrorService({
+      type: 'KeyError',
+      message: 'Missing `' + key + '` key in config',
+      data: {
+        config: config
+      }
+    });
+  }
+
+  /**
+   * Ensure that all parameters listed after config are presents.
+   * @memberof hbpCollaboratory.hbpCollaboratoryAutomator
+   * @param  {object} config task descriptor
+   * @return {object} created entities
+   */
+  function ensureParameters(config) {
+    var parameters = Array.prototype.splice(1);
+    for (var p in parameters) {
+      if (angular.isUndefined(parameters[p])) {
+        return $q.reject(missingDataError(p, config));
+      }
+    }
+    return $q.when(config);
+  }
+
+  /**
    * Return an object that only contains attributes
    * from the `attrs` list.
    *
+   * @memberof hbpCollaboratory.hbpCollaboratoryAutomator
    * @param  {object} config key-value store
    * @param  {Array} attrs   a list of keys to extract from `config`
    * @return {object}        key-value store containing only keys from attrs
@@ -216,6 +259,7 @@ angular.module('hbpCollaboratoryAutomator', [
     handlers: handlers,
     registerHandler: registerHandler,
     task: task,
-    extractAttributes: extractAttributes
+    extractAttributes: extractAttributes,
+    ensureParameters: ensureParameters
   };
 });

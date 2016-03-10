@@ -1,5 +1,5 @@
 /* eslint-plugin eslint-plugin-jasmine */
-describe('createCollab', function() {
+describe('collab task handler', function() {
   var createCollab;
   var data;
   var scope;

@@ -10,7 +10,6 @@ globals:
   afterEach: false
   it: false
   describe: false
-  xdescribe: false
   spyOn: false
   inject: false
   expect: false

@@ -67,6 +67,49 @@ can be given at load time and it will be fed with the result of each parent
     :return Task: - the new task instance
     
 
+
+Function ``missingDataError``
+=============================
+
+Return a HbpError when a parameter is missing.
+
+.. js:function:: missingDataError(key, config)
+
+    
+    :param string key: name of the key
+    :param object config: the invalid configuration object
+    :return HbpError: a HbpError instance
+    
+
+
+Function ``ensureParameters``
+=============================
+
+Ensure that all parameters listed after config are presents.
+
+.. js:function:: ensureParameters(config)
+
+    
+    :param object config: task descriptor
+    :return object: created entities
+    
+
+
+Function ``extractAttributes``
+==============================
+
+Return an object that only contains attributes
+from the `attrs` list.
+
+.. js:function:: extractAttributes(config, attrs)
+
+    
+    :param object config: key-value store
+    :param Array attrs: a list of keys to extract from `config`
+    :return object: key-value store containing only keys from attrs
+                            found in `config`
+    
+
 Examples
 ========
 

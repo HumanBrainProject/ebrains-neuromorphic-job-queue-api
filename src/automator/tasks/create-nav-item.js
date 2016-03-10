@@ -3,7 +3,9 @@ angular.module('hbpCollaboratoryAutomator')
   $log,
   hbpCollaboratoryAppStore,
   hbpCollaboratoryNavStore,
-  hbpCollaboratoryAutomator
+  hbpCollaboratoryAutomator,
+  hbpCollaboratoryStorage,
+  hbpEntityStore
 ) {
   hbpCollaboratoryAutomator.registerHandler('nav', createNavItem);
 
@@ -20,24 +22,44 @@ angular.module('hbpCollaboratoryAutomator')
    */
   function createNavItem(descriptor, context) {
     var collabId = function() {
-      return (descriptor && descriptor.collabId) ||
+      return (descriptor && descriptor.collab) ||
         (context && context.collab.id);
     };
-    $log.debug('Create nav item', descriptor, context);
-    return hbpCollaboratoryAppStore.findOne({
-      title: descriptor.app
-    })
-    .then(function(app) {
+    var findApp = function() {
+      return hbpCollaboratoryAppStore.findOne({title: descriptor.app});
+    };
+    var createNav = function(app) {
       return hbpCollaboratoryNavStore.getRoot(collabId())
       .then(function(parentItem) {
-        var nav = new hbpCollaboratoryNavStore.NavItem({
-          collabId: collabId(),
-          name: descriptor.name,
-          appId: app.id,
-          parentId: parentItem.id
-        });
-        return hbpCollaboratoryNavStore.addNode(collabId(), nav);
+        return hbpCollaboratoryNavStore.addNode(collabId(),
+          new hbpCollaboratoryNavStore.NavItem({
+            collab: collabId(),
+            name: descriptor.name,
+            appId: app.id,
+            parentId: parentItem.id
+          })
+        );
       });
-    });
+    };
+    var linkToStorage = function(nav) {
+      if (!descriptor.entity) {
+        return nav;
+      }
+      var setLink = function(entity) {
+        return hbpCollaboratoryStorage.setContextMetadata(entity, nav.context)
+        .then(function() {
+          return nav;
+        });
+      };
+      // It might be the name used in a previous storage task.
+      if (context && context.storage && context.storage[descriptor.entity]) {
+        return setLink(context.storage[descriptor.entity]);
+      }
+      return hbpEntityStore.get(descriptor.entity).then(setLink);
+    };
+    $log.debug('Create nav item', descriptor, context);
+    return findApp(descriptor.app)
+    .then(createNav)
+    .then(linkToStorage);
   }
 });

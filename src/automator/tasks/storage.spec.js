@@ -1,18 +1,21 @@
 /* eslint-plugin eslint-plugin-jasmine */
-describe('createNavItem', function() {
+describe('storage task handler', function() {
   var data;
   var scope;
   var copyEntity;
   var entityStore;
+  var storage;
 
   beforeEach(module('hbpCollaboratoryAutomator'));
   beforeEach(inject(function(
     $rootScope,
     hbpCollaboratoryAutomator,
-    hbpEntityStore
+    hbpEntityStore,
+    hbpCollaboratoryStorage
   ) {
     copyEntity = hbpCollaboratoryAutomator.handlers.storage;
     entityStore = hbpEntityStore;
+    storage = hbpCollaboratoryStorage;
     scope = $rootScope;
   }));
   beforeEach(function() {
@@ -46,10 +49,11 @@ describe('createNavItem', function() {
   });
 
   it('should copy a file to root', inject(function($q) {
-    spyOn(entityStore, 'getPath').and.returnValue($q.when(data.rootEntity));
+    spyOn(storage, 'getProjectByCollab')
+      .and.returnValue($q.when(data.rootEntity));
     spyOn(entityStore, 'copy').and.returnValue($q.when(data.newEntity));
     var config = {
-      collab: data.collab,
+      collab: data.collab.id,
       storage: {
         'test.png': '123'
       }
@@ -64,7 +68,7 @@ describe('createNavItem', function() {
       expect(err).toBeUndefined();
     });
     scope.$digest();
-    expect(entityStore.getPath).toHaveBeenCalledWith('/' + data.collab.title);
+    expect(storage.getProjectByCollab).toHaveBeenCalledWith(data.collab.id);
     expect(entityStore.copy).toHaveBeenCalledWith(
       data.fileEntity._uuid,
       data.rootEntity._uuid

@@ -140,8 +140,10 @@ describe('hbpCollaboratoryAutomator', function() {
               'unicorn.png': 'BBB-CCC-DDD'
             },
             after: [{
-              jupyterNotebook: {
-                storage: 'test.png'
+              nav: {
+                name: 'Reproduce Experiment',
+                app: 'Jupyter Notebook',
+                entity: 'test.png'
               }
             }]
           }
@@ -175,7 +177,7 @@ describe('hbpCollaboratoryAutomator', function() {
 
     it('should recursively create the subtasks', function() {
       expect(task.subtasks[0].subtasks.length).toBe(1);
-      expect(task.subtasks[0].subtasks[0].name).toBe('jupyterNotebook');
+      expect(task.subtasks[0].subtasks[0].name).toBe('nav');
     });
 
     it('should use an empty list when there is no children', function() {
@@ -194,16 +196,20 @@ describe('hbpCollaboratoryAutomator', function() {
         };
         spyOn(automator.handlers, 'collab')
           .and.returnValue(deferInstances.collab.promise);
-        spyOn(automator.handlers, 'nav')
-          .and.returnValue(deferInstances.nav.promise);
+        var navPromiseCycle = 0;
+        spyOn(automator.handlers, 'nav').and.callFake(function() {
+          return [
+            deferInstances.nav.promise,
+            deferInstances.jupyterNotebook.promise
+          ][navPromiseCycle++ % 2];
+        });
         spyOn(automator.handlers, 'storage')
           .and.returnValue(deferInstances.storage.promise);
-        spyOn(automator.handlers, 'jupyterNotebook')
-          .and.returnValue(deferInstances.jupyterNotebook.promise);
       });
 
       it('should run the tasks in parallel', function() {
         var callback = jasmine.createSpy('callback');
+        var jupyterExpectedDescriptor = task.subtasks[0].subtasks[0].descriptor;
         task.run().then(callback);
         scope.$digest();
         expect(automator.handlers.collab).toHaveBeenCalled();
@@ -215,11 +221,13 @@ describe('hbpCollaboratoryAutomator', function() {
         expect(automator.handlers.storage).toHaveBeenCalled();
         expect(automator.handlers.nav).toHaveBeenCalled();
         expect(callback).not.toHaveBeenCalled();
-        expect(automator.handlers.jupyterNotebook).not.toHaveBeenCalled();
+        expect(automator.handlers.nav).not.toHaveBeenCalledWith(
+          jupyterExpectedDescriptor, jasmine.any(Object));
 
         deferInstances.storage.resolve(fixtures.storage);
         scope.$digest();
-        expect(automator.handlers.jupyterNotebook).toHaveBeenCalled();
+        expect(automator.handlers.nav).toHaveBeenCalledWith(
+          jupyterExpectedDescriptor, jasmine.any(Object));
 
         deferInstances.nav.resolve(fixtures.nav);
         scope.$digest();
