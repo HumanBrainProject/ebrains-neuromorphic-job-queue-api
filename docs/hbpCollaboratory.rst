@@ -13,6 +13,8 @@ Children
    :maxdepth: 1
    
    hbpCollaboratory.hbpCollaboratoryAutomator
+   hbpCollaboratory.hbpCollaboratoryAppStore
+   hbpCollaboratory.hbpCollaboratoryNavStore
    hbpCollaboratory.hbpCollaboratoryStorage
    
 Description

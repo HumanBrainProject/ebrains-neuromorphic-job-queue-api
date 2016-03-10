@@ -1,5 +1,12 @@
 /* eslint camelcase: 0 */
 
+/**
+ * @namespace hbpCollaboratoryAppStore
+ * @memberof hbpCollaboratory
+ * @desc
+ * hbpCollaboratoryAppStore can be used to find and work with the
+ * registered HBP Collaboratory applications.
+ */
 angular.module('hbpCollaboratoryAppStore', ['bbpConfig', 'hbpCommon'])
 .constant('folderAppId', '__collab_folder__')
 .service('hbpCollaboratoryAppStore', function(
@@ -10,6 +17,12 @@ angular.module('hbpCollaboratoryAppStore', ['bbpConfig', 'hbpCommon'])
   var urlBase = bbpConfig.get('api.collab.v0') + '/extension/';
   var apps = null;
 
+  /**
+   * @class App
+   * @desc client representation of an application
+   * @memberof hbpCollaboratory.hbpCollaboratoryAppStore
+   * @param  {object} [attrs] a list of attributes to set to the App instance
+   */
   var App = function(attrs) {
     var self = this;
     angular.forEach(attrs, function(v, k) {
@@ -17,6 +30,13 @@ angular.module('hbpCollaboratoryAppStore', ['bbpConfig', 'hbpCommon'])
     });
   };
   App.prototype = {
+    /**
+     * Transform an App instance into an object reprensentation compatible with
+     * the backend schema. This object can then be easily converted to a JSON
+     * string.
+     * @memberof hbpCollaboratory.hbpCollaboratoryAppStore.App
+     * @return {object} server representation of an App instance
+     */
     toJson: function() {
       return {
         id: this.id,
@@ -27,6 +47,13 @@ angular.module('hbpCollaboratoryAppStore', ['bbpConfig', 'hbpCommon'])
       };
     }
   };
+
+  /**
+   * Create an app instance from a server representation.
+   * @memberof hbpCollaboratory.hbpCollaboratoryAppStore.App
+   * @param  {object} json converted from the server JSON string
+   * @return {App} the new App instance
+   */
   App.fromJson = function(json) {
     /* jshint camelcase: false */
     return new App({
@@ -55,7 +82,11 @@ angular.module('hbpCollaboratoryAppStore', ['bbpConfig', 'hbpCommon'])
     });
   };
 
-  var getApps = function() {
+  /**
+   * @memberof hbpCollaboratory.hbpCollaboratoryAppStore
+   * @return {Promise} promise of the list of all applications
+   */
+  var list = function() {
     if (!apps) {
       return loadAll(hbpUtil.paginatedResultSet($http.get(urlBase), {
         factory: App.fromJson
@@ -64,6 +95,11 @@ angular.module('hbpCollaboratoryAppStore', ['bbpConfig', 'hbpCommon'])
     return $q.when(apps);
   };
 
+  /**
+   * Retrieve an App instance from its id.
+   * @param  {number} id the app id
+   * @return {Promise} promise of an app instance
+   */
   var getById = function(id) {
     if (!id) {
       return $q.when(null);
@@ -80,8 +116,13 @@ angular.module('hbpCollaboratoryAppStore', ['bbpConfig', 'hbpCommon'])
     });
   };
 
-  var findOne = function(options) {
-    return $http.get(urlBase, {params: options}).then(function(res) {
+  /**
+   * @memberof hbpCollaboratory.hbpCollaboratoryAppStore
+   * @param  {object} params query parameters
+   * @return {Promise} promise of an App instance
+   */
+  var findOne = function(params) {
+    return $http.get(urlBase, {params: params}).then(function(res) {
       var results = res.data.results;
       // Reject if more than one results
       if (results.length > 1) {
@@ -104,7 +145,7 @@ angular.module('hbpCollaboratoryAppStore', ['bbpConfig', 'hbpCommon'])
   };
 
   return {
-    list: getApps,
+    list: list,
     getById: getById,
     findOne: findOne
   };

@@ -1,6 +1,12 @@
 /* eslint camelcase:[2, {properties: "never"}] */
 'use strict';
 
+/**
+ * @namespace hbpCollaboratoryNavStore
+ * @memberof hbpCollaboratory
+ * @desc hbpCollaboratoryNavStore provides tools to create and manage
+ *       navigation items.
+ */
 angular.module('hbpCollaboratoryNavStore', ['hbpCommon', 'uuid4'])
 .service('hbpCollaboratoryNavStore', function($q, $http, $log,
     $cacheFactory, $timeout, orderByFilter, uuid4,
@@ -12,6 +18,13 @@ angular.module('hbpCollaboratoryNavStore', ['hbpCommon', 'uuid4'])
   // a cache with the promises of each collab's nav tree root
   var cacheNavRoots = $cacheFactory('navRoot');
 
+  /**
+   * @class NavItem
+   * @desc
+   * Client representation of a navigation item.
+   * @memberof hbpCollaboratory.hbpCollaboratoryNavStore
+   * @param  {object} attr attributes of the new instance
+   */
   var NavItem = function(attr) {
     var self = this;
     angular.forEach(attr, function(v, k) {
@@ -25,6 +38,13 @@ angular.module('hbpCollaboratoryNavStore', ['hbpCommon', 'uuid4'])
     }
   };
   NavItem.prototype = {
+    /**
+     * @desc
+     * Return a server object representation that can be easily serialized
+     * to JSON and send to the backend.
+     * @memberof hbpCollaboratory.hbpCollaboratoryNavStore.NavItem
+     * @return {object} server object representation
+     */
     toJson: function() {
       /* jshint camelcase: false */
       return {
@@ -38,6 +58,11 @@ angular.module('hbpCollaboratoryNavStore', ['hbpCommon', 'uuid4'])
         parent: this.parentId
       };
     },
+    /**
+     * @memberof hbpCollaboratory.hbpCollaboratoryNavStore.NavItem
+     * @param  {object} attrs NavItem instance attributes
+     * @return {NavItemt} this instance
+     */
     update: function(attrs) {
       angular.forEach([
         'id', 'name', 'children', 'context',
@@ -51,6 +76,11 @@ angular.module('hbpCollaboratoryNavStore', ['hbpCommon', 'uuid4'])
 
       return this;
     },
+    /**
+     * @memberof hbpCollaboratory.hbpCollaboratoryNavStore.NavItem
+     * @return {NavItem} this instance
+     * @private
+     */
     ensureCached: function() {
       cacheNavItems.put(key(this.collabId, this.id), this);
       return this;
@@ -79,6 +109,14 @@ angular.module('hbpCollaboratoryNavStore', ['hbpCommon', 'uuid4'])
     });
     return acc;
   }
+  /**
+   * Build an instance from the server object representation.
+   *
+   * @memberof hbpCollaboratory.hbpCollaboratoryNavStore.NavItem
+   * @param  {number} collabId collab ID
+   * @param  {string} json server object representation
+   * @return {NavItem} new instance of NavItem
+   */
   NavItem.fromJson = function(collabId, json) {
     /* jshint camelcase: false */
     var attrs = {
@@ -101,6 +139,13 @@ angular.module('hbpCollaboratoryNavStore', ['hbpCommon', 'uuid4'])
     return new NavItem(attrs).ensureCached();
   };
 
+  /**
+   * Retrieve the root item of the given collab.
+   *
+   * @memberof hbpCollaboratory.hbpCollaboratoryNavStore
+   * @param  {number} collabId collab ID
+   * @return {Promise} promise the root nav item
+   */
   var getRoot = function(collabId) {
     var treePromise = cacheNavRoots.get(collabId);
 
@@ -140,7 +185,13 @@ angular.module('hbpCollaboratoryNavStore', ['hbpCommon', 'uuid4'])
     return treePromise;
   };
 
-  var get = function(collabId, nodeId) {
+  /**
+   * @memberof hbpCollaboratory.hbpCollaboratoryNavStore
+   * @param  {number} collabId collab ID
+   * @param  {number} nodeId   node ID
+   * @return {NavItem} the matching nav item
+   */
+  var getNode = function(collabId, nodeId) {
     return getRoot(collabId).then(function() {
       var k = key(collabId, nodeId);
       var item = cacheNavItems.get(k);
@@ -153,6 +204,12 @@ angular.module('hbpCollaboratoryNavStore', ['hbpCommon', 'uuid4'])
     });
   };
 
+  /**
+   * @memberof hbpCollaboratory.hbpCollaboratoryNavStore
+   * @param  {number} collabId collab ID
+   * @param  {number} navItem  the NavItem instance to add to the navigation
+   * @return {Promise} promise of the added NavItem instance
+   */
   var addNode = function(collabId, navItem) {
     return $http.post(collabApiUrl + collabId + '/nav/', navItem.toJson())
     .then(function(resp) {
@@ -160,6 +217,12 @@ angular.module('hbpCollaboratoryNavStore', ['hbpCommon', 'uuid4'])
     }, hbpUtil.ferr);
   };
 
+  /**
+   * @memberof hbpCollaboratory.hbpCollaboratoryNavStore
+   * @param  {number} collabId collab ID
+   * @param  {NavItem} navItem the NavItem instance to remove from the navigation
+   * @return {Promise} promise of an undefined item at the end
+   */
   var deleteNode = function(collabId, navItem) {
     return $http.delete(collabApiUrl + collabId + '/nav/' + navItem.id + '/')
     .then(function() {
@@ -167,6 +230,12 @@ angular.module('hbpCollaboratoryNavStore', ['hbpCommon', 'uuid4'])
     }, hbpUtil.ferr);
   };
 
+  /**
+   * @memberof hbpCollaboratory.hbpCollaboratoryNavStore
+   * @param  {number} collabId collab ID
+   * @param  {NavItem} navItem the instance to update
+   * @return {Promise} promise the updated instance
+   */
   var update = function(collabId, navItem) {
     navItem.collabId = collabId;
     return $http.put(collabApiUrl + collabId + '/nav/' +
@@ -210,7 +279,7 @@ angular.module('hbpCollaboratoryNavStore', ['hbpCommon', 'uuid4'])
   return {
     NavItem: NavItem,
     getRoot: getRoot,
-    getNode: get,
+    getNode: getNode,
     addNode: addNode,
     saveNode: update,
     deleteNode: deleteNode,
