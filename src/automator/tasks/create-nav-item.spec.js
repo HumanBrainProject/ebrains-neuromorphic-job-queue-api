@@ -45,12 +45,24 @@ describe('createNavItem', function() {
     };
   });
 
+  describe('when passing collab in context', function() {
+    it('should create a nav item', inject(function($q) {
+      spyOn(appStore, 'findOne').and.returnValue($q.when(data.app));
+      spyOn(navStore, 'getRoot').and.returnValue($q.when(data.parent));
+      spyOn(navStore, 'addNode');
+      var descriptor = angular.extend(data.mandatory);
+      createNavItem(descriptor, {collab: data.collab});
+      scope.$digest();
+      expect(navStore.addNode.calls.mostRecent().args[0]).toBe(data.collab.id);
+    }));
+  });
+
   it('should create a nav item', inject(function($q) {
     spyOn(appStore, 'findOne').and.returnValue($q.when(data.app));
     spyOn(navStore, 'getRoot').and.returnValue($q.when(data.parent));
     spyOn(navStore, 'addNode');
-    var config = angular.extend({collab: data.collab}, data.mandatory);
-    createNavItem(config);
+    var descriptor = angular.extend({collabId: data.collab.id}, data.mandatory);
+    createNavItem(descriptor);
     scope.$digest();
     expect(navStore.addNode).toHaveBeenCalled();
     expect(navStore.addNode.calls.mostRecent().args[0]).toBe(data.collab.id);
@@ -64,7 +76,7 @@ describe('createNavItem', function() {
     spyOn(appStore, 'findOne').and.returnValue($q.when(data.app));
     spyOn(navStore, 'getRoot').and.returnValue($q.when(data.parent));
     spyOn(navStore, 'addNode').and.returnValue($q.when(data.navItem));
-    var config = angular.extend({collab: data.collab}, data.mandatory);
+    var config = angular.extend({collabId: data.collab}, data.mandatory);
     createNavItem(config).then(function(r) {
       nav = r;
     });

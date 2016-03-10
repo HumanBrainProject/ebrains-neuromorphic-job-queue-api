@@ -1,20 +1,27 @@
 /* global window */
-beforeEach(function() {
-  window.bbpConfig = {
-    auth: {
-      clientId: 'aaa-001',
-      url: 'http://test-auth.test'
+var globalConfig = {
+  auth: {
+    clientId: 'aaa-001',
+    url: 'http://test-auth.test'
+  },
+  api: {
+    user: {
+      v0: 'http://user/v0',
+      v1: 'http://user/v1'
     },
-    api: {
-      user: {
-        v0: 'http://user/v0',
-        v1: 'http://user/v1'
-      },
-      collab: {
-        v0: 'http://collab/v0'
-      }
+    collab: {
+      v0: 'http://collab/v0'
+    },
+    document: {
+      v0: 'http://document/v0'
     }
-  };
+  }
+};
+
+window.bbpConfig = angular.copy(globalConfig);
+
+beforeEach(function() {
+  window.bbpConfig = angular.copy(globalConfig);
 
   jasmine.addMatchers({
     toDefine: function() {

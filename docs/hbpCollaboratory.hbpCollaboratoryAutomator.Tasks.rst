@@ -27,18 +27,17 @@ Function ``createCollab``
 
 Create a collab defined by the given options.
 
-.. js:function:: createCollab(options, options.name, options.description, options.privacy, nav)
+.. js:function:: createCollab(descriptor, descriptor.name, descriptor.description[, descriptor.privacy][, after])
 
     
-    :param object options: Parameters to create the collab
-    :param string options.name: Name of the collab
-    :param string options.description: Description in less than 140 characters
+    :param object descriptor: Parameters to create the collab
+    :param string descriptor.name: Name of the collab
+    :param string descriptor.description: Description in less than 140 characters
                                           of the collab
-    :param string options.privacy: 'private' or 'public'. Notes that only
+    :param string descriptor.privacy: 'private' or 'public'. Notes that only
                                       HBP Members can create private collab
-    :param Array|object nav: one or more nav item descriptor that will be
-                              passed to the nav task.
-    :return Promise: - Will retrieve a collab or a HbpError
+    :param Array after: descriptor of subtasks
+    :return Promise: - promise of a collab
     
 
 
@@ -47,26 +46,33 @@ Function ``createNavItem``
 
 Create a new nav item.
 
-.. js:function:: createNavItem(config, config.name, config.collab, config.app)
+.. js:function:: createNavItem(descriptor, descriptor.name, descriptor.collabId, descriptor.app[, context][, context.collab])
 
     
-    :param object config: a config description
-    :param string config.name: name of the nav item
-    :param Collab config.collab: collab in which to add the item in.
-    :param string config.app: app name linked to the nav item
+    :param object descriptor: a descriptor description
+    :param string descriptor.name: name of the nav item
+    :param Collab descriptor.collabId: collab in which to add the item in.
+    :param string descriptor.app: app name linked to the nav item
+    :param object context: the current run context
+    :param object context.collab: a collab instance created previously
     :return Promise: promise of a NavItem instance
     
 
 
-Function ``copy``
-=================
+Function ``storage``
+====================
 
-Copy a file or recursively a folder
+Copy files and folders to the destination collab storage.
 
-.. js:function:: copy(config)
+.. js:function:: storage(config, config.storage, config.collab)
 
     
-    :param array/object config: a config description
-    :return array/entity: created entities
+    :param object config: the task configuration
+    :param object config.storage: a object where keys are the file path in the
+                                   new collab and value are the UUID of the
+                                   entity to copy at this path.
+    :param object config.collab: the collab in which entities will be copied
+    :return object: created entities where keys are the same as provided in
+                     config.storage
     
 
