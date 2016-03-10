@@ -9,7 +9,7 @@
  * How to add new tasks
  * --------------------
  *
- * New tasks can be added by calling ``hbpCollaboratoryAutomator.register``.
+ * New tasks can be added by calling ``hbpCollaboratoryAutomator.registerHandler``.
  *
  * @param {object} $q injected dependency
  * @return {object} hbpCollaboratoryAutomator angular service
@@ -34,11 +34,14 @@ angular.module('hbpCollaboratoryAutomator', [
   'hbpCollaboratoryAppStore',
   'hbpCollaboratoryNavStore'
 ])
-.factory('hbpCollaboratoryAutomator', function hbpCollaboratoryAutomator($q) {
+.factory('hbpCollaboratoryAutomator', function hbpCollaboratoryAutomator(
+  $q, $log, hbpErrorService
+) {
   var handlers = {};
 
   /**
    * Register a handler function for the given task name.
+   * @memberof hbpCollaboratory.hbpCollaboratoryAutomator
    * @param  {string}   name handle actions with the specified name
    * @param  {Function} fn a function that accept the current context in
    *                       parameter.
@@ -55,14 +58,64 @@ angular.module('hbpCollaboratoryAutomator', [
    */
 
   /**
-   * Create a new task.
+   * Instantiate a new Task intance that will run the code describe for
+   * a handlers with the give ``name``.
+   *
+   * The descriptor is passed to the task and parametrize it.
+   * The task context is computed at the time the task is ran. A default context
+   * can be given at load time and it will be fed with the result of each parent
+   * (but not sibling) tasks as well.
+   *
    * @memberof hbpCollaboratory.hbpCollaboratoryAutomator
-   * @param {object} config a configuration object that will determine
-   *                        which task to run and in which order.
-   * @return {Task} - task
+   * @param {string} name the name of the task to instantiate
+   * @param {object} [descriptor] a configuration object that will determine
+   *                            which task to run and in which order
+   * @param {object} [descriptor.after] an array of task to run after this one
+   * @param {object} [context] a default context to run the task with
+   *
+   * @return {Task} - the new task instance
    */
-  function task(config) {
-    return new Task(config);
+  function task(name, descriptor, context) {
+    try {
+      return new Task(name, descriptor, context);
+    } catch (ex) {
+      $log.error('EXCEPTION', ex);
+      throw hbpErrorService.error({
+        type: 'InvalidTask',
+        message: 'Invalid task ' + name + ': ' + ex,
+        data: {
+          cause: ex,
+          name: name,
+          descriptor: descriptor,
+          context: context
+        }
+      });
+    }
+  }
+
+  /**
+   * Create an array of tasks given an array containing object where
+   * the key is the task name to run and the value is the descriptor
+   * parameter.
+   *
+   * @param  {object} after the content of ``descriptor.after``
+   * @return {Array/Task} array of subtasks
+   * @private
+   */
+  function createSubtasks(after) {
+    var subtasks = [];
+    if (!after || !after.length) {
+      return subtasks;
+    }
+    for (var i = 0; i < after.length; i++) {
+      var taskDef = after[i];
+      for (var name in taskDef) {
+        if (taskDef.hasOwnProperty(name)) {
+          subtasks.push(task(name, taskDef[name]));
+        }
+      }
+    }
+    return subtasks;
   }
 
   /**
@@ -70,47 +123,73 @@ angular.module('hbpCollaboratoryAutomator', [
    * @desc
    * Instantiate a task given the given `config`.
    * The task can then be run using the `run()` instance method.
+   * @param {string} name the name of the task to instantiate
+   * @param {object} [descriptor] a configuration object that will determine
+   *                            which task to run and in which order
+   * @param {object} [descriptor.after] an array of task to run after this one
+   * @param {object} [context] a default context to run the task with
    * @memberof hbpCollaboratory.hbpCollaboratoryAutomator
-   * @param {object} config task configuration
+   * @see hbpCollaboratory.hbpCollaboratoryAutomator.task
+   *
    */
-  function Task(config) {
+  function Task(name, descriptor, context) {
+    if (!handlers[name]) {
+      throw new Error('TaskNotFound');
+    }
+    descriptor = descriptor || {};
+    context = context || {};
     this.state = 'idle';
-    this.config = config;
+    this.name = name;
+    this.descriptor = descriptor;
+    this.defaultContext = context;
+    this.state = 'idle';
+    this.promise = null;
+    this.error = null;
+    this.subtasks = createSubtasks(descriptor.after);
   }
 
   Task.prototype = {
     /**
      * Launch the task.
+     *
+     * @param {object} context current context will be merged into the default
+     *                         one.
      * @return {Promise} promise to return the result of the task
      */
-    run: function() {
+    run: function(context) {
       var self = this;
-      self.state = 'progress';
-      self.promises = {};
-      self.errors = {};
-      var results = {};
-      angular.forEach(self.config, function(data, name) {
-        self.promises[name] = handlers[name](data)
-        .then(function(r) {
-          // let still guess the results
-          // even in case an error occurs.
-          results[name] = r;
-        })
-        .catch(function(err) {
-          self.errors[name] = err;
-          return $q.reject(err);
+      // run an intance of task only once.
+      if (self.state !== 'idle') {
+        return self.promise;
+      }
+      context = angular.extend({}, this.defaultContext, context);
+      var onSuccess = function(result) {
+        var subContext = angular.copy(context);
+        subContext[self.name] = result;
+        return self.runSubtasks(subContext)
+        .then(function() {
+          self.state = 'success';
+          return result;
         });
-      });
-
-      return $q.all(this.promises)
-      .then(function() {
-        self.state = 'success';
-        return results;
-      })
-      .catch(function(err) {
+      };
+      var onError = function(err) {
         self.state = 'error';
-        return $q.reject(err);
+        // noop operation if is already one
+        return $q.reject(hbpErrorService.error(err));
+      };
+      self.state = 'progress';
+      self.promise = $q.when(handlers[self.name](self.descriptor, context))
+        .then(onSuccess)
+        .catch(onError);
+      return self.promise;
+    },
+
+    runSubtasks: function(context) {
+      var promises = [];
+      angular.forEach(this.subtasks, function(task) {
+        promises.push(task.run(context));
       });
+      return $q.all(promises);
     }
   };
 

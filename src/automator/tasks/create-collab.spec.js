@@ -1,30 +1,11 @@
 /* eslint-plugin eslint-plugin-jasmine */
-/* global window */
 describe('createCollab', function() {
   var createCollab;
-  var automator;
   var data;
   var scope;
   var store;
   var storeCreateReturnValue;
 
-  beforeEach(function() {
-    window.bbpConfig = {
-      auth: {
-        clientId: 'aa',
-        url: 'https://auth'
-      },
-      api: {
-        user: {
-          v0: 'https://userv0',
-          v1: 'https://userv1'
-        },
-        collab: {
-          v0: 'https://collabv0'
-        }
-      }
-    };
-  });
   beforeEach(module('hbpCollaboratoryAutomator'));
   beforeEach(inject(function(
     $rootScope,
@@ -35,7 +16,6 @@ describe('createCollab', function() {
     createCollab = hbpCollaboratoryAutomator.handlers.collab;
     store = hbpCollabStore;
     scope = $rootScope;
-    automator = hbpCollaboratoryAutomator;
     data = {
       mandatory: {
         title: 'My test collab',
@@ -90,34 +70,5 @@ describe('createCollab', function() {
         expect(err).toBe(expected);
       });
     }));
-  });
-
-  describe('nav items', function() {
-    beforeEach(inject(function($q) {
-      spyOn(automator.handlers, 'nav').and.returnValue($q.when({}));
-    }));
-
-    it('should create one nav item', function() {
-      var navConfig = {app: 'Test', name: 'My Label'};
-      var c = angular.extend({nav: navConfig}, data.mandatory);
-      createCollab(c);
-      scope.$digest();
-      expect(automator.handlers.nav).toHaveBeenCalledWith(
-        angular.extend(navConfig, {collab: data.collab}));
-    });
-
-    it('should create multiple nav item', function() {
-      var navConfig = [
-        {app: 'Test 1', name: 'My Label 1'},
-        {app: 'Test 2', name: 'My Label 2'}
-      ];
-      var c = angular.extend({nav: navConfig}, data.mandatory);
-      createCollab(c);
-      scope.$digest();
-      expect(automator.handlers.nav).toHaveBeenCalledWith(
-        angular.extend(navConfig[0], {collab: data.collab}));
-      expect(automator.handlers.nav).toHaveBeenCalledWith(
-        angular.extend(navConfig[1], {collab: data.collab}));
-    });
   });
 });

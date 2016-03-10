@@ -17,7 +17,7 @@ module.exports = function(config) {
     ]),
     browsers: ['PhantomJS'],
     frameworks: ['jasmine'],
-    reporters: ['spec', 'coverage'],
+    // reporters: ['spec', 'coverage'],
     preprocessors: {
       'src/**/!(*.spec).js': ['coverage']
     },
