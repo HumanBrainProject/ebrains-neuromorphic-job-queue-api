@@ -25,8 +25,8 @@ angular.module('hbpCollaboratoryAutomator')
       return (descriptor && descriptor.collab) ||
         (context && context.collab.id);
     };
-    var findApp = function() {
-      return hbpCollaboratoryAppStore.findOne({title: descriptor.app});
+    var findApp = function(app) {
+      return hbpCollaboratoryAppStore.findOne({title: app});
     };
     var createNav = function(app) {
       return hbpCollaboratoryNavStore.getRoot(collabId())
@@ -57,9 +57,14 @@ angular.module('hbpCollaboratoryAutomator')
       }
       return hbpEntityStore.get(descriptor.entity).then(setLink);
     };
+
     $log.debug('Create nav item', descriptor, context);
-    return findApp(descriptor.app)
-    .then(createNav)
-    .then(linkToStorage);
+
+    return hbpCollaboratoryAutomator.ensureParameters(descriptor, 'app', 'name')
+    .then(function() {
+      return findApp(descriptor.app)
+      .then(createNav)
+      .then(linkToStorage);
+    });
   }
 });

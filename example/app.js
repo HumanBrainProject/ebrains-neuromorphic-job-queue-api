@@ -22,11 +22,13 @@ window.bbpConfig = {
 };
 
 angular.module('customCollabApp', [
+  'ui.codemirror',
   'hbpCollaboratory',
   'hbpCollaboratoryAppToolkit'
 ])
 .controller('MainController', function(
   $log,
+  $filter,
   hbpCollaboratoryAutomator,
   hbpCollaboratoryAppToolkit
 ) {
@@ -43,7 +45,7 @@ angular.module('customCollabApp', [
   function handleSubmit(event) {
     event.preventDefault();
     var data = angular.fromJson(vm.configJson);
-    hbpCollaboratoryAutomator.task(data).run()
+    hbpCollaboratoryAutomator.run(data)
     .then(function(collab) {
       $log.info('Created Collab', collab);
       hbpCollaboratoryAppToolkit.emit('collab.open', collab);
@@ -61,15 +63,32 @@ angular.module('customCollabApp', [
   function activate() {
     vm.configJson = angular.toJson({
       collab: {
-        title: 'My Collab Name',
+        title: 'Test Collab Creator ' + $filter('date')(new Date(), 'medium'),
         content: 'My Collab Description',
         private: true, // Please remember that only HBP Member can create private collabs
-        nav: [{
-          name: 'Example Code',
-          app: 'Jupyter Notebook'
+        after: [{
+          storage: {
+            entities: {
+              'sample.ipynb': '155c1bcc-ee9c-43e2-8190-50c66befa1fa'
+            },
+            after: {
+              nav: {
+                name: 'Example Code',
+                app: 'Jupyter Notebook',
+                entity: 'sample.ipynb'
+              }
+            }
+          }
         }, {
-          name: 'Introduction',
-          app: 'Rich Text Editor'
+          nav: {
+            name: 'Empty Notebook',
+            app: 'Jupyter Notebook'
+          }
+        }, {
+          nav: {
+            name: 'Introduction',
+            app: 'Rich Text Editor'
+          }
         }]
       }
     }, true);

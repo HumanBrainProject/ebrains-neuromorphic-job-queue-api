@@ -107,6 +107,26 @@ angular.module('hbpCollaboratoryAutomator', [
   }
 
   /**
+   * Directly generate tasks from given description and run them.
+   *
+   * @param  {object} descriptor description of the tasks to run
+   * @param  {object} [context]  the initial context
+   * @return {Promise} promise of the top level task result
+   */
+  function run(descriptor, context) {
+    for (var name in descriptor) {
+      if (descriptor.hasOwnProperty(name)) {
+        return task(name, descriptor[name], context).run();
+      }
+    }
+    return $q.reject(hbpErrorService.error({
+      type: 'NoTaskFound',
+      message: 'No task found in descriptor',
+      data: descriptor
+    }));
+  }
+
+  /**
    * Create an array of tasks given an array containing object where
    * the key is the task name to run and the value is the descriptor
    * parameter.
@@ -268,9 +288,10 @@ angular.module('hbpCollaboratoryAutomator', [
   }
 
   return {
+    run: run,
+    task: task,
     handlers: handlers,
     registerHandler: registerHandler,
-    task: task,
     extractAttributes: extractAttributes,
     ensureParameters: ensureParameters
   };

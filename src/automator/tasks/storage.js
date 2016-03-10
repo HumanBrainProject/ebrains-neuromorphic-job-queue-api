@@ -23,13 +23,13 @@ angular.module('hbpCollaboratoryAutomator')
    */
   function storage(descriptor, context) {
     return hbpCollaboratoryAutomator.ensureParameters(
-      descriptor, 'storage'
+      descriptor, 'entities'
     ).then(function() {
       return hbpCollaboratoryStorage
         .getProjectByCollab(descriptor.collab || context.collab.id)
         .then(function(projectEntity) {
           var promises = {};
-          angular.forEach(descriptor.storage, function(value, name) {
+          angular.forEach(descriptor.entities, function(value, name) {
             if (angular.isString(value)) {
               promises[name] = (
                 hbpEntityStore.copy(value, projectEntity._uuid));

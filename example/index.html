@@ -7,6 +7,8 @@
     <link rel="stylesheet" href="../bower_components/hbp-collaboratory-theme/dist/css/bootstrap.css" />
     <link rel="stylesheet" href="../bower_components/angular-hbp-document-client/dist/angular-hbp-document-client.css" />
     <!-- endbower -->
+
+    <link rel="stylesheet" type="text/css" href="../bower_components/codemirror/lib/codemirror.css">
   </head>
   <body ng-app="customCollabApp">
     <div class="container-fluid" ng-controller="MainController as vm">
@@ -15,7 +17,8 @@
         <div class="form-group">
           <label>Collab Configuration:</label>
           <textarea class="form-control" name="name" rows="30" cols="80"
-                    ng-model="vm.configJson"></textarea>
+                    ng-model="vm.configJson"
+                    ui-codemirror></textarea>
         </div>
         <button class="btn btn-primary" type="submit">Create Collab</button>
       </form>
@@ -45,6 +48,8 @@
     <!-- endbower -->
 
     <script src="../bower_components/hbp-collaboratory-app-toolkit/dist/hbp-collaboratory-app-toolkit.js"></script>
+    <script type="text/javascript" src="../bower_components/codemirror/lib/codemirror.js"></script>
+    <script type="text/javascript" src="../bower_components/angular-ui-codemirror/ui-codemirror.js"></script>
     <script src="./app.js"></script>
   </body>
 </html>

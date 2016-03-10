@@ -16,6 +16,21 @@ describe('hbpCollaboratoryAutomator', function() {
     automator.task('mytask', {});
   });
 
+  describe('run(descriptor, context)', function() {
+    it('should unwrap the name of the top level task and run it', function() {
+      var descriptor = {key: 'value'};
+      var def = {test: descriptor};
+      var context = {};
+      var handler = jasmine.createSpy('test').and.returnValue(true);
+      automator.registerHandler('test', handler);
+      automator.run(def, context).then(function(res) {
+        expect(res).toBe(true);
+      });
+      scope.$digest();
+      expect(handler).toHaveBeenCalledWith(descriptor, context);
+    });
+  });
+
   describe('task(name, descriptor, context)', function() {
     var name;
     var descriptor;

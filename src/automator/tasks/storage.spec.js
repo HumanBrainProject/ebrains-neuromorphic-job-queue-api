@@ -54,7 +54,7 @@ describe('storage task handler', function() {
     spyOn(entityStore, 'copy').and.returnValue($q.when(data.newEntity));
     var config = {
       collab: data.collab.id,
-      storage: {
+      entities: {
         'test.png': '123'
       }
     };
