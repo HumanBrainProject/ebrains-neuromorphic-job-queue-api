@@ -135,9 +135,51 @@ Examples
        title: 'My Custom Collab',
        content: 'My Collab Content',
        private: false
-     }
+     };
      hbpCollaboratoryAutomator.task(config).run().then(function(collab) {
      	 $log.info('Created Collab', collab);
-     })
+     });
    })
+
+.. code-block:: javascript
+   :caption: Create a Collab with entities and navigation items
+
+   hbpCollaboratoryAutomator.run({
+     "collab": {
+       "title": "Test Collab Creation",
+       "content": "My Collab Description",
+       "private": true,
+       "after": [
+         {
+           "storage": {
+             "entities": {
+               // Use one of your file UUID here.
+               "sample.ipynb": "155c1bcc-ee9c-43e2-8190-50c66befa1fa"
+             },
+             "after": [{
+               "nav": {
+                 "name": "Example Code",
+                 "app": "Jupyter Notebook",
+                 "entity": "sample.ipynb"
+               }
+             }]
+           }
+         },
+         {
+           "nav": {
+             "name": "Empty Notebook",
+             "app": "Jupyter Notebook"
+           }
+         },
+         {
+           "nav": {
+             "name": "Introduction",
+             "app": "Rich Text Editor"
+           }
+         }
+       ]
+     }
+   }).then(function(collab) {
+     $log.info('Created Collab', collab);
+   });
 
