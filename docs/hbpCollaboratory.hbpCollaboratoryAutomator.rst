@@ -28,6 +28,18 @@ How to add new tasks
 
 New tasks can be added by calling ``hbpCollaboratoryAutomator.registerHandler``.
 
+You can see a few example of tasks in the `tasks` folder.
+
+Evaluate the automator
+----------------------
+
+From the root of this project, you can start a server that will let
+you write a descriptor and run it.
+
+.. code-block:: bash
+
+   gulp example
+
 
 
 

@@ -11,6 +11,18 @@
  *
  * New tasks can be added by calling ``hbpCollaboratoryAutomator.registerHandler``.
  *
+ * You can see a few example of tasks in the `tasks` folder.
+ *
+ * Evaluate the automator
+ * ----------------------
+ *
+ * From the root of this project, you can start a server that will let
+ * you write a descriptor and run it.
+ *
+ * .. code-block:: bash
+ *
+ *    gulp example
+ *
  * @param {object} $q injected dependency
  * @return {object} hbpCollaboratoryAutomator angular service
  * @example <caption>Create a Collab with a few navigation items</caption>
