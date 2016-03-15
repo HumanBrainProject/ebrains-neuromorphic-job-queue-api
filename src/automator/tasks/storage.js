@@ -1,5 +1,5 @@
 angular.module('hbpCollaboratoryAutomator')
-.run(function createCollabService(
+.run(function createStorage(
   $log, $q, hbpEntityStore,
   hbpErrorService,
   hbpCollaboratoryAutomator,
@@ -31,6 +31,7 @@ angular.module('hbpCollaboratoryAutomator')
           var promises = {};
           angular.forEach(descriptor.entities, function(value, name) {
             if (angular.isString(value)) {
+              $log.debug("Copy entity with UUID", value);
               promises[name] = (
                 hbpEntityStore.copy(value, projectEntity._uuid));
             } else {

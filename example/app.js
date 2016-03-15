@@ -1,6 +1,6 @@
 /* global window */
 
-// Those configurations should be generated during you app deployment.
+// Those configurations should be generated during your app deployment.
 // Remember they can be served as well by a file on your server.
 window.bbpConfig = {
   auth: {
@@ -17,6 +17,9 @@ window.bbpConfig = {
     user: {
       v1: 'https://services-dev.humanbrainproject.eu/idm/v1/api',
       v0: 'https://services-dev.humanbrainproject.eu/oidc/v0/api'
+    },
+    richtext: {
+      v0: 'https://clb.local:8000/richtxt-app/api/richtext'
     }
   }
 };

@@ -77,6 +77,23 @@
  * }).then(function(collab) {
  *   $log.info('Created Collab', collab);
  * });
+ *
+ * @example <caption>Create a Collab with a pre-filled overview</caption>
+ * hbpCollaboratoryAutomator.run({
+ *   "collab": {
+ *     "title": "Test Collab With Pre Filled Overview",
+ *     "content": "Test collab creation with  a pre filled overview",
+ *     "private": true,
+ *     "after": [{
+ *       "overview": {
+ *         // Use one of your HTML file UUID here.
+ *         "entity": "155c1bcc-ee9c-43e2-8190-50c66befa1fa"
+ *       }
+ *     }]
+ *   }
+ * }).then(function(collab) {
+ *   $log.info('Created Collab', collab);
+ * });
  */
 angular.module('hbpCollaboratoryAutomator', [
   'bbpConfig',

@@ -59,6 +59,31 @@ Create a new nav item.
     
 
 
+Function ``overview``
+=====================
+
+Set the content of the overview page using
+the content of a file in storage.
+
+The collab is indicated either by an id in `descriptor.collab` or a
+collab object in `context.collab`.
+
+.. js:function:: overview(descriptor[, descriptor.collab], descriptor.entity, context[, context.collab][, context.entities])
+
+    
+    :param object descriptor: the task configuration
+    :param object descriptor.collab: id of the collab
+    :param string descriptor.entity: either a label that can be found in
+                    ``context.entities`` or a FileEntity UUID
+    :param object context: the current task context
+    :param object context.collab: the collab in which entities will be copied
+    :param object context.entities: a list of entities to lookup in for
+                      descriptor.entiry value
+    :return object: created entities where keys are the same as provided in
+                     config.storage
+    
+
+
 Function ``storage``
 ====================
 

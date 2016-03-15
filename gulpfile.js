@@ -25,7 +25,8 @@ gulp.task('example', ['example:build'], function() {
     .pipe(webserver({
       livereload: false,
       directoryListing: false,
-      open: '/example'
+      open: '/example',
+      port: 9000
     }));
 });
 
