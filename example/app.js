@@ -5,21 +5,21 @@
 window.bbpConfig = {
   auth: {
     clientId: 'portal-client',
-    url: 'https://services-dev.humanbrainproject.eu/oidc'
+    url: 'https://services.humanbrainproject.eu/oidc'
   },
   api: {
     collab: {
-      v0: 'https://services-dev.humanbrainproject.eu/collab/v0'
+      v0: 'https://services.humanbrainproject.eu/collab/v0'
     },
     document: {
-      v0: 'https://services-dev.humanbrainproject.eu/document/v0/api'
+      v0: 'https://services.humanbrainproject.eu/document/v0/api'
     },
     user: {
-      v1: 'https://services-dev.humanbrainproject.eu/idm/v1/api',
-      v0: 'https://services-dev.humanbrainproject.eu/oidc/v0/api'
+      v1: 'https://services.humanbrainproject.eu/idm/v1/api',
+      v0: 'https://services.humanbrainproject.eu/oidc/v0/api'
     },
     richtext: {
-      v0: 'https://clb.local:8000/richtxt-app/api/richtext'
+      v0: 'https://up.humanbrainproject.eu/richtxt-app/api/richtext'
     }
   }
 };
