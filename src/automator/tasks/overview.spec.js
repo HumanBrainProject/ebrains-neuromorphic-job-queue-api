@@ -64,7 +64,7 @@ describe('overview task handler', function() {
       .and.returnValue(q.when(data.rootNavItem));
     spyOn(fileStore, 'getContent')
       .and.returnValue(q.when(data.fileContent));
-    backend.expectPOST('http://richtext/v0/').respond(201);
+    backend.expectPOST('http://richtext/v0/richtext/').respond(201);
     overview({
       collab: data.collab.id,
       entity: data.fileEntity._uuid
@@ -79,7 +79,7 @@ describe('overview task handler', function() {
       .and.returnValue(q.when(data.rootNavItem));
     spyOn(fileStore, 'getContent')
       .and.returnValue(q.when(data.fileContent));
-    backend.expectPOST('http://richtext/v0/').respond(201);
+    backend.expectPOST('http://richtext/v0/richtext/').respond(201);
     overview({
       entity: 'file'
     }, {

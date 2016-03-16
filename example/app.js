@@ -19,7 +19,7 @@ window.bbpConfig = {
       v0: 'https://services.humanbrainproject.eu/oidc/v0/api'
     },
     richtext: {
-      v0: 'https://up.humanbrainproject.eu/richtxt-app/api/richtext'
+      v0: 'https://services.humanbrainproject.eu/richtxt-app/api'
     }
   }
 };

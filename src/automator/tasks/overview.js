@@ -34,7 +34,7 @@ angular.module('hbpCollaboratoryAutomator')
     return $q.all(fetch)
     .then(function(results) {
       var overview = results.rootNav.children[0];
-      return $http.post(bbpConfig.get('api.richtext.v0') + '/', {
+      return $http.post(bbpConfig.get('api.richtext.v0') + '/richtext/', {
         ctx: overview.context,
         raw: results.source
       }).then(function() {
