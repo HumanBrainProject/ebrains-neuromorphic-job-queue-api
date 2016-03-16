@@ -1,5 +1,5 @@
 angular.module('hbpCollaboratoryAutomator')
-.run(function createCollabService(
+.run(function createCollab(
   $log, $q, hbpCollabStore,
   hbpCollaboratoryAutomator
 ) {

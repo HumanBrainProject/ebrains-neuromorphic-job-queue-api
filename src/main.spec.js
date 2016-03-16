@@ -14,6 +14,9 @@ var globalConfig = {
     },
     document: {
       v0: 'http://document/v0'
+    },
+    richtext: {
+      v0: 'http://richtext/v0'
     }
   }
 };
