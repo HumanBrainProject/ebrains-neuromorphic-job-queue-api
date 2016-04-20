@@ -251,6 +251,9 @@ angular.module('hbpCollaboratoryNavStore', ['hbpCommon', 'uuid4'])
   /**
    * Insert node in the three.
    *
+   * A queue is used to ensure that the insert operation does not conflict
+   * on a single client.
+   *
    * @param  {int} collabId   id of the collab
    * @param  {NavItem} navItem    Nav item instance
    * @param  {NavItem} parentItem parent item
@@ -260,7 +263,8 @@ angular.module('hbpCollaboratoryNavStore', ['hbpCommon', 'uuid4'])
    */
   function insertNode(collabId, navItem, parentItem, insertAt) {
     return insertQueue.then(function() {
-      navItem.order = insertAt + 1; // first item order_index must be 1
+      // first item order_index must be 1
+      navItem.order = (insertAt === -1 ? insertAt : insertAt + 1);
       navItem.parentId = parentItem.id;
       return update(collabId, navItem);
     });
