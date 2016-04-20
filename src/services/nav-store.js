@@ -264,7 +264,7 @@ angular.module('hbpCollaboratoryNavStore', ['hbpCommon', 'uuid4'])
   function insertNode(collabId, navItem, parentItem, insertAt) {
     return insertQueue.then(function() {
       // first item order_index must be 1
-      navItem.order = (insertAt === -1 ? insertAt : insertAt + 1);
+      navItem.order = (insertAt === -1 ? 1 : insertAt + 1);
       navItem.parentId = parentItem.id;
       return update(collabId, navItem);
     });

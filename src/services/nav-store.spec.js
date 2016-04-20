@@ -22,19 +22,20 @@ describe('navigatorStore', function() {
     var nav;
     var collabId;
     var child;
+    var url;
 
-    beforeEach(function() {
+    beforeEach(inject(function(bbpConfig) {
       collabId = 1;
       parent = new store.NavItem({id: 22, collabId: collabId}).ensureCached();
       child = new store.NavItem({id: 44, collabId: collabId}).ensureCached();
       nav = new store.NavItem(
         {id: 33, collabId: collabId, children: [child]}
       ).ensureCached();
-    });
+      url = bbpConfig.get('api.collab.v0') + '/collab/1/nav/33/';
+    }));
 
-    it('should keep its children after completion', inject(function(bbpConfig) {
+    it('should keep its children after completion', function() {
       var result;
-      var url = bbpConfig.get('api.collab.v0') + '/collab/1/nav/33/';
       httpBackend.expectPUT(url)
       .respond(200, {
         id: 33,
@@ -52,7 +53,21 @@ describe('navigatorStore', function() {
       expect(result).toBeDefined();
       expect(result).toBe(nav);
       expect(nav.children[0]).toBe(child, 'the object reference shoud remain');
-    }));
+    });
+
+    it('should insert children were index is -1 to index 1', function() {
+      httpBackend.expectPUT(url).respond(200, {
+        id: 33,
+        parentId: 22,
+        collabId: collabId,
+        children: [{
+          id: 44,
+          collabId: collabId
+        }]
+      });
+      store.insertNode(collabId, nav, parent, -1);
+      httpBackend.flush();
+    });
   });
 
   describe('NavItem', function() {
