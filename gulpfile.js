@@ -68,7 +68,7 @@ gulp.task('js', function() {
   .pipe(sourcemaps.init())
     .pipe(ngAnnotate({single_quotes: true}))
     .pipe(concat('angular-hbp-collaboratory.js'))
-  .pipe(sourcemaps.write())
+  .pipe(sourcemaps.write('.'))
   .pipe(gulp.dest('.'));
 });
 

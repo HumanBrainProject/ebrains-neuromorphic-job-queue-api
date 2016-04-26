@@ -206,6 +206,31 @@ angular.module('hbpCollaboratoryNavStore', ['hbpCommon', 'uuid4'])
 
   /**
    * @memberof hbpCollaboratory.hbpCollaboratoryNavStore
+   * @param  {str} ctx The context UUID
+   * @return {Promise}   The promise of a NavItem
+   */
+  var getNodeFromContext = function(ctx) {
+    var url = hbpUtil.format('{0}/{1}/{2}/', [
+      bbpConfig.get('api.collab.v0'),
+      'collab/context', ctx
+    ]);
+    return $http.get(url)
+    .then(function(res) {
+      var nav = NavItem.fromJson(res.data.collab.id, res.data);
+      var k = key(nav.collabId, nav.id);
+      if (cacheNavItems.get(k)) {
+        nav = cacheNavItems.get(k).update(nav);
+      } else {
+        cacheNavItems.put(k, nav);
+      }
+      return nav;
+    }, function(res) {
+      return $q.reject(hbpUtil.ferr(res));
+    });
+  };
+
+  /**
+   * @memberof hbpCollaboratory.hbpCollaboratoryNavStore
    * @param  {number} collabId collab ID
    * @param  {number} navItem  the NavItem instance to add to the navigation
    * @return {Promise} promise of the added NavItem instance
@@ -284,6 +309,7 @@ angular.module('hbpCollaboratoryNavStore', ['hbpCommon', 'uuid4'])
     NavItem: NavItem,
     getRoot: getRoot,
     getNode: getNode,
+    getNodeFromContext: getNodeFromContext,
     addNode: addNode,
     saveNode: update,
     deleteNode: deleteNode,

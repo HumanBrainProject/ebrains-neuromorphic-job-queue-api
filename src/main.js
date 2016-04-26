@@ -6,5 +6,6 @@
 angular.module('hbpCollaboratory', [
   'hbpCollaboratoryAutomator',
   'hbpCollaboratoryNavStore',
-  'hbpCollaboratoryAppStore'
+  'hbpCollaboratoryAppStore',
+  'hbpCollaboratoryForm'
 ]);

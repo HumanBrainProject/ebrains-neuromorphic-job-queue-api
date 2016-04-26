@@ -1,4 +1,4 @@
-describe('navigatorStore', function() {
+describe('hbpCollaboratoryNavStore', function() {
   'use strict';
 
   var store;

@@ -51,6 +51,19 @@ Function ``getNode``
     
 
 
+Function ``getNodeFromContext``
+===============================
+
+
+
+.. js:function:: getNodeFromContext(ctx)
+
+    
+    :param str ctx: The context UUID
+    :return Promise: The promise of a NavItem
+    
+
+
 Function ``addNode``
 ====================
 
