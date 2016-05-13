@@ -1,5 +1,3 @@
-.. _module-clb-automator:
-
 =========================
 Module: ``clb-automator``
 =========================

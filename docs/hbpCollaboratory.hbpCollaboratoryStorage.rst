@@ -22,6 +22,7 @@ Description
 storageUtil provides utility functions to ease the interaction of apps with storage.
 
 
+.. _hbpCollaboratory.hbpCollaboratoryStorage.metadataKey:
 
 
 Function ``metadataKey``
@@ -36,6 +37,7 @@ Retrieve the key to lookup for on entities given the ctx
     :return string: name of the entity attribute that should be used
     
 
+.. _hbpCollaboratory.hbpCollaboratoryStorage.setContextMetadata:
 
 
 Function ``setContextMetadata``
@@ -57,6 +59,7 @@ In case of error, the promise is rejected with a `HbpError` instance.
     :param String contextId: collab app context id
     :return Promise: a promise that resolves when the operation is completed
     
+.. _hbpCollaboratory.hbpCollaboratoryStorage.getEntityByContext:
 
 
 Function ``getEntityByContext``
@@ -72,6 +75,7 @@ In case of error, the promise is rejected with a `HbpError` instance.
     :param String contextId: collab app context id
     :return Promise: a promise that resolves when the operation is completed
     
+.. _hbpCollaboratory.hbpCollaboratoryStorage.deleteContextMetadata:
 
 
 Function ``deleteContextMetadata``
@@ -93,6 +97,7 @@ In case of error, the promise is rejected with a `HbpError` instance.
     :param String contextId: collab app context id
     :return Promise: a promise that resolves when the operation is completed
     
+.. _hbpCollaboratory.hbpCollaboratoryStorage.updateContextMetadata:
 
 
 Function ``updateContextMetadata``
@@ -115,6 +120,7 @@ In case of error, the promise is rejected with a `HbpError` instance.
     :param String contextId: collab app context id
     :return Promise: a promise that resolves when the operation is completed
     
+.. _hbpCollaboratory.hbpCollaboratoryStorage.getProjectByCollab:
 
 
 Function ``getProjectByCollab``

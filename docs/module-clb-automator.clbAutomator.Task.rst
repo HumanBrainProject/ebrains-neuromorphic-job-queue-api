@@ -23,6 +23,7 @@ Instantiate a task given the given `config`.
 The task can then be run using the `run()` instance method.
 
 
+.. _module-clb-automator.clbAutomator.Task.run:
 
 
 Function ``run``
@@ -37,6 +38,7 @@ Launch the task.
                             one.
     :return Promise: promise to return the result of the task
     
+.. _module-clb-automator.clbAutomator.Task.runSubtasks:
 
 
 Function ``runSubtasks``

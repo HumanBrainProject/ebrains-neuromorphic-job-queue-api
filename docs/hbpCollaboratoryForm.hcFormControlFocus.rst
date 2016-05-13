@@ -1,4 +1,4 @@
-.. _hbpCollaboratoryForm.hcFormControlFocus:
+.. _undefined.hcFormControlFocus:
 
 =================================
 Namespace: ``hcFormControlFocus``

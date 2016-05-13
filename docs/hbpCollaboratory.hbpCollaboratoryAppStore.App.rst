@@ -22,6 +22,7 @@ Description
 client representation of an application
 
 
+.. _hbpCollaboratory.hbpCollaboratoryAppStore.App.toJson:
 
 
 Function ``toJson``
@@ -36,6 +37,7 @@ string.
     
     :return object: server representation of an App instance
     
+.. _hbpCollaboratory.hbpCollaboratoryAppStore.App.App.fromJson:
 
 
 Function ``App.fromJson``

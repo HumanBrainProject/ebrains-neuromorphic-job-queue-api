@@ -42,6 +42,7 @@ you write a descriptor and run it.
    gulp example
 
 
+.. _module-clb-automator.clbAutomator.task:
 
 
 Function ``task``
@@ -65,6 +66,7 @@ can be given at load time and it will be fed with the result of each parent
     :param object context: a default context to run the task with
     :return Task: - the new task instance
     
+.. _module-clb-automator.clbAutomator.run:
 
 
 Function ``run``
@@ -79,6 +81,7 @@ Directly generate tasks from given description and run them.
     :param object context: the initial context
     :return Promise: promise of the top level task result
     
+.. _module-clb-automator.clbAutomator.createSubtasks:
 
 
 Function ``createSubtasks``
@@ -94,6 +97,7 @@ parameter.
     :param object after: the content of ``descriptor.after``
     :return Array/Task: array of subtasks
     
+.. _module-clb-automator.clbAutomator.missingDataError:
 
 
 Function ``missingDataError``
@@ -108,6 +112,7 @@ Return a HbpError when a parameter is missing.
     :param object config: the invalid configuration object
     :return HbpError: a HbpError instance
     
+.. _module-clb-automator.clbAutomator.ensureParameters:
 
 
 Function ``ensureParameters``
@@ -121,6 +126,7 @@ Ensure that all parameters listed after config are presents.
     :param object config: task descriptor
     :return object: created entities
     
+.. _module-clb-automator.clbAutomator.extractAttributes:
 
 
 Function ``extractAttributes``

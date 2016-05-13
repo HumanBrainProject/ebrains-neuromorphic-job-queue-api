@@ -38,6 +38,16 @@ beforeEach(function() {
           return {pass: result};
         }
       };
+    },
+    toBeHbpError: function() {
+      return {
+        compare: function(actual) {
+          var result = angular.isDefined(actual.type);
+          result = result && angular.isDefined(actual.code);
+          result = result && angular.isDefined(actual.message);
+          return {pass: result};
+        }
+      };
     }
   });
 });

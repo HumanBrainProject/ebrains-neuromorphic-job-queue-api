@@ -26,14 +26,13 @@ window.bbpConfig = {
 
 angular.module('customCollabApp', [
   'ui.codemirror',
-  'hbpCollaboratory',
-  'hbpCollaboratoryAppToolkit'
+  'hbpCollaboratory'
 ])
 .controller('MainController', function(
   $log,
   $filter,
   clbAutomator,
-  hbpCollaboratoryAppToolkit
+  clbApp
 ) {
   var vm = this;
   vm.configJson = '';
@@ -51,7 +50,7 @@ angular.module('customCollabApp', [
     clbAutomator.run(data)
     .then(function(collab) {
       $log.info('Created Collab', collab);
-      hbpCollaboratoryAppToolkit.emit('collab.open', collab);
+      clbApp.emit('collab.open', collab);
     })
     .catch(function(err) {
       $log.error('Cannot Create Collab', err);

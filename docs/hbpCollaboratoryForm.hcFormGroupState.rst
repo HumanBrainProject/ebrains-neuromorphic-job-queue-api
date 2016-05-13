@@ -1,4 +1,4 @@
-.. _hbpCollaboratoryForm.hcFormGroupState:
+.. _undefined.hcFormGroupState:
 
 ===============================
 Namespace: ``hcFormGroupState``

@@ -11,6 +11,8 @@ Contents
    :maxdepth: 1
 
    
+   module-clb-app
+   module-hbpCollaboratoryAppToolkit
    module-clb-automator
    hbpCollaboratory
    

@@ -22,6 +22,7 @@ Description
 Client representation of a navigation item.
 
 
+.. _hbpCollaboratory.hbpCollaboratoryNavStore.NavItem.toJson:
 
 
 Function ``toJson``
@@ -35,6 +36,7 @@ to JSON and send to the backend.
     
     :return object: server object representation
     
+.. _hbpCollaboratory.hbpCollaboratoryNavStore.NavItem.update:
 
 
 Function ``update``
@@ -48,6 +50,7 @@ Function ``update``
     :param object attrs: NavItem instance attributes
     :return NavItemt: this instance
     
+.. _hbpCollaboratory.hbpCollaboratoryNavStore.NavItem.ensureCached:
 
 
 Function ``ensureCached``
@@ -60,6 +63,7 @@ Function ``ensureCached``
     
     :return NavItem: this instance
     
+.. _hbpCollaboratory.hbpCollaboratoryNavStore.NavItem.NavItem.fromJson:
 
 
 Function ``NavItem.fromJson``
