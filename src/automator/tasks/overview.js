@@ -1,9 +1,9 @@
-angular.module('hbpCollaboratoryAutomator')
+angular.module('clb-automator')
 .run(function createOverview(
   $log, $q, $http, bbpConfig, hbpFileStore, hbpErrorService,
-  hbpCollaboratoryAutomator, hbpCollaboratoryNavStore
+  clbAutomator, hbpCollaboratoryNavStore
 ) {
-  hbpCollaboratoryAutomator.registerHandler('overview', overview);
+  clbAutomator.registerHandler('overview', overview);
 
   /**
    * Set the content of the overview page using
@@ -12,7 +12,7 @@ angular.module('hbpCollaboratoryAutomator')
    * The collab is indicated either by an id in `descriptor.collab` or a
    * collab object in `context.collab`.
    *
-   * @memberof hbpCollaboratory.hbpCollaboratoryAutomator.Tasks
+   * @memberof module:clb-automator.Tasks
    * @param {object} descriptor the task configuration
    * @param {object} [descriptor.collab] id of the collab
    * @param {string} descriptor.entity either a label that can be found in

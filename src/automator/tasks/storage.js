@@ -1,16 +1,16 @@
-angular.module('hbpCollaboratoryAutomator')
+angular.module('clb-automator')
 .run(function createStorage(
   $log, $q, hbpEntityStore,
   hbpErrorService,
-  hbpCollaboratoryAutomator,
+  clbAutomator,
   hbpCollaboratoryStorage
 ) {
-  hbpCollaboratoryAutomator.registerHandler('storage', storage);
+  clbAutomator.registerHandler('storage', storage);
 
   /**
    * Copy files and folders to the destination collab storage.
    *
-   * @memberof hbpCollaboratory.hbpCollaboratoryAutomator.Tasks
+   * @memberof module:clb-automator.Tasks
    * @param {object} descriptor the task configuration
    * @param {object} descriptor.storage a object where keys are the file path in the
    *                                new collab and value are the UUID of the
@@ -22,7 +22,7 @@ angular.module('hbpCollaboratoryAutomator')
    *                  config.storage
    */
   function storage(descriptor, context) {
-    return hbpCollaboratoryAutomator.ensureParameters(
+    return clbAutomator.ensureParameters(
       descriptor, 'entities'
     ).then(function() {
       return hbpCollaboratoryStorage

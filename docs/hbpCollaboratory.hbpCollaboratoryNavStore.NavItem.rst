@@ -1,3 +1,5 @@
+.. _hbpCollaboratory.hbpCollaboratoryNavStore.NavItem:
+
 ==================
 Class: ``NavItem``
 ==================

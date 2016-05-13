@@ -4,7 +4,7 @@
  * Provides angular services to work with HBP Collaboratory.
  */
 angular.module('hbpCollaboratory', [
-  'hbpCollaboratoryAutomator',
+  'clb-automator',
   'hbpCollaboratoryNavStore',
   'hbpCollaboratoryAppStore',
   'hbpCollaboratoryForm'

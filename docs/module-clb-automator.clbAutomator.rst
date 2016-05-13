@@ -1,8 +1,10 @@
-========================================
-Namespace: ``hbpCollaboratoryAutomator``
-========================================
+.. _module-clb-automator.clbAutomator:
 
-Member Of :doc:`hbpCollaboratory`
+===========================
+Namespace: ``clbAutomator``
+===========================
+
+Member Of :doc:`module-clb-automator`
 
 .. contents:: Local Navigation
    :local:
@@ -13,20 +15,19 @@ Children
 .. toctree::
    :maxdepth: 1
    
-   hbpCollaboratory.hbpCollaboratoryAutomator.Task
-   hbpCollaboratory.hbpCollaboratoryAutomator.Tasks
+   module-clb-automator.clbAutomator.Task
    
 Description
 ===========
 
-hbpCollaboratoryAutomator is an AngularJS factory that
+clbAutomator is an AngularJS factory that
 provide task automation to accomplish a sequence of
 common operation in Collaboratory.
 
 How to add new tasks
 --------------------
 
-New tasks can be added by calling ``hbpCollaboratoryAutomator.registerHandler``.
+New tasks can be added by calling ``clbAutomator.registerHandler``.
 
 You can see a few example of tasks in the `tasks` folder.
 
@@ -41,20 +42,6 @@ you write a descriptor and run it.
    gulp example
 
 
-
-
-Function ``registerHandler``
-============================
-
-Register a handler function for the given task name.
-
-.. js:function:: registerHandler(name, fn)
-
-    
-    :param string name: handle actions with the specified name
-    :param function fn: a function that accept the current context in
-                          parameter.
-    
 
 
 Function ``task``
@@ -77,6 +64,35 @@ can be given at load time and it will be fed with the result of each parent
     :param object descriptor.after: an array of task to run after this one
     :param object context: a default context to run the task with
     :return Task: - the new task instance
+    
+
+
+Function ``run``
+================
+
+Directly generate tasks from given description and run them.
+
+.. js:function:: run(descriptor[, context])
+
+    
+    :param object descriptor: description of the tasks to run
+    :param object context: the initial context
+    :return Promise: promise of the top level task result
+    
+
+
+Function ``createSubtasks``
+===========================
+
+Create an array of tasks given an array containing object where
+the key is the task name to run and the value is the descriptor
+parameter.
+
+.. js:function:: createSubtasks(after)
+
+    
+    :param object after: the content of ``descriptor.after``
+    :return Array/Task: array of subtasks
     
 
 
@@ -129,14 +145,14 @@ Examples
    :caption: Create a Collab with a few navigation items
 
    // Create a Collab with a few navigation items.
-   angular.module('MyModule', ['hbpCollaboratory'])
-   .run(function(hbpCollaboratoryAutomator, $log) {
+   angular.module('MyModule', ['clb-automator'])
+   .run(function(clbAutomator, $log) {
      var config = {
        title: 'My Custom Collab',
        content: 'My Collab Content',
        private: false
      };
-     hbpCollaboratoryAutomator.task(config).run().then(function(collab) {
+     clbAutomator.task(config).run().then(function(collab) {
      	 $log.info('Created Collab', collab);
      });
    })
@@ -144,7 +160,7 @@ Examples
 .. code-block:: javascript
    :caption: Create a Collab with entities and navigation items
 
-   hbpCollaboratoryAutomator.run({
+   clbAutomator.run({
      "collab": {
        "title": "Test Collab Creation",
        "content": "My Collab Description",
@@ -186,7 +202,7 @@ Examples
 .. code-block:: javascript
    :caption: Create a Collab with a pre-filled overview
 
-   hbpCollaboratoryAutomator.run({
+   clbAutomator.run({
      "collab": {
        "title": "Test Collab With Pre Filled Overview",
        "content": "Test collab creation with  a pre filled overview",

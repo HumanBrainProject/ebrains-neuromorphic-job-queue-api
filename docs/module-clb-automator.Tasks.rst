@@ -1,8 +1,10 @@
+.. _module-clb-automator.Tasks:
+
 ====================
 Namespace: ``Tasks``
 ====================
 
-Member Of :doc:`hbpCollaboratory.hbpCollaboratoryAutomator`
+Member Of :doc:`module-clb-automator`
 
 .. contents:: Local Navigation
    :local:
@@ -17,7 +19,7 @@ Children
 Description
 ===========
 
-Available tasks.
+Document a list of available tasks.
 
 
 

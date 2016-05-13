@@ -1,8 +1,9 @@
+.. _hbpCollaboratoryForm.hcFormGroupState:
+
 ===============================
 Namespace: ``hcFormGroupState``
 ===============================
 
-Member Of :doc:`hbpCollaboratoryForm`
 
 .. contents:: Local Navigation
    :local:

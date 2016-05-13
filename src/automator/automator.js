@@ -1,15 +1,43 @@
 /**
- * @namespace hbpCollaboratoryAutomator
- * @memberof hbpCollaboratory
+ * @module clb-automator
  * @desc
- * hbpCollaboratoryAutomator is an AngularJS factory that
+ * `clb-automator` module provides an automation library for the Collaboratory
+ * using the AngularJS service :ref:`clbAutomator <module-clb-automator.clbAutomator>`.
+ * It supports object describing a serie of actions that have to be run
+ * either concurrently or sequentially.
+ *
+ * It is used for example to script the creation of new custom collab in
+ * the `Create New Collab` functionality in `collaboratory-extension-core`.
+ */
+angular.module('clb-automator', [
+  'bbpConfig',
+  'hbpCommon',
+  'hbpDocumentClient',
+  'hbpCollaboratoryAppStore',
+  'hbpCollaboratoryNavStore',
+  'hbpCollaboratoryStorage'
+])
+.factory('clbAutomator', clbAutomator);
+
+/**
+ * @namespace Tasks
+ * @memberof module:clb-automator
+ * @desc
+ * Document a list of available tasks.
+ */
+
+/**
+ * @namespace clbAutomator
+ * @memberof module:clb-automator
+ * @desc
+ * clbAutomator is an AngularJS factory that
  * provide task automation to accomplish a sequence of
  * common operation in Collaboratory.
  *
  * How to add new tasks
  * --------------------
  *
- * New tasks can be added by calling ``hbpCollaboratoryAutomator.registerHandler``.
+ * New tasks can be added by calling ``clbAutomator.registerHandler``.
  *
  * You can see a few example of tasks in the `tasks` folder.
  *
@@ -23,23 +51,21 @@
  *
  *    gulp example
  *
- * @param {object} $q injected dependency
- * @return {object} hbpCollaboratoryAutomator angular service
  * @example <caption>Create a Collab with a few navigation items</caption>
  * // Create a Collab with a few navigation items.
- * angular.module('MyModule', ['hbpCollaboratory'])
- * .run(function(hbpCollaboratoryAutomator, $log) {
+ * angular.module('MyModule', ['clb-automator'])
+ * .run(function(clbAutomator, $log) {
  *   var config = {
  *     title: 'My Custom Collab',
  *     content: 'My Collab Content',
  *     private: false
  *   };
- *   hbpCollaboratoryAutomator.task(config).run().then(function(collab) {
+ *   clbAutomator.task(config).run().then(function(collab) {
  *   	 $log.info('Created Collab', collab);
  *   });
  * })
  * @example <caption>Create a Collab with entities and navigation items</caption>
- * hbpCollaboratoryAutomator.run({
+ * clbAutomator.run({
  *   "collab": {
  *     "title": "Test Collab Creation",
  *     "content": "My Collab Description",
@@ -79,7 +105,7 @@
  * });
  *
  * @example <caption>Create a Collab with a pre-filled overview</caption>
- * hbpCollaboratoryAutomator.run({
+ * clbAutomator.run({
  *   "collab": {
  *     "title": "Test Collab With Pre Filled Overview",
  *     "content": "Test collab creation with  a pre filled overview",
@@ -94,23 +120,21 @@
  * }).then(function(collab) {
  *   $log.info('Created Collab', collab);
  * });
+ * @param {object} $q injected service
+ * @param {object} $log injected service
+ * @param {object} hbpErrorService injected service
+ * @return {object} the clbAutomator Angular service singleton
  */
-angular.module('hbpCollaboratoryAutomator', [
-  'bbpConfig',
-  'hbpCommon',
-  'hbpDocumentClient',
-  'hbpCollaboratoryAppStore',
-  'hbpCollaboratoryNavStore',
-  'hbpCollaboratoryStorage'
-])
-.factory('hbpCollaboratoryAutomator', function hbpCollaboratoryAutomator(
-  $q, $log, hbpErrorService
+function clbAutomator(
+  $q,
+  $log,
+  hbpErrorService
 ) {
   var handlers = {};
 
   /**
    * Register a handler function for the given task name.
-   * @memberof hbpCollaboratory.hbpCollaboratoryAutomator
+   * @memberof module:clb-automator.clb-automator
    * @param  {string}   name handle actions with the specified name
    * @param  {Function} fn a function that accept the current context in
    *                       parameter.
@@ -118,13 +142,6 @@ angular.module('hbpCollaboratoryAutomator', [
   function registerHandler(name, fn) {
     handlers[name] = fn;
   }
-
-  /**
-   * @namespace Tasks
-   * @memberof hbpCollaboratory.hbpCollaboratoryAutomator
-   * @desc
-   * Available tasks.
-   */
 
   /**
    * Instantiate a new Task intance that will run the code describe for
@@ -135,7 +152,7 @@ angular.module('hbpCollaboratoryAutomator', [
    * can be given at load time and it will be fed with the result of each parent
    * (but not sibling) tasks as well.
    *
-   * @memberof hbpCollaboratory.hbpCollaboratoryAutomator
+   * @memberof module:clb-automator.clbAutomator
    * @param {string} name the name of the task to instantiate
    * @param {object} [descriptor] a configuration object that will determine
    *                            which task to run and in which order
@@ -165,6 +182,7 @@ angular.module('hbpCollaboratoryAutomator', [
   /**
    * Directly generate tasks from given description and run them.
    *
+   * @memberof module:clb-automator.clbAutomator
    * @param  {object} descriptor description of the tasks to run
    * @param  {object} [context]  the initial context
    * @return {Promise} promise of the top level task result
@@ -187,6 +205,7 @@ angular.module('hbpCollaboratoryAutomator', [
    * the key is the task name to run and the value is the descriptor
    * parameter.
    *
+   * @memberof module:clb-automator.clbAutomator
    * @param  {object} after the content of ``descriptor.after``
    * @return {Array/Task} array of subtasks
    * @private
@@ -209,6 +228,7 @@ angular.module('hbpCollaboratoryAutomator', [
 
   /**
    * @class Task
+   * @memberof module:clb-automator.clbAutomator
    * @desc
    * Instantiate a task given the given `config`.
    * The task can then be run using the `run()` instance method.
@@ -217,8 +237,7 @@ angular.module('hbpCollaboratoryAutomator', [
    *                            which task to run and in which order
    * @param {object} [descriptor.after] an array of task to run after this one
    * @param {object} [context] a default context to run the task with
-   * @memberof hbpCollaboratory.hbpCollaboratoryAutomator
-   * @see hbpCollaboratory.hbpCollaboratoryAutomator.task
+   * @see module:clb-automator.task
    *
    */
   function Task(name, descriptor, context) {
@@ -241,7 +260,7 @@ angular.module('hbpCollaboratoryAutomator', [
     /**
      * Launch the task.
      *
-     * @memberof hbpCollaboratory.hbpCollaboratoryAutomator.Task
+     * @memberof module:clb-automator.clbAutomator.Task
      * @param {object} context current context will be merged into the default
      *                         one.
      * @return {Promise} promise to return the result of the task
@@ -277,6 +296,7 @@ angular.module('hbpCollaboratoryAutomator', [
     /**
      * Run all subtasks of the this tasks.
      *
+     * @memberof module:clb-automator.clbAutomator.Task
      * @param  {object} context the current context
      * @return {Array}          all the results in an array
      */
@@ -291,7 +311,7 @@ angular.module('hbpCollaboratoryAutomator', [
 
   /**
    * Return a HbpError when a parameter is missing.
-   * @memberof hbpCollaboratory.hbpCollaboratoryAutomator
+   * @memberof module:clb-automator.clbAutomator
    * @param  {string} key    name of the key
    * @param  {object} config the invalid configuration object
    * @return {HbpError}      a HbpError instance
@@ -309,7 +329,7 @@ angular.module('hbpCollaboratoryAutomator', [
 
   /**
    * Ensure that all parameters listed after config are presents.
-   * @memberof hbpCollaboratory.hbpCollaboratoryAutomator
+   * @memberof module:clb-automator.clbAutomator
    * @param  {object} config task descriptor
    * @return {object} created entities
    */
@@ -327,7 +347,7 @@ angular.module('hbpCollaboratoryAutomator', [
    * Return an object that only contains attributes
    * from the `attrs` list.
    *
-   * @memberof hbpCollaboratory.hbpCollaboratoryAutomator
+   * @memberof module:clb-automator.clbAutomator
    * @param  {object} config key-value store
    * @param  {Array} attrs   a list of keys to extract from `config`
    * @return {object}        key-value store containing only keys from attrs
@@ -351,4 +371,4 @@ angular.module('hbpCollaboratoryAutomator', [
     extractAttributes: extractAttributes,
     ensureParameters: ensureParameters
   };
-});
+}

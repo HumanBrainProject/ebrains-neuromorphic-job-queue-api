@@ -32,7 +32,7 @@ angular.module('customCollabApp', [
 .controller('MainController', function(
   $log,
   $filter,
-  hbpCollaboratoryAutomator,
+  clbAutomator,
   hbpCollaboratoryAppToolkit
 ) {
   var vm = this;
@@ -48,7 +48,7 @@ angular.module('customCollabApp', [
   function handleSubmit(event) {
     event.preventDefault();
     var data = angular.fromJson(vm.configJson);
-    hbpCollaboratoryAutomator.run(data)
+    clbAutomator.run(data)
     .then(function(collab) {
       $log.info('Created Collab', collab);
       hbpCollaboratoryAppToolkit.emit('collab.open', collab);

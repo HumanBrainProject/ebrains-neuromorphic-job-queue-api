@@ -85,6 +85,20 @@ gulp.task('doc', function(done) {
   });
 });
 
+// This task is for development only.
+// It generates the HTML doc using Sphinx
+gulp.task('html-doc', ['doc'], function(done) {
+  child_process.exec([
+    'sphinx-build',
+    'docs',
+    'output'
+  ].join(' '), function(err, stdout, stderr) {
+    console.log(stdout);
+    console.log(stderr);
+    done(err);
+  });
+});
+
 gulp.task('default', ['test', 'js', 'karma:dist', 'doc']);
 
 gulp.task('test', ['karma', 'lint']);

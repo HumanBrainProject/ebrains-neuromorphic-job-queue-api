@@ -6,14 +6,14 @@ describe('storage task handler', function() {
   var entityStore;
   var storage;
 
-  beforeEach(module('hbpCollaboratoryAutomator'));
+  beforeEach(module('clb-automator'));
   beforeEach(inject(function(
     $rootScope,
-    hbpCollaboratoryAutomator,
+    clbAutomator,
     hbpEntityStore,
     hbpCollaboratoryStorage
   ) {
-    copyEntity = hbpCollaboratoryAutomator.handlers.storage;
+    copyEntity = clbAutomator.handlers.storage;
     entityStore = hbpEntityStore;
     storage = hbpCollaboratoryStorage;
     scope = $rootScope;

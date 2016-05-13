@@ -1,12 +1,12 @@
 /* eslint max-nested-callbacks: 0 */
-describe('hbpCollaboratoryAutomator', function() {
+describe('clbAutomator', function() {
   var automator;
   var scope;
   var $q;
 
-  beforeEach(module('hbpCollaboratoryAutomator'));
-  beforeEach(inject(function($rootScope, _$q_, hbpCollaboratoryAutomator) {
-    automator = hbpCollaboratoryAutomator;
+  beforeEach(module('clb-automator'));
+  beforeEach(inject(function($rootScope, _$q_, clbAutomator) {
+    automator = clbAutomator;
     scope = $rootScope;
     $q = _$q_;
   }));
@@ -124,8 +124,8 @@ describe('hbpCollaboratoryAutomator', function() {
 
   describe('extractAttributes(options, attrs)', function() {
     var extractAttributes;
-    beforeEach(inject(function(hbpCollaboratoryAutomator) {
-      extractAttributes = hbpCollaboratoryAutomator.extractAttributes;
+    beforeEach(inject(function(clbAutomator) {
+      extractAttributes = clbAutomator.extractAttributes;
     }));
 
     it('should return an object with attriutes in attrs', function() {

@@ -6,14 +6,14 @@ describe('collab task handler', function() {
   var store;
   var storeCreateReturnValue;
 
-  beforeEach(module('hbpCollaboratoryAutomator'));
+  beforeEach(module('clb-automator'));
   beforeEach(inject(function(
     $rootScope,
     $q,
-    hbpCollaboratoryAutomator,
+    clbAutomator,
     hbpCollabStore
   ) {
-    createCollab = hbpCollaboratoryAutomator.handlers.collab;
+    createCollab = clbAutomator.handlers.collab;
     store = hbpCollabStore;
     scope = $rootScope;
     data = {

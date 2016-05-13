@@ -1,8 +1,10 @@
+.. _module-clb-automator.clbAutomator.Task:
+
 ===============
 Class: ``Task``
 ===============
 
-Member Of :doc:`hbpCollaboratory.hbpCollaboratoryAutomator`
+Member Of :doc:`module-clb-automator.clbAutomator`
 
 .. contents:: Local Navigation
    :local:
@@ -34,5 +36,18 @@ Launch the task.
     :param object context: current context will be merged into the default
                             one.
     :return Promise: promise to return the result of the task
+    
+
+
+Function ``runSubtasks``
+========================
+
+Run all subtasks of the this tasks.
+
+.. js:function:: runSubtasks(context)
+
+    
+    :param object context: the current context
+    :return Array: all the results in an array
     
 

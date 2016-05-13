@@ -1,3 +1,5 @@
+.. _hbpCollaboratory.hbpCollaboratoryStorage:
+
 ======================================
 Namespace: ``hbpCollaboratoryStorage``
 ======================================

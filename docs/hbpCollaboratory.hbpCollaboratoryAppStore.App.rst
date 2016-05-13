@@ -1,3 +1,5 @@
+.. _hbpCollaboratory.hbpCollaboratoryAppStore.App:
+
 ==============
 Class: ``App``
 ==============

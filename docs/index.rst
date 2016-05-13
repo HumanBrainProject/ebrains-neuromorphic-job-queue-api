@@ -11,6 +11,7 @@ Contents
    :maxdepth: 1
 
    
+   module-clb-automator
    hbpCollaboratory
    
 README
@@ -19,17 +20,21 @@ README
    ------------------------
 
 angular-hbp-collaboratory is a collection of AngularJS module to
-develop applications that use HBP Collaboratory.
+develop applications for the HBP Collaboratory.
 
-At the moment the libraries depends on code that is not hosted on Github so
+At the moment, the libraries depends on code that is not hosted on Github so
 it requires an EPFL account. Those dependencies should be released during
 summer 2016.
 
 Presentation
 ============
 
+
 Services
 --------
+
+hbpCollaboratory core is an empty shell that wrap all available submodules
+to develop and AngularJS application based on the HBP Collaboratory.
 
 - :doc:`hbpCollaboratory.hbpCollaboratoryStorage` is a service for interacting
   with a collab storage and linking nav items to storage entities.
@@ -37,8 +42,7 @@ Services
   with a collab
 - :doc:`hbpCollaboratory.hbpCollaboratoryAppStore` is a service for interacting
   with registered application
-- :doc:`hbpCollaboratory.hbpCollaboratoryAutomator` let you automate
-  HBP Collaboratory related tasks
+- :doc:`clb-automator` let you automate HBP Collaboratory related tasks
 
 Contributing
 ============

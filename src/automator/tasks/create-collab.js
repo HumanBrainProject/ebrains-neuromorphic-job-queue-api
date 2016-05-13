@@ -1,13 +1,13 @@
-angular.module('hbpCollaboratoryAutomator')
+angular.module('clb-automator')
 .run(function createCollab(
   $log, $q, hbpCollabStore,
-  hbpCollaboratoryAutomator
+  clbAutomator
 ) {
-  hbpCollaboratoryAutomator.registerHandler('collab', createCollab);
+  clbAutomator.registerHandler('collab', createCollab);
 
   /**
    * @function createCollab
-   * @memberof hbpCollaboratory.hbpCollaboratoryAutomator.Tasks
+   * @memberof module:clb-automator.Tasks
    * @desc
    *  Create a collab defined by the given options.
    * @param {object} descriptor - Parameters to create the collab
@@ -20,7 +20,7 @@ angular.module('hbpCollaboratoryAutomator')
    * @return {Promise} - promise of a collab
    */
   function createCollab(descriptor) {
-    var attr = hbpCollaboratoryAutomator.extractAttributes(
+    var attr = clbAutomator.extractAttributes(
       descriptor,
       ['title', 'content', 'private']
     );

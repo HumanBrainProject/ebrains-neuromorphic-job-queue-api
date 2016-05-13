@@ -8,17 +8,17 @@ describe('overview task handler', function() {
   var fileStore;
   var q;
 
-  beforeEach(module('hbpCollaboratoryAutomator'));
+  beforeEach(module('clb-automator'));
   beforeEach(inject(function(
     $rootScope,
     $httpBackend,
     $q,
-    hbpCollaboratoryAutomator,
+    clbAutomator,
     hbpCollaboratoryNavStore,
     hbpFileStore
   ) {
     backend = $httpBackend;
-    overview = hbpCollaboratoryAutomator.handlers.overview;
+    overview = clbAutomator.handlers.overview;
     scope = $rootScope;
     navStore = hbpCollaboratoryNavStore;
     fileStore = hbpFileStore;

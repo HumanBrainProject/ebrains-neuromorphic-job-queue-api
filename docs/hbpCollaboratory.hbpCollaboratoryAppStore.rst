@@ -1,3 +1,5 @@
+.. _hbpCollaboratory.hbpCollaboratoryAppStore:
+
 =======================================
 Namespace: ``hbpCollaboratoryAppStore``
 =======================================

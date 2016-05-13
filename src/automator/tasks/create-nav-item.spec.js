@@ -8,16 +8,16 @@ describe('nav task handler', function() {
   var appStore;
   var storage;
 
-  beforeEach(module('hbpCollaboratoryAutomator'));
+  beforeEach(module('clb-automator'));
   beforeEach(inject(function(
     $rootScope,
     hbpEntityStore,
-    hbpCollaboratoryAutomator,
+    clbAutomator,
     hbpCollaboratoryNavStore,
     hbpCollaboratoryAppStore,
     hbpCollaboratoryStorage
   ) {
-    createNavItem = hbpCollaboratoryAutomator.handlers.nav;
+    createNavItem = clbAutomator.handlers.nav;
     entityStore = hbpEntityStore;
     navStore = hbpCollaboratoryNavStore;
     appStore = hbpCollaboratoryAppStore;

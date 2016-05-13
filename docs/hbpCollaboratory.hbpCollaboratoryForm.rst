@@ -1,3 +1,5 @@
+.. _hbpCollaboratory.hbpCollaboratoryForm:
+
 ===================================
 Namespace: ``hbpCollaboratoryForm``
 ===================================

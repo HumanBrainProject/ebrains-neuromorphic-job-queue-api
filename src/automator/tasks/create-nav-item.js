@@ -1,17 +1,17 @@
-angular.module('hbpCollaboratoryAutomator')
+angular.module('clb-automator')
 .run(function createNavItem(
   $log,
   hbpCollaboratoryAppStore,
   hbpCollaboratoryNavStore,
-  hbpCollaboratoryAutomator,
+  clbAutomator,
   hbpCollaboratoryStorage,
   hbpEntityStore
 ) {
-  hbpCollaboratoryAutomator.registerHandler('nav', createNavItem);
+  clbAutomator.registerHandler('nav', createNavItem);
 
   /**
    * Create a new nav item.
-   * @memberof hbpCollaboratory.hbpCollaboratoryAutomator.Tasks
+   * @memberof module:clb-automator.Tasks
    * @param {object} descriptor a descriptor description
    * @param {string} descriptor.name name of the nav item
    * @param {Collab} descriptor.collabId collab in which to add the item in.
@@ -60,7 +60,7 @@ angular.module('hbpCollaboratoryAutomator')
 
     $log.debug('Create nav item', descriptor, context);
 
-    return hbpCollaboratoryAutomator.ensureParameters(descriptor, 'app', 'name')
+    return clbAutomator.ensureParameters(descriptor, 'app', 'name')
     .then(function() {
       return findApp(descriptor.app)
       .then(createNav)

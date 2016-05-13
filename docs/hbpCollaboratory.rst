@@ -1,3 +1,5 @@
+.. _hbpCollaboratory:
+
 ===============================
 Namespace: ``hbpCollaboratory``
 ===============================
@@ -12,7 +14,6 @@ Children
 .. toctree::
    :maxdepth: 1
    
-   hbpCollaboratory.hbpCollaboratoryAutomator
    hbpCollaboratory.hbpCollaboratoryForm
    hbpCollaboratory.hbpCollaboratoryAppStore
    hbpCollaboratory.hbpCollaboratoryNavStore
