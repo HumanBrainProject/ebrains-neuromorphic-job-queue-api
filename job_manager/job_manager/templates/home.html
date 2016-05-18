@@ -1,0 +1,55 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Neuromorphic Platform Interface</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width">
+
+    {# Bower Dependencies #}
+    <link rel="stylesheet" href="{% static 'hbp-collaboratory-theme/dist/css/bootstrap.css' %}">
+    <link rel="stylesheet" href="{% static 'nmpi/css/app.css' %}">
+
+    <base href="/">
+</head>
+<body>
+    <div>
+        <div ng-show="!with_ctx" style="padding-bottom:30px;">
+            <div class="navbar navbar-inverse navbar-fixed-top">
+                <div class="navbar-inner">
+                    <div class="container">
+                        <img src="{% static 'nmpi/img/hbp_diamond_120.png' %}" alt="Human Brain Project" style="height:45px; padding: 5px;">
+                        <span style="color:white; font-size:15px; font-weight:bold;">Neuromorphic Computing Platform</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <ui-view>
+            <i>Some content will load here. Refresh the page if nothing loads within a few seconds.</i>
+        </ui-view>
+    </div>
+
+    {# Bower Dependencies #}
+    <script type="text/javascript" src="{% static 'jquery/dist/jquery.min.js' %}"></script>
+    <script type="text/javascript" src="{% static 'lodash/lodash.min.js' %}"></script>
+    <script type="text/javascript" src="{% static 'angular/angular.js' %}"></script>
+    <script type="text/javascript" src="{% static 'angular-bootstrap/ui-bootstrap-tpls.min.js' %}"></script>
+    <script type="text/javascript" src="{% static 'angular-bbp-config/angular-bbp-config.js' %}"></script>
+    <script type="text/javascript" src="{% static 'bbp-oidc-client/angular-bbp-oidc-client.js' %}"></script>
+    <script type="text/javascript" src="{% static 'angular-ui-router/release/angular-ui-router.min.js' %}"></script>
+    <script type="text/javascript" src="{% static 'angular-resource/angular-resource.min.js' %}"></script>
+    <script type="text/javascript" src="{% static 'marked-hbp/marked.min.js' %}"></script>
+    <script type="text/javascript" src="{% static 'angular-hbp-common/dist/angular-hbp-common.min.js' %}"></script>
+
+    {# App Specific #}
+    <script type="text/javascript" src="{% static 'nmpi/app.js' %}"></script>
+    <script type="text/javascript" src="{% static 'nmpi/dataitem/model.js' %}"></script>
+    <script type="text/javascript" src="{% static 'nmpi/collab/model.js' %}"></script>
+    <script type="text/javascript" src="{% static 'nmpi/user/model.js' %}"></script>
+    <script type="text/javascript" src="{% static 'nmpi/queue/model.js' %}"></script>
+    <script type="text/javascript" src="{% static 'nmpi/queue/controllers.js' %}"></script>
+
+</body>
+</html>

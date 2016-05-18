@@ -1,0 +1,3 @@
+image: tutum/postgresql
+ports:
+  5432: null

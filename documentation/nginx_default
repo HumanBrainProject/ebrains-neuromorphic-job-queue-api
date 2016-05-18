@@ -1,0 +1,42 @@
+server {
+    listen 443 ssl;
+
+    server_name www.hbpneuromorphic.eu;
+
+    ssl_certificate /etc/letsencrypt/live/www.hbpneuromorphic.eu/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/www.hbpneuromorphic.eu/privkey.pem;
+
+    location / {
+        root   /usr/share/nginx/html;
+        index  index.html index.htm;
+    }
+}
+
+server {
+    listen 443 ssl;
+
+    server_name www-staging.hbpneuromorphic.eu;
+
+    ssl_certificate /etc/letsencrypt/live/www-staging.hbpneuromorphic.eu/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/www-staging.hbpneuromorphic.eu/privkey.pem;
+
+    location / {
+        root   /usr/share/nginx/html;
+        index  index.html index.htm;
+    }
+}
+
+server {
+    listen 443 ssl;
+
+    server_name www-dev.hbpneuromorphic.eu;
+
+    ssl_certificate /etc/letsencrypt/live/www-dev.hbpneuromorphic.eu/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/www-dev.hbpneuromorphic.eu/privkey.pem;
+
+    location / {
+        root   /usr/share/nginx/html;
+        index  index.html index.htm;
+    }
+}
+

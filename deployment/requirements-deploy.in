@@ -1,0 +1,15 @@
+# To generate the requirements file, run
+#
+#    pip-compile --output-file deployment/requirements-deploy.txt deployment/requirements-deploy.in
+#
+# from the project directory.
+
+click
+python-digitalocean
+spur
+tabulate
+sphinx
+nose
+gitpython
+pyyaml
+hbp_sphinx_theme

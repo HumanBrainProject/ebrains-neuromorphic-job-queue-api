@@ -1,0 +1,13 @@
+<div class="panel panel-default">
+  <div class="panel-heading"><h4 class="panel-title">Abstract</h4></div>
+  <div class="panel-body" ng-bind-html="project.abstract|hbpMarkdown">
+  </div>
+</div>
+
+<div class="panel panel-default">
+  <div class="panel-heading"><h4 class="panel-title">Project description</h4></div>
+  <div class="panel-body" ng-bind-html="project.description|hbpMarkdown">
+  </div>
+</div>
+
+<p><span class="label label-default"><b>Request #</b> {{project.context}}</span></p>

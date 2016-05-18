@@ -4,7 +4,7 @@ HBP Neuromorphic Computing Platform
 
 This repository contains code related to the Human Brain Project Neuromorphic Computing Platform.
 
-There are N main components:
+There are 6 main components:
 
     (1) Job queue service
 
@@ -12,16 +12,19 @@ There are N main components:
 
     (2) Job manager app
 
-        An Angular application which provides a Collaboratory app for the job queue service.
+        An AngularJS application which provides a Collaboratory app for the job queue service.
 
-    (3) Python client
+    (3) Quota service
 
-        A Python client for communicating with the job queue server. This will probably be moved to
-        a public Github repository under an open source licence.
+        This is a Django project which provides a REST API implemented in the quotas app.
 
-    (4) Quota service
+    (4) Resource manager app
 
-    (5) Resource manager app
+        An AngularJS application which provides a Collaboratory app for the quota service.
+
+    (5) Resource manager coordinator app
+
+        An AngularJS application which provides a Collaboratory app for administration of the quota service.
 
     (6) Documentation for developers
 

@@ -1,0 +1,69 @@
+
+<div class="container-fluid">
+
+  <div class="row-fluid">
+
+    <div ng-show="msg.show" class="alert alert-{{msg.css}} alert-dismissible">
+      <button type="button" class="close" ng-click="msg.show=false" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+      {{msg.text}}
+    </div>
+
+    <div class="panel-body">
+
+      <h3>Create Job</h3>
+      <form name="create_job" novalidate role="form" class="form-horizontal" ng-controller="AddJob">
+
+      <div class="control-group">
+          <label class="control-label" for="hardware_platform">Hardware Platform</label>
+          <div class="controls">
+              <select name="platform" ng-options="hw.value as hw.text for hw in hardwares" ng-model="job.hardware_platform" required></select>
+              <span class="badge" ng-show="create_job.platform.$error.required">Please choose a simulation platform.</span>
+          </div>
+      </div>
+
+      <div class="control-group">
+          <label class="control-label" for="code">Code</label>
+          <div name="code" class="controls">
+            <textarea id="code" name="code" rows="5" ng-model="job.code" required style="width:100%"></textarea>
+            <span class="badge" ng-show="create_job.code.$error.required">Please enter PyNN code, a Git repository URL or the URL of a zip archive containing your code.</span>
+          </div>
+      </div>
+
+      <div class="control-group">
+          <label class="control-label" for="command">Command</label>
+          <div name="command" class="controls">
+            <input type="text" class="form-control" id="command" name="command" ng-model="job.command">
+          </div>
+      </div>
+
+      <div class="control-group">
+          <label class="control-label" for="hardware_config">Hardware Config</label>
+          <div class="controls">
+            <textarea id="hardware_config" name="hardware_config" rows="5" ng-model="job.hardware_config" style="width:100%"></textarea>
+            <span class="badge" ng-show="checkJSON()">Please enter valid JSON.</span>
+          </div>
+      </div>
+
+      <div class="control-group">
+          <label class="control-label" for="inputs">
+            Input Files 
+            <a href="" ng-click="addInput()" class="glyphicon glyphicon-plus"></a>
+            <a href="" ng-click="removeInput()" class="glyphicon glyphicon-minus"></a>
+          </label>
+          <div class="controls" data-ng-repeat="input in inputs">
+            <input type="text" ng-model="input.url" name="" placeholder="file URL">
+          </div>
+      </div>
+
+      <br/>
+
+      <div class="control-group">
+          <button ng-click="reset()" class="btn btn-warning">Cancel</button>
+          <button ng-click="create_job.$valid && submit(job)" class="btn btn-info" style="float:right;">Submit</button>
+      </div>
+      </form>
+
+    </div>
+  </div>
+
+</div>

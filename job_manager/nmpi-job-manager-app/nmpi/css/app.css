@@ -1,0 +1,51 @@
+/* app css stylesheet */
+
+body {
+  padding-top: 20px;
+}
+
+ul.specs {
+  clear: both;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+ul.specs > li{
+  display: inline-block;
+  width: 200px;
+  vertical-align: top;
+}
+
+ul.specs > li > span{
+  font-weight: bold;
+  font-size: 1.2em;
+}
+
+ul.specs dt {
+  font-weight: bold;
+}
+
+h1 {
+  border-bottom: 1px solid gray;
+  margin-bottom: 20px;
+}
+
+.nav
+{
+  margin-bottom: 0px;
+}
+
+.dl-horizontal dd {
+  min-height: 18px;
+}
+
+.over {
+  z-index: 1100;
+}
+
+td code {
+    color: black;
+    border: none;
+    background-color: none;
+}

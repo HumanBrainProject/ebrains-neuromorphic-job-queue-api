@@ -1,0 +1,57 @@
+{% load static %}
+
+<!doctype html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <title>Dashboard : Human Brain Project : Neuromorphic Computing Platform</title>
+
+    <link rel="stylesheet" href="{% static 'hbp-collaboratory-theme/dist/css/bootstrap.css' %}">
+    <link href="{% static 'c3/c3.min.css' %}" rel="stylesheet" type="text/css">
+</head>
+
+<body>
+<div class="container-fluid">
+
+<h3>Length of queues</h3>
+<div id="chart-queue-length" class="row"></div>
+
+<h3>Completed jobs per week</h3>
+<div id="chart-job-count" class="row"></div>
+
+<h3>Completed jobs (cumulative)</h3>
+<div id="chart-cumulative-job-count" class="row"></div>
+
+<h3>Platform users</h3>
+<div id="chart-cumulative-user-count" class="row"></div>
+
+<h3>Job duration</h3>
+<div class="row">
+    <div class="col-xs-6">
+        <div id="chart-job-duration-spinnaker" ></div>
+    </div>
+    <div class="col-xs-6">
+        <div id="chart-job-duration-brainscales"></div>
+    </div>
+</div>
+<div class="row">
+    <div class="col-xs-6">
+        <div id="chart-job-duration-spikey" ></div>
+    </div>
+    <div class="col-xs-6">
+    </div>
+</div>
+
+</div> <!-- /container-fluid -->
+
+<script src="{% static 'd3/d3.min.js' %}"></script>
+<script src="{% static 'c3/c3.min.js' %}"></script>
+<script src="{% static 'nmpi-dashboard/queue-length.js' %}"></script>
+<script src="{% static 'nmpi-dashboard/job-count.js' %}"></script>
+<script src="{% static 'nmpi-dashboard/cumulative-job-count.js' %}"></script>
+<script src="{% static 'nmpi-dashboard/cumulative-user-count.js' %}"></script>
+<script src="{% static 'nmpi-dashboard/job-duration.js' %}"></script>
+
+</body>
+</html>
