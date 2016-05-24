@@ -138,7 +138,7 @@ function clbApp(
     }
     emit('workspace.context', data)
     .then(function(context) {
-      clearTimeout(kill);
+      $timeout.cancel(kill);
       currentContext = context;
       d.resolve(context);
     })
