@@ -1,7 +1,7 @@
-.. _undefined.hbpCollaboratoryForm:
+.. _undefined.clb-form:
 
 ===================================
-Namespace: ``hbpCollaboratoryForm``
+Namespace: ``clb-form``
 ===================================
 
 
@@ -18,7 +18,7 @@ Children
 Description
 ===========
 
-hbpCollaboratoryForm provides directive to ease creation of forms.
+clb-form provides directive to ease creation of forms.
 
 
 

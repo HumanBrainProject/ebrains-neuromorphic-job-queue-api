@@ -1,9 +1,9 @@
-describe('hbpCollaboratoryForm hcf-form-control-focus directive', function() {
+describe('clb-form hcf-form-control-focus directive', function() {
   var compile;
   var scope;
   var timeout;
 
-  beforeEach(module('hbpCollaboratoryForm'));
+  beforeEach(module('clb-form'));
 
   beforeEach(inject(function($compile, $rootScope, $timeout) {
     compile = $compile;

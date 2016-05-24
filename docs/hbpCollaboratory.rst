@@ -12,7 +12,7 @@ Children
 .. toctree::
    :maxdepth: 1
    
-   hbpCollaboratory.hbpCollaboratoryForm
+   hbpCollaboratory.clb-form
    hbpCollaboratory.hbpCollaboratoryAppStore
    hbpCollaboratory.hbpCollaboratoryNavStore
    hbpCollaboratory.hbpCollaboratoryStorage

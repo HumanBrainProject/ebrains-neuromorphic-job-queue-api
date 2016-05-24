@@ -1,8 +1,8 @@
 /**
  * @namespace hcFormGroupState
- * @memberof hbpCollaboratoryForm
+ * @memberof clb-form
  * @desc
- * ``hcfFormGroupState`` directive flag the current form group with
+ * ``clbFormGroupState`` directive flag the current form group with
  * the class has-error or has-success depending on its form field
  * current state.
  *
@@ -10,12 +10,12 @@
  * <caption>Track a field validity at the ``.form-group`` level</caption>
  * angular.module('exampleApp', ['hbpCollaboratory']);
  */
-angular.module('hbpCollaboratoryForm')
-.directive('hcfFormGroupState', function formGroupState() {
+angular.module('clb-form')
+.directive('clbFormGroupState', function formGroupState() {
   return {
     type: 'A',
     scope: {
-      model: '=hcfFormGroupState'
+      model: '=clbFormGroupState'
     },
     link: function formGroupStateLink(scope, elt) {
       scope.$watchGroup(['model.$touched', 'model.$valid'], function() {

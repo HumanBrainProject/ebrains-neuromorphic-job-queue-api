@@ -18,7 +18,7 @@ Children
 Description
 ===========
 
-``hcfFormGroupState`` directive flag the current form group with
+``clbFormGroupState`` directive flag the current form group with
 the class has-error or has-success depending on its form field
 current state.
 

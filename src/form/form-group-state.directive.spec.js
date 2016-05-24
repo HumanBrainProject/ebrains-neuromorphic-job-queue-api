@@ -1,4 +1,4 @@
-describe('hbpCollaboratoryForm hc-form-group-state directive', function() {
+describe('clb-form-group-state directive', function() {
   var compile;
   var scope;
   var element;
@@ -6,14 +6,14 @@ describe('hbpCollaboratoryForm hc-form-group-state directive', function() {
   var div;
   var input;
 
-  beforeEach(module('hbpCollaboratoryForm'));
+  beforeEach(module('clb-form'));
   beforeEach(inject(function($compile, $rootScope) {
     compile = $compile;
     scope = $rootScope;
     scope.theModel = {attr: null};
     element = compile(
       '<form name="form">' +
-      '<div class="form-group" hcf-form-group-state="form.attr">' +
+      '<div class="form-group" clb-form-group-state="form.attr">' +
       '  <input name="attr" type="text" ng-model="theModel.attr" ' +
       '         ng-required="true">' +
       '</div>' +

@@ -1,6 +1,6 @@
 /**
  * @namespace hcFormControlFocus
- * @memberof hbpCollaboratoryForm
+ * @memberof clb-form
  * @desc
  * The ``hcFormControlFocus`` Directive mark a form element as the one that
  * should receive the focus first.
@@ -10,7 +10,7 @@
  * // HTML snippet:
  * // <form ng-app="exampleApp"><input type="search" hc-form-control-focus></form>
  */
-angular.module('hbpCollaboratoryForm')
+angular.module('clb-form')
 .directive('hcfFormControlFocus', function hcfFormControlFocus($timeout) {
   return {
     type: 'A',

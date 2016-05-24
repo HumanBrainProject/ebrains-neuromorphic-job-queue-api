@@ -1,4 +1,24 @@
 /**
+ * @namespace hbpCollaboratory
+ * @desc
+ * ``hbpCollaboratory`` module is a shell around various AngularJS modules that
+ *  interface with the HBP Collaboratory.
+ *
+ * - :doc:`clb-app <module:clb-app>` provides utilities to retrieve current
+ *   HBP Collaboratory Context in an app and to communicate with the current
+ *   Collaboratory instance.
+ * - :doc:`clb-automator <module:clb-automator>` to automate a serie of
+ *   Collaboratory actions
+ */
+angular.module('hbpCollaboratory', [
+  'clb-automator',
+  'clb-app',
+  'hbpCollaboratoryNavStore',
+  'hbpCollaboratoryAppStore',
+  'clb-form'
+]);
+
+/**
  * @module clb-app
  * @desc
  * ``clb-app`` module provides utilities to retrieve current
@@ -18,7 +38,6 @@ angular.module('clb-app', ['hbpCommon']);
  * It is used for example to script the creation of new custom collab in
  * the `Create New Collab` functionality in `collaboratory-extension-core`.
  */
-clbAutomator.$inject = ['$q', '$log', 'hbpErrorService'];
 angular.module('clb-automator', [
   'bbpConfig',
   'hbpCommon',
@@ -26,7 +45,171 @@ angular.module('clb-automator', [
   'hbpCollaboratoryAppStore',
   'hbpCollaboratoryNavStore',
   'hbpCollaboratoryStorage'
-])
+]);
+
+/**
+ * @namespace clb-form
+ * @memberof hbpCollaboratory
+ * @desc
+ * clb-form provides directive to ease creation of forms.
+ */
+angular.module('clb-form', []);
+
+
+clbApp.$inject = ['$q', '$rootScope', '$timeout', '$window', 'hbpErrorService'];angular.module('clb-app')
+.factory('clbApp', clbApp);
+
+/**
+ * @namespace clbApp
+ * @memberof module:clb-app
+ * @desc
+ * An AngularJS service to interface a web application with the HBP Collaboratory.
+ * This library provides a few helper to work within the Collaboratory environment.
+ *
+ * Usage
+ * -----
+ *
+ * - :ref:`module-clb-app.clbApp.context` is used to set and retrieve
+ *   the current context.
+ * - :ref:`module-clb-app.clbApp.emit` is used to send a command
+ *   to the HBP Collaboratory and wait for its answer.
+ *
+ * @example <caption>Retrieve the current context object</caption>
+ * clbApp.context()
+ * .then(function(context) {
+ *   console.log(context.ctx, context.state, context.collab);
+ * })
+ * .catch(function(err) {
+ *   // Cannot set the state
+ * });
+ *
+ * @example <caption>Set the current state in order for a user to be able to copy-paste its current URL and reopen the same collab with your app loaded at the same place.</caption>
+ * clbApp.context({state: 'lorem ipsum'})
+ * .then(function(context) {
+ *   console.log(context.ctx, context.state, context.collab);
+ * })
+ * .catch(function(err) {
+ *   // Cannot set the state
+ * });
+ *
+ * @param  {object} $q AngularJS service injection
+ * @param  {object} $rootScope AngularJS service injection
+ * @param  {object} $timeout AngularJS service injection
+ * @param  {object} $window AngularJS service injection
+ * @param  {object} hbpErrorService AngularJS service injection
+ * @return {object}         the service singleton
+ */
+function clbApp(
+  $q,
+  $rootScope,
+  $timeout,
+  $window,
+  hbpErrorService
+) {
+  'use strict';
+  var eventId = 0;
+  var sentMessages = {};
+
+  /**
+   * @module hbpCollaboratoryAppToolkit
+   */
+  function AppToolkit() { }
+  AppToolkit.prototype = {
+    emit: emit,
+    context: context
+  };
+
+  $window.addEventListener('message', function(event) {
+    $rootScope.$emit('message', event.data);
+  });
+
+  $rootScope.$on('message', function(event, message) {
+    if (!message || !message.origin || !sentMessages[message.origin]) {
+      return;
+    }
+    if (message.eventName === 'resolved') {
+      sentMessages[message.origin].resolve(message.data);
+    } else if (message.eventName === 'error') {
+      sentMessages[message.origin].reject(hbpErrorService.error(message.data));
+    }
+    sentMessages[message.origin] = null;
+  });
+
+  /**
+   * Send a message to the HBP Collaboratory.
+   * @memberof module:clb-app.clbApp
+   * @param  {string} name name of the event to be propagated
+   * @param  {object} data corresponding data to be sent alongside the event
+   * @return  {Promise} resolve with the message response
+   */
+  function emit(name, data) {
+    eventId++;
+    sentMessages[eventId] = $q.defer();
+    var promise = sentMessages[eventId].promise;
+    $window.parent.postMessage({
+      apiVersion: 1,
+      eventName: name,
+      data: data,
+      ticket: eventId
+    }, '*');
+    return promise;
+  }
+
+  var currentContext;
+
+  /**
+   * @typedef HbpCollaboratoryContext
+   * @memberof module:clb-app.clbApp
+   * @type {object}
+   * @property {string} mode - the current mode, either 'run' or 'edit'
+   * @property {string} ctx - the UUID of the current context
+   * @property {string} state - an application defined state string
+   */
+
+   /**
+    * @memberof module:clb-app.clbApp
+    * @desc
+    * Asynchronously retrieve the current HBP Collaboratory Context, including
+    * the mode, the ctx UUID and the application state if any.
+    * @function context
+    * @param {object} data new values to send to HBP Collaboratory frontend
+    * @return {Promise} resolve to the context
+    * @static
+    */
+  function context(data) {
+    var d = $q.defer();
+    var kill = $timeout(function() {
+      d.reject(hbpErrorService.error({
+        type: 'TimeoutException',
+        message: 'No context can be retrieved'
+      }));
+    }, 250);
+
+    if (data) {
+      // discard context if new data should be set.
+      currentContext = null;
+    }
+
+    if (currentContext) {
+      // directly return context when cached.
+      return d.resolve(currentContext);
+    }
+    emit('workspace.context', data)
+    .then(function(context) {
+      clearTimeout(kill);
+      currentContext = context;
+      d.resolve(context);
+    })
+    .catch(function(err) {
+      d.reject(hbpErrorService.error(err));
+    });
+    return d.promise;
+  }
+  return new AppToolkit();
+}
+
+
+clbAutomator.$inject = ['$q', '$log', 'hbpErrorService'];angular.module('clb-automator')
 .factory('clbAutomator', clbAutomator);
 
 /**
@@ -383,13 +566,282 @@ function clbAutomator(
   };
 }
 
+angular.module('clb-automator')
+.run(['$log', '$q', 'hbpCollabStore', 'clbAutomator', function createCollab(
+  $log, $q, hbpCollabStore,
+  clbAutomator
+) {
+  clbAutomator.registerHandler('collab', createCollab);
+
+  /**
+   * @function createCollab
+   * @memberof module:clb-automator.Tasks
+   * @desc
+   *  Create a collab defined by the given options.
+   * @param {object} descriptor - Parameters to create the collab
+   * @param {string} descriptor.name - Name of the collab
+   * @param {string} descriptor.description - Description in less than 140 characters
+   *                                       of the collab
+   * @param {string} [descriptor.privacy] - 'private' or 'public'. Notes that only
+   *                                   HBP Members can create private collab
+   * @param {Array} [after] - descriptor of subtasks
+   * @return {Promise} - promise of a collab
+   */
+  function createCollab(descriptor) {
+    var attr = clbAutomator.extractAttributes(
+      descriptor,
+      ['title', 'content', 'private']
+    );
+    $log.debug('Create collab', descriptor);
+    return hbpCollabStore.create(attr);
+  }
+}]);
+
+angular.module('clb-automator')
+.run(['$log', 'hbpCollaboratoryAppStore', 'hbpCollaboratoryNavStore', 'clbAutomator', 'hbpCollaboratoryStorage', 'hbpEntityStore', function createNavItem(
+  $log,
+  hbpCollaboratoryAppStore,
+  hbpCollaboratoryNavStore,
+  clbAutomator,
+  hbpCollaboratoryStorage,
+  hbpEntityStore
+) {
+  clbAutomator.registerHandler('nav', createNavItem);
+
+  /**
+   * Create a new nav item.
+   * @memberof module:clb-automator.Tasks
+   * @param {object} descriptor a descriptor description
+   * @param {string} descriptor.name name of the nav item
+   * @param {Collab} descriptor.collabId collab in which to add the item in.
+   * @param {string} descriptor.app app name linked to the nav item
+   * @param {object} [context] the current run context
+   * @param {object} [context.collab] a collab instance created previously
+   * @return {Promise} promise of a NavItem instance
+   */
+  function createNavItem(descriptor, context) {
+    var collabId = function() {
+      return (descriptor && descriptor.collab) ||
+        (context && context.collab.id);
+    };
+    var findApp = function(app) {
+      return hbpCollaboratoryAppStore.findOne({title: app});
+    };
+    var createNav = function(app) {
+      return hbpCollaboratoryNavStore.getRoot(collabId())
+      .then(function(parentItem) {
+        return hbpCollaboratoryNavStore.addNode(collabId(),
+          new hbpCollaboratoryNavStore.NavItem({
+            collab: collabId(),
+            name: descriptor.name,
+            appId: app.id,
+            parentId: parentItem.id
+          })
+        );
+      });
+    };
+    var linkToStorage = function(nav) {
+      if (!descriptor.entity) {
+        return nav;
+      }
+      var setLink = function(entity) {
+        return hbpCollaboratoryStorage.setContextMetadata(entity, nav.context)
+        .then(function() {
+          return nav;
+        });
+      };
+      // It might be the name used in a previous storage task.
+      if (context && context.storage && context.storage[descriptor.entity]) {
+        return setLink(context.storage[descriptor.entity]);
+      }
+      return hbpEntityStore.get(descriptor.entity).then(setLink);
+    };
+
+    $log.debug('Create nav item', descriptor, context);
+
+    return clbAutomator.ensureParameters(descriptor, 'app', 'name')
+    .then(function() {
+      return findApp(descriptor.app)
+      .then(createNav)
+      .then(linkToStorage);
+    });
+  }
+}]);
+
+angular.module('clb-automator')
+.run(['$log', '$q', '$http', 'bbpConfig', 'hbpFileStore', 'hbpErrorService', 'clbAutomator', 'hbpCollaboratoryNavStore', function createOverview(
+  $log, $q, $http, bbpConfig, hbpFileStore, hbpErrorService,
+  clbAutomator, hbpCollaboratoryNavStore
+) {
+  clbAutomator.registerHandler('overview', overview);
+
+  /**
+   * Set the content of the overview page using
+   * the content of a file in storage.
+   *
+   * The collab is indicated either by an id in `descriptor.collab` or a
+   * collab object in `context.collab`.
+   *
+   * @memberof module:clb-automator.Tasks
+   * @param {object} descriptor the task configuration
+   * @param {object} [descriptor.collab] id of the collab
+   * @param {string} descriptor.entity either a label that can be found in
+   *                 ``context.entities`` or a FileEntity UUID
+   * @param {object} context the current task context
+   * @param {object} [context.collab] the collab in which entities will be copied
+   * @param {object} [context.entities] a list of entities to lookup in for
+   *                   descriptor.entiry value
+   * @return {object} created entities where keys are the same as provided in
+   *                  config.storage
+   */
+  function overview(descriptor, context) {
+    $log.debug("Fill overview page with content from entity");
+    var fetch = {
+      rootNav: hbpCollaboratoryNavStore.getRoot(
+        descriptor.collab || context.collab.id),
+      source: fetchSourceContent(descriptor, context)
+    };
+    return $q.all(fetch)
+    .then(function(results) {
+      var overview = results.rootNav.children[0];
+      return $http.post(bbpConfig.get('api.richtext.v0') + '/richtext/', {
+        ctx: overview.context,
+        raw: results.source
+      }).then(function() {
+        return overview;
+      });
+    });
+  }
+
+  /**
+   * Download file entity content.
+   *
+   * @param {object} descriptor the task configuration
+   * @param {string} descriptor.entity either the label to find in
+   *                 ``context.entities`` or a the entity UUID.
+   * @param {object} context the current task context
+   * @param {object} context.entities optional entities in which to lookup for one
+   * @return {Promise} the promise of the entity content string
+   * @private
+   */
+  function fetchSourceContent(descriptor, context) {
+    var uuid;
+    if (context && context.entities && context.entities[descriptor.entity]) {
+      uuid = context.entities[descriptor.entity]._uuid;
+    } else {
+      uuid = descriptor.entity;
+    }
+    return hbpFileStore.getContent(uuid);
+  }
+}]);
+
+angular.module('clb-automator')
+.run(['$log', '$q', 'hbpEntityStore', 'hbpErrorService', 'clbAutomator', 'hbpCollaboratoryStorage', function createStorage(
+  $log, $q, hbpEntityStore,
+  hbpErrorService,
+  clbAutomator,
+  hbpCollaboratoryStorage
+) {
+  clbAutomator.registerHandler('storage', storage);
+
+  /**
+   * Copy files and folders to the destination collab storage.
+   *
+   * @memberof module:clb-automator.Tasks
+   * @param {object} descriptor the task configuration
+   * @param {object} descriptor.storage a object where keys are the file path in the
+   *                                new collab and value are the UUID of the
+   *                                entity to copy at this path.
+   * @param {object} [descriptor.collab] id of the collab
+   * @param {object} context the current task context
+   * @param {object} [context.collab] the collab in which entities will be copied
+   * @return {object} created entities where keys are the same as provided in
+   *                  config.storage
+   */
+  function storage(descriptor, context) {
+    return clbAutomator.ensureParameters(
+      descriptor, 'entities'
+    ).then(function() {
+      return hbpCollaboratoryStorage
+        .getProjectByCollab(descriptor.collab || context.collab.id)
+        .then(function(projectEntity) {
+          var promises = {};
+          angular.forEach(descriptor.entities, function(value, name) {
+            if (angular.isString(value)) {
+              $log.debug("Copy entity with UUID", value);
+              promises[name] = (
+                hbpEntityStore.copy(value, projectEntity._uuid));
+            } else {
+              $log.warn('Invalid configuration for storage task', descriptor);
+            }
+          });
+          return $q.all(promises);
+        });
+    });
+  }
+}]);
+
 /**
- * @namespace hbpCollaboratoryForm
- * @memberof hbpCollaboratory
+ * @namespace hcFormControlFocus
+ * @memberof clb-form
  * @desc
- * hbpCollaboratoryForm provides directive to ease creation of forms.
+ * The ``hcFormControlFocus`` Directive mark a form element as the one that
+ * should receive the focus first.
+ * @example <caption>Give the focus to the search field</caption>
+ * angular.module('exampleApp', ['formControlFocus']);
+ *
+ * // HTML snippet:
+ * // <form ng-app="exampleApp"><input type="search" hc-form-control-focus></form>
  */
-angular.module('hbpCollaboratoryForm', []);
+angular.module('clb-form')
+.directive('hcfFormControlFocus', ['$timeout', function hcfFormControlFocus($timeout) {
+  return {
+    type: 'A',
+    link: function formControlFocusLink(scope, elt) {
+      $timeout(function() {
+        elt[0].focus();
+      }, 0, false);
+    }
+  };
+}]);
+
+/**
+ * @namespace hcFormGroupState
+ * @memberof clb-form
+ * @desc
+ * ``clbFormGroupState`` directive flag the current form group with
+ * the class has-error or has-success depending on its form field
+ * current state.
+ *
+ * @example
+ * <caption>Track a field validity at the ``.form-group`` level</caption>
+ * angular.module('exampleApp', ['hbpCollaboratory']);
+ */
+angular.module('clb-form')
+.directive('clbFormGroupState', function formGroupState() {
+  return {
+    type: 'A',
+    scope: {
+      model: '=clbFormGroupState'
+    },
+    link: function formGroupStateLink(scope, elt) {
+      scope.$watchGroup(['model.$touched', 'model.$valid'], function() {
+        if (!scope.model) {
+          return;
+        }
+        elt.removeClass('has-error', 'has-success');
+        if (!scope.model.$touched) {
+          return;
+        }
+        if (scope.model.$valid) {
+          elt.addClass('has-success');
+        } else {
+          elt.addClass('has-error');
+        }
+      }, true);
+    }
+  };
+});
 
 /* eslint camelcase: 0 */
 
@@ -1001,455 +1453,5 @@ angular.module('hbpCollaboratoryStorage', ['hbpCommon'])
       getProjectByCollab: getProjectByCollab
     };
   }]);
-
-
-clbApp.$inject = ['$q', '$rootScope', '$timeout', '$window', 'hbpErrorService'];angular.module('clb-app')
-.factory('clbApp', clbApp);
-
-/**
- * @namespace clbApp
- * @memberof module:clb-app
- * @desc
- * An AngularJS service to interface a web application with the HBP Collaboratory.
- * This library provides a few helper to work within the Collaboratory environment.
- *
- * Usage
- * -----
- *
- * - :ref:`module-clb-app.clbApp.context` is used to set and retrieve
- *   the current context.
- * - :ref:`module-clb-app.clbApp.emit` is used to send a command
- *   to the HBP Collaboratory and wait for its answer.
- *
- * @example <caption>Retrieve the current context object</caption>
- * clbApp.context()
- * .then(function(context) {
- *   console.log(context.ctx, context.state, context.collab);
- * })
- * .catch(function(err) {
- *   // Cannot set the state
- * });
- *
- * @example <caption>Set the current state in order for a user to be able to copy-paste its current URL and reopen the same collab with your app loaded at the same place.</caption>
- * clbApp.context({state: 'lorem ipsum'})
- * .then(function(context) {
- *   console.log(context.ctx, context.state, context.collab);
- * })
- * .catch(function(err) {
- *   // Cannot set the state
- * });
- *
- * @param  {object} $q AngularJS service injection
- * @param  {object} $rootScope AngularJS service injection
- * @param  {object} $timeout AngularJS service injection
- * @param  {object} $window AngularJS service injection
- * @param  {object} hbpErrorService AngularJS service injection
- * @return {object}         the service singleton
- */
-function clbApp(
-  $q,
-  $rootScope,
-  $timeout,
-  $window,
-  hbpErrorService
-) {
-  'use strict';
-  var eventId = 0;
-  var sentMessages = {};
-
-  /**
-   * @module hbpCollaboratoryAppToolkit
-   */
-  function AppToolkit() { }
-  AppToolkit.prototype = {
-    emit: emit,
-    context: context
-  };
-
-  $window.addEventListener('message', function(event) {
-    $rootScope.$emit('message', event.data);
-  });
-
-  $rootScope.$on('message', function(event, message) {
-    if (!message || !message.origin || !sentMessages[message.origin]) {
-      return;
-    }
-    if (message.eventName === 'resolved') {
-      sentMessages[message.origin].resolve(message.data);
-    } else if (message.eventName === 'error') {
-      sentMessages[message.origin].reject(hbpErrorService.error(message.data));
-    }
-    sentMessages[message.origin] = null;
-  });
-
-  /**
-   * Send a message to the HBP Collaboratory.
-   * @memberof module:clb-app.clbApp
-   * @param  {string} name name of the event to be propagated
-   * @param  {object} data corresponding data to be sent alongside the event
-   * @return  {Promise} resolve with the message response
-   */
-  function emit(name, data) {
-    eventId++;
-    sentMessages[eventId] = $q.defer();
-    var promise = sentMessages[eventId].promise;
-    $window.parent.postMessage({
-      apiVersion: 1,
-      eventName: name,
-      data: data,
-      ticket: eventId
-    }, '*');
-    return promise;
-  }
-
-  var currentContext;
-
-  /**
-   * @typedef HbpCollaboratoryContext
-   * @memberof module:clb-app.clbApp
-   * @type {object}
-   * @property {string} mode - the current mode, either 'run' or 'edit'
-   * @property {string} ctx - the UUID of the current context
-   * @property {string} state - an application defined state string
-   */
-
-   /**
-    * @memberof module:clb-app.clbApp
-    * @desc
-    * Asynchronously retrieve the current HBP Collaboratory Context, including
-    * the mode, the ctx UUID and the application state if any.
-    * @function context
-    * @param {object} data new values to send to HBP Collaboratory frontend
-    * @return {Promise} resolve to the context
-    * @static
-    */
-  function context(data) {
-    var d = $q.defer();
-    var kill = $timeout(function() {
-      d.reject(hbpErrorService.error({
-        type: 'TimeoutException',
-        message: 'No context can be retrieved'
-      }));
-    }, 250);
-
-    if (data) {
-      // discard context if new data should be set.
-      currentContext = null;
-    }
-
-    if (currentContext) {
-      // directly return context when cached.
-      return d.resolve(currentContext);
-    }
-    emit('workspace.context', data)
-    .then(function(context) {
-      clearTimeout(kill);
-      currentContext = context;
-      d.resolve(context);
-    })
-    .catch(function(err) {
-      d.reject(hbpErrorService.error(err));
-    });
-    return d.promise;
-  }
-  return new AppToolkit();
-}
-
-angular.module('clb-automator')
-.run(['$log', '$q', 'hbpCollabStore', 'clbAutomator', function createCollab(
-  $log, $q, hbpCollabStore,
-  clbAutomator
-) {
-  clbAutomator.registerHandler('collab', createCollab);
-
-  /**
-   * @function createCollab
-   * @memberof module:clb-automator.Tasks
-   * @desc
-   *  Create a collab defined by the given options.
-   * @param {object} descriptor - Parameters to create the collab
-   * @param {string} descriptor.name - Name of the collab
-   * @param {string} descriptor.description - Description in less than 140 characters
-   *                                       of the collab
-   * @param {string} [descriptor.privacy] - 'private' or 'public'. Notes that only
-   *                                   HBP Members can create private collab
-   * @param {Array} [after] - descriptor of subtasks
-   * @return {Promise} - promise of a collab
-   */
-  function createCollab(descriptor) {
-    var attr = clbAutomator.extractAttributes(
-      descriptor,
-      ['title', 'content', 'private']
-    );
-    $log.debug('Create collab', descriptor);
-    return hbpCollabStore.create(attr);
-  }
-}]);
-
-angular.module('clb-automator')
-.run(['$log', 'hbpCollaboratoryAppStore', 'hbpCollaboratoryNavStore', 'clbAutomator', 'hbpCollaboratoryStorage', 'hbpEntityStore', function createNavItem(
-  $log,
-  hbpCollaboratoryAppStore,
-  hbpCollaboratoryNavStore,
-  clbAutomator,
-  hbpCollaboratoryStorage,
-  hbpEntityStore
-) {
-  clbAutomator.registerHandler('nav', createNavItem);
-
-  /**
-   * Create a new nav item.
-   * @memberof module:clb-automator.Tasks
-   * @param {object} descriptor a descriptor description
-   * @param {string} descriptor.name name of the nav item
-   * @param {Collab} descriptor.collabId collab in which to add the item in.
-   * @param {string} descriptor.app app name linked to the nav item
-   * @param {object} [context] the current run context
-   * @param {object} [context.collab] a collab instance created previously
-   * @return {Promise} promise of a NavItem instance
-   */
-  function createNavItem(descriptor, context) {
-    var collabId = function() {
-      return (descriptor && descriptor.collab) ||
-        (context && context.collab.id);
-    };
-    var findApp = function(app) {
-      return hbpCollaboratoryAppStore.findOne({title: app});
-    };
-    var createNav = function(app) {
-      return hbpCollaboratoryNavStore.getRoot(collabId())
-      .then(function(parentItem) {
-        return hbpCollaboratoryNavStore.addNode(collabId(),
-          new hbpCollaboratoryNavStore.NavItem({
-            collab: collabId(),
-            name: descriptor.name,
-            appId: app.id,
-            parentId: parentItem.id
-          })
-        );
-      });
-    };
-    var linkToStorage = function(nav) {
-      if (!descriptor.entity) {
-        return nav;
-      }
-      var setLink = function(entity) {
-        return hbpCollaboratoryStorage.setContextMetadata(entity, nav.context)
-        .then(function() {
-          return nav;
-        });
-      };
-      // It might be the name used in a previous storage task.
-      if (context && context.storage && context.storage[descriptor.entity]) {
-        return setLink(context.storage[descriptor.entity]);
-      }
-      return hbpEntityStore.get(descriptor.entity).then(setLink);
-    };
-
-    $log.debug('Create nav item', descriptor, context);
-
-    return clbAutomator.ensureParameters(descriptor, 'app', 'name')
-    .then(function() {
-      return findApp(descriptor.app)
-      .then(createNav)
-      .then(linkToStorage);
-    });
-  }
-}]);
-
-angular.module('clb-automator')
-.run(['$log', '$q', '$http', 'bbpConfig', 'hbpFileStore', 'hbpErrorService', 'clbAutomator', 'hbpCollaboratoryNavStore', function createOverview(
-  $log, $q, $http, bbpConfig, hbpFileStore, hbpErrorService,
-  clbAutomator, hbpCollaboratoryNavStore
-) {
-  clbAutomator.registerHandler('overview', overview);
-
-  /**
-   * Set the content of the overview page using
-   * the content of a file in storage.
-   *
-   * The collab is indicated either by an id in `descriptor.collab` or a
-   * collab object in `context.collab`.
-   *
-   * @memberof module:clb-automator.Tasks
-   * @param {object} descriptor the task configuration
-   * @param {object} [descriptor.collab] id of the collab
-   * @param {string} descriptor.entity either a label that can be found in
-   *                 ``context.entities`` or a FileEntity UUID
-   * @param {object} context the current task context
-   * @param {object} [context.collab] the collab in which entities will be copied
-   * @param {object} [context.entities] a list of entities to lookup in for
-   *                   descriptor.entiry value
-   * @return {object} created entities where keys are the same as provided in
-   *                  config.storage
-   */
-  function overview(descriptor, context) {
-    $log.debug("Fill overview page with content from entity");
-    var fetch = {
-      rootNav: hbpCollaboratoryNavStore.getRoot(
-        descriptor.collab || context.collab.id),
-      source: fetchSourceContent(descriptor, context)
-    };
-    return $q.all(fetch)
-    .then(function(results) {
-      var overview = results.rootNav.children[0];
-      return $http.post(bbpConfig.get('api.richtext.v0') + '/richtext/', {
-        ctx: overview.context,
-        raw: results.source
-      }).then(function() {
-        return overview;
-      });
-    });
-  }
-
-  /**
-   * Download file entity content.
-   *
-   * @param {object} descriptor the task configuration
-   * @param {string} descriptor.entity either the label to find in
-   *                 ``context.entities`` or a the entity UUID.
-   * @param {object} context the current task context
-   * @param {object} context.entities optional entities in which to lookup for one
-   * @return {Promise} the promise of the entity content string
-   * @private
-   */
-  function fetchSourceContent(descriptor, context) {
-    var uuid;
-    if (context && context.entities && context.entities[descriptor.entity]) {
-      uuid = context.entities[descriptor.entity]._uuid;
-    } else {
-      uuid = descriptor.entity;
-    }
-    return hbpFileStore.getContent(uuid);
-  }
-}]);
-
-angular.module('clb-automator')
-.run(['$log', '$q', 'hbpEntityStore', 'hbpErrorService', 'clbAutomator', 'hbpCollaboratoryStorage', function createStorage(
-  $log, $q, hbpEntityStore,
-  hbpErrorService,
-  clbAutomator,
-  hbpCollaboratoryStorage
-) {
-  clbAutomator.registerHandler('storage', storage);
-
-  /**
-   * Copy files and folders to the destination collab storage.
-   *
-   * @memberof module:clb-automator.Tasks
-   * @param {object} descriptor the task configuration
-   * @param {object} descriptor.storage a object where keys are the file path in the
-   *                                new collab and value are the UUID of the
-   *                                entity to copy at this path.
-   * @param {object} [descriptor.collab] id of the collab
-   * @param {object} context the current task context
-   * @param {object} [context.collab] the collab in which entities will be copied
-   * @return {object} created entities where keys are the same as provided in
-   *                  config.storage
-   */
-  function storage(descriptor, context) {
-    return clbAutomator.ensureParameters(
-      descriptor, 'entities'
-    ).then(function() {
-      return hbpCollaboratoryStorage
-        .getProjectByCollab(descriptor.collab || context.collab.id)
-        .then(function(projectEntity) {
-          var promises = {};
-          angular.forEach(descriptor.entities, function(value, name) {
-            if (angular.isString(value)) {
-              $log.debug("Copy entity with UUID", value);
-              promises[name] = (
-                hbpEntityStore.copy(value, projectEntity._uuid));
-            } else {
-              $log.warn('Invalid configuration for storage task', descriptor);
-            }
-          });
-          return $q.all(promises);
-        });
-    });
-  }
-}]);
-
-/**
- * @namespace hcFormControlFocus
- * @memberof hbpCollaboratoryForm
- * @desc
- * The ``hcFormControlFocus`` Directive mark a form element as the one that
- * should receive the focus first.
- * @example <caption>Give the focus to the search field</caption>
- * angular.module('exampleApp', ['formControlFocus']);
- *
- * // HTML snippet:
- * // <form ng-app="exampleApp"><input type="search" hc-form-control-focus></form>
- */
-angular.module('hbpCollaboratoryForm')
-.directive('hcfFormControlFocus', ['$timeout', function hcfFormControlFocus($timeout) {
-  return {
-    type: 'A',
-    link: function formControlFocusLink(scope, elt) {
-      $timeout(function() {
-        elt[0].focus();
-      }, 0, false);
-    }
-  };
-}]);
-
-/**
- * @namespace hcFormGroupState
- * @memberof hbpCollaboratoryForm
- * @desc
- * ``hcfFormGroupState`` directive flag the current form group with
- * the class has-error or has-success depending on its form field
- * current state.
- *
- * @example
- * <caption>Track a field validity at the ``.form-group`` level</caption>
- * angular.module('exampleApp', ['hbpCollaboratory']);
- */
-angular.module('hbpCollaboratoryForm')
-.directive('hcfFormGroupState', function formGroupState() {
-  return {
-    type: 'A',
-    scope: {
-      model: '=hcfFormGroupState'
-    },
-    link: function formGroupStateLink(scope, elt) {
-      scope.$watchGroup(['model.$touched', 'model.$valid'], function() {
-        if (!scope.model) {
-          return;
-        }
-        elt.removeClass('has-error', 'has-success');
-        if (!scope.model.$touched) {
-          return;
-        }
-        if (scope.model.$valid) {
-          elt.addClass('has-success');
-        } else {
-          elt.addClass('has-error');
-        }
-      }, true);
-    }
-  };
-});
-
-/**
- * @namespace hbpCollaboratory
- * @desc
- * ``hbpCollaboratory`` module is a shell around various AngularJS modules that
- * to interface with the HBP Collaboratory.
- *
- * - :doc:`clb-automator <module:clb-automator>` to automate a serie of
- *   Collaboratory actions
- * - :doc:`clb-app <module:clb-app>` provides utilities to retrieve current
- *   HBP Collaboratory Context in an app and to communicate with the current
- *   Collaboratory instance.
- */
-angular.module('hbpCollaboratory', [
-  'clb-automator',
-  'clb-app',
-  'hbpCollaboratoryNavStore',
-  'hbpCollaboratoryAppStore',
-  'hbpCollaboratoryForm'
-]);
 
 //# sourceMappingURL=angular-hbp-collaboratory.js.map
