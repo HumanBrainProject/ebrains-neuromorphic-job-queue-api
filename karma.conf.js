@@ -10,7 +10,7 @@ module.exports = function(config) {
     ],
     files: mainBowerFiles({filter: '**/*.js', includeDev: true}).concat([
       'src/main.js',
-      'src/*/*.js',
+      'src/**/*.module.js',
       'src/**/*.js',
       'src/main.spec.js',
       'src/**/*.spec.js'

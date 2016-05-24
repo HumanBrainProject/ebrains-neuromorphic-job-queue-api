@@ -59,7 +59,8 @@ gulp.task('tdd', function() {
 
 gulp.task('js', function() {
   return gulp.src([
-    'src/*/*.js',
+    'src/main.js',
+    'src/**/*.module.js',
     'src/**/*.js',
     '!src/**/*.spec.js',
     'src/main.js'
