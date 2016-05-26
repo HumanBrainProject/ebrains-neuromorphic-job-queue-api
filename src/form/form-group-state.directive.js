@@ -1,5 +1,5 @@
 /**
- * @namespace hcFormGroupState
+ * @namespace clbFormGroupState
  * @memberof clb-form
  * @desc
  * ``clbFormGroupState`` directive flag the current form group with

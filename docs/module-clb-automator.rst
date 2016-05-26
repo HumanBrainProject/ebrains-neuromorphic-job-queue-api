@@ -12,8 +12,8 @@ Children
 .. toctree::
    :maxdepth: 1
    
-   module-clb-automator.clbAutomator
    module-clb-automator.Tasks
+   module-clb-automator.clbAutomator
    
 Description
 ===========

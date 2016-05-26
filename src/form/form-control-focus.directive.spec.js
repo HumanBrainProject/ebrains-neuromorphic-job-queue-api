@@ -1,4 +1,4 @@
-describe('clb-form hcf-form-control-focus directive', function() {
+describe('clb-form clb-form-control-focus directive', function() {
   var compile;
   var scope;
   var timeout;
@@ -13,7 +13,7 @@ describe('clb-form hcf-form-control-focus directive', function() {
 
   it('should send the focus command to the current form element', function() {
     var element = compile(
-      '<input type="search" hcf-form-control-focus>')(scope);
+      '<input type="search" clb-form-control-focus>')(scope);
     spyOn(element[0], 'focus');
     timeout.flush();
     expect(element[0].focus).toHaveBeenCalled();
