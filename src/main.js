@@ -8,7 +8,8 @@
  *   HBP Collaboratory Context in an app and to communicate with the current
  *   Collaboratory instance.
  * - :doc:`clb-automator <module:clb-automator>` to automate a serie of
- *   Collaboratory actions
+ *   Collaboratory actions.
+ * - :doc:`clb-feed <module:clb-feed>` retrieve and display stream of activities.
  */
 angular.module('hbpCollaboratory', [
   'clb-automator',

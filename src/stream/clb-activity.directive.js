@@ -13,7 +13,7 @@
    * to the summary if he cannot.
    *
    * @memberof module:clb-stream
-   * @return {[type]} [description]
+   * @return {object} the directive
    */
   function clbActivity() {
     return {
