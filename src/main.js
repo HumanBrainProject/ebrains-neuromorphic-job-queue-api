@@ -13,7 +13,9 @@
 angular.module('hbpCollaboratory', [
   'clb-automator',
   'clb-app',
+  'clb-datetime',
   'hbpCollaboratoryNavStore',
   'hbpCollaboratoryAppStore',
-  'clb-form'
+  'clb-form',
+  'clb-stream'
 ]);

@@ -13,6 +13,7 @@ var KarmaServer = require('karma').Server;
 var wiredep = require('wiredep').stream;
 var webserver = require('gulp-webserver');
 var child_process = require('child_process');
+var embedTemplates = require('gulp-angular-embed-templates');
 
 gulp.task('example:build', ['js'], function() {
   gulp.src('./example/index.html')
@@ -68,6 +69,7 @@ gulp.task('js', function() {
   .pipe(plumber())
   .pipe(sourcemaps.init())
     .pipe(ngAnnotate({single_quotes: true}))
+    .pipe(embedTemplates())
     .pipe(concat('angular-hbp-collaboratory.js'))
   .pipe(sourcemaps.write('.'))
   .pipe(gulp.dest('.'));

@@ -17,6 +17,9 @@ var globalConfig = {
     },
     richtext: {
       v0: 'http://richtext/v0'
+    },
+    stream: {
+      v0: 'http://stream/v0'
     }
   }
 };
@@ -36,6 +39,56 @@ beforeEach(function() {
             result = result && angular.isDefined(actual[p]);
           });
           return {pass: result};
+        }
+      };
+    },
+    toBeAPromise: function() {
+      return {
+        compare: function(actual) {
+          var result = angular.isDefined(actual.then);
+          result = result && angular.isDefined(actual.catch);
+          return {pass: result};
+        }
+      };
+    },
+    toBeAPaginatedResultSet: function() {
+      return {
+        compare: function(actual) {
+          var result = angular.isDefined(actual.next);
+          result = result && angular.isDefined(actual.results);
+          result = result && angular.isDefined(actual.hasNext);
+          return {pass: result};
+        }
+      };
+    },
+    toBeInstanceOf: function() {
+      return {
+        compare: function(actual, expectedClass) {
+          var result = {pass: (actual instanceof expectedClass)};
+          if (result.pass) {
+            result.message = 'Expected "' + actual + '" to be an instanceof "' +
+                              expectedClass + '", but it is not.';
+          } else {
+            result.message = 'Expected "' + actual + '" to be an instanceof "' +
+                              expectedClass + '".';
+          }
+          return result;
+        }
+      };
+    },
+    toBeSameTypeAs: function() {
+      return {
+        compare: function(actual, expected) {
+          var result = {pass: typeof actual === typeof expected};
+          if (result.pass) {
+            result.message = 'Expected type of "' + actual +
+                             '" NOT to be of type"' + (typeof expected);
+          } else {
+            result.message = 'Expected type of "' + actual +
+                             '" to be "' + (typeof expected) + '" but is "' +
+                             (typeof actual) + '".';
+          }
+          return result;
         }
       };
     },
