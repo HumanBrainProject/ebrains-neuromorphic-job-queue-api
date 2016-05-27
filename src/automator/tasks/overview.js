@@ -17,9 +17,9 @@ angular.module('hbpCollaboratoryAutomator')
      * @memberof hbpCollaboratory.hbpCollaboratoryAutomator.Tasks
      * @param {object} descriptor the task configuration
      * @param {object} [descriptor.collab] id of the collab
-     * @param {string} descriptor.entity either a label that can be found in
+     * @param {string} [descriptor.entity] either a label that can be found in
      *                 ``context.entities`` or a FileEntity UUID
-     * @param {string} descriptor.app the name of an application
+     * @param {string} [descriptor.app] the name of an application
      * @param {object} context the current task context
      * @param {object} [context.collab] the collab in which entities will be copied
      * @param {object} [context.entities] a list of entities to lookup in for

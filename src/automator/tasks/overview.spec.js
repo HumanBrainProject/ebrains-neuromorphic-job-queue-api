@@ -77,7 +77,6 @@ describe('overview task handler', function() {
       collab: data.collab.id,
       entity: data.fileEntity._uuid
     }).then(function(res) {
-      console.log('res:' + JSON.stringify(res));
       expect(res).toEqual(data.expectedNavItem);
     });
     scope.$digest();
@@ -107,11 +106,9 @@ describe('overview task handler', function() {
   it('should update content appId', inject(function() {
     spyOn(navStore, 'getRoot')
       .and.returnValue(q.when(data.rootNavItem));
-    spyOn(fileStore, 'getContent')
-      .and.returnValue(q.when(data.fileContent));
     backend.expectGET('http://collab/v0/extension/?title=My+app+name')
       .respond(200, data.appResponse);
-    backend.expectPUT('http://collab/v0/collab/1/nav/10/').respond(201, {});
+    backend.expectPUT('http://collab/v0/collab/1/nav/10/').respond(200, {});
 
     spyOn(data.rootNavItem.children[0], 'update').and.callFake(function(appid) {
       data.expectedNavItem.appId = appid.appId;
