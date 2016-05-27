@@ -26,15 +26,28 @@ window.bbpConfig = angular.copy(globalConfig);
 beforeEach(function() {
   window.bbpConfig = angular.copy(globalConfig);
 
+  var checkToDefine = function(actual, properties) {
+    var props = angular.isArray(properties) ? properties : [properties];
+    var result = true;
+    angular.forEach(props, function(p) {
+      result = result && angular.isDefined(actual[p]);
+    });
+    return result;
+  };
+
   jasmine.addMatchers({
+    toBeAPromise: function() {
+      return {
+        compare: function(actual) {
+          var result = checkToDefine(actual, ['then', 'catch']);
+          return {pass: result};
+        }
+      };
+    },
     toDefine: function() {
       return {
         compare: function(actual, properties) {
-          var props = angular.isArray(properties) ? properties : [properties];
-          var result = true;
-          angular.forEach(props, function(p) {
-            result = result && angular.isDefined(actual[p]);
-          });
+          var result = checkToDefine(actual, properties);
           return {pass: result};
         }
       };

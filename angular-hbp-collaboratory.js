@@ -13,6 +13,7 @@
 angular.module('hbpCollaboratory', [
   'clb-automator',
   'clb-app',
+  'clb-storage',
   'hbpCollaboratoryNavStore',
   'hbpCollaboratoryAppStore',
   'clb-form'
@@ -44,7 +45,7 @@ angular.module('clb-automator', [
   'hbpDocumentClient',
   'hbpCollaboratoryAppStore',
   'hbpCollaboratoryNavStore',
-  'hbpCollaboratoryStorage'
+  'clb-storage'
 ]);
 
 /**
@@ -54,6 +55,11 @@ angular.module('clb-automator', [
  * clb-form provides directive to ease creation of forms.
  */
 angular.module('clb-form', []);
+
+/**
+ * @module clb-storage
+ */
+angular.module('clb-storage', ['hbpCommon', 'hbpDocumentClient']);
 
 
 clbApp.$inject = ['$q', '$rootScope', '$timeout', '$window', 'hbpErrorService'];angular.module('clb-app')
@@ -598,12 +604,12 @@ angular.module('clb-automator')
 }]);
 
 angular.module('clb-automator')
-.run(['$log', 'hbpCollaboratoryAppStore', 'hbpCollaboratoryNavStore', 'clbAutomator', 'hbpCollaboratoryStorage', 'hbpEntityStore', function createNavItem(
+.run(['$log', 'hbpCollaboratoryAppStore', 'hbpCollaboratoryNavStore', 'clbAutomator', 'clbStorage', 'hbpEntityStore', function createNavItem(
   $log,
   hbpCollaboratoryAppStore,
   hbpCollaboratoryNavStore,
   clbAutomator,
-  hbpCollaboratoryStorage,
+  clbStorage,
   hbpEntityStore
 ) {
   clbAutomator.registerHandler('nav', createNavItem);
@@ -645,7 +651,7 @@ angular.module('clb-automator')
         return nav;
       }
       var setLink = function(entity) {
-        return hbpCollaboratoryStorage.setContextMetadata(entity, nav.context)
+        return clbStorage.setContextMetadata(entity, nav.context)
         .then(function() {
           return nav;
         });
@@ -736,11 +742,11 @@ angular.module('clb-automator')
 }]);
 
 angular.module('clb-automator')
-.run(['$log', '$q', 'hbpEntityStore', 'hbpErrorService', 'clbAutomator', 'hbpCollaboratoryStorage', function createStorage(
+.run(['$log', '$q', 'hbpEntityStore', 'hbpErrorService', 'clbAutomator', 'clbStorage', function createStorage(
   $log, $q, hbpEntityStore,
   hbpErrorService,
   clbAutomator,
-  hbpCollaboratoryStorage
+  clbStorage
 ) {
   clbAutomator.registerHandler('storage', storage);
 
@@ -762,7 +768,7 @@ angular.module('clb-automator')
     return clbAutomator.ensureParameters(
       descriptor, 'entities'
     ).then(function() {
-      return hbpCollaboratoryStorage
+      return clbStorage
         .getProjectByCollab(descriptor.collab || context.collab.id)
         .then(function(projectEntity) {
           var promises = {};
@@ -1317,17 +1323,17 @@ angular.module('hbpCollaboratoryNavStore', ['hbpCommon', 'uuid4'])
 
 /* eslint camelcase: 0 */
 /**
- * @namespace hbpCollaboratoryStorage
- * @memberof hbpCollaboratory
+ * @namespace clbStorage
+ * @memberof module:clb-storage
  * @desc
  * storageUtil provides utility functions to ease the interaction of apps with storage.
  */
-angular.module('hbpCollaboratoryStorage', ['hbpCommon'])
-.factory('hbpCollaboratoryStorage',
-  ['hbpUtil', 'hbpEntityStore', 'hbpErrorService', function hbpCollaboratoryStorage(hbpUtil, hbpEntityStore, hbpErrorService) {
+angular.module('clb-storage')
+.factory('clbStorage',
+  ['hbpUtil', 'hbpEntityStore', 'hbpErrorService', function clbStorage(hbpUtil, hbpEntityStore, hbpErrorService) {
     /**
      * Retrieve the key to lookup for on entities given the ctx
-     * @memberof hbpCollaboratory.hbpCollaboratoryStorage
+     * @memberof module:clbStorage
      * @param  {string} ctx application context UUID
      * @return {string}     name of the entity attribute that should be used
      * @private
@@ -1338,7 +1344,7 @@ angular.module('hbpCollaboratoryStorage', ['hbpCommon'])
 
     /**
      * @name setContextMetadata
-     * @memberof hbpCollaboratory.hbpCollaboratoryStorage
+     * @memberof module:clb-storage.clbStorage
      * @desc
      * the function links the contextId with the doc browser entity in input
      * by setting a specific metadata on the entity.
@@ -1363,7 +1369,7 @@ angular.module('hbpCollaboratoryStorage', ['hbpCommon'])
 
     /**
      * @name getEntityByContext
-     * @memberof hbpCollaboratory.hbpCollaboratoryStorage
+     * @memberof module:clb-storage.clbStorage
      * @desc
      * the function gets the entity linked to the contextId in input.
      *
@@ -1376,12 +1382,12 @@ angular.module('hbpCollaboratoryStorage', ['hbpCommon'])
       var queryParams = {};
       queryParams[metadataKey(contextId)] = 1;
 
-      return hbpEntityStore.query(queryParams).then(null, hbpUtil.ferr);
+      return hbpEntityStore.query(queryParams).catch(hbpUtil.ferr);
     }
 
     /**
      * @name deleteContextMetadata
-     * @memberof hbpCollaboratory.hbpCollaboratoryStorage
+     * @memberof module:clb-storage.clbStorage
      * @desc
      * the function unlink the contextId from the entity in input
      * by deleting the context metadata.
@@ -1405,7 +1411,7 @@ angular.module('hbpCollaboratoryStorage', ['hbpCommon'])
 
     /**
      * @name updateContextMetadata
-     * @memberof hbpCollaboratory.hbpCollaboratoryStorage
+     * @memberof module:clb-storage.clbStorage
      * @desc
      * the function delete the contextId from the `oldEntity` metadata and add
      * it as `newEntity` metadata.
@@ -1429,7 +1435,7 @@ angular.module('hbpCollaboratoryStorage', ['hbpCommon'])
 
     /**
      * @name getProjectByCollab
-     * @memberof hbpCollaboratory.hbpCollaboratoryStorage
+     * @memberof module:clb-storage.clbStorage
      * @desc
      * the function returns the storage project of the collabId in input.
      *
@@ -1442,7 +1448,7 @@ angular.module('hbpCollaboratoryStorage', ['hbpCommon'])
       var queryParams = {
         managed_by_collab: collabId
       };
-      return hbpEntityStore.query(queryParams).then(null, hbpUtil.ferr);
+      return hbpEntityStore.query(queryParams).catch(hbpUtil.ferr);
     }
 
     return {

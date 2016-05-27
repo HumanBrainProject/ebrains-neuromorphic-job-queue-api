@@ -13,6 +13,7 @@
 angular.module('hbpCollaboratory', [
   'clb-automator',
   'clb-app',
+  'clb-storage',
   'hbpCollaboratoryNavStore',
   'hbpCollaboratoryAppStore',
   'clb-form'

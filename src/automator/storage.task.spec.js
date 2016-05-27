@@ -11,11 +11,11 @@ describe('storage task handler', function() {
     $rootScope,
     clbAutomator,
     hbpEntityStore,
-    hbpCollaboratoryStorage
+    clbStorage
   ) {
     copyEntity = clbAutomator.handlers.storage;
     entityStore = hbpEntityStore;
-    storage = hbpCollaboratoryStorage;
+    storage = clbStorage;
     scope = $rootScope;
   }));
   beforeEach(function() {

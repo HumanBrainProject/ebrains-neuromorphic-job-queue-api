@@ -15,5 +15,5 @@ angular.module('clb-automator', [
   'hbpDocumentClient',
   'hbpCollaboratoryAppStore',
   'hbpCollaboratoryNavStore',
-  'hbpCollaboratoryStorage'
+  'clb-storage'
 ]);

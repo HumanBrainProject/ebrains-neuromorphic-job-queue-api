@@ -28,7 +28,7 @@ angular.module('customCollabApp', [
   'ui.codemirror',
   'hbpCollaboratory'
 ])
-.controller('MainController', function(
+.controller('CollabConfigurationController', function(
   $log,
   $filter,
   clbAutomator,

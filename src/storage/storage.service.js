@@ -1,16 +1,16 @@
 /* eslint camelcase: 0 */
 /**
- * @namespace hbpCollaboratoryStorage
- * @memberof hbpCollaboratory
+ * @namespace clbStorage
+ * @memberof module:clb-storage
  * @desc
  * storageUtil provides utility functions to ease the interaction of apps with storage.
  */
-angular.module('hbpCollaboratoryStorage', ['hbpCommon'])
-.factory('hbpCollaboratoryStorage',
-  function hbpCollaboratoryStorage(hbpUtil, hbpEntityStore, hbpErrorService) {
+angular.module('clb-storage')
+.factory('clbStorage',
+  function clbStorage(hbpUtil, hbpEntityStore, hbpErrorService) {
     /**
      * Retrieve the key to lookup for on entities given the ctx
-     * @memberof hbpCollaboratory.hbpCollaboratoryStorage
+     * @memberof module:clbStorage
      * @param  {string} ctx application context UUID
      * @return {string}     name of the entity attribute that should be used
      * @private
@@ -21,7 +21,7 @@ angular.module('hbpCollaboratoryStorage', ['hbpCommon'])
 
     /**
      * @name setContextMetadata
-     * @memberof hbpCollaboratory.hbpCollaboratoryStorage
+     * @memberof module:clb-storage.clbStorage
      * @desc
      * the function links the contextId with the doc browser entity in input
      * by setting a specific metadata on the entity.
@@ -46,7 +46,7 @@ angular.module('hbpCollaboratoryStorage', ['hbpCommon'])
 
     /**
      * @name getEntityByContext
-     * @memberof hbpCollaboratory.hbpCollaboratoryStorage
+     * @memberof module:clb-storage.clbStorage
      * @desc
      * the function gets the entity linked to the contextId in input.
      *
@@ -59,12 +59,12 @@ angular.module('hbpCollaboratoryStorage', ['hbpCommon'])
       var queryParams = {};
       queryParams[metadataKey(contextId)] = 1;
 
-      return hbpEntityStore.query(queryParams).then(null, hbpUtil.ferr);
+      return hbpEntityStore.query(queryParams).catch(hbpUtil.ferr);
     }
 
     /**
      * @name deleteContextMetadata
-     * @memberof hbpCollaboratory.hbpCollaboratoryStorage
+     * @memberof module:clb-storage.clbStorage
      * @desc
      * the function unlink the contextId from the entity in input
      * by deleting the context metadata.
@@ -88,7 +88,7 @@ angular.module('hbpCollaboratoryStorage', ['hbpCommon'])
 
     /**
      * @name updateContextMetadata
-     * @memberof hbpCollaboratory.hbpCollaboratoryStorage
+     * @memberof module:clb-storage.clbStorage
      * @desc
      * the function delete the contextId from the `oldEntity` metadata and add
      * it as `newEntity` metadata.
@@ -112,7 +112,7 @@ angular.module('hbpCollaboratoryStorage', ['hbpCommon'])
 
     /**
      * @name getProjectByCollab
-     * @memberof hbpCollaboratory.hbpCollaboratoryStorage
+     * @memberof module:clb-storage.clbStorage
      * @desc
      * the function returns the storage project of the collabId in input.
      *
@@ -125,7 +125,7 @@ angular.module('hbpCollaboratoryStorage', ['hbpCommon'])
       var queryParams = {
         managed_by_collab: collabId
       };
-      return hbpEntityStore.query(queryParams).then(null, hbpUtil.ferr);
+      return hbpEntityStore.query(queryParams).catch(hbpUtil.ferr);
     }
 
     return {

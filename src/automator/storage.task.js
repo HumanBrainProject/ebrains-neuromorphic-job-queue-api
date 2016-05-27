@@ -3,7 +3,7 @@ angular.module('clb-automator')
   $log, $q, hbpEntityStore,
   hbpErrorService,
   clbAutomator,
-  hbpCollaboratoryStorage
+  clbStorage
 ) {
   clbAutomator.registerHandler('storage', storage);
 
@@ -25,7 +25,7 @@ angular.module('clb-automator')
     return clbAutomator.ensureParameters(
       descriptor, 'entities'
     ).then(function() {
-      return hbpCollaboratoryStorage
+      return clbStorage
         .getProjectByCollab(descriptor.collab || context.collab.id)
         .then(function(projectEntity) {
           var promises = {};

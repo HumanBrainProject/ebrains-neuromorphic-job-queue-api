@@ -4,7 +4,7 @@ angular.module('clb-automator')
   hbpCollaboratoryAppStore,
   hbpCollaboratoryNavStore,
   clbAutomator,
-  hbpCollaboratoryStorage,
+  clbStorage,
   hbpEntityStore
 ) {
   clbAutomator.registerHandler('nav', createNavItem);
@@ -46,7 +46,7 @@ angular.module('clb-automator')
         return nav;
       }
       var setLink = function(entity) {
-        return hbpCollaboratoryStorage.setContextMetadata(entity, nav.context)
+        return clbStorage.setContextMetadata(entity, nav.context)
         .then(function() {
           return nav;
         });

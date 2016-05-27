@@ -15,7 +15,7 @@ Services
 hbpCollaboratory core is an empty shell that wrap all available submodules
 to develop and AngularJS application based on the HBP Collaboratory.
 
-- :doc:`hbpCollaboratory.hbpCollaboratoryStorage` is a service for interacting
+- :doc:`module:clb-storage.clbStorage` is a service for interacting
   with a collab storage and linking nav items to storage entities.
 - :doc:`hbpCollaboratory.hbpCollaboratoryNavStore` is a service for interacting
   with a collab
