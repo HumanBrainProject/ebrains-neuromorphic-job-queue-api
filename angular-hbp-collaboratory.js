@@ -675,24 +675,26 @@ angular.module('clb-automator')
 }]);
 
 angular.module('clb-automator')
-.run(['$log', '$q', '$http', 'bbpConfig', 'hbpFileStore', 'hbpErrorService', 'clbAutomator', 'hbpCollaboratoryNavStore', function createOverview(
+.run(['$log', '$q', '$http', 'bbpConfig', 'hbpFileStore', 'hbpErrorService', 'clbAutomator', 'hbpCollaboratoryNavStore', 'hbpCollaboratoryAppStore', function createOverview(
   $log, $q, $http, bbpConfig, hbpFileStore, hbpErrorService,
-  clbAutomator, hbpCollaboratoryNavStore
+  clbAutomator, hbpCollaboratoryNavStore, hbpCollaboratoryAppStore
 ) {
   clbAutomator.registerHandler('overview', overview);
 
   /**
-   * Set the content of the overview page using
-   * the content of a file in storage.
+   * Set the content of the overview page.
+   * If an 'entity' is specified, it will use the content of that storage file
+   * If an 'app' name is specified, it will use that app for the overview page
    *
    * The collab is indicated either by an id in `descriptor.collab` or a
    * collab object in `context.collab`.
    *
-   * @memberof module:clb-automator.Tasks
+   * @memberof hbpCollaboratory.hbpCollaboratoryAutomator.Tasks
    * @param {object} descriptor the task configuration
    * @param {object} [descriptor.collab] id of the collab
-   * @param {string} descriptor.entity either a label that can be found in
+   * @param {string} [descriptor.entity] either a label that can be found in
    *                 ``context.entities`` or a FileEntity UUID
+   * @param {string} [descriptor.app] the name of an application
    * @param {object} context the current task context
    * @param {object} [context.collab] the collab in which entities will be copied
    * @param {object} [context.entities] a list of entities to lookup in for
@@ -701,22 +703,43 @@ angular.module('clb-automator')
    *                  config.storage
    */
   function overview(descriptor, context) {
-    $log.debug("Fill overview page with content from entity");
-    var fetch = {
-      rootNav: hbpCollaboratoryNavStore.getRoot(
-        descriptor.collab || context.collab.id),
-      source: fetchSourceContent(descriptor, context)
+    $log.debug("Set the content of the overview page");
+    var collabId = descriptor.collab || context.collab.id;
+    var createContentFile = function(overview, descriptor, context) {
+      $log.debug("Fill overview page with content from entity");
+
+      return fetchSourceContent(descriptor, context)
+        .then(function(source) {
+          return $http.post(bbpConfig.get('api.richtext.v0') + '/richtext/', {
+            ctx: overview.context,
+            raw: source
+          });
+        });
     };
-    return $q.all(fetch)
-    .then(function(results) {
-      var overview = results.rootNav.children[0];
-      return $http.post(bbpConfig.get('api.richtext.v0') + '/richtext/', {
-        ctx: overview.context,
-        raw: results.source
-      }).then(function() {
-        return overview;
+
+    var updateAppId = function(overview, descriptor) {
+      $log.debug("Replace the overview page application id");
+
+      return hbpCollaboratoryAppStore.findOne({title: descriptor.app})
+        .then(function(app) {
+          overview.update({appId: app.id});
+          return hbpCollaboratoryNavStore.saveNode(collabId, overview);
+        });
+    };
+
+    return hbpCollaboratoryNavStore
+      .getRoot(collabId)
+      .then(function(rootNav) {
+        var overview = rootNav.children[0];
+
+        var updateOverview = descriptor.app ?
+          updateAppId(overview, descriptor) :
+          createContentFile(overview, descriptor, context);
+
+        return updateOverview.then(function() {
+          return overview;
+        });
       });
-    });
   }
 
   /**

@@ -15,7 +15,6 @@ Children
    hbpCollaboratory.clb-form
    hbpCollaboratory.hbpCollaboratoryAppStore
    hbpCollaboratory.hbpCollaboratoryNavStore
-   module:clb-storage.clbStorage
    
 Description
 ===========

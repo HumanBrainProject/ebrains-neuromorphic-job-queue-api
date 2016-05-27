@@ -1,14 +1,10 @@
-<<<<<<< HEAD
-.. _module:clb-storage.clbStorage:
-=======
-.. _hbpCollaboratory.hbpCollaboratoryStorage:
->>>>>>> 0.1.x
+.. _module-clb-storage.clbStorage:
 
-======================================
+=========================
 Namespace: ``clbStorage``
-======================================
+=========================
 
-Member Of :doc:`hbpCollaboratory`
+Member Of :doc:`module-clb-storage`
 
 .. contents:: Local Navigation
    :local:
@@ -26,30 +22,8 @@ Description
 storageUtil provides utility functions to ease the interaction of apps with storage.
 
 
-<<<<<<< HEAD
-.. _module:clb-storage.clbStorage.metadataKey:
-=======
-.. _hbpCollaboratory.hbpCollaboratoryStorage.metadataKey:
->>>>>>> 0.1.x
 
-
-Function ``metadataKey``
-========================
-
-Retrieve the key to lookup for on entities given the ctx
-
-.. js:function:: metadataKey(ctx)
-
-    
-    :param string ctx: application context UUID
-    :return string: name of the entity attribute that should be used
-    
-
-<<<<<<< HEAD
-.. _module:clb-storage.clbStorage.setContextMetadata:
-=======
-.. _hbpCollaboratory.hbpCollaboratoryStorage.setContextMetadata:
->>>>>>> 0.1.x
+.. _module-clb-storage.clbStorage.setContextMetadata:
 
 
 Function ``setContextMetadata``
@@ -71,11 +45,7 @@ In case of error, the promise is rejected with a `HbpError` instance.
     :param String contextId: collab app context id
     :return Promise: a promise that resolves when the operation is completed
     
-<<<<<<< HEAD
-.. _module:clb-storage.clbStorage.getEntityByContext:
-=======
-.. _hbpCollaboratory.hbpCollaboratoryStorage.getEntityByContext:
->>>>>>> 0.1.x
+.. _module-clb-storage.clbStorage.getEntityByContext:
 
 
 Function ``getEntityByContext``
@@ -91,11 +61,7 @@ In case of error, the promise is rejected with a `HbpError` instance.
     :param String contextId: collab app context id
     :return Promise: a promise that resolves when the operation is completed
     
-<<<<<<< HEAD
-.. _module:clb-storage.clbStorage.deleteContextMetadata:
-=======
-.. _hbpCollaboratory.hbpCollaboratoryStorage.deleteContextMetadata:
->>>>>>> 0.1.x
+.. _module-clb-storage.clbStorage.deleteContextMetadata:
 
 
 Function ``deleteContextMetadata``
@@ -117,11 +83,7 @@ In case of error, the promise is rejected with a `HbpError` instance.
     :param String contextId: collab app context id
     :return Promise: a promise that resolves when the operation is completed
     
-<<<<<<< HEAD
-.. _module:clb-storage.clbStorage.updateContextMetadata:
-=======
-.. _hbpCollaboratory.hbpCollaboratoryStorage.updateContextMetadata:
->>>>>>> 0.1.x
+.. _module-clb-storage.clbStorage.updateContextMetadata:
 
 
 Function ``updateContextMetadata``
@@ -144,11 +106,7 @@ In case of error, the promise is rejected with a `HbpError` instance.
     :param String contextId: collab app context id
     :return Promise: a promise that resolves when the operation is completed
     
-<<<<<<< HEAD
-.. _module:clb-storage.clbStorage.getProjectByCollab:
-=======
-.. _hbpCollaboratory.hbpCollaboratoryStorage.getProjectByCollab:
->>>>>>> 0.1.x
+.. _module-clb-storage.clbStorage.getProjectByCollab:
 
 
 Function ``getProjectByCollab``
