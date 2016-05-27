@@ -1,3 +1,5 @@
+.. _hbpCollaboratory.hbpCollaboratoryAutomator.Tasks:
+
 ====================
 Namespace: ``Tasks``
 ====================
@@ -20,6 +22,7 @@ Description
 Available tasks.
 
 
+.. _hbpCollaboratory.hbpCollaboratoryAutomator.Tasks.createCollab:
 
 
 Function ``createCollab``
@@ -39,6 +42,7 @@ Create a collab defined by the given options.
     :param Array after: descriptor of subtasks
     :return Promise: - promise of a collab
     
+.. _hbpCollaboratory.hbpCollaboratoryAutomator.Tasks.createNavItem:
 
 
 Function ``createNavItem``
@@ -57,24 +61,27 @@ Create a new nav item.
     :param object context.collab: a collab instance created previously
     :return Promise: promise of a NavItem instance
     
+.. _hbpCollaboratory.hbpCollaboratoryAutomator.Tasks.overview:
 
 
 Function ``overview``
 =====================
 
-Set the content of the overview page using
-the content of a file in storage.
+Set the content of the overview page.
+If an 'entity' is specified, it will use the content of that storage file
+If an 'app' name is specified, it will use that app for the overview page
 
 The collab is indicated either by an id in `descriptor.collab` or a
 collab object in `context.collab`.
 
-.. js:function:: overview(descriptor[, descriptor.collab], descriptor.entity, context[, context.collab][, context.entities])
+.. js:function:: overview(descriptor[, descriptor.collab][, descriptor.entity][, descriptor.app], context[, context.collab][, context.entities])
 
     
     :param object descriptor: the task configuration
     :param object descriptor.collab: id of the collab
     :param string descriptor.entity: either a label that can be found in
                     ``context.entities`` or a FileEntity UUID
+    :param string descriptor.app: the name of an application
     :param object context: the current task context
     :param object context.collab: the collab in which entities will be copied
     :param object context.entities: a list of entities to lookup in for
@@ -82,6 +89,7 @@ collab object in `context.collab`.
     :return object: created entities where keys are the same as provided in
                      config.storage
     
+.. _hbpCollaboratory.hbpCollaboratoryAutomator.Tasks.storage:
 
 
 Function ``storage``

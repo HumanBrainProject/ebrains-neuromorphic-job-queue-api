@@ -1,8 +1,9 @@
+.. _undefined.hbpCollaboratoryForm:
+
 ===================================
 Namespace: ``hbpCollaboratoryForm``
 ===================================
 
-Member Of :doc:`hbpCollaboratory`
 
 .. contents:: Local Navigation
    :local:

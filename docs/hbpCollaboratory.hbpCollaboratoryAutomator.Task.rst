@@ -1,3 +1,5 @@
+.. _hbpCollaboratory.hbpCollaboratoryAutomator.Task:
+
 ===============
 Class: ``Task``
 ===============
@@ -21,6 +23,7 @@ Instantiate a task given the given `config`.
 The task can then be run using the `run()` instance method.
 
 
+.. _hbpCollaboratory.hbpCollaboratoryAutomator.Task.run:
 
 
 Function ``run``

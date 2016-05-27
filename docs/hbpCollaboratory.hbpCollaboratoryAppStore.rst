@@ -1,3 +1,5 @@
+.. _hbpCollaboratory.hbpCollaboratoryAppStore:
+
 =======================================
 Namespace: ``hbpCollaboratoryAppStore``
 =======================================
@@ -22,6 +24,7 @@ hbpCollaboratoryAppStore can be used to find and work with the
 registered HBP Collaboratory applications.
 
 
+.. _hbpCollaboratory.hbpCollaboratoryAppStore.list:
 
 
 Function ``list``
@@ -34,6 +37,7 @@ Function ``list``
     
     :return Promise: promise of the list of all applications
     
+.. _hbpCollaboratory.hbpCollaboratoryAppStore.findOne:
 
 
 Function ``findOne``

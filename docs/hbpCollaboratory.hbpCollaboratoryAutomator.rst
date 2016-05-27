@@ -1,8 +1,9 @@
+.. _undefined.hbpCollaboratoryAutomator:
+
 ========================================
 Namespace: ``hbpCollaboratoryAutomator``
 ========================================
 
-Member Of :doc:`hbpCollaboratory`
 
 .. contents:: Local Navigation
    :local:
@@ -41,6 +42,7 @@ you write a descriptor and run it.
    gulp example
 
 
+.. _hbpCollaboratory.hbpCollaboratoryAutomator.registerHandler:
 
 
 Function ``registerHandler``
@@ -55,6 +57,7 @@ Register a handler function for the given task name.
     :param function fn: a function that accept the current context in
                           parameter.
     
+.. _hbpCollaboratory.hbpCollaboratoryAutomator.task:
 
 
 Function ``task``
@@ -78,6 +81,7 @@ can be given at load time and it will be fed with the result of each parent
     :param object context: a default context to run the task with
     :return Task: - the new task instance
     
+.. _hbpCollaboratory.hbpCollaboratoryAutomator.missingDataError:
 
 
 Function ``missingDataError``
@@ -92,6 +96,7 @@ Return a HbpError when a parameter is missing.
     :param object config: the invalid configuration object
     :return HbpError: a HbpError instance
     
+.. _hbpCollaboratory.hbpCollaboratoryAutomator.ensureParameters:
 
 
 Function ``ensureParameters``
@@ -105,6 +110,7 @@ Ensure that all parameters listed after config are presents.
     :param object config: task descriptor
     :return object: created entities
     
+.. _hbpCollaboratory.hbpCollaboratoryAutomator.extractAttributes:
 
 
 Function ``extractAttributes``

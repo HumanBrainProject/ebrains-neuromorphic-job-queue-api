@@ -1,8 +1,9 @@
+.. _undefined.hcFormControlFocus:
+
 =================================
 Namespace: ``hcFormControlFocus``
 =================================
 
-Member Of :doc:`hbpCollaboratoryForm`
 
 .. contents:: Local Navigation
    :local:
