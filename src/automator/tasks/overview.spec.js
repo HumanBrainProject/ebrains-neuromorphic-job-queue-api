@@ -44,12 +44,20 @@ describe('overview task handler', function() {
         parent: 10,
         appId: 3
       },
+      appResponse: {
+        count: 1,
+        results: [{
+          id: 4
+        }]
+      },
       rootNavItem: {
         context: 'root',
         children: [{
           id: 10,
           context: 'ccc-ddd',
-          appId: 1
+          appId: 1,
+          update: function() { },
+          toJson: function() { }
         }]
       }
     };
@@ -69,6 +77,7 @@ describe('overview task handler', function() {
       collab: data.collab.id,
       entity: data.fileEntity._uuid
     }).then(function(res) {
+      console.log('res:' + JSON.stringify(res));
       expect(res).toEqual(data.expectedNavItem);
     });
     scope.$digest();
@@ -80,16 +89,47 @@ describe('overview task handler', function() {
     spyOn(fileStore, 'getContent')
       .and.returnValue(q.when(data.fileContent));
     backend.expectPOST('http://richtext/v0/richtext/').respond(201);
-    overview({
-      entity: 'file'
-    }, {
-      entities: {
-        file: data.fileEntity
+    overview(
+      {
+        entity: 'file'
       },
-      collab: data.collab
-    }).then(function(res) {
-      expect(res).toEqual(data.expectedNavItem);
+      {
+        entities: {
+          file: data.fileEntity
+        },
+        collab: data.collab
+      }).then(function(res) {
+        expect(res).toEqual(data.expectedNavItem);
+      });
+    scope.$digest();
+  }));
+
+  it('should update content appId', inject(function() {
+    spyOn(navStore, 'getRoot')
+      .and.returnValue(q.when(data.rootNavItem));
+    spyOn(fileStore, 'getContent')
+      .and.returnValue(q.when(data.fileContent));
+    backend.expectGET('http://collab/v0/extension/?title=My+app+name')
+      .respond(200, data.appResponse);
+    backend.expectPUT('http://collab/v0/collab/1/nav/10/').respond(201, {});
+
+    spyOn(data.rootNavItem.children[0], 'update').and.callFake(function(appid) {
+      data.expectedNavItem.appId = appid.appId;
     });
+    overview(
+      {
+        app: 'My app name'
+      },
+      {
+        entities: {
+          file: data.fileEntity
+        },
+        collab: data.collab
+      }).then(function() {
+        expect(data.expectedNavItem.appId)
+          .toEqual(data.appResponse.results[0].id);
+      });
+    backend.flush();
     scope.$digest();
   }));
 });
