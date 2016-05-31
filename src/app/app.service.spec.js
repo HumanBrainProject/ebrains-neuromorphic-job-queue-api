@@ -1,6 +1,11 @@
+/* global window */
 describe('clbApp', function() {
   var tk;
   var w;
+
+  beforeEach(module(function($provide) {
+    $provide.constant('CLB_ENVIRONMENT', window.bbpConfig);
+  }));
 
   beforeEach(module('clb-app'));
   beforeEach(inject(function(clbApp, $window) {

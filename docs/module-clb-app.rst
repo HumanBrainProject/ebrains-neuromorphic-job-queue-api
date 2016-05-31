@@ -21,5 +21,9 @@ Description
 HBP Collaboratory Context in an app and to communicate with the current
 Collaboratory instance.
 
+This module must be bootstraped using ``angular.clbBootstrap`` function as
+it needs to load the global environment loaded in CLB_ENBIRONMENT angular
+constant.
+
 
 
