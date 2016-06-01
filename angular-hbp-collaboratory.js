@@ -8,15 +8,18 @@
  *   HBP Collaboratory Context in an app and to communicate with the current
  *   Collaboratory instance.
  * - :doc:`clb-automator <module:clb-automator>` to automate a serie of
- *   Collaboratory actions
+ *   Collaboratory actions.
+ * - :doc:`clb-feed <module:clb-feed>` retrieve and display stream of activities.
  */
 angular.module('hbpCollaboratory', [
   'clb-automator',
   'clb-app',
   'clb-storage',
+  'clb-datetime',
   'hbpCollaboratoryNavStore',
   'hbpCollaboratoryAppStore',
-  'clb-form'
+  'clb-form',
+  'clb-stream'
 ]);
 
 /**
@@ -31,6 +34,8 @@ angular.module('hbpCollaboratory', [
  * constant.
  */
 angular.module('clb-app', ['hbpCommon']);
+
+angular.module('clb-datetime', []);
 
 /**
  * @module clb-automator
@@ -64,6 +69,16 @@ angular.module('clb-form', []);
  * @module clb-storage
  */
 angular.module('clb-storage', ['hbpCommon', 'hbpDocumentClient']);
+
+/**
+ * @module clb-stream
+ * @desc
+ * The `clb-stream` module contains a service and a few directives to retrieve
+ * and display the HBP Collaboratory stream provided
+ * by the various applications.
+ */
+
+angular.module('clb-stream', ['bbpConfig', 'clb-datetime', 'hbpCommon']);
 
 
 clbApp.$inject = ['$q', '$rootScope', '$timeout', '$window', 'hbpErrorService'];angular.module('clb-app')
@@ -326,6 +341,33 @@ function clbApp(
       }
       return cursor;
     }
+  }
+})();
+
+/* global moment */
+angular.module('clb-datetime', [])
+.constant('moment', moment);
+
+(function() {
+  'use strict';
+  clbTimeAgo.$inject = ['moment'];
+  angular.module('clb-datetime')
+  .filter('clbTimeAgo', clbTimeAgo);
+
+  /**
+   * @name clbTimeAgo
+   * @desc
+   * ``clbTimeAgo`` filter retrieves a string representing the time spent
+   * between now and the given date representation.
+   *
+   * @memberof module:clb-datetime
+   * @param  {object} moment AngularJS injection
+   * @return {function} the filter function
+   */
+  function clbTimeAgo(moment) {
+    return function(input) {
+      return moment(input).fromNow();
+    };
   }
 })();
 
@@ -1597,5 +1639,323 @@ angular.module('clb-storage')
       getProjectByCollab: getProjectByCollab
     };
   }]);
+
+(function() {
+  'use strict';
+  ActivityController.$inject = ['$log', 'clbResourceLocator'];
+  angular.module('clb-stream')
+  .directive('clbActivity', clbActivity);
+
+  /**
+   * @name clbActivity
+   * @desc
+   * ``clb-activity`` directive is displays an activity retrieved by
+   * the HBP Stream service in a common way.
+   *
+   * It try to look up for a detailled description of the event and fallback
+   * to the summary if he cannot.
+   *
+   * @memberof module:clb-stream
+   * @return {object} the directive
+   */
+  function clbActivity() {
+    return {
+      restrict: 'A',
+      scope: {
+        activity: '=clbActivity'
+      },
+      controller: ActivityController,
+      controllerAs: 'vm',
+      bindToController: true,
+      template:'<a class=clb-activity-summary ng-href={{vm.primaryLink}}>{{vm.activity.summary}}</a> <span class=clb-activity-time>{{vm.activity.time|clbTimeAgo}}</span>',
+      link: {
+        post: function(scope, elt, attr, ctrl) {
+          elt.addClass('clb-activity').addClass(ctrl.verbClass);
+          scope.$watch('vm.activity.verb', function(newVal) {
+            if (newVal) {
+              elt.addClass('clb-activity-' + newVal.toLowerCase());
+            }
+          });
+        }
+      }
+    };
+  }
+
+  /**
+   * ViewModel of an activity used to render the clb-activity directive
+   * @param {object} $log angular injection
+   * @param {object} clbResourceLocator angular injection
+   */
+  function ActivityController($log, clbResourceLocator) {
+    var vm = this;
+
+    activate();
+
+    /* ------------- */
+    /**
+     * init controller
+     */
+    function activate() {
+      clbResourceLocator.urlFor(vm.activity.object)
+      .then(function(url) {
+        vm.primaryLink = url;
+      })
+      .catch(function(err) {
+        $log.error(err);
+      });
+    }
+  }
+})();
+
+(function() {
+  'use strict';
+  ActivityController.$inject = ['$log', 'clbStream'];
+  angular.module('clb-stream')
+  .directive('clbFeed', clbFeed);
+
+  /**
+   * @name clbFeed
+   * @desc
+   * ``clb-feed`` directive displays a feed of activity retrieved by
+   * the HBP Stream service. It handles scrolling and loading of activities.
+   * Each activity is rendered using the ``clb-activity`` directive.
+   *
+   * @memberof module:clb-stream
+   * @return {object} the directive
+   */
+  function clbFeed() {
+    return {
+      restrict: 'E',
+      scope: {
+        feedType: '=clbFeedType',
+        feedId: '=clbFeedId'
+      },
+      controller: ActivityController,
+      controllerAs: 'vm',
+      bindToController: true,
+      template:'<ul class=feed><li ng-if=vm.error><div class="alert alert-warning"><strong>Load Error:</strong> {{vm.error}}</div></li><li ng-if="!vm.activities && !vm.error"><hbp-loading></hbp-loading></li><li ng-repeat="a in vm.activities.results" clb-activity=a></li><li ng-if=vm.activities.hasNext><a href=# class="btn btn-default">More</a></li></ul>',
+      link: function(scope, elt) {
+        elt.addClass('clb-feed');
+      }
+    };
+  }
+
+  /**
+   * ViewModel of an activity used to render the clb-activity directive
+   * @param {object} $log angular injection
+   * @param {object} clbStream angular injection
+   */
+  function ActivityController($log, clbStream) {
+    var vm = this;
+
+    activate();
+
+    /* ------------- */
+    /**
+     * init controller
+     */
+    function activate() {
+      clbStream.getStream(vm.feedType, vm.feedId).then(function(rs) {
+        vm.activities = rs;
+      })
+      .catch(function(err) {
+        vm.error = err.message;
+      });
+    }
+  }
+})();
+
+(function() {
+  'use strict';
+  clbResourceLocator.$inject = ['$q', '$log', 'hbpErrorService', 'hbpUtil'];
+  angular.module('clb-stream')
+  .provider('clbResourceLocator', clbResourceLocatorProvider);
+
+  var urlHandlers = [];
+
+  /**
+   * Configure the clbResourceLocator service.
+   * @return {object} An AngularJS provider instance
+   */
+  function clbResourceLocatorProvider() {
+    var provider = {
+      $get: clbResourceLocator,
+      registerUrlHandler: registerUrlHandler,
+      urlHandlers: urlHandlers
+    };
+
+    /**
+     * Add a function that can generate URL for some types of object reference.
+     *
+     * The function should return a string representing the URL.
+     * Any other response means that the handler is not able to generate a proper
+     * URL for this type of object.
+     *
+     * The function signature is ``function(objectReference) { return 'url' // or nothing}``
+     * @memberof module:clb-stream
+     * @param  {function} handler a function that can generate URL string for some objects
+     * @return {provider} The provider, for chaining.
+     */
+    function registerUrlHandler(handler) {
+      if (angular.isFunction(handler)) {
+        urlHandlers.push(handler);
+      }
+      return provider;
+    }
+
+    return provider;
+  }
+
+  /**
+   * @name clbResourceLocator
+   * @desc
+   * resourceLocator service
+   * @memberof module:clb-stream
+   * @param {object} $q AngularJS injection
+   * @param {object} $log AngularJS injection
+   * @param {object} hbpErrorService AngularJS injection
+   * @param {object} hbpUtil AngularJS injection
+   * @return {object} the service singleton
+   */
+  function clbResourceLocator($q, $log, hbpErrorService, hbpUtil) {
+    return {
+      urlFor: urlFor
+    };
+
+    /**
+     * @desc
+     * Asynchronous resolution of an object reference to an URL that access
+     * this resource.
+     *
+     * The URL is generated using the registered URL handlers. If no URL
+     * can be generated, a HbpError is thrown with ``type==='ObjectTypeException'``.
+     * If the object reference is not valid, a HbpError is throw with
+     * ``type==='AttributeError'``. In both case ``data.ref will be set with
+     * reference for which there is an issue.
+     *
+     * @memberof module:clb-stream.clbResourceLocator
+     * @param  {object} ref object reference
+     * @return {string} a atring representing the URL for this object reference
+     */
+    function urlFor(ref) {
+      if (!validRef(ref)) {
+        return $q.reject(invalidReferenceException(ref));
+      }
+      var next = function(i) {
+        if (i < urlHandlers.length) {
+          return $q.when(urlHandlers[i](ref)).then(function(url) {
+            if (angular.isString(url)) {
+              $log.debug('generated URL', url);
+              return url;
+            }
+            if (angular.isDefined(url)) {
+              $log.warn('unexpected result from URL handler', url);
+            }
+            return next(i + 1);
+          });
+        }
+        return $q.reject(objectTypeException(ref));
+      };
+      return next(0);
+    }
+
+    /**
+     * build an objectTypeException.
+     * @private
+     * @param  {object} ref ClbObjectReference
+     * @return {HbpError}   error to be sent
+     */
+    function objectTypeException(ref) {
+      return hbpErrorService.error({
+        type: 'ObjectTypeException',
+        message: hbpUtil.format(
+          'Unkown object type <{0}>', [ref && ref.type]),
+        data: {ref: ref}
+      });
+    }
+
+    /**
+     * build an objectTypeException.
+     * @private
+     * @param  {object} ref ClbObjectReference
+     * @return {HbpError}   error to be sent
+     */
+    function invalidReferenceException(ref) {
+      return hbpErrorService.error({
+        type: 'AttributeError',
+        message: hbpUtil.format('Invalid object reference <' + ref + '>'),
+        data: {ref: ref}
+      });
+    }
+
+    /**
+     * Return wheter the object reference is valid or not.
+     *
+     * To be valid an ObjectReference must have a defined ``id`` and ``type``
+     * @param  {any} ref the potential object reference
+     * @return {boolean} whether it is or not an object reference
+     */
+    function validRef(ref) {
+      return Boolean(ref && ref.id && ref.type);
+    }
+  }
+})();
+
+(function() {
+  'use strict';
+
+  clbStream.$inject = ['$http', '$log', 'bbpConfig', 'hbpUtil'];
+  angular.module('clb-stream')
+  .factory('clbStream', clbStream);
+
+  /**
+   * ``clbStream`` service is used to retrieve feed of activities
+   * given a user, a collab or a specific context.
+   *
+   * @memberof module:clb-stream
+   * @namespace clbStream
+   * @param {function} $http angular dependency injection
+   * @param {function} $log angular dependency injection
+   * @param {function} bbpConfig angular dependency injection
+   * @param {function} hbpUtil angular dependency injection
+   * @return {object} the clbActivityStream service
+   */
+  function clbStream($http, $log, bbpConfig, hbpUtil) {
+    return {
+      getStream: getStream
+    };
+
+    /* -------------------- */
+
+    /**
+     * Get a feed of activities regarding an item type and id.
+     * @memberof module:clb-stream.clbStream
+     * @param  {string} type The type of object to get the feed for
+     * @param  {string|int} id   The id of the object to get the feed for
+     * @return {Promise}         resolve to the feed of activities
+     */
+    function getStream(type, id) {
+      var url = hbpUtil.format('{0}/stream/{1}:{2}/', [
+        bbpConfig.get('api.stream.v0'),
+        type,
+        id
+      ]);
+      return hbpUtil.paginatedResultSet($http.get(url), {
+        resultsFactory: function(results) {
+          if (!(results && results.length)) {
+            return;
+          }
+          for (var i = 0; i < results.length; i++) {
+            var activity = results[i];
+            if (activity.time) {
+              activity.time = new Date(Date.parse(activity.time));
+            }
+          }
+        }
+      })
+      .catch(hbpUtil.ferr);
+    }
+  }
+})();
 
 //# sourceMappingURL=angular-hbp-collaboratory.js.map

@@ -1,0 +1,12 @@
+<ul class="feed">
+  <li ng-if="vm.error">
+    <div class="alert alert-warning">
+      <strong>Load Error:</strong> {{vm.error}}
+    </div>
+  </li>
+  <li ng-if="!vm.activities && !vm.error"><hbp-loading></hbp-loading></li>
+  <li ng-repeat="a in vm.activities.results" clb-activity="a"></li>
+  <li ng-if="vm.activities.hasNext">
+    <a href="#" class="btn btn-default">More</a>
+  </li>
+</ul>

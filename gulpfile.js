@@ -13,6 +13,8 @@ var KarmaServer = require('karma').Server;
 var wiredep = require('wiredep').stream;
 var webserver = require('gulp-webserver');
 var child_process = require('child_process');
+var embedTemplates = require('gulp-angular-embed-templates');
+var sass = require('gulp-sass');
 
 gulp.task('example:build', ['js'], function() {
   gulp.src('./example/index.html')
@@ -35,6 +37,18 @@ gulp.task('lint', function() {
   .pipe(eslint())
   .pipe(eslint.format()) // console output
   .pipe(eslint.failOnError());
+});
+
+gulp.task('styles', function() {
+  return gulp.src(['src/main.scss'])
+  .pipe(sourcemaps.init())
+    .pipe(sass({
+      style: 'expanded',
+      includePaths: './bower_components'
+    }))
+    .pipe(concat('angular-hbp-collaboratory.css'))
+  .pipe(sourcemaps.write('.'))
+  .pipe(gulp.dest('.'));
 });
 
 gulp.task('karma', function(done) {
@@ -68,6 +82,7 @@ gulp.task('js', function() {
   .pipe(plumber())
   .pipe(sourcemaps.init())
     .pipe(ngAnnotate({single_quotes: true}))
+    .pipe(embedTemplates())
     .pipe(concat('angular-hbp-collaboratory.js'))
   .pipe(sourcemaps.write('.'))
   .pipe(gulp.dest('.'));
