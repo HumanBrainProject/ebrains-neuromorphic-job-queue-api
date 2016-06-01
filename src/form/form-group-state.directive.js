@@ -1,6 +1,6 @@
 /**
  * @namespace clbFormGroupState
- * @memberof clb-form
+ * @memberof module:clb-form
  * @desc
  * ``clbFormGroupState`` directive flag the current form group with
  * the class has-error or has-success depending on its form field

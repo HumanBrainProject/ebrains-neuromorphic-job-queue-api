@@ -1,6 +1,6 @@
 /**
  * @namespace clbFormControlFocus
- * @memberof clb-form
+ * @memberof module:clb-form
  * @desc
  * The ``clbFormControlFocus`` Directive mark a form element as the one that
  * should receive the focus first.
