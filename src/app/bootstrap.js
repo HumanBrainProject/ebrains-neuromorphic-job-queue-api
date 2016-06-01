@@ -36,7 +36,12 @@
             }
           }
           if (angular.isString(options.env)) {
-            return $http.get(options.env);
+            return $http.get(options.env)
+            .then(function(res) {
+              // Set bbpConfig for backward compatibility
+              window.bbpConfig = res.data;
+              return res.data;
+            });
           }
           // Set bbpConfig for backward compatibility
           if (!window.bbpConfig) {
