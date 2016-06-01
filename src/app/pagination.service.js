@@ -11,7 +11,8 @@ angular.module('clb-app')
  */
 function clbPaginatedResultSet($http, $q, clbError) {
   /**
-   * @name ResultSetEOL
+   * @attribute ResultSetEOL
+   * @memberof module:clb-app.clbPaginatedResultSet
    * @desc error thrown when hbpUtil.ResultSet is crawled when at an
    *       extremity.
    */
@@ -48,8 +49,8 @@ function clbPaginatedResultSet($http, $q, clbError) {
   }
 
   /**
-   * @name ResultSet
-   * @memberOf hbpUtil
+   * @class ResultSet
+   * @memberof module:clb-app.clbPaginatedResultSet
    * @desc
    * Build a result set with internal support for fetching next and previous results.
    *
@@ -88,6 +89,7 @@ function clbPaginatedResultSet($http, $q, clbError) {
      * @memberOf hbpUtil.ResultSet
      * @desc
      * Retrieve the next result page.
+     * @memberof module:clb-app.clbPaginatedResultSet.ResultSet
      *
      * @return {Object} a promise that will resolve when the next page is fetched.
      */

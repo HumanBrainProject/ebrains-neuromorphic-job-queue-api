@@ -15,6 +15,7 @@ Children
 .. toctree::
    :maxdepth: 1
    
+   module-clb-app.clbPaginatedResultSet.ResultSet
    
 Description
 ===========
@@ -23,6 +24,19 @@ Description
 
 
 
+.. _module-clb-app.clbPaginatedResultSet.ResultSetEOL:
+
+
+Function ``ResultSetEOL``
+=========================
+
+error thrown when hbpUtil.ResultSet is crawled when at an
+      extremity.
+
+.. js:function:: ResultSetEOL()
+
+    
+    
 .. _module-clb-app.clbPaginatedResultSet.get:
 
 
