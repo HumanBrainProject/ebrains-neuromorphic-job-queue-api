@@ -12,11 +12,12 @@
    * @namespace clbStream
    * @param {function} $http angular dependency injection
    * @param {function} $log angular dependency injection
-   * @param {function} bbpConfig angular dependency injection
-   * @param {function} hbpUtil angular dependency injection
+   * @param {function} clbEnv angular dependency injection
+   * @param {function} clbError angular dependency injection
+   * @param {function} clbPaginatedResultSet angular dependency injection
    * @return {object} the clbActivityStream service
    */
-  function clbStream($http, $log, bbpConfig, hbpUtil) {
+  function clbStream($http, $log, clbEnv, clbError, clbPaginatedResultSet) {
     return {
       getStream: getStream
     };
@@ -31,12 +32,9 @@
      * @return {Promise}         resolve to the feed of activities
      */
     function getStream(type, id) {
-      var url = hbpUtil.format('{0}/stream/{1}:{2}/', [
-        bbpConfig.get('api.stream.v0'),
-        type,
-        id
-      ]);
-      return hbpUtil.paginatedResultSet($http.get(url), {
+      var url = clbEnv.get('api.stream.v0') + '/stream/' +
+                           type + ':' + id + '/';
+      return clbPaginatedResultSet.get($http.get(url), {
         resultsFactory: function(results) {
           if (!(results && results.length)) {
             return;
@@ -49,7 +47,7 @@
           }
         }
       })
-      .catch(hbpUtil.ferr);
+      .catch(clbError.rejectHttpError);
     }
   }
 })();

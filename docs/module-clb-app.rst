@@ -12,7 +12,10 @@ Children
 .. toctree::
    :maxdepth: 1
    
+   module-clb-app.ClbError
    module-clb-app.clbApp
+   module-clb-app.clbError_
+   module-clb-app.clbPaginatedResultSet
    
 Description
 ===========

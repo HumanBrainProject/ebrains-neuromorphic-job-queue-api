@@ -104,13 +104,13 @@ angular.module('clb-automator')
  * });
  * @param {object} $q injected service
  * @param {object} $log injected service
- * @param {object} hbpErrorService injected service
+ * @param {object} clbError injected service
  * @return {object} the clbAutomator Angular service singleton
  */
 function clbAutomator(
   $q,
   $log,
-  hbpErrorService
+  clbError
 ) {
   var handlers = {};
 
@@ -148,7 +148,7 @@ function clbAutomator(
       return new Task(name, descriptor, context);
     } catch (ex) {
       $log.error('EXCEPTION', ex);
-      throw hbpErrorService.error({
+      throw clbError.error({
         type: 'InvalidTask',
         message: 'Invalid task ' + name + ': ' + ex,
         data: {
@@ -175,7 +175,7 @@ function clbAutomator(
         return task(name, descriptor[name], context).run();
       }
     }
-    return $q.reject(hbpErrorService.error({
+    return $q.reject(clbError.error({
       type: 'NoTaskFound',
       message: 'No task found in descriptor',
       data: descriptor
@@ -266,7 +266,7 @@ function clbAutomator(
       var onError = function(err) {
         self.state = 'error';
         // noop operation if is already one
-        return $q.reject(hbpErrorService.error(err));
+        return $q.reject(clbError.error(err));
       };
       self.state = 'progress';
       self.promise = $q.when(handlers[self.name](self.descriptor, context))
@@ -300,7 +300,7 @@ function clbAutomator(
    * @private
    */
   function missingDataError(key, config) {
-    return hbpErrorService({
+    return clbError({
       type: 'KeyError',
       message: 'Missing `' + key + '` key in config',
       data: {

@@ -10,12 +10,6 @@
    * @return {object} provider
    */
   function clbEnv($injector) {
-    var env;
-    try {
-      env = $injector.get('CLB_ENVIRONMENT');
-    } catch (ex) {
-      env = window.bbpConfig;
-    }
     return {
       get: get,
       $get: function() {
@@ -45,7 +39,8 @@
      */
     function get(key, defaultValue) {
       var parts = key.split('.');
-      var cursor = env;
+      var cursor = (window.bbpConfig ?
+                    window.bbpConfig : $injector.get('CLB_ENVIRONMENT'));
       for (var i = 0; i < parts.length; i++) {
         if (!(cursor && cursor.hasOwnProperty(parts[i]))) {
           if (defaultValue !== undefined) {

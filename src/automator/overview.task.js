@@ -1,6 +1,6 @@
 angular.module('clb-automator')
 .run(function createOverview(
-  $log, $q, $http, bbpConfig, hbpFileStore, hbpErrorService,
+  $log, $q, $http, clbEnv, hbpFileStore, clbError,
   clbAutomator, hbpCollaboratoryNavStore, hbpCollaboratoryAppStore
 ) {
   clbAutomator.registerHandler('overview', overview);
@@ -34,7 +34,7 @@ angular.module('clb-automator')
 
       return fetchSourceContent(descriptor, context)
         .then(function(source) {
-          return $http.post(bbpConfig.get('api.richtext.v0') + '/richtext/', {
+          return $http.post(clbEnv.get('api.richtext.v0') + '/richtext/', {
             ctx: overview.context,
             raw: source
           });

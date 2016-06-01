@@ -24,14 +24,14 @@ describe('hbpCollaboratoryNavStore', function() {
     var child;
     var url;
 
-    beforeEach(inject(function(bbpConfig) {
+    beforeEach(inject(function(clbEnv) {
       collabId = 1;
       parent = new store.NavItem({id: 22, collabId: collabId}).ensureCached();
       child = new store.NavItem({id: 44, collabId: collabId}).ensureCached();
       nav = new store.NavItem(
         {id: 33, collabId: collabId, children: [child]}
       ).ensureCached();
-      url = bbpConfig.get('api.collab.v0') + '/collab/1/nav/33/';
+      url = clbEnv.get('api.collab.v0') + '/collab/1/nav/33/';
     }));
 
     it('should keep its children after completion', function() {

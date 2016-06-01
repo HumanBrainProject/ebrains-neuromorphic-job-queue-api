@@ -45,11 +45,10 @@
    * @memberof module:clb-stream
    * @param {object} $q AngularJS injection
    * @param {object} $log AngularJS injection
-   * @param {object} hbpErrorService AngularJS injection
-   * @param {object} hbpUtil AngularJS injection
+   * @param {object} clbError AngularJS injection
    * @return {object} the service singleton
    */
-  function clbResourceLocator($q, $log, hbpErrorService, hbpUtil) {
+  function clbResourceLocator($q, $log, clbError) {
     return {
       urlFor: urlFor
     };
@@ -98,10 +97,9 @@
      * @return {HbpError}   error to be sent
      */
     function objectTypeException(ref) {
-      return hbpErrorService.error({
+      return clbError.error({
         type: 'ObjectTypeException',
-        message: hbpUtil.format(
-          'Unkown object type <{0}>', [ref && ref.type]),
+        message: 'Unkown object type <' + (ref && ref.type) + '>',
         data: {ref: ref}
       });
     }
@@ -113,9 +111,9 @@
      * @return {HbpError}   error to be sent
      */
     function invalidReferenceException(ref) {
-      return hbpErrorService.error({
+      return clbError.error({
         type: 'AttributeError',
-        message: hbpUtil.format('Invalid object reference <' + ref + '>'),
+        message: 'Invalid object reference <' + ref + '>',
         data: {ref: ref}
       });
     }

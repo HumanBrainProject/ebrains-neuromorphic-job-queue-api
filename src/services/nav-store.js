@@ -7,11 +7,11 @@
  * @desc hbpCollaboratoryNavStore provides tools to create and manage
  *       navigation items.
  */
-angular.module('hbpCollaboratoryNavStore', ['hbpCommon', 'uuid4'])
+angular.module('hbpCollaboratoryNavStore', ['uuid4', 'clb-app'])
 .service('hbpCollaboratoryNavStore', function($q, $http, $log,
     $cacheFactory, $timeout, orderByFilter, uuid4,
-    hbpUtil, bbpConfig) {
-  var collabApiUrl = bbpConfig.get('api.collab.v0') + '/collab/';
+    clbEnv, clbError) {
+  var collabApiUrl = clbEnv.get('api.collab.v0') + '/collab/';
   // a cache with individual nav items
   var cacheNavItems = $cacheFactory('navItem');
 
@@ -176,7 +176,7 @@ angular.module('hbpCollaboratoryNavStore', ['hbpCommon', 'uuid4'])
 
           return root;
         },
-        hbpUtil.ferr
+        clbError.rejectHttpError
       );
 
       cacheNavRoots.put(collabId, treePromise);
@@ -210,10 +210,11 @@ angular.module('hbpCollaboratoryNavStore', ['hbpCommon', 'uuid4'])
    * @return {Promise}   The promise of a NavItem
    */
   var getNodeFromContext = function(ctx) {
-    var url = hbpUtil.format('{0}/{1}/{2}/', [
-      bbpConfig.get('api.collab.v0'),
-      'collab/context', ctx
-    ]);
+    var url = [
+      clbEnv.get('api.collab.v0'),
+      'collab/context',
+      ctx
+    ].join('/') + '/';
     return $http.get(url)
     .then(function(res) {
       var nav = NavItem.fromJson(res.data.collab.id, res.data);
@@ -225,7 +226,7 @@ angular.module('hbpCollaboratoryNavStore', ['hbpCommon', 'uuid4'])
       }
       return nav;
     }, function(res) {
-      return $q.reject(hbpUtil.ferr(res));
+      return $q.reject(clbError.rejectHttpError(res));
     });
   };
 
@@ -239,7 +240,7 @@ angular.module('hbpCollaboratoryNavStore', ['hbpCommon', 'uuid4'])
     return $http.post(collabApiUrl + collabId + '/nav/', navItem.toJson())
     .then(function(resp) {
       return NavItem.fromJson(collabId, resp.data);
-    }, hbpUtil.ferr);
+    }, clbError.rejectHttpError);
   };
 
   /**
@@ -252,7 +253,7 @@ angular.module('hbpCollaboratoryNavStore', ['hbpCommon', 'uuid4'])
     return $http.delete(collabApiUrl + collabId + '/nav/' + navItem.id + '/')
     .then(function() {
       cacheNavItems.remove(key(collabId, navItem.id));
-    }, hbpUtil.ferr);
+    }, clbError.rejectHttpError);
   };
 
   /**
@@ -267,7 +268,7 @@ angular.module('hbpCollaboratoryNavStore', ['hbpCommon', 'uuid4'])
       navItem.id + '/', navItem.toJson())
     .then(function(resp) {
       return NavItem.fromJson(collabId, resp.data);
-    }, hbpUtil.ferr);
+    }, clbError.rejectHttpError);
   };
 
   // ordering operation needs to be globally queued to ensure consistency.

@@ -1,7 +1,7 @@
 angular.module('clb-automator')
 .run(function createStorage(
   $log, $q, hbpEntityStore,
-  hbpErrorService,
+  clbError,
   clbAutomator,
   clbStorage
 ) {

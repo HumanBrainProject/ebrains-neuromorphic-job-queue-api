@@ -103,8 +103,8 @@ describe('clbAutomator', function() {
         expect(handler).toHaveBeenCalledWith(descriptor, runContext);
       });
 
-      it('should handle error', inject(function($q, hbpErrorService) {
-        var expected = hbpErrorService.error({});
+      it('should handle error', inject(function($q, clbError) {
+        var expected = clbError.error({});
         var actual;
         var spy = jasmine.createSpy('createCollab')
           .and.returnValue($q.reject(expected));

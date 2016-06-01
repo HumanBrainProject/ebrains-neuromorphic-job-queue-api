@@ -6,7 +6,6 @@ describe('clbFeed directive', function() {
   var feedResultSet;
 
   beforeEach(module('clb-stream'));
-  beforeEach(module('hbpCommon')); // used for the error service
   beforeEach(inject(function(
     $compile,
     $rootScope,
@@ -57,8 +56,8 @@ describe('clbFeed directive', function() {
     expect(element.find('ul').find('li').attr('clb-activity')).toBe('a');
   });
 
-  it('should display error message', inject(function(hbpErrorService) {
-    var err = hbpErrorService.error();
+  it('should display error message', inject(function(clbError) {
+    var err = clbError.error();
     spyOn(service, 'getStream').and.returnValue(
       $q.reject(err));
     var element = compile(

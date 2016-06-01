@@ -1,10 +1,11 @@
-/* global document */
-describe(angular.clbBootstrap, function() {
+/* global document,window */
+describe('clbEnv Service', function() {
   var appElement;
   var clbEnv;
   var clbEnvProvider;
 
   beforeEach(function(done) {
+    window.bbpConfig = undefined;
     var env = {
       test: true,
       nested: {
@@ -15,12 +16,12 @@ describe(angular.clbBootstrap, function() {
     };
     appElement = document.createElement('DIV');
     document.body.appendChild(appElement);
-    angular.module('myApp', ['clb-app']).config(function(_clbEnvProvider_) {
+    angular.module('myApp4', ['clb-app']).config(function(_clbEnvProvider_) {
       clbEnvProvider = _clbEnvProvider_;
     });
-    angular.clbBootstrap('myApp', {env: env, element: appElement})
+    angular.clbBootstrap('myApp4', {env: env, element: appElement})
     .then(function() {
-      module('myApp');
+      module('myApp4');
       done();
     });
   });

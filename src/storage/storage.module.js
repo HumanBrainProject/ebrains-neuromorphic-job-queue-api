@@ -1,4 +1,4 @@
 /**
  * @module clb-storage
  */
-angular.module('clb-storage', ['hbpCommon', 'hbpDocumentClient']);
+angular.module('clb-storage', ['clb-app', 'hbpDocumentClient']);

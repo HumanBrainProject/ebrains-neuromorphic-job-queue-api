@@ -9,7 +9,8 @@
   ],
   "authors": [
     "Olivier Amblet <olivier.amblet@epfl.ch>",
-    "Stefano Zaninetta <stefano.zaninetta@epfl.ch>"
+    "Stefano Zaninetta <stefano.zaninetta@epfl.ch>",
+    "Genrich Ivaska <genrich.ivaska@epfl.ch>"
   ],
   "license": "MIT",
   "moduleType": [
@@ -33,10 +34,12 @@
   "resolutions": {
     "angular": "1.5.6",
     "angular-hbp-common": "^2.2.10",
-    "moment": "^2.13.0"
+    "moment": "^2.13.0",
+    "lodash": "~3.10.1"
   },
   "devDependencies": {
     "angular-mocks": "^1.5.6",
-    "angular-ui-codemirror": "^0.3.0"
+    "angular-ui-codemirror": "^0.3.0",
+    "lodash": "^4.13.1"
   }
 }

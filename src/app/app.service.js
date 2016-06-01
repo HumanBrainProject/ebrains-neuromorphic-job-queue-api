@@ -38,7 +38,7 @@ angular.module('clb-app')
  * @param  {object} $rootScope AngularJS service injection
  * @param  {object} $timeout AngularJS service injection
  * @param  {object} $window AngularJS service injection
- * @param  {object} hbpErrorService AngularJS service injection
+ * @param  {object} clbError AngularJS service injection
  * @return {object}         the service singleton
  */
 function clbApp(
@@ -46,7 +46,7 @@ function clbApp(
   $rootScope,
   $timeout,
   $window,
-  hbpErrorService
+  clbError
 ) {
   'use strict';
   var eventId = 0;
@@ -72,7 +72,7 @@ function clbApp(
     if (message.eventName === 'resolved') {
       sentMessages[message.origin].resolve(message.data);
     } else if (message.eventName === 'error') {
-      sentMessages[message.origin].reject(hbpErrorService.error(message.data));
+      sentMessages[message.origin].reject(clbError.error(message.data));
     }
     sentMessages[message.origin] = null;
   });
@@ -121,7 +121,7 @@ function clbApp(
   function context(data) {
     var d = $q.defer();
     var kill = $timeout(function() {
-      d.reject(hbpErrorService.error({
+      d.reject(clbError.error({
         type: 'TimeoutException',
         message: 'No context can be retrieved'
       }));
@@ -143,7 +143,7 @@ function clbApp(
       d.resolve(context);
     })
     .catch(function(err) {
-      d.reject(hbpErrorService.error(err));
+      d.reject(clbError.error(err));
     });
     return d.promise;
   }

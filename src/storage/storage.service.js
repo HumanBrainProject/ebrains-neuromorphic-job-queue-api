@@ -7,7 +7,7 @@
  */
 angular.module('clb-storage')
 .factory('clbStorage',
-  function clbStorage(hbpUtil, hbpEntityStore, hbpErrorService) {
+  function clbStorage(hbpEntityStore, clbError) {
     /**
      * Retrieve the key to lookup for on entities given the ctx
      * @memberof module:clbStorage
@@ -41,7 +41,7 @@ angular.module('clb-storage')
       newMetadata[metadataKey(contextId)] = 1;
 
       return hbpEntityStore.addMetadata(entity, newMetadata)
-      .catch(hbpErrorService.error);
+      .catch(clbError.error);
     }
 
     /**
@@ -58,8 +58,7 @@ angular.module('clb-storage')
     function getEntityByContext(contextId) {
       var queryParams = {};
       queryParams[metadataKey(contextId)] = 1;
-
-      return hbpEntityStore.query(queryParams).catch(hbpUtil.ferr);
+      return hbpEntityStore.query(queryParams).catch(clbError.rejectHttpError);
     }
 
     /**
@@ -83,7 +82,7 @@ angular.module('clb-storage')
       var key = metadataKey(contextId);
 
       return hbpEntityStore.deleteMetadata(entity, [key])
-      .then(null, hbpErrorService.error);
+      .then(null, clbError.error);
     }
 
     /**
@@ -107,7 +106,7 @@ angular.module('clb-storage')
     function updateContextMetadata(newEntity, oldEntity, contextId) {
       return deleteContextMetadata(oldEntity, contextId).then(function() {
         return setContextMetadata(newEntity, contextId);
-      }).catch(hbpErrorService.error);
+      }).catch(clbError.error);
     }
 
     /**
@@ -125,7 +124,7 @@ angular.module('clb-storage')
       var queryParams = {
         managed_by_collab: collabId
       };
-      return hbpEntityStore.query(queryParams).catch(hbpUtil.ferr);
+      return hbpEntityStore.query(queryParams).catch(clbError.rejectHttpError);
     }
 
     return {

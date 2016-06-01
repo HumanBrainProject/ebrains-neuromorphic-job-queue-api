@@ -1,7 +1,9 @@
 /* global window,document */
-describe(angular.clbBootstrap, function() {
+describe('angular.clbBootstrap', function() {
   var appElement;
   beforeEach(function() {
+    // Remove default setup
+    window.bbpConfig = undefined;
     appElement = document.createElement('DIV');
     document.body.appendChild(appElement);
   });
@@ -44,6 +46,7 @@ describe(angular.clbBootstrap, function() {
   });
 
   it('should load environment through bbpConfig', function(done) {
+    window.bbpConfig = {val: true};
     angular.module('myApp5', ['clb-app'])
     .run(function(CLB_ENVIRONMENT) {
       expect(CLB_ENVIRONMENT).toBeDefined();

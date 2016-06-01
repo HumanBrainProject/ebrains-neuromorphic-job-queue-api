@@ -7,14 +7,14 @@
  * hbpCollaboratoryAppStore can be used to find and work with the
  * registered HBP Collaboratory applications.
  */
-angular.module('hbpCollaboratoryAppStore', ['bbpConfig', 'hbpCommon'])
+angular.module('hbpCollaboratoryAppStore', ['clb-app', 'hbpCommon'])
 .constant('folderAppId', '__collab_folder__')
 .service('hbpCollaboratoryAppStore', function(
   $q, $http, $cacheFactory,
-  hbpErrorService, bbpConfig, hbpUtil
+  clbError, clbEnv, clbPaginatedResultSet
 ) {
   var appsCache = $cacheFactory('__appsCache__');
-  var urlBase = bbpConfig.get('api.collab.v0') + '/extension/';
+  var urlBase = clbEnv.get('api.collab.v0') + '/extension/';
   var apps = null;
 
   /**
@@ -88,7 +88,7 @@ angular.module('hbpCollaboratoryAppStore', ['bbpConfig', 'hbpCommon'])
    */
   var list = function() {
     if (!apps) {
-      return loadAll(hbpUtil.paginatedResultSet($http.get(urlBase), {
+      return loadAll(clbPaginatedResultSet.get($http.get(urlBase), {
         factory: App.fromJson
       }));
     }
@@ -112,7 +112,7 @@ angular.module('hbpCollaboratoryAppStore', ['bbpConfig', 'hbpCommon'])
       appsCache.put(id, App.fromJson(res.data));
       return appsCache.get(id);
     }, function(res) {
-      return $q.reject(hbpErrorService.httpError(res));
+      return $q.reject(clbError.httpError(res));
     });
   };
 
@@ -126,7 +126,7 @@ angular.module('hbpCollaboratoryAppStore', ['bbpConfig', 'hbpCommon'])
       var results = res.data.results;
       // Reject if more than one results
       if (results.length > 1) {
-        return $q.reject(hbpErrorService.error({
+        return $q.reject(clbError.error({
           type: 'TooManyResults',
           message: 'Multiple apps has been retrieved ' +
                    'when only one was expected.',
@@ -141,7 +141,7 @@ angular.module('hbpCollaboratoryAppStore', ['bbpConfig', 'hbpCommon'])
       var app = App.fromJson(results[0]);
       appsCache.put(app.id, app);
       return app;
-    }, hbpUtil.ferr);
+    }, clbError.rejectHttpError);
   };
 
   return {

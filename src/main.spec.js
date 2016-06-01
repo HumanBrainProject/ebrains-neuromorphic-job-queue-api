@@ -28,7 +28,6 @@ window.bbpConfig = angular.copy(globalConfig);
 
 beforeEach(function() {
   window.bbpConfig = angular.copy(globalConfig);
-
   var checkToDefine = function(actual, properties) {
     var props = angular.isArray(properties) ? properties : [properties];
     var result = true;

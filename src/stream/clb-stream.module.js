@@ -6,4 +6,4 @@
  * by the various applications.
  */
 
-angular.module('clb-stream', ['bbpConfig', 'clb-datetime', 'hbpCommon']);
+angular.module('clb-stream', ['clb-app', 'clb-datetime']);

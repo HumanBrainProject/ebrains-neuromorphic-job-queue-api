@@ -10,7 +10,7 @@
    * @return {Promise} return once the environment has been bootstrapped
    */
   function clbBootstrap(module, options) {
-    if (!options.env) {
+    if (window.bbpConfig) {
       options.env = window.bbpConfig;
     }
     if (!options.element) {
