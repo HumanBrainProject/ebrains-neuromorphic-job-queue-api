@@ -7,7 +7,7 @@
  * @desc hbpCollaboratoryNavStore provides tools to create and manage
  *       navigation items.
  */
-angular.module('hbpCollaboratoryNavStore', ['uuid4', 'clb-app'])
+angular.module('hbpCollaboratoryNavStore', ['uuid4', 'clb-env', 'clb-error'])
 .service('hbpCollaboratoryNavStore', function($q, $http, $log,
     $cacheFactory, $timeout, orderByFilter, uuid4,
     clbEnv, clbError) {

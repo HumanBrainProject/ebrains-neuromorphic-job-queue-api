@@ -7,11 +7,15 @@
  * hbpCollaboratoryAppStore can be used to find and work with the
  * registered HBP Collaboratory applications.
  */
-angular.module('hbpCollaboratoryAppStore', ['clb-app', 'hbpCommon'])
+angular.module('hbpCollaboratoryAppStore', [
+  'clb-env',
+  'clb-error',
+  'clb-rest'
+])
 .constant('folderAppId', '__collab_folder__')
 .service('hbpCollaboratoryAppStore', function(
   $q, $http, $cacheFactory,
-  clbError, clbEnv, clbPaginatedResultSet
+  clbError, clbEnv, clbResultSet
 ) {
   var appsCache = $cacheFactory('__appsCache__');
   var urlBase = clbEnv.get('api.collab.v0') + '/extension/';
@@ -88,7 +92,7 @@ angular.module('hbpCollaboratoryAppStore', ['clb-app', 'hbpCommon'])
    */
   var list = function() {
     if (!apps) {
-      return loadAll(clbPaginatedResultSet.get($http.get(urlBase), {
+      return loadAll(clbResultSet.get($http.get(urlBase), {
         factory: App.fromJson
       }));
     }

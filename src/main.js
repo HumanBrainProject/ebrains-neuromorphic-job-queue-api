@@ -13,6 +13,8 @@
  */
 angular.module('hbpCollaboratory', [
   'clb-automator',
+  'clb-env',
+  'clb-error',
   'clb-app',
   'clb-storage',
   'clb-datetime',

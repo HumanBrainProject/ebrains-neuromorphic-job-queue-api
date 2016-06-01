@@ -10,7 +10,8 @@
  * the `Create New Collab` functionality in `collaboratory-extension-core`.
  */
 angular.module('clb-automator', [
-  'clb-app',
+  'clb-env',
+  'clb-error',
   'hbpCommon',
   'hbpDocumentClient',
   'hbpCollaboratoryAppStore',

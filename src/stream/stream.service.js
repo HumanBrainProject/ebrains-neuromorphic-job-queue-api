@@ -14,10 +14,10 @@
    * @param {function} $log angular dependency injection
    * @param {function} clbEnv angular dependency injection
    * @param {function} clbError angular dependency injection
-   * @param {function} clbPaginatedResultSet angular dependency injection
+   * @param {function} clbResultSet angular dependency injection
    * @return {object} the clbActivityStream service
    */
-  function clbStream($http, $log, clbEnv, clbError, clbPaginatedResultSet) {
+  function clbStream($http, $log, clbEnv, clbError, clbResultSet) {
     return {
       getStream: getStream
     };
@@ -34,7 +34,7 @@
     function getStream(type, id) {
       var url = clbEnv.get('api.stream.v0') + '/stream/' +
                            type + ':' + id + '/';
-      return clbPaginatedResultSet.get($http.get(url), {
+      return clbResultSet.get($http.get(url), {
         resultsFactory: function(results) {
           if (!(results && results.length)) {
             return;

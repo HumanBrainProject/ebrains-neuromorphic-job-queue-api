@@ -1,10 +1,9 @@
-.. _module-clb-app.clbPaginatedResultSet:
+.. _undefined.clbResultSet:
 
-====================================
-Namespace: ``clbPaginatedResultSet``
-====================================
+===========================
+Namespace: ``clbResultSet``
+===========================
 
-Member Of :doc:`module-clb-app`
 
 .. contents:: Local Navigation
    :local:
@@ -15,7 +14,7 @@ Children
 .. toctree::
    :maxdepth: 1
    
-   module-clb-app.clbPaginatedResultSet.ResultSet
+   module-clb-rest.clbResultSet.ResultSet
    
 Description
 ===========
@@ -24,7 +23,7 @@ Description
 
 
 
-.. _module-clb-app.clbPaginatedResultSet.ResultSetEOL:
+.. _module-clb-rest.clbResultSet.ResultSetEOL:
 
 
 Function ``ResultSetEOL``
@@ -37,7 +36,7 @@ error thrown when hbpUtil.ResultSet is crawled when at an
 
     
     
-.. _module-clb-app.clbPaginatedResultSet.get:
+.. _module-clb-rest.clbResultSet.get:
 
 
 Function ``get``

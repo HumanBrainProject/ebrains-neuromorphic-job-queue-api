@@ -1,10 +1,10 @@
-.. _module-clb-app.clbPaginatedResultSet.ResultSet:
+.. _module-clb-rest.clbResultSet.ResultSet:
 
 ====================
 Class: ``ResultSet``
 ====================
 
-Member Of :doc:`module-clb-app.clbPaginatedResultSet`
+Member Of :doc:`module-clb-rest.clbResultSet`
 
 .. contents:: Local Navigation
    :local:
@@ -23,7 +23,7 @@ Build a result set with internal support for fetching next and previous results.
 
 
 
-.. _module-clb-app.clbPaginatedResultSet.ResultSet.next:
+.. _module-clb-rest.clbResultSet.ResultSet.next:
 
 
 Function ``next``

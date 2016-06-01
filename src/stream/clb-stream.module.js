@@ -6,4 +6,9 @@
  * by the various applications.
  */
 
-angular.module('clb-stream', ['clb-app', 'clb-datetime']);
+angular.module('clb-stream', [
+  'clb-env',
+  'clb-error',
+  'clb-rest',
+  'clb-datetime'
+]);

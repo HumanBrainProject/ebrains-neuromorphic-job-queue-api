@@ -3,7 +3,7 @@ describe('clbError', function() {
 
   var service;
 
-  beforeEach(module('clb-app'));
+  beforeEach(module('clb-error'));
 
   beforeEach(inject(function(clbError) {
     service = clbError;

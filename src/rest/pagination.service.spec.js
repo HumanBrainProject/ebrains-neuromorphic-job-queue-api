@@ -1,5 +1,5 @@
 /* global _ */
-describe('clbPaginatedResultSet', function() {
+describe('clbResultSet', function() {
   'use strict';
 
   var service;
@@ -9,9 +9,9 @@ describe('clbPaginatedResultSet', function() {
     actual = res;
   };
 
-  beforeEach(module('clb-app'));
-  beforeEach(inject(function($rootScope, clbPaginatedResultSet) {
-    service = clbPaginatedResultSet;
+  beforeEach(module('clb-rest'));
+  beforeEach(inject(function($rootScope, clbResultSet) {
+    service = clbResultSet;
     scope = $rootScope;
   }));
 
@@ -19,7 +19,7 @@ describe('clbPaginatedResultSet', function() {
     actual = undefined;
   });
 
-  describe('Function: clbPaginatedResultSet', function() {
+  describe('Function: clbResultSet', function() {
     var backend;
     var baseUrl;
     var expected;

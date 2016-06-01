@@ -1,7 +1,7 @@
 /* global window */
 
 (function() {
-  angular.module('clb-app')
+  angular.module('clb-env')
   .provider('clbEnv', clbEnv);
 
   /**
@@ -31,7 +31,7 @@
      * To ensures that those data are available when angular bootstrap the
      * application, use angular.clbBootstrap(module, options).
      *
-     * @memberof module:clb-app.clbEnv
+     * @memberof module:clb-env.clbEnv
      * @param {string} key the environment variable to retrieve, using a key.
      * @param {any} [defaultValue] an optional default value.
      * @return {any} the value or ``defaultValue`` if the asked for configuration

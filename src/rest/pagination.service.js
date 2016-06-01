@@ -1,18 +1,18 @@
-angular.module('clb-app')
-.factory('clbPaginatedResultSet', clbPaginatedResultSet);
+angular.module('clb-rest')
+.factory('clbResultSet', clbResultSet);
 
 /**
- * @namespace clbPaginatedResultSet
- * @memberof module:clb-app
+ * @namespace clbResultSet
+ * @memberof module:clb-rest
  * @param  {object} $http           Angular Injection
  * @param  {object} $q              Angular Injection
  * @param  {object} clbError Angular Injection
  * @return {object}                 Angular Service
  */
-function clbPaginatedResultSet($http, $q, clbError) {
+function clbResultSet($http, $q, clbError) {
   /**
    * @attribute ResultSetEOL
-   * @memberof module:clb-app.clbPaginatedResultSet
+   * @memberof module:clb-rest.clbResultSet
    * @desc error thrown when hbpUtil.ResultSet is crawled when at an
    *       extremity.
    */
@@ -28,7 +28,7 @@ function clbPaginatedResultSet($http, $q, clbError) {
 
   /**
    * @name get
-   * @memberof module:clb-app.clbPaginatedResultSet
+   * @memberof module:clb-rest.clbResultSet
    * @desc
    * Return a promise that will resolve once the result set first page is loaded.
    *
@@ -50,13 +50,13 @@ function clbPaginatedResultSet($http, $q, clbError) {
 
   /**
    * @class ResultSet
-   * @memberof module:clb-app.clbPaginatedResultSet
+   * @memberof module:clb-rest.clbResultSet
    * @desc
    * Build a result set with internal support for fetching next and previous results.
    *
    * @param {Object} pRes the promise of the first result page
    * @param {Object} options various options to specify how to handle the pagination
-   * @see {module:clb-app.clbPaginatedResultSet.get}
+   * @see {module:clb-rest.clbResultSet.get}
    */
   function ResultSet(pRes, options) {
     var self = this;
@@ -89,7 +89,7 @@ function clbPaginatedResultSet($http, $q, clbError) {
      * @memberOf hbpUtil.ResultSet
      * @desc
      * Retrieve the next result page.
-     * @memberof module:clb-app.clbPaginatedResultSet.ResultSet
+     * @memberof module:clb-rest.clbResultSet.ResultSet
      *
      * @return {Object} a promise that will resolve when the next page is fetched.
      */

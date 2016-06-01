@@ -9,4 +9,4 @@
  * it needs to load the global environment loaded in CLB_ENBIRONMENT angular
  * constant.
  */
-angular.module('clb-app', []);
+angular.module('clb-app', ['clb-env', 'clb-error']);

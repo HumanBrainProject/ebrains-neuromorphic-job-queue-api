@@ -14,6 +14,7 @@ Contents
    module-clb-app
    module-hbpCollaboratoryAppToolkit
    module-clb-automator
+   module-clb-rest
    module-clb-storage
    module-clb-stream
    hbpCollaboratory

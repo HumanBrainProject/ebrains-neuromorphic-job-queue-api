@@ -1,10 +1,9 @@
-.. _module-clb-app.clbError:
+.. _undefined.clbError:
 
 =======================
 Namespace: ``clbError``
 =======================
 
-Member Of :doc:`module-clb-app`
 
 .. contents:: Local Navigation
    :local:
@@ -23,7 +22,7 @@ Description
 ``ClbError`` instance given a context object.
 
 
-.. _module-clb-app.clbError_.error:
+.. _module-clb-error.clbError_.error:
 
 
 Function ``error``
@@ -40,7 +39,7 @@ Build an ``ClbError`` instance from the provided options.
     :param object options: [description]
     :return object: [description]
     
-.. _module-clb-app.clbError_.httpError:
+.. _module-clb-error.clbError_.httpError:
 
 
 Function ``httpError``

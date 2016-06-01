@@ -1,10 +1,9 @@
-.. _module-clb-app.ClbError:
+.. _undefined.ClbError:
 
 ===================
 Class: ``ClbError``
 ===================
 
-Member Of :doc:`module-clb-app`
 
 .. contents:: Local Navigation
    :local:

@@ -1,11 +1,11 @@
 /* global document */
 
-angular.module('clb-app')
+angular.module('clb-error')
 .factory('clbError', clbError);
 
 /**
  * @class ClbError
- * @memberof module:clb-app
+ * @memberof module:clb-error
  * @desc
  * ``ClbError`` describes a standard error object used
  * to display error message or intropect the situation.
@@ -53,7 +53,7 @@ ClbError.prototype.toString = function() {
 
 /**
  * @namespace clbError
- * @memberof module:clb-app
+ * @memberof module:clb-error
  * @desc
  * ``clbError`` provides helper functions that all return an
  * ``ClbError`` instance given a context object.
@@ -73,7 +73,7 @@ function clbError($q) {
      *
      * - param  {Object} options argument passed to ``ClbError`` constructor
      * - return {ClbError} the resulting error
-     * @memberof module:clb-app.clbError
+     * @memberof module:clb-error.clbError
      * @param  {object} options [description]
      * @return {object}         [description]
      */
@@ -92,7 +92,7 @@ function clbError($q) {
    * In an ideal case, the response contains json data with an error object.
    * It also fallback to a reason field and fill default error message for
    * standard HTTP status error.
-   * @memberof module:clb-app.clbError
+   * @memberof module:clb-error.clbError
    * @param  {HttpResponse} response Angular $http Response object
    * @return {ClbError} a valid ClbError
    */

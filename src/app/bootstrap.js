@@ -21,13 +21,13 @@
       options.moduleResolves = {};
     }
     options.moduleResolves = [{
-      module: 'clb-app',
+      module: 'clb-env',
       resolve: {
         CLB_ENVIRONMENT: function($q, $http) {
           // Remove any previously defined CLB_ENVIRONMENT
           // As this results in unpredictable results when multiple apps
           // use this strategy.
-          var invoker = angular.module(['clb-app'])._invokeQueue;
+          var invoker = angular.module(['clb-env'])._invokeQueue;
           for (var i = 0; i < invoker.length; i++) {
             var inv = invoker[i];
             if (inv[2][0] === 'CLB_ENVIRONMENT') {

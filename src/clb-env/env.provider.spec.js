@@ -16,7 +16,7 @@ describe('clbEnv Service', function() {
     };
     appElement = document.createElement('DIV');
     document.body.appendChild(appElement);
-    angular.module('myApp4', ['clb-app']).config(function(_clbEnvProvider_) {
+    angular.module('myApp4', ['clb-env']).config(function(_clbEnvProvider_) {
       clbEnvProvider = _clbEnvProvider_;
     });
     angular.clbBootstrap('myApp4', {env: env, element: appElement})
