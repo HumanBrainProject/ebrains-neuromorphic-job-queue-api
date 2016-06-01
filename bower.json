@@ -4,7 +4,7 @@
   "version": "0.1.5",
   "main": [
     "angular-hbp-collaboratory.js",
-    "angular-hbp-collaboratory.scss",
+    "src/main.scss",
     "angular-hbp-collaboratory.css"
   ],
   "authors": [
