@@ -6,6 +6,7 @@
 
   /**
    * Get environement information using dotted notation.
+   * @memberof module:clb-env
    * @param {object} $injector AngularJS injection
    * @return {object} provider
    */

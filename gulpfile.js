@@ -15,6 +15,7 @@ var webserver = require('gulp-webserver');
 var child_process = require('child_process');
 var embedTemplates = require('gulp-angular-embed-templates');
 var sass = require('gulp-sass');
+var ghPages = require('gulp-gh-pages');
 
 gulp.task('example:build', ['js'], function() {
   gulp.src('./example/index.html')
@@ -103,9 +104,10 @@ gulp.task('doc', function(done) {
 
 // This task is for development only.
 // It generates the HTML doc using Sphinx
-gulp.task('html-doc', ['doc'], function(done) {
+gulp.task('doc:html', ['doc'], function(done) {
   child_process.exec([
     'sphinx-build',
+    '-c ./',
     'docs',
     'output'
   ].join(' '), function(err, stdout, stderr) {
@@ -113,6 +115,11 @@ gulp.task('html-doc', ['doc'], function(done) {
     console.log(stderr);
     done(err);
   });
+});
+
+gulp.task('deploy:doc', ['doc:html'], function() {
+  return gulp.src(['./output/**/*', './output/**/.*'])
+    .pipe(ghPages());
 });
 
 gulp.task('default', ['test', 'js', 'karma:dist', 'doc']);
