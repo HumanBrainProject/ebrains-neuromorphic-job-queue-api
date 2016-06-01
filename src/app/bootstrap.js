@@ -38,6 +38,10 @@
           if (angular.isString(options.env)) {
             return $http.get(options.env);
           }
+          // Set bbpConfig for backward compatibility
+          if (!window.bbpConfig) {
+            window.bbpConfig = options.env;
+          }
           return $q.when(options.env);
         }
       }
