@@ -24,7 +24,7 @@
       controller: ActivityController,
       controllerAs: 'vm',
       bindToController: true,
-      templateUrl: 'clb-activity.directive.html',
+      templateUrl: 'activity.directive.html',
       link: {
         post: function(scope, elt, attr, ctrl) {
           elt.addClass('clb-activity').addClass(ctrl.verbClass);

@@ -23,7 +23,7 @@
       controller: ActivityController,
       controllerAs: 'vm',
       bindToController: true,
-      templateUrl: 'clb-feed.directive.html',
+      templateUrl: 'feed.directive.html',
       link: function(scope, elt) {
         elt.addClass('clb-feed');
       }
