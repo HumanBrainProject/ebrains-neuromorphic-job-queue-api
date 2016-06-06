@@ -180,7 +180,8 @@ def launch(service, node, colour=None):
         for var_name in env_vars:
             env[var_name] = os.getenv(var_name)
             if env[var_name] is None:
-                raise Exception("Environment variable '{}' is not defined")
+                raise Exception("Environment variable '{}' is not defined".format(var_name))
+    volumes = config.get('volumes', None)
     secrets = config.get('secrets', None)
     for var_name, value in secrets.items():
         env[var_name] = value
@@ -193,7 +194,7 @@ def launch(service, node, colour=None):
         tagged_image = config['image'] + ":" + 'latest'
     service = Service(name, tagged_image, node_obj,
                       ports=config.get('ports', None),
-                      env=env)
+                      env=env, volumes=volumes)
     service.launch()
     return service
 
@@ -289,17 +290,17 @@ def db_restore(service, filename):
     shell = spur.LocalShell()
     psql = "psql -h {host} -p {port} --username=postgres".format(**params)
     cmd = """echo "CREATE USER nmpi_dbadmin WITH PASSWORD '{}';" | """.format(db_password) + psql
-    print cmd
+    print(cmd)
     #print shlex.split(cmd)
     pg_password = getpass("Enter the password for the 'postgres' user: ")
     shell.run(["sh", "-c", cmd], update_env={"PGPASSWORD": pg_password})
     cmd = psql + " < {filename}".format(**params)
-    print cmd
+    print(cmd)
     #print shlex.split(cmd)
     shell.run(["sh", "-c", cmd], update_env={"PGPASSWORD": pg_password})
 
 
-#letsencrypt certonly --standalone --agree-tos --email andrew.davison@unic.cnrs-gif.fr --domains nmpi.hbpneuromorphic.eu nmpi-staging.hbpneuromorphic.eu nmpi-dev.hbpneuromorphic.eu --non-interactive
+#certbot certonly --standalone --agree-tos --email andrew.davison@unic.cnrs-gif.fr --domains nmpi.hbpneuromorphic.eu nmpi-staging.hbpneuromorphic.eu nmpi-dev.hbpneuromorphic.eu --non-interactive
 # --standalone-supported-challenges http-01  # use port 80 only
 
 # deploy.py build quotas blue

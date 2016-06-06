@@ -39,10 +39,10 @@ RUN rm /etc/nginx/sites-enabled/default
 RUN ln -s $SITEDIR/deployment/nginx-app.conf /etc/nginx/sites-enabled/
 RUN ln -s $SITEDIR/deployment/supervisor-app.conf /etc/supervisor/conf.d/
 RUN mkdir -p /etc/nginx/ssl/quotas.hbpneuromorphic.eu/ /etc/nginx/ssl/quotas-staging.hbpneuromorphic.eu/
-RUN ln -s $SITEDIR/deployment/ssl/quotas.hbpneuromorphic.eu/fullchain.pem /etc/nginx/ssl/quotas.hbpneuromorphic.eu/fullchain.pem
-RUN ln -s $SITEDIR/deployment/ssl/quotas.hbpneuromorphic.eu/privkey.pem /etc/nginx/ssl/quotas.hbpneuromorphic.eu/privkey.pem
-RUN ln -s $SITEDIR/deployment/ssl/quotas-staging.hbpneuromorphic.eu/fullchain.pem /etc/nginx/ssl/quotas-staging.hbpneuromorphic.eu/fullchain.pem
-RUN ln -s $SITEDIR/deployment/ssl/quotas-staging.hbpneuromorphic.eu/privkey.pem /etc/nginx/ssl/quotas-staging.hbpneuromorphic.eu/privkey.pem
+RUN ln -s /etc/letsencrypt/live/quotas.hbpneuromorphic.eu/fullchain.pem /etc/nginx/ssl/quotas.hbpneuromorphic.eu/fullchain.pem
+RUN ln -s /etc/letsencrypt/live/quotas.hbpneuromorphic.eu/privkey.pem /etc/nginx/ssl/quotas.hbpneuromorphic.eu/privkey.pem
+RUN ln -s /etc/letsencrypt/live/quotas-staging.hbpneuromorphic.eu/fullchain.pem /etc/nginx/ssl/quotas-staging.hbpneuromorphic.eu/fullchain.pem
+RUN ln -s /etc/letsencrypt/live/quotas-staging.hbpneuromorphic.eu/privkey.pem /etc/nginx/ssl/quotas-staging.hbpneuromorphic.eu/privkey.pem
 RUN ln -sf /dev/stdout /var/log/nginx/access.log
 RUN ln -sf /dev/stderr /var/log/nginx/error.log
 

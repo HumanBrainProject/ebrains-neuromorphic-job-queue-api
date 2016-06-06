@@ -16,7 +16,7 @@ class Service(object):
     A service provided by a Docker container.
     """
 
-    def __init__(self, name, image, node, status=None, id=None, ports=None, env=None):
+    def __init__(self, name, image, node, status=None, id=None, ports=None, env=None, volumes=None):
         self.name = name
         self.image = image
         self.node = node
@@ -24,6 +24,7 @@ class Service(object):
         self.id = id
         self.ports = ports
         self.env = env
+        self.volumes = volumes
 
     def __repr__(self):
         return "{} ({}); {}".format(self.name, self.image, self.status)
@@ -63,6 +64,7 @@ class Service(object):
                   id=data["Id"],
                   ports=ports,
                   env=env)
+        # todo: add volumes
         return obj
 
     def start(self):
@@ -105,7 +107,11 @@ class Service(object):
         if self.env:
             for name, val in self.env.items():
                 env_str += '-e "{}={}" '.format(name, val)
-        cmd = "docker run -d --name={} {} {} {}".format(self.name, ports_str, env_str, self.image)
+        vol_str = ""
+        if self.volumes:
+            for dir_name in self.volumes:
+                vol_str += '-v {}:{}'.format(dir_name, dir_name)
+        cmd = "docker run -d --name={} {} {} {} {}".format(self.name, ports_str, env_str, vol_str, self.image)
         print(cmd)
         response = self.node._remote_execute(cmd)
         self.id = response.strip()
