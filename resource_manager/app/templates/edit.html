@@ -9,7 +9,7 @@
     <div ng-controller="EditProjectCtrl">
 
         <div ng-show="createMode">To request access to the HBP Neuromorphic Computing Platform for yourself and your collaborators, please fill in the form below.</div>
-        <div ng-include="createMode && 'static/instructions.tpl.html'"></div>
+        <div ng-include="createMode && 'static/templates/instructions.tpl.html'"></div>
 
         <div ng-switch on="status">
             <div ng-switch-when="in preparation">

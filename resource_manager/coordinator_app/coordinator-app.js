@@ -11,13 +11,13 @@ angular.module('request-coordinator-app', ['ngResource', 'ui.bootstrap', 'hbpCom
                 .state('request_list',
                        {
                             url: '/requests',
-                            templateUrl: 'static/list.tpl.html',
+                            templateUrl: 'static/templates/list.tpl.html',
                             controller: 'RequestListController'
                        })
                 .state('request_detail',
                        {
                             url: '/requests/:eId',
-                            templateUrl: 'static/detail.tpl.html',
+                            templateUrl: 'static/templates/detail.tpl.html',
                             controller: 'RequestDetailController'
                        })
         }

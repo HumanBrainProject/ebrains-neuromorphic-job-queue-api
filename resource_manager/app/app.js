@@ -38,26 +38,26 @@ angular.module('request-app', ['ngResource', 'ui.bootstrap', 'hbpCommon'],
                          $scope.haveProject = true;
                          switch (project.status) {
                             case "in preparation":
-                                $scope.partial = 'static/inpreparation.tpl.html';
+                                $scope.partial = 'static/templates/inpreparation.tpl.html';
                                 break;
                             case "accepted":
-                                $scope.partial = 'static/accepted.tpl.html';
+                                $scope.partial = 'static/templates/accepted.tpl.html';
                                 break;
                             case "under review":
-                                $scope.partial = 'static/underreview.tpl.html';
+                                $scope.partial = 'static/templates/underreview.tpl.html';
                                 break;
                             case "rejected":
-                                $scope.partial = 'static/rejected.tpl.html';
+                                $scope.partial = 'static/templates/rejected.tpl.html';
                                 break;
                             default:
-                                $scope.partial = 'static/error.tpl.html';
+                                $scope.partial = 'static/templates/error.tpl.html';
                          }
                      },
                      function(httpResponse) {
                          // project proposal does not exist, or error
                          $scope.project = null;
                          $scope.haveProject = false;
-                         $scope.partial = 'static/intro.tpl.html';
+                         $scope.partial = 'static/templates/intro.tpl.html';
                      }
         );
     })
