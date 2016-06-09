@@ -21,7 +21,9 @@ angular.module('hbpCollaboratory', [
   'hbpCollaboratoryNavStore',
   'hbpCollaboratoryAppStore',
   'clb-form',
-  'clb-stream'
+  'clb-stream',
+  'clb-identity',
+  'clb-collab'
 ]);
 
 /**
