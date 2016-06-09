@@ -23,7 +23,8 @@
     options.moduleResolves = [{
       module: 'clb-env',
       resolve: {
-        CLB_ENVIRONMENT: function($q, $http) {
+        // use injection here as it is not resolved automatically on build.
+        CLB_ENVIRONMENT: ['$q', '$http', function($q, $http) {
           // Remove any previously defined CLB_ENVIRONMENT
           // As this results in unpredictable results when multiple apps
           // use this strategy.
@@ -48,7 +49,7 @@
             window.bbpConfig = options.env;
           }
           return $q.when(options.env);
-        }
+        }]
       }
     }];
     return deferredBootstrapper.bootstrap(options);
