@@ -29,4 +29,7 @@ angular.module('hbpCollaboratory', [
   if (!lodash.indexBy) {
     lodash.indexBy = lodash.keyBy;
   }
+  if (!lodash.keyBy) {
+    lodash.keyBy = lodash.indexBy;
+  }
 });
