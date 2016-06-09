@@ -22,5 +22,11 @@ angular.module('hbpCollaboratory', [
   'clb-form',
   'clb-stream',
   'clb-identity',
-  'clb-collab'
-]);
+  'clb-collab',
+  'ngLodash'
+]).run(function(lodash) {
+  // keep lodash compatibility with older versions
+  if (!lodash.indexBy) {
+    lodash.indexBy = lodash.keyBy;
+  }
+});
