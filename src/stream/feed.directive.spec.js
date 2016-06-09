@@ -68,4 +68,15 @@ describe('clbFeed directive', function() {
     expect(element.find('ul').find('div').text()).toMatch(
       'Load Error: ' + err.message);
   }));
+
+  it('should display empty activity message', function() {
+    spyOn(service, 'getStream').and.returnValue($q.when({results: []}));
+    var element = compile(
+      '<clb-feed clb-feed-type="feedType" clb-feed-id="feedId"></clb-feed>'
+    )(scope);
+    scope.$digest();
+    expect(element.find('ul').hasClass('feed-empty')).toBe(true);
+    expect(element.find('ul').find('div').text()).toMatch(
+      'Nothing new');
+  });
 });

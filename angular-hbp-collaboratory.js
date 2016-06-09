@@ -22,8 +22,14 @@ angular.module('hbpCollaboratory', [
   'clb-form',
   'clb-stream',
   'clb-identity',
-  'clb-collab'
-]);
+  'clb-collab',
+  'ngLodash'
+]).run(['lodash', function(lodash) {
+  // keep lodash compatibility with older versions
+  if (!lodash.indexBy) {
+    lodash.indexBy = lodash.keyBy;
+  }
+}]);
 
 /**
  * @module clb-app
@@ -3457,7 +3463,7 @@ angular.module('clb-storage')
       controller: ActivityController,
       controllerAs: 'vm',
       bindToController: true,
-      template:'<ul class=feed><li ng-if=vm.error><div class="alert alert-warning"><strong>Load Error:</strong> {{vm.error}}</div></li><li ng-if="!vm.activities && !vm.error"><hbp-loading></hbp-loading></li><li ng-repeat="a in vm.activities.results" clb-activity=a></li><li ng-if=vm.activities.hasNext><a href=# class="btn btn-default">More</a></li></ul>',
+      template:'<ul class=feed ng-class="{\'feed-empty\': vm.activities.results.length === 0}"><li ng-if=vm.error><div class="alert alert-warning"><strong>Load Error:</strong> {{vm.error}}</div></li><li ng-if="!vm.activities && !vm.error"><hbp-loading></hbp-loading></li><li ng-if="vm.activities.results.length === 0"><div class="alert alert-info">Nothing new</div></li><li ng-repeat="a in vm.activities.results" clb-activity=a></li><li ng-if=vm.activities.hasNext><a href=# class="btn btn-default">More</a></li></ul>',
       link: function(scope, elt) {
         elt.addClass('clb-feed');
       }

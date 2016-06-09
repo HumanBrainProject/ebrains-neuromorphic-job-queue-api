@@ -10,7 +10,6 @@ describe('clbUser', function() {
   var $window;
   var userDirectory;
   var userApiUrl;
-  var groupApiUrl;
   var me;
   var user;
   var groups;
@@ -39,7 +38,6 @@ describe('clbUser', function() {
     $q = _$q_;
     userDirectory = clbUser;
     userApiUrl = clbEnv.get('api.user.v1') + '/';
-    groupApiUrl = clbEnv.get('api.user.v1') + '/';
     me = {
       id: '111',
       username: 'user111',
@@ -161,7 +159,6 @@ describe('clbUser', function() {
     var result;
     $httpBackend.expectGET(userApiUrl + 'user/search?id=foo&id=gul&id=Sbar');
     userDirectory.get(['foo', 'Sbar', 'gul']).then(function(users) {
-      console.log('USERS', users);
       result = users;
     });
     $httpBackend.flush(1);
