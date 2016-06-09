@@ -70,6 +70,7 @@ function clbResultSet($http, $q, clbError) {
     self.next = enqueue(next);
     self.previous = enqueue(previous);
     self.toArray = enqueue(toArray);
+    self.all = enqueue(all);
     self.count = -1;
 
     options = angular.extend({
@@ -128,10 +129,21 @@ function clbResultSet($http, $q, clbError) {
      * all data has been fetched.
      */
     function toArray() {
+      return all().then(function() {
+        return self.results.slice();
+      });
+    }
+
+    /**
+     * Load all pages.
+     * @memberof hbpUtil.ResultSet
+     * @return {Promise} Resolve once everything is loaded
+     */
+    function all() {
       if (self.hasNext) {
-        return next().then(toArray);
+        return next().then(all);
       }
-      return self.results.slice();
+      return $q.when(self);
     }
 
     /**

@@ -59,3 +59,19 @@ Running tests on code change:
 .. code-block:: bash
 
    gulp watch
+
+
+Migration from angular-hbp-common
+---------------------------------
+
+.. code-block::
+
+   Add dependency 'hbpCollaboratory'
+   hbpUtil.ferr -> clbError.rejectHttpError (from clb-error module)
+   hbpErrorService -> clbError              (from clb-error module)
+   hbpUtil.paginatedResultSet -> clbResultSet.get (from clb-rest module)
+   hbpIdentityUserDirectory -> clbUser      (from clb-identity module)
+   hbpCollabStore -> clbCollab              (from clb-collab module)
+   hbpCollabStore.context -> clbContext     (from clb-collab module)
+
+   At some point, you can remove 'hbpCommon' Angular dependency

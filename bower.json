@@ -10,7 +10,8 @@
   "authors": [
     "Olivier Amblet <olivier.amblet@epfl.ch>",
     "Stefano Zaninetta <stefano.zaninetta@epfl.ch>",
-    "Genrich Ivaska <genrich.ivaska@epfl.ch>"
+    "Genrich Ivaska <genrich.ivaska@epfl.ch>",
+    "Selim Arserver"
   ],
   "license": "MIT",
   "moduleType": [
@@ -29,7 +30,8 @@
     "angular-hbp-document-client": "^0.5.2",
     "angular-uuid4": "^0.3.1",
     "angular-deferred-bootstrap": "^0.1.9",
-    "angular-moment": "^0.10.3"
+    "angular-moment": "^0.10.3",
+    "ng-lodash": "^0.5.0"
   },
   "resolutions": {
     "angular": "^1.5.6",

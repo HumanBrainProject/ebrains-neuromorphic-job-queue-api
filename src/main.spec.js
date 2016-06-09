@@ -104,6 +104,15 @@ beforeEach(function() {
           return {pass: result};
         }
       };
+    },
+    toDeepEqual: function() {
+      return {
+        compare: function(actual, expected) {
+          return {
+            pass: angular.equals(actual, expected)
+          };
+        }
+      };
     }
   });
 });
