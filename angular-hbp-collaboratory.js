@@ -17,7 +17,6 @@ angular.module('hbpCollaboratory', [
   'clb-error',
   'clb-app',
   'clb-storage',
-  'clb-datetime',
   'hbpCollaboratoryNavStore',
   'hbpCollaboratoryAppStore',
   'clb-form',
