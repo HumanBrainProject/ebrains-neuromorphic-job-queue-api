@@ -1,7 +1,7 @@
-.. _hbpCollaboratory.hbpCollaboratoryNavStore:
+.. _hbpCollaboratory.clbCollabNav:
 
 =======================================
-Namespace: ``hbpCollaboratoryNavStore``
+Namespace: ``clbCollabNav``
 =======================================
 
 Member Of :doc:`hbpCollaboratory`
@@ -15,16 +15,16 @@ Children
 .. toctree::
    :maxdepth: 1
    
-   hbpCollaboratory.hbpCollaboratoryNavStore.NavItem
+   hbpCollaboratory.clbCollabNav.NavItem
    
 Description
 ===========
 
-hbpCollaboratoryNavStore provides tools to create and manage
+clbCollabNav provides tools to create and manage
       navigation items.
 
 
-.. _hbpCollaboratory.hbpCollaboratoryNavStore.getRoot:
+.. _hbpCollaboratory.clbCollabNav.getRoot:
 
 
 Function ``getRoot``
@@ -38,7 +38,7 @@ Retrieve the root item of the given collab.
     :param number collabId: collab ID
     :return Promise: promise the root nav item
     
-.. _hbpCollaboratory.hbpCollaboratoryNavStore.getNode:
+.. _hbpCollaboratory.clbCollabNav.getNode:
 
 
 Function ``getNode``
@@ -53,7 +53,7 @@ Function ``getNode``
     :param number nodeId: node ID
     :return NavItem: the matching nav item
     
-.. _hbpCollaboratory.hbpCollaboratoryNavStore.getNodeFromContext:
+.. _hbpCollaboratory.clbCollabNav.getNodeFromContext:
 
 
 Function ``getNodeFromContext``
@@ -67,7 +67,7 @@ Function ``getNodeFromContext``
     :param str ctx: The context UUID
     :return Promise: The promise of a NavItem
     
-.. _hbpCollaboratory.hbpCollaboratoryNavStore.addNode:
+.. _hbpCollaboratory.clbCollabNav.addNode:
 
 
 Function ``addNode``
@@ -82,7 +82,7 @@ Function ``addNode``
     :param number navItem: the NavItem instance to add to the navigation
     :return Promise: promise of the added NavItem instance
     
-.. _hbpCollaboratory.hbpCollaboratoryNavStore.deleteNode:
+.. _hbpCollaboratory.clbCollabNav.deleteNode:
 
 
 Function ``deleteNode``
@@ -97,7 +97,7 @@ Function ``deleteNode``
     :param NavItem navItem: the NavItem instance to remove from the navigation
     :return Promise: promise of an undefined item at the end
     
-.. _hbpCollaboratory.hbpCollaboratoryNavStore.update:
+.. _hbpCollaboratory.clbCollabNav.update:
 
 
 Function ``update``

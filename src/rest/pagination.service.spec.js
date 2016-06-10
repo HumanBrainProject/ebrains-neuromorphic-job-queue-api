@@ -1,7 +1,5 @@
 /* global _ */
 describe('clbResultSet', function() {
-  'use strict';
-
   var service;
   var scope;
   var actual;

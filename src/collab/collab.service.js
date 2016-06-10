@@ -1,5 +1,4 @@
 /* eslint camelcase:0 */
-'use strict';
 angular.module('clb-collab')
 .factory('clbCollab', clbCollab);
 

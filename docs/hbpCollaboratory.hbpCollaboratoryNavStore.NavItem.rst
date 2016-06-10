@@ -1,10 +1,10 @@
-.. _hbpCollaboratory.hbpCollaboratoryNavStore.NavItem:
+.. _hbpCollaboratory.clbCollabNav.NavItem:
 
 ==================
 Class: ``NavItem``
 ==================
 
-Member Of :doc:`hbpCollaboratory.hbpCollaboratoryNavStore`
+Member Of :doc:`hbpCollaboratory.clbCollabNav`
 
 .. contents:: Local Navigation
    :local:
@@ -22,7 +22,7 @@ Description
 Client representation of a navigation item.
 
 
-.. _hbpCollaboratory.hbpCollaboratoryNavStore.NavItem.toJson:
+.. _hbpCollaboratory.clbCollabNav.NavItem.toJson:
 
 
 Function ``toJson``
@@ -36,7 +36,7 @@ to JSON and send to the backend.
     
     :return object: server object representation
     
-.. _hbpCollaboratory.hbpCollaboratoryNavStore.NavItem.update:
+.. _hbpCollaboratory.clbCollabNav.NavItem.update:
 
 
 Function ``update``
@@ -50,7 +50,7 @@ Function ``update``
     :param object attrs: NavItem instance attributes
     :return NavItemt: this instance
     
-.. _hbpCollaboratory.hbpCollaboratoryNavStore.NavItem.ensureCached:
+.. _hbpCollaboratory.clbCollabNav.NavItem.ensureCached:
 
 
 Function ``ensureCached``
@@ -63,7 +63,7 @@ Function ``ensureCached``
     
     :return NavItem: this instance
     
-.. _hbpCollaboratory.hbpCollaboratoryNavStore.NavItem.NavItem.fromJson:
+.. _hbpCollaboratory.clbCollabNav.NavItem.NavItem.fromJson:
 
 
 Function ``NavItem.fromJson``

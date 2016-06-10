@@ -1,14 +1,13 @@
 /* eslint camelcase:[2, {properties: "never"}] */
-'use strict';
 
 /**
- * @namespace hbpCollaboratoryNavStore
+ * @namespace clbCollabNav
  * @memberof hbpCollaboratory
- * @desc hbpCollaboratoryNavStore provides tools to create and manage
+ * @desc clbCollabNav provides tools to create and manage
  *       navigation items.
  */
-angular.module('hbpCollaboratoryNavStore', ['uuid4', 'clb-env', 'clb-error'])
-.service('hbpCollaboratoryNavStore', function($q, $http, $log,
+angular.module('clb-collab')
+.service('clbCollabNav', function($q, $http, $log,
     $cacheFactory, $timeout, orderByFilter, uuid4,
     clbEnv, clbError) {
   var collabApiUrl = clbEnv.get('api.collab.v0') + '/collab/';
@@ -22,7 +21,7 @@ angular.module('hbpCollaboratoryNavStore', ['uuid4', 'clb-env', 'clb-error'])
    * @class NavItem
    * @desc
    * Client representation of a navigation item.
-   * @memberof hbpCollaboratory.hbpCollaboratoryNavStore
+   * @memberof hbpCollaboratory.clbCollabNav
    * @param  {object} attr attributes of the new instance
    */
   var NavItem = function(attr) {
@@ -42,7 +41,7 @@ angular.module('hbpCollaboratoryNavStore', ['uuid4', 'clb-env', 'clb-error'])
      * @desc
      * Return a server object representation that can be easily serialized
      * to JSON and send to the backend.
-     * @memberof hbpCollaboratory.hbpCollaboratoryNavStore.NavItem
+     * @memberof hbpCollaboratory.clbCollabNav.NavItem
      * @return {object} server object representation
      */
     toJson: function() {
@@ -59,7 +58,7 @@ angular.module('hbpCollaboratoryNavStore', ['uuid4', 'clb-env', 'clb-error'])
       };
     },
     /**
-     * @memberof hbpCollaboratory.hbpCollaboratoryNavStore.NavItem
+     * @memberof hbpCollaboratory.clbCollabNav.NavItem
      * @param  {object} attrs NavItem instance attributes
      * @return {NavItemt} this instance
      */
@@ -77,7 +76,7 @@ angular.module('hbpCollaboratoryNavStore', ['uuid4', 'clb-env', 'clb-error'])
       return this;
     },
     /**
-     * @memberof hbpCollaboratory.hbpCollaboratoryNavStore.NavItem
+     * @memberof hbpCollaboratory.clbCollabNav.NavItem
      * @return {NavItem} this instance
      * @private
      */
@@ -112,7 +111,7 @@ angular.module('hbpCollaboratoryNavStore', ['uuid4', 'clb-env', 'clb-error'])
   /**
    * Build an instance from the server object representation.
    *
-   * @memberof hbpCollaboratory.hbpCollaboratoryNavStore.NavItem
+   * @memberof hbpCollaboratory.clbCollabNav.NavItem
    * @param  {number} collabId collab ID
    * @param  {string} json server object representation
    * @return {NavItem} new instance of NavItem
@@ -142,7 +141,7 @@ angular.module('hbpCollaboratoryNavStore', ['uuid4', 'clb-env', 'clb-error'])
   /**
    * Retrieve the root item of the given collab.
    *
-   * @memberof hbpCollaboratory.hbpCollaboratoryNavStore
+   * @memberof hbpCollaboratory.clbCollabNav
    * @param  {number} collabId collab ID
    * @return {Promise} promise the root nav item
    */
@@ -186,7 +185,7 @@ angular.module('hbpCollaboratoryNavStore', ['uuid4', 'clb-env', 'clb-error'])
   };
 
   /**
-   * @memberof hbpCollaboratory.hbpCollaboratoryNavStore
+   * @memberof hbpCollaboratory.clbCollabNav
    * @param  {number} collabId collab ID
    * @param  {number} nodeId   node ID
    * @return {NavItem} the matching nav item
@@ -205,7 +204,7 @@ angular.module('hbpCollaboratoryNavStore', ['uuid4', 'clb-env', 'clb-error'])
   };
 
   /**
-   * @memberof hbpCollaboratory.hbpCollaboratoryNavStore
+   * @memberof hbpCollaboratory.clbCollabNav
    * @param  {str} ctx The context UUID
    * @return {Promise}   The promise of a NavItem
    */
@@ -231,7 +230,7 @@ angular.module('hbpCollaboratoryNavStore', ['uuid4', 'clb-env', 'clb-error'])
   };
 
   /**
-   * @memberof hbpCollaboratory.hbpCollaboratoryNavStore
+   * @memberof hbpCollaboratory.clbCollabNav
    * @param  {number} collabId collab ID
    * @param  {number} navItem  the NavItem instance to add to the navigation
    * @return {Promise} promise of the added NavItem instance
@@ -244,7 +243,7 @@ angular.module('hbpCollaboratoryNavStore', ['uuid4', 'clb-env', 'clb-error'])
   };
 
   /**
-   * @memberof hbpCollaboratory.hbpCollaboratoryNavStore
+   * @memberof hbpCollaboratory.clbCollabNav
    * @param  {number} collabId collab ID
    * @param  {NavItem} navItem the NavItem instance to remove from the navigation
    * @return {Promise} promise of an undefined item at the end
@@ -257,7 +256,7 @@ angular.module('hbpCollaboratoryNavStore', ['uuid4', 'clb-env', 'clb-error'])
   };
 
   /**
-   * @memberof hbpCollaboratory.hbpCollaboratoryNavStore
+   * @memberof hbpCollaboratory.clbCollabNav
    * @param  {number} collabId collab ID
    * @param  {NavItem} navItem the instance to update
    * @return {Promise} promise the updated instance

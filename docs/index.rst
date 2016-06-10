@@ -45,9 +45,9 @@ to develop and AngularJS application based on the HBP Collaboratory.
 
 - :doc:`module:clb-storage.clbStorage` is a service for interacting
   with a collab storage and linking nav items to storage entities.
-- :doc:`hbpCollaboratory.hbpCollaboratoryNavStore` is a service for interacting
+- :doc:`hbpCollaboratory.clbCollabNav` is a service for interacting
   with a collab
-- :doc:`hbpCollaboratory.hbpCollaboratoryAppStore` is a service for interacting
+- :doc:`hbpCollaboratory.clbCollabApp` is a service for interacting
   with registered application
 - :doc:`clb-automator` let you automate HBP Collaboratory related tasks
 

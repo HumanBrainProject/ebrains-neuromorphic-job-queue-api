@@ -1,6 +1,4 @@
 describe('clbError', function() {
-  'use strict';
-
   var service;
 
   beforeEach(module('clb-error'));

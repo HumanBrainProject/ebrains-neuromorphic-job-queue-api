@@ -1,6 +1,8 @@
 angular.module('clb-automator')
 .run(function createCollab(
-  $log, $q, hbpCollabStore,
+  $log,
+  $q,
+  clbCollab,
   clbAutomator
 ) {
   clbAutomator.registerHandler('collab', createCollab);
@@ -25,6 +27,6 @@ angular.module('clb-automator')
       ['title', 'content', 'private']
     );
     $log.debug('Create collab', descriptor);
-    return hbpCollabStore.create(attr);
+    return clbCollab.create(attr);
   }
 });

@@ -1,7 +1,7 @@
-.. _hbpCollaboratory.hbpCollaboratoryAppStore:
+.. _hbpCollaboratory.clbCollabApp:
 
 =======================================
-Namespace: ``hbpCollaboratoryAppStore``
+Namespace: ``clbCollabApp``
 =======================================
 
 Member Of :doc:`hbpCollaboratory`
@@ -15,16 +15,16 @@ Children
 .. toctree::
    :maxdepth: 1
    
-   hbpCollaboratory.hbpCollaboratoryAppStore.App
+   hbpCollaboratory.clbCollabApp.App
    
 Description
 ===========
 
-hbpCollaboratoryAppStore can be used to find and work with the
+clbCollabApp can be used to find and work with the
 registered HBP Collaboratory applications.
 
 
-.. _hbpCollaboratory.hbpCollaboratoryAppStore.list:
+.. _hbpCollaboratory.clbCollabApp.list:
 
 
 Function ``list``
@@ -37,7 +37,7 @@ Function ``list``
     
     :return Promise: promise of the list of all applications
     
-.. _hbpCollaboratory.hbpCollaboratoryAppStore.findOne:
+.. _hbpCollaboratory.clbCollabApp.findOne:
 
 
 Function ``findOne``

@@ -12,18 +12,17 @@
  * - :doc:`clb-feed <module:clb-feed>` retrieve and display stream of activities.
  */
 angular.module('hbpCollaboratory', [
+  'ngLodash',
   'clb-automator',
   'clb-env',
   'clb-error',
   'clb-app',
   'clb-storage',
-  'hbpCollaboratoryNavStore',
-  'hbpCollaboratoryAppStore',
+  'clb-collab',
   'clb-form',
   'clb-stream',
   'clb-identity',
-  'clb-collab',
-  'ngLodash'
+  'clb-collab'
 ]).run(function(lodash) {
   // keep lodash compatibility with older versions
   if (!lodash.indexBy) {

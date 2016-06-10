@@ -14,13 +14,13 @@ describe('overview task handler', function() {
     $httpBackend,
     $q,
     clbAutomator,
-    hbpCollaboratoryNavStore,
+    clbCollabNav,
     hbpFileStore
   ) {
     backend = $httpBackend;
     overview = clbAutomator.handlers.overview;
     scope = $rootScope;
-    navStore = hbpCollaboratoryNavStore;
+    navStore = clbCollabNav;
     fileStore = hbpFileStore;
     q = $q;
   }));

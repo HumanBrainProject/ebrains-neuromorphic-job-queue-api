@@ -1,15 +1,15 @@
-describe('hbpCollaboratoryAppStore', function() {
+describe('clbCollabApp', function() {
   var backend;
   var store;
 
-  beforeEach(module('hbpCollaboratoryAppStore'));
+  beforeEach(module('clb-collab'));
 
   beforeEach(inject(function(
     $httpBackend,
-    hbpCollaboratoryAppStore
+    clbCollabApp
   ) {
     backend = $httpBackend;
-    store = hbpCollaboratoryAppStore;
+    store = clbCollabApp;
   }));
 
   afterEach(function() {

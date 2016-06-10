@@ -1,7 +1,5 @@
 /* eslint max-nested-callbacks:[2,5] */
 describe('clbUser', function() {
-  'use strict';
-
   beforeEach(module('clb-identity'));
 
   var $scope;

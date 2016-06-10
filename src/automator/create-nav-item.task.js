@@ -1,8 +1,8 @@
 angular.module('clb-automator')
 .run(function createNavItem(
   $log,
-  hbpCollaboratoryAppStore,
-  hbpCollaboratoryNavStore,
+  clbCollabApp,
+  clbCollabNav,
   clbAutomator,
   clbStorage,
   hbpEntityStore
@@ -26,13 +26,13 @@ angular.module('clb-automator')
         (context && context.collab.id);
     };
     var findApp = function(app) {
-      return hbpCollaboratoryAppStore.findOne({title: app});
+      return clbCollabApp.findOne({title: app});
     };
     var createNav = function(app) {
-      return hbpCollaboratoryNavStore.getRoot(collabId())
+      return clbCollabNav.getRoot(collabId())
       .then(function(parentItem) {
-        return hbpCollaboratoryNavStore.addNode(collabId(),
-          new hbpCollaboratoryNavStore.NavItem({
+        return clbCollabNav.addNode(collabId(),
+          new clbCollabNav.NavItem({
             collab: collabId(),
             name: descriptor.name,
             appId: app.id,

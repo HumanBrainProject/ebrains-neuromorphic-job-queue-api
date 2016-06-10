@@ -12,8 +12,8 @@ Children
 .. toctree::
    :maxdepth: 1
    
-   hbpCollaboratory.hbpCollaboratoryAppStore
-   hbpCollaboratory.hbpCollaboratoryNavStore
+   hbpCollaboratory.clbCollabApp
+   hbpCollaboratory.clbCollabNav
    
 Description
 ===========

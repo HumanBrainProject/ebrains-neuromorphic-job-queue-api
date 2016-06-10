@@ -1,14 +1,12 @@
-describe('hbpCollaboratoryNavStore', function() {
-  'use strict';
-
+describe('clbCollabNav', function() {
   var store;
   var httpBackend;
 
-  beforeEach(module('hbpCollaboratoryNavStore'));
+  beforeEach(module('clb-collab'));
 
-  beforeEach(inject(function($httpBackend, hbpCollaboratoryNavStore) {
+  beforeEach(inject(function($httpBackend, clbCollabNav) {
     httpBackend = $httpBackend;
-    store = hbpCollaboratoryNavStore;
+    store = clbCollabNav;
   }));
 
   // Prevent request mismatch

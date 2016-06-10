@@ -1,6 +1,5 @@
 /* eslint-env node */
 /* eslint camelcase:0 */
-'use strict';
 
 var gulp = require('gulp');
 var eslint = require('gulp-eslint');
@@ -16,6 +15,7 @@ var child_process = require('child_process');
 var embedTemplates = require('gulp-angular-embed-templates');
 var sass = require('gulp-sass');
 var ghPages = require('gulp-gh-pages');
+var hf = require('gulp-headerfooter');
 
 gulp.task('example:build', ['js'], function() {
   gulp.src('./example/index.html')
@@ -85,6 +85,8 @@ gulp.task('js', function() {
     .pipe(ngAnnotate({single_quotes: true}))
     .pipe(embedTemplates())
     .pipe(concat('angular-hbp-collaboratory.js'))
+    .pipe(hf('(function() {\n"use strict";\n', '})();'))
+    .pipe(hf.header('./LICENSE'))
   .pipe(sourcemaps.write('.'))
   .pipe(gulp.dest('.'));
 });

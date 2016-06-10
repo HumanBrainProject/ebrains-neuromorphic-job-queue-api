@@ -1,10 +1,10 @@
-.. _hbpCollaboratory.hbpCollaboratoryAppStore.App:
+.. _hbpCollaboratory.clbCollabApp.App:
 
 ==============
 Class: ``App``
 ==============
 
-Member Of :doc:`hbpCollaboratory.hbpCollaboratoryAppStore`
+Member Of :doc:`hbpCollaboratory.clbCollabApp`
 
 .. contents:: Local Navigation
    :local:
@@ -22,7 +22,7 @@ Description
 client representation of an application
 
 
-.. _hbpCollaboratory.hbpCollaboratoryAppStore.App.toJson:
+.. _hbpCollaboratory.clbCollabApp.App.toJson:
 
 
 Function ``toJson``
@@ -37,7 +37,7 @@ string.
     
     :return object: server representation of an App instance
     
-.. _hbpCollaboratory.hbpCollaboratoryAppStore.App.App.fromJson:
+.. _hbpCollaboratory.clbCollabApp.App.App.fromJson:
 
 
 Function ``App.fromJson``

@@ -61,7 +61,6 @@ ClbError.prototype.toString = function() {
  * @return {object} the service singleton
  */
 function clbError($q) {
-  'use strict';
   return {
     rejectHttpError: function(err) {
       return $q.reject(httpError(err));

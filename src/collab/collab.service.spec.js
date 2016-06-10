@@ -1,7 +1,5 @@
 /* eslint max-nested-callbacks:[1,6] camelcase:0 */
 describe('clbCollab Service', function() {
-  'use strict';
-
   // injected variables available for all tests
   var $httpBackend;
   var clbCollab;

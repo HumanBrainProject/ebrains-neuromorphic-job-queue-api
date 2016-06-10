@@ -9,5 +9,6 @@ angular.module('clb-collab', [
   'clb-env',
   'clb-error',
   'clb-identity',
-  'clb-rest'
+  'clb-rest',
+  'uuid4'
 ]);

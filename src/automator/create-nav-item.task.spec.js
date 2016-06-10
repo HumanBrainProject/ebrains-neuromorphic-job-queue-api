@@ -13,14 +13,14 @@ describe('nav task handler', function() {
     $rootScope,
     hbpEntityStore,
     clbAutomator,
-    hbpCollaboratoryNavStore,
-    hbpCollaboratoryAppStore,
+    clbCollabNav,
+    clbCollabApp,
     clbStorage
   ) {
     createNavItem = clbAutomator.handlers.nav;
     entityStore = hbpEntityStore;
-    navStore = hbpCollaboratoryNavStore;
-    appStore = hbpCollaboratoryAppStore;
+    navStore = clbCollabNav;
+    appStore = clbCollabApp;
     storage = clbStorage;
     scope = $rootScope;
   }));

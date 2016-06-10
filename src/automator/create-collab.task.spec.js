@@ -11,10 +11,10 @@ describe('collab task handler', function() {
     $rootScope,
     $q,
     clbAutomator,
-    hbpCollabStore
+    clbCollab
   ) {
     createCollab = clbAutomator.handlers.collab;
-    store = hbpCollabStore;
+    store = clbCollab;
     scope = $rootScope;
     data = {
       mandatory: {

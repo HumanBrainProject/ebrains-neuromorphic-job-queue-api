@@ -48,7 +48,6 @@ function clbApp(
   $window,
   clbError
 ) {
-  'use strict';
   var eventId = 0;
   var sentMessages = {};
 

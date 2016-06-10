@@ -1,19 +1,15 @@
 /* eslint camelcase: 0 */
 
 /**
- * @namespace hbpCollaboratoryAppStore
+ * @namespace clbCollabApp
  * @memberof hbpCollaboratory
  * @desc
- * hbpCollaboratoryAppStore can be used to find and work with the
+ * clbCollabApp can be used to find and work with the
  * registered HBP Collaboratory applications.
  */
-angular.module('hbpCollaboratoryAppStore', [
-  'clb-env',
-  'clb-error',
-  'clb-rest'
-])
+angular.module('clb-collab')
 .constant('folderAppId', '__collab_folder__')
-.service('hbpCollaboratoryAppStore', function(
+.service('clbCollabApp', function(
   $q, $http, $cacheFactory,
   clbError, clbEnv, clbResultSet
 ) {
@@ -24,7 +20,7 @@ angular.module('hbpCollaboratoryAppStore', [
   /**
    * @class App
    * @desc client representation of an application
-   * @memberof hbpCollaboratory.hbpCollaboratoryAppStore
+   * @memberof hbpCollaboratory.clbCollabApp
    * @param  {object} [attrs] a list of attributes to set to the App instance
    */
   var App = function(attrs) {
@@ -38,7 +34,7 @@ angular.module('hbpCollaboratoryAppStore', [
      * Transform an App instance into an object reprensentation compatible with
      * the backend schema. This object can then be easily converted to a JSON
      * string.
-     * @memberof hbpCollaboratory.hbpCollaboratoryAppStore.App
+     * @memberof hbpCollaboratory.clbCollabApp.App
      * @return {object} server representation of an App instance
      */
     toJson: function() {
@@ -54,7 +50,7 @@ angular.module('hbpCollaboratoryAppStore', [
 
   /**
    * Create an app instance from a server representation.
-   * @memberof hbpCollaboratory.hbpCollaboratoryAppStore.App
+   * @memberof hbpCollaboratory.clbCollabApp.App
    * @param  {object} json converted from the server JSON string
    * @return {App} the new App instance
    */
@@ -87,7 +83,7 @@ angular.module('hbpCollaboratoryAppStore', [
   };
 
   /**
-   * @memberof hbpCollaboratory.hbpCollaboratoryAppStore
+   * @memberof hbpCollaboratory.clbCollabApp
    * @return {Promise} promise of the list of all applications
    */
   var list = function() {
@@ -121,7 +117,7 @@ angular.module('hbpCollaboratoryAppStore', [
   };
 
   /**
-   * @memberof hbpCollaboratory.hbpCollaboratoryAppStore
+   * @memberof hbpCollaboratory.clbCollabApp
    * @param  {object} params query parameters
    * @return {Promise} promise of an App instance
    */

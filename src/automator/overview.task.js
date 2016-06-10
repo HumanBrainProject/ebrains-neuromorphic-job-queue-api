@@ -1,7 +1,7 @@
 angular.module('clb-automator')
 .run(function createOverview(
   $log, $q, $http, clbEnv, hbpFileStore, clbError,
-  clbAutomator, hbpCollaboratoryNavStore, hbpCollaboratoryAppStore
+  clbAutomator, clbCollabNav, clbCollabApp
 ) {
   clbAutomator.registerHandler('overview', overview);
 
@@ -44,14 +44,14 @@ angular.module('clb-automator')
     var updateAppId = function(overview, descriptor) {
       $log.debug("Replace the overview page application id");
 
-      return hbpCollaboratoryAppStore.findOne({title: descriptor.app})
+      return clbCollabApp.findOne({title: descriptor.app})
         .then(function(app) {
           overview.update({appId: app.id});
-          return hbpCollaboratoryNavStore.saveNode(collabId, overview);
+          return clbCollabNav.saveNode(collabId, overview);
         });
     };
 
-    return hbpCollaboratoryNavStore
+    return clbCollabNav
       .getRoot(collabId)
       .then(function(rootNav) {
         var overview = rootNav.children[0];
