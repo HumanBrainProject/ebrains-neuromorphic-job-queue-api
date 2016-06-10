@@ -6,11 +6,12 @@
     <!-- bower:css -->
     <link rel="stylesheet" href="../bower_components/hbp-collaboratory-theme/dist/css/bootstrap.css" />
     <link rel="stylesheet" href="../bower_components/angular-hbp-document-client/dist/angular-hbp-document-client.css" />
+    <link rel="stylesheet" href="../angular-hbp-collaboratory.css" />
     <!-- endbower -->
 
     <link rel="stylesheet" type="text/css" href="../bower_components/codemirror/lib/codemirror.css">
   </head>
-  <body ng-app="customCollabApp">
+  <body>
     <div class="container-fluid" ng-controller="CollabConfigurationController as vm">
       <h1 class="page_head">Create a custom Collab</h1>
       <form class="form" ng-submit="vm.handleSubmit($event)">
@@ -44,10 +45,13 @@
     <script src="../bower_components/angular-hbp-common/dist/angular-hbp-common.js"></script>
     <script src="../bower_components/angular-hbp-document-client/dist/angular-hbp-document-client.js"></script>
     <script src="../bower_components/angular-uuid4/angular-uuid4.js"></script>
+    <script src="../bower_components/angular-deferred-bootstrap/angular-deferred-bootstrap.js"></script>
+    <script src="../bower_components/moment/moment.js"></script>
+    <script src="../bower_components/angular-moment/angular-moment.js"></script>
+    <script src="../bower_components/ng-lodash/build/ng-lodash.js"></script>
     <script src="../angular-hbp-collaboratory.js"></script>
     <!-- endbower -->
 
-    <script src="../bower_components/hbp-collaboratory-app-toolkit/dist/hbp-collaboratory-app-toolkit.js"></script>
     <script type="text/javascript" src="../bower_components/codemirror/lib/codemirror.js"></script>
     <script type="text/javascript" src="../bower_components/angular-ui-codemirror/ui-codemirror.js"></script>
     <script src="./app.js"></script>

@@ -41,14 +41,14 @@ gulp.task('lint', function() {
 });
 
 gulp.task('styles', function() {
-  return gulp.src(['src/main.scss'])
+  return gulp.src(['src/main.scss'], {base: 'src'})
   .pipe(sourcemaps.init())
     .pipe(sass({
       style: 'expanded',
       includePaths: './bower_components'
     }))
     .pipe(concat('angular-hbp-collaboratory.css'))
-  .pipe(sourcemaps.write('.'))
+  .pipe(sourcemaps.write('./maps'))
   .pipe(gulp.dest('.'));
 });
 
@@ -79,7 +79,7 @@ gulp.task('js', function() {
     'src/**/*.js',
     '!src/**/*.spec.js',
     'src/main.js'
-  ])
+  ], {base: 'src'})
   .pipe(plumber())
   .pipe(sourcemaps.init())
     .pipe(ngAnnotate({single_quotes: true}))
@@ -87,7 +87,7 @@ gulp.task('js', function() {
     .pipe(concat('angular-hbp-collaboratory.js'))
     .pipe(hf('(function() {\n"use strict";\n', '})();'))
     .pipe(hf.header('./LICENSE'))
-  .pipe(sourcemaps.write('.'))
+  .pipe(sourcemaps.write('./maps'))
   .pipe(gulp.dest('.'));
 });
 
@@ -124,7 +124,14 @@ gulp.task('deploy:doc', ['doc:html'], function() {
     .pipe(ghPages());
 });
 
-gulp.task('default', ['test', 'js', 'karma:dist', 'doc']);
+gulp.task('default', [
+  'test',
+  'js',
+  'styles',
+  'karma:dist',
+  'doc',
+  'example:build'
+]);
 
 gulp.task('test', ['karma', 'lint']);
 

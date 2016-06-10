@@ -1,1 +1,0 @@
-{"version":3,"sources":["stream/clb-activity.directive.scss"],"names":[],"mappings":"AAAA,aAAa,CAAC;EACZ,MAAM,EAAE,iBAAkB,GAC3B","file":"angular-hbp-collaboratory.css","sourcesContent":[".clb-activity {\n  border: 1px solid #ff0000;\n}\n"],"sourceRoot":"/source/"}
