@@ -1,137 +1,144 @@
 /* eslint camelcase: 0 */
+
+angular.module('clb-storage')
+.factory('clbStorage', clbStorage);
+
 /**
  * @namespace clbStorage
  * @memberof module:clb-storage
  * @desc
- * storageUtil provides utility functions to ease the interaction of apps with storage.
+ * clbStorage provides utility functions to ease the interaction of apps with storage.
+ * @param  {[type]} hbpEntityStore [description]
+ * @param  {[type]} clbError       [description]
+ * @return {[type]}                [description]
  */
-angular.module('clb-storage')
-.factory('clbStorage',
-  function clbStorage(hbpEntityStore, clbError) {
-    /**
-     * Retrieve the key to lookup for on entities given the ctx
-     * @memberof module:clbStorage
-     * @param  {string} ctx application context UUID
-     * @return {string}     name of the entity attribute that should be used
-     * @private
-     */
-    function metadataKey(ctx) {
-      return 'ctx_' + ctx;
-    }
+function clbStorage(hbpEntityStore, clbError) {
+  return {
+    setContextMetadata: setContextMetadata,
+    getEntityByContext: getEntityByContext,
+    deleteContextMetadata: deleteContextMetadata,
+    updateContextMetadata: updateContextMetadata,
+    getProjectByCollab: getProjectByCollab
+  };
 
-    /**
-     * @name setContextMetadata
-     * @memberof module:clb-storage.clbStorage
-     * @desc
-     * the function links the contextId with the doc browser entity in input
-     * by setting a specific metadata on the entity.
-     *
-     * Entity object in input must contain the following properties:
-     * - _entityType
-     * - _uuid
-     *
-     * In case of error, the promise is rejected with a `HbpError` instance.
-     *
-     * @param  {Object} entity doc browser entity
-     * @param  {String} contextId collab app context id
-     * @return {Promise} a promise that resolves when the operation is completed
-     */
-    function setContextMetadata(entity, contextId) {
-      var newMetadata = {};
-      newMetadata[metadataKey(contextId)] = 1;
+  // -------------------- //
 
-      return hbpEntityStore.addMetadata(entity, newMetadata)
-      .catch(clbError.error);
-    }
+  /**
+   * Retrieve the key to lookup for on entities given the ctx
+   * @memberof module:clbStorage
+   * @param  {string} ctx application context UUID
+   * @return {string}     name of the entity attribute that should be used
+   * @private
+   */
+  function metadataKey(ctx) {
+    return 'ctx_' + ctx;
+  }
 
-    /**
-     * @name getEntityByContext
-     * @memberof module:clb-storage.clbStorage
-     * @desc
-     * the function gets the entity linked to the contextId in input.
-     *
-     * In case of error, the promise is rejected with a `HbpError` instance.
-     *
-     * @param  {String} contextId collab app context id
-     * @return {Promise} a promise that resolves when the operation is completed
-     */
-    function getEntityByContext(contextId) {
-      var queryParams = {};
-      queryParams[metadataKey(contextId)] = 1;
-      return hbpEntityStore.query(queryParams).catch(clbError.rejectHttpError);
-    }
+  /**
+   * @name setContextMetadata
+   * @memberof module:clb-storage.clbStorage
+   * @desc
+   * the function links the contextId with the doc browser entity in input
+   * by setting a specific metadata on the entity.
+   *
+   * Entity object in input must contain the following properties:
+   * - _entityType
+   * - _uuid
+   *
+   * In case of error, the promise is rejected with a `HbpError` instance.
+   *
+   * @param  {Object} entity doc browser entity
+   * @param  {String} contextId collab app context id
+   * @return {Promise} a promise that resolves when the operation is completed
+   */
+  function setContextMetadata(entity, contextId) {
+    var newMetadata = {};
+    newMetadata[metadataKey(contextId)] = 1;
 
-    /**
-     * @name deleteContextMetadata
-     * @memberof module:clb-storage.clbStorage
-     * @desc
-     * the function unlink the contextId from the entity in input
-     * by deleting the context metadata.
-     *
-     * Entity object in input must contain the following properties:
-     * - _entityType
-     * - _uuid
-     *
-     * In case of error, the promise is rejected with a `HbpError` instance.
-     *
-     * @param  {Object} entity doc browser entity
-     * @param  {String} contextId collab app context id
-     * @return {Promise} a promise that resolves when the operation is completed
-     */
-    function deleteContextMetadata(entity, contextId) {
-      var key = metadataKey(contextId);
+    return hbpEntityStore.addMetadata(entity, newMetadata)
+    .catch(clbError.error);
+  }
 
-      return hbpEntityStore.deleteMetadata(entity, [key])
-      .then(null, clbError.error);
-    }
+  /**
+   * @name getEntityByContext
+   * @memberof module:clb-storage.clbStorage
+   * @desc
+   * the function gets the entity linked to the contextId in input.
+   *
+   * In case of error, the promise is rejected with a `HbpError` instance.
+   *
+   * @param  {String} contextId collab app context id
+   * @return {Promise} a promise that resolves when the operation is completed
+   */
+  function getEntityByContext(contextId) {
+    var queryParams = {};
+    queryParams[metadataKey(contextId)] = 1;
+    return hbpEntityStore.query(queryParams).catch(clbError.rejectHttpError);
+  }
 
-    /**
-     * @name updateContextMetadata
-     * @memberof module:clb-storage.clbStorage
-     * @desc
-     * the function delete the contextId from the `oldEntity` metadata and add
-     * it as `newEntity` metadata.
-     *
-     * Entity objects in input must contain the following properties:
-     * - _entityType
-     * - _uuid
-     *
-     * In case of error, the promise is rejected with a `HbpError` instance.
-     *
-     * @param  {Object} newEntity doc browser entity to link to the context
-     * @param  {Object} oldEntity doc browser entity to unlink from the context
-     * @param  {String} contextId collab app context id
-     * @return {Promise} a promise that resolves when the operation is completed
-     */
-    function updateContextMetadata(newEntity, oldEntity, contextId) {
-      return deleteContextMetadata(oldEntity, contextId).then(function() {
-        return setContextMetadata(newEntity, contextId);
-      }).catch(clbError.error);
-    }
+  /**
+   * @name deleteContextMetadata
+   * @memberof module:clb-storage.clbStorage
+   * @desc
+   * the function unlink the contextId from the entity in input
+   * by deleting the context metadata.
+   *
+   * Entity object in input must contain the following properties:
+   * - _entityType
+   * - _uuid
+   *
+   * In case of error, the promise is rejected with a `HbpError` instance.
+   *
+   * @param  {Object} entity doc browser entity
+   * @param  {String} contextId collab app context id
+   * @return {Promise} a promise that resolves when the operation is completed
+   */
+  function deleteContextMetadata(entity, contextId) {
+    var key = metadataKey(contextId);
 
-    /**
-     * @name getProjectByCollab
-     * @memberof module:clb-storage.clbStorage
-     * @desc
-     * the function returns the storage project of the collabId in input.
-     *
-     * In case of error, the promise is rejected with a `HbpError` instance.
-     *
-     * @param  {String} collabId collab id
-     * @return {Promise} a promise that resolves to the project details
-     */
-    function getProjectByCollab(collabId) {
-      var queryParams = {
-        managed_by_collab: collabId
-      };
-      return hbpEntityStore.query(queryParams).catch(clbError.rejectHttpError);
-    }
+    return hbpEntityStore.deleteMetadata(entity, [key])
+    .then(null, clbError.error);
+  }
 
-    return {
-      setContextMetadata: setContextMetadata,
-      getEntityByContext: getEntityByContext,
-      deleteContextMetadata: deleteContextMetadata,
-      updateContextMetadata: updateContextMetadata,
-      getProjectByCollab: getProjectByCollab
+  /**
+   * @name updateContextMetadata
+   * @memberof module:clb-storage.clbStorage
+   * @desc
+   * the function delete the contextId from the `oldEntity` metadata and add
+   * it as `newEntity` metadata.
+   *
+   * Entity objects in input must contain the following properties:
+   * - _entityType
+   * - _uuid
+   *
+   * In case of error, the promise is rejected with a `HbpError` instance.
+   *
+   * @param  {Object} newEntity doc browser entity to link to the context
+   * @param  {Object} oldEntity doc browser entity to unlink from the context
+   * @param  {String} contextId collab app context id
+   * @return {Promise} a promise that resolves when the operation is completed
+   */
+  function updateContextMetadata(newEntity, oldEntity, contextId) {
+    return deleteContextMetadata(oldEntity, contextId).then(function() {
+      return setContextMetadata(newEntity, contextId);
+    }).catch(clbError.error);
+  }
+
+  /**
+   * @name getProjectByCollab
+   * @memberof module:clb-storage.clbStorage
+   * @desc
+   * the function returns the storage project of the collabId in input.
+   *
+   * In case of error, the promise is rejected with a `HbpError` instance.
+   *
+   * @param  {String} collabId collab id
+   * @return {Promise} a promise that resolves to the project details
+   */
+  function getProjectByCollab(collabId) {
+    var queryParams = {
+      managed_by_collab: collabId
     };
-  });
+    return hbpEntityStore.query(queryParams).catch(clbError.rejectHttpError);
+  }
+}
