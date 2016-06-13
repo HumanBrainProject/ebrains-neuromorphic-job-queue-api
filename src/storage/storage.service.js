@@ -123,14 +123,14 @@ function clbStorage(
    * @function
    * @memberof module:clb-storage.clbStorage
    * @param {object} params Query Parameters
-   * @return {Promise}      Resolve to a ResultSet instance
+   * @return {Promise}      Return the results
    */
   function query(params) {
     return $http.get(entityUrl + '/', {
       params: params
     }).then(function(response) {
       return response.data;
-    });
+    }).catch(clbError.rejectHttpError);
   }
 
   /**
@@ -285,24 +285,7 @@ function clbStorage(
     var queryParams = {
       managed_by_collab: collabId
     };
-    return query(queryParams)
-    .then(function(rs) {
-      if (rs.results.length !== 1) {
-        var msg = (rs.results.length ?
-          'This collab is associated to no storage.' :
-          'This collab is associated to more than one storage.');
-        return $q.reject(clbError.error({
-          type: 'InvalidCollabStorage',
-          message: msg,
-          data: {
-            collab: collabId,
-            values: rs.results
-          }
-        }));
-      }
-      return rs.results[0];
-    })
-    .catch(clbError.rejectHttpError);
+    return query(queryParams);
   }
 
   /**

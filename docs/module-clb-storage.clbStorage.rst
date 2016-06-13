@@ -87,7 +87,7 @@ Query entities by attributes or metadata.
 
     
     :param object params: Query Parameters
-    :return Promise: Resolve to a ResultSet instance
+    :return Promise: Return the results
     
 .. _module-clb-storage.clbStorage.metadataKey:
 
