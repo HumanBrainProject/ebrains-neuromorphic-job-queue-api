@@ -1,0 +1,85 @@
+{% set script_files = script_files + ["_static/hbpdoc.js"] %}
+
+{% extends "basic/layout.html" %}
+{% block doctype %}
+<!DOCTYPE html>
+{% endblock %}
+
+{% block extrahead %}
+<meta name="viewport" content="width=device-width, initial-scale=1">
+{% endblock %}
+
+{% block relbar1 %}
+<div class="hbpdoc-page">
+    <section class="hbpdoc-title page-header">
+        <a class="project-title" href="{{ pathto('index') }}">{{project}}</a>
+
+        <a class="hbpdoc-toc-toggle pull-right" href>
+            <span class="zmdi zmdi-menu"></span> <span class="sr-only icon-text">Menu</span>
+        </a>
+    </section>
+    <section class="hbpdoc-main">
+        <nav class="hbpdoc-sidebar hbpdoc-container">
+            <a class="hbpdoc-toc-toggle pull-right" href>
+                <span class="zmdi zmdi-menu"></span> <span class="sr-only icon-text">Menu</span>
+            </a>
+            {{ sidebar() }}
+        </nav>
+{% endblock %}
+
+
+{% block content %}
+        <article class="hbpdoc-content">
+
+            <div class="content">
+                {% if parents %}
+                <div class="breadcrumb breadcrumb-meta expand">
+                    {% for parent in parents %}
+                    <a href="{{ parent.link|e }}">{{ parent.title }}</a>
+                    {% endfor %}
+                </div>
+                {% endif %}
+
+                <aside class="hbpdoc-hnav hbpdoc-hnav-top">
+                    {% if prev %}
+                    <span class="hbpdoc-hnav-previous">
+                        previous: <a class="hbpdoc-hnav-link" href="{{ prev.link|e }}">{{ prev.title }}</a>
+                    </span>
+                    {% endif %}
+                    {% if next %}
+                    <span class="hbpdoc-hnav-next">
+                        next: <a class="hbpdoc-hnav-link" href="{{ next.link|e }}">{{ next.title }}</a>
+                    </span>
+                    {% endif %}
+                </aside>
+
+                {{ body }}
+            </div>
+
+            <aside class="hbpdoc-hnav hbpdoc-hnav-bottom">
+                {% if prev %}
+                <span class="hbpdoc-hnav-previous">
+                    previous: <a class="hbpdoc-hnav-link" href="{{ prev.link|e }}">{{ prev.title }}</a>
+                </span>
+                {% endif %}
+                {% if next %}
+                <span class="hbpdoc-hnav-next">
+                    next: <a class="hbpdoc-hnav-link" href="{{ next.link|e }}">{{ next.title }}</a>
+                </span>
+                {% endif %}
+            </aside>
+        </article>
+    </section>
+{% endblock %}
+
+{% block relbar2 %}
+{% endblock %}
+
+{% block footer %}
+    <div class="hbpdoc-footer">
+        {{project}} <small>{{version}}</small> {{ super() }}
+    </div>
+</div>
+{% endblock %}
+
+{# put the sidebar before the body #}
