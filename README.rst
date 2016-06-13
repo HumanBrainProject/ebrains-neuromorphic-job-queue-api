@@ -7,9 +7,10 @@ develop applications for the HBP Collaboratory.
 Install Using Bower
 ===================
 
-```bash
-bower install angular-hbp-collaboratory
-```
+.. code-block::
+
+   bower install angular-hbp-collaboratory
+
 
 - `angular-hbp-collaboratory.js` provides all the needed AngularJS module
 - `angular-hbp-collaboratory.css` provides styles for the visual components
