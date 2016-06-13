@@ -25,8 +25,8 @@ registered HBP Collaboratory applications.
 .. _module-clb-collab.clbCollabApp.list:
 
 
-Function ``list``
-=================
+Function: ``list``
+==================
 
 
 
@@ -38,8 +38,8 @@ Function ``list``
 .. _module-clb-collab.clbCollabApp.getById:
 
 
-Function ``getById``
-====================
+Function: ``getById``
+=====================
 
 Retrieve an App instance from its id.
 
@@ -52,8 +52,8 @@ Retrieve an App instance from its id.
 .. _module-clb-collab.clbCollabApp.findOne:
 
 
-Function ``findOne``
-====================
+Function: ``findOne``
+=====================
 
 
 
@@ -63,4 +63,7 @@ Function ``findOne``
     :param object params: query parameters
     :return Promise: promise of an App instance
     
+
+
+
 

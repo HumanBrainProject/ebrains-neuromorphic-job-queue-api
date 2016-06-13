@@ -24,8 +24,8 @@ Description
 .. _module-clb-identity.clbUser.get:
 
 
-Function ``get``
-================
+Function: ``get``
+=================
 
 Return a promise that will resolve to a list of groups and users
 based on the given array of ``ids``.
@@ -44,8 +44,8 @@ provided list of IDs.
 .. _module-clb-identity.clbUser.isGroupMember:
 
 
-Function ``isGroupMember``
-==========================
+Function: ``isGroupMember``
+===========================
 
 Return a promise that will resolve to true if the current user is a member of one of the groups in input.
 
@@ -60,8 +60,8 @@ Return a promise that will resolve to true if the current user is a member of on
 .. _module-clb-identity.clbUser.getCurrentUser:
 
 
-Function ``getCurrentUser``
-===========================
+Function: ``getCurrentUser``
+============================
 
 Return a promise that will resolve to the current user.
 
@@ -75,8 +75,8 @@ In case of error, the promise is rejected with a `HbpError` instance.
 .. _module-clb-identity.clbUser.create:
 
 
-Function ``create``
-===================
+Function: ``create``
+====================
 
 Create the given `user`.
 
@@ -92,8 +92,8 @@ In case of error, a `HbpError` instance is retrieved.
 .. _module-clb-identity.clbUser.update:
 
 
-Function ``update``
-===================
+Function: ``update``
+====================
 
 Update the described `user` with the given `data`.
 
@@ -115,8 +115,8 @@ already, you cannot assume this method will update it.
 .. _module-clb-identity.clbUser.list:
 
 
-Function ``list``
-=================
+Function: ``list``
+==================
 
 Retrieves a list of users filtered, sorted and paginated according to the options.
 
@@ -163,8 +163,8 @@ Supported filter values:
 .. _module-clb-identity.clbUser.search:
 
 
-Function ``search``
-===================
+Function: ``search``
+====================
 
 Promise a list of users who matched the given query string.
 
@@ -180,8 +180,8 @@ Promise a list of users who matched the given query string.
 .. _module-clb-identity.clbUser.isHbpMember:
 
 
-Function ``isHbpMember``
-========================
+Function: ``isHbpMember``
+=========================
 
 Return a promise that will resolve to true if the current user is a
 HBP member.
@@ -194,17 +194,11 @@ HBP member.
 
 .. _module-clb-identity.clbUser.getCurrentUserOnly:
 
-
-Function ``getCurrentUserOnly``
-===============================
-
-Return a promise that will resolve to the current user, NOT including group
+Member: ``getCurrentUserOnly``: Return a promise that will resolve to the current user, NOT including group
 info.
 
 In case of error, the promise is rejected with a `HbpError` instance.
 
-.. js:function:: getCurrentUserOnly()
 
-    
-    :return Promise: Resolve to the current user
-    
+
+

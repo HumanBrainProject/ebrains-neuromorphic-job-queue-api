@@ -26,31 +26,29 @@ of apps with storage.
 .. _module-clb-storage.clbStorage.getEntity:
 
 
-Function ``getEntity``
-======================
+Function: ``getEntity``
+=======================
 
-Get an entity (e.g.: a project, a file or a folder):
+Get an entity (e.g.: a project, a file or a folder) using a locator. The
+only accepted locator at this time is the entity UUID.
 
-- the entity uuid
+- the entity UUID
 - an entity representation with ``{_uuid: ENTITY_ID}``
 - the entity collab ID and a relative path
 - the entity absolute path
 
-.. js:function:: getEntity(locator[, locator._uuid][, locator.path][, locator.collab])
+.. js:function:: getEntity(locator)
 
     
-    :param string|object locator: Describe the entity to retrieve
-    :param string locator._uuid: An entity descriptor containing ``_uuid``
-    :param string locator.path: Use with ``locator.collab`` to retrieve the
-                                    local path within a collab.
-    :param int locator.collab: The collab ID to retrieve the storage from.
-    :return Promise: Resolve to an entity descriptor
+    :param UUID locator: Describe the entity to retrieve
+    :return Promise: Return a :doc:`module-clb-storage.EntityDescriptor` when fulfilled
+                                    or reject a :doc:`module-clb-error.ClbError`
     
 .. _module-clb-storage.clbStorage.runOnce:
 
 
-Function ``runOnce``
-====================
+Function: ``runOnce``
+=====================
 
 Ensure there is only one async `fn` run named `k` at once.
 subsequent call to runOnce with the same `k` value will
@@ -66,8 +64,8 @@ return the promise of the running async function.
 .. _module-clb-storage.clbStorage.getEntityByUUID:
 
 
-Function ``getEntityByUUID``
-============================
+Function: ``getEntityByUUID``
+=============================
 
 
 
@@ -80,8 +78,8 @@ Function ``getEntityByUUID``
 .. _module-clb-storage.clbStorage.query:
 
 
-Function ``query``
-==================
+Function: ``query``
+===================
 
 Query entities by attributes or metadata.
 
@@ -94,8 +92,8 @@ Query entities by attributes or metadata.
 .. _module-clb-storage.clbStorage.metadataKey:
 
 
-Function ``metadataKey``
-========================
+Function: ``metadataKey``
+=========================
 
 Retrieve the key to lookup for on entities given the ctx
 
@@ -108,8 +106,8 @@ Retrieve the key to lookup for on entities given the ctx
 .. _module-clb-storage.clbStorage.addMetadata:
 
 
-Function ``addMetadata``
-========================
+Function: ``addMetadata``
+=========================
 
 Add metadata to the provided entity and returns a promise that resolves to an object
 containing all the new metadata. The promise fails if one of the metadata already exists.
@@ -124,8 +122,8 @@ containing all the new metadata. The promise fails if one of the metadata alread
 .. _module-clb-storage.clbStorage.deleteMetadata:
 
 
-Function ``deleteMetadata``
-===========================
+Function: ``deleteMetadata``
+============================
 
 Delete metadata keys in input from the provided entity and returns a promise that resolves to an object
 containing all the remaining metadata. The promise fails if one of the metadata doesn't exist.
@@ -140,8 +138,8 @@ containing all the remaining metadata. The promise fails if one of the metadata 
 .. _module-clb-storage.clbStorage.create:
 
 
-Function ``create``
-===================
+Function: ``create``
+====================
 
 Create a new entity.
 
@@ -157,8 +155,8 @@ Create a new entity.
 .. _module-clb-storage.clbStorage.copy:
 
 
-Function ``copy``
-=================
+Function: ``copy``
+==================
 
 Copy a file to a destination folder
 
@@ -172,8 +170,8 @@ Copy a file to a destination folder
 .. _module-clb-storage.clbStorage.getContent:
 
 
-Function ``getContent``
-=======================
+Function: ``getContent``
+========================
 
 Retrieves the content of a file given its id.
 
@@ -186,11 +184,7 @@ Retrieves the content of a file given its id.
 
 .. _module-clb-storage.clbStorage.setContextMetadata:
 
-
-Function ``setContextMetadata``
-===============================
-
-the function links the contextId with the doc browser entity in input
+Member: ``setContextMetadata``: the function links the contextId with the doc browser entity in input
 by setting a specific metadata on the entity.
 
 Entity object in input must contain the following properties:
@@ -199,36 +193,15 @@ Entity object in input must contain the following properties:
 
 In case of error, the promise is rejected with a `HbpError` instance.
 
-.. js:function:: setContextMetadata(entity, contextId)
-
-    
-    :param Object entity: doc browser entity
-    :param String contextId: collab app context id
-    :return Promise: a promise that resolves when the operation is completed
-    
 .. _module-clb-storage.clbStorage.getEntityByContext:
 
-
-Function ``getEntityByContext``
-===============================
-
-the function gets the entity linked to the contextId in input.
+Member: ``getEntityByContext``: the function gets the entity linked to the contextId in input.
 
 In case of error, the promise is rejected with a `HbpError` instance.
 
-.. js:function:: getEntityByContext(contextId)
-
-    
-    :param String contextId: collab app context id
-    :return Promise: a promise that resolves when the operation is completed
-    
 .. _module-clb-storage.clbStorage.deleteContextMetadata:
 
-
-Function ``deleteContextMetadata``
-==================================
-
-the function unlink the contextId from the entity in input
+Member: ``deleteContextMetadata``: the function unlink the contextId from the entity in input
 by deleting the context metadata.
 
 Entity object in input must contain the following properties:
@@ -237,20 +210,9 @@ Entity object in input must contain the following properties:
 
 In case of error, the promise is rejected with a `HbpError` instance.
 
-.. js:function:: deleteContextMetadata(entity, contextId)
-
-    
-    :param Object entity: doc browser entity
-    :param String contextId: collab app context id
-    :return Promise: a promise that resolves when the operation is completed
-    
 .. _module-clb-storage.clbStorage.updateContextMetadata:
 
-
-Function ``updateContextMetadata``
-==================================
-
-the function delete the contextId from the `oldEntity` metadata and add
+Member: ``updateContextMetadata``: the function delete the contextId from the `oldEntity` metadata and add
 it as `newEntity` metadata.
 
 Entity objects in input must contain the following properties:
@@ -259,27 +221,12 @@ Entity objects in input must contain the following properties:
 
 In case of error, the promise is rejected with a `HbpError` instance.
 
-.. js:function:: updateContextMetadata(newEntity, oldEntity, contextId)
-
-    
-    :param Object newEntity: doc browser entity to link to the context
-    :param Object oldEntity: doc browser entity to unlink from the context
-    :param String contextId: collab app context id
-    :return Promise: Resolves when the operation is completed
-    
 .. _module-clb-storage.clbStorage.getCollabHome:
 
+Member: ``getCollabHome``: When the promise is fulfilled, the function returns the :doc:`module-clb-storage.EntityDescriptor` of the ``collabId`` in input.
 
-Function ``getCollabHome``
-==========================
+In case of error, the promise is rejected with a :doc:`module-clb-error.ClbError` instance.
 
-The function returns the storage project of the collabId in input.
 
-In case of error, the promise is rejected with a `HbpError` instance.
 
-.. js:function:: getCollabHome(collabId)
 
-    
-    :param String collabId: collab id
-    :return Promise: a promise that resolves to the project details
-    

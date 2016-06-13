@@ -4,6 +4,19 @@ angular.module('clb-storage')
 .factory('clbStorage', clbStorage);
 
 /**
+ * @typedef {object} EntityDescriptor
+ * @memberof module:clb-storage
+ * @property {UUID} _uuid         The entity UUID
+ * @property {string} _entityType The entity type (e.g.: ``file``, ``folder``, ``project``)
+ * @desc
+ * Describe an arbitrary entity in the storage stytem. The principal types are
+ *
+ * - `file`: the entity is a file whose content can be retrieved
+ * - `folder`: the entity is a folder and can be the parent of other entities
+ * - `project`: First level folder. It behave like a folder but also defines the ACL for all the children
+ */
+
+/**
  * @namespace clbStorage
  * @memberof module:clb-storage
  * @desc
@@ -45,21 +58,19 @@ function clbStorage(
   // -------------------- //
 
   /**
-   * Get an entity (e.g.: a project, a file or a folder):
+   * Get an entity (e.g.: a project, a file or a folder) using a locator. The
+   * only accepted locator at this time is the entity UUID.
    *
-   * - the entity uuid
+   * - the entity UUID
    * - an entity representation with ``{_uuid: ENTITY_ID}``
    * - the entity collab ID and a relative path
    * - the entity absolute path
    *
    * @function
    * @memberof module:clb-storage.clbStorage
-   * @param {string|object} locator  Describe the entity to retrieve
-   * @param {string} [locator._uuid] An entity descriptor containing ``_uuid``
-   * @param {string} [locator.path]  Use with ``locator.collab`` to retrieve the
-   *                                 local path within a collab.
-   * @param {int} [locator.collab]   The collab ID to retrieve the storage from.
-   * @return {Promise}               Resolve to an entity descriptor
+   * @param {UUID} locator           Describe the entity to retrieve
+   * @return {Promise}               Return a :doc:`module-clb-storage.EntityDescriptor` when fulfilled
+   *                                 or reject a :doc:`module-clb-error.ClbError`
    */
   function getEntity(locator) {
     if (uuid4.validate(locator)) {
@@ -262,18 +273,35 @@ function clbStorage(
    * @name getCollabHome
    * @memberof module:clb-storage.clbStorage
    * @desc
-   * The function returns the storage project of the collabId in input.
+   * When the promise is fulfilled, the function returns the :doc:`module-clb-storage.EntityDescriptor` of the ``collabId`` in input.
    *
-   * In case of error, the promise is rejected with a `HbpError` instance.
+   * In case of error, the promise is rejected with a :doc:`module-clb-error.ClbError` instance.
    *
-   * @param  {String} collabId collab id
-   * @return {Promise} a promise that resolves to the project details
+   * @param  {UUID}    collabId collab id
+   * @return {Promise}          Return the project :doc:`module-clb-storage.EntityDescriptor` linked to
+   *                            this collab or reject a :doc:`module-clb-error.ClbError`.
    */
   function getCollabHome(collabId) {
     var queryParams = {
       managed_by_collab: collabId
     };
     return query(queryParams)
+    .then(function(rs) {
+      if (rs.results.length !== 1) {
+        var msg = (rs.results.length ?
+          'This collab is associated to no storage.' :
+          'This collab is associated to more than one storage.');
+        return $q.reject(clbError.error({
+          type: 'InvalidCollabStorage',
+          message: msg,
+          data: {
+            collab: collabId,
+            values: rs.results
+          }
+        }));
+      }
+      return rs.results[0];
+    })
     .catch(clbError.rejectHttpError);
   }
 

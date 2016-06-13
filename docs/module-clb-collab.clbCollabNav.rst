@@ -26,8 +26,8 @@ clbCollabNav provides tools to create and manage
 .. _module-clb-collab.clbCollabNav.getRoot:
 
 
-Function ``getRoot``
-====================
+Function: ``getRoot``
+=====================
 
 Retrieve the root item of the given collab.
 
@@ -40,8 +40,8 @@ Retrieve the root item of the given collab.
 .. _module-clb-collab.clbCollabNav.getNode:
 
 
-Function ``getNode``
-====================
+Function: ``getNode``
+=====================
 
 
 
@@ -55,8 +55,8 @@ Function ``getNode``
 .. _module-clb-collab.clbCollabNav.getNodeFromContext:
 
 
-Function ``getNodeFromContext``
-===============================
+Function: ``getNodeFromContext``
+================================
 
 
 
@@ -69,8 +69,8 @@ Function ``getNodeFromContext``
 .. _module-clb-collab.clbCollabNav.addNode:
 
 
-Function ``addNode``
-====================
+Function: ``addNode``
+=====================
 
 
 
@@ -84,8 +84,8 @@ Function ``addNode``
 .. _module-clb-collab.clbCollabNav.deleteNode:
 
 
-Function ``deleteNode``
-=======================
+Function: ``deleteNode``
+========================
 
 
 
@@ -99,8 +99,8 @@ Function ``deleteNode``
 .. _module-clb-collab.clbCollabNav.update:
 
 
-Function ``update``
-===================
+Function: ``update``
+====================
 
 
 
@@ -114,8 +114,8 @@ Function ``update``
 .. _module-clb-collab.clbCollabNav.insertNode:
 
 
-Function ``insertNode``
-=======================
+Function: ``insertNode``
+========================
 
 Insert node in the three.
 
@@ -132,4 +132,7 @@ on a single client.
     :return Promise: a promise that will
                              return the update nav item
     
+
+
+
 

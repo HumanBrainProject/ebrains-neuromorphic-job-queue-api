@@ -20,9 +20,10 @@
   "homepage": "",
   "ignore": [
     "**/.*",
-    "node_modules",
-    "bower_components",
-    "*.log"
+    "/node_modules/",
+    "/bower_components/",
+    "*.log",
+    "/hbp_sphinx_theme/"
   ],
   "dependencies": {
     "angular": "^1.5.6",

@@ -25,10 +25,10 @@ Description
 .. _module-clb-error.clbError_.error:
 
 
-Function ``error``
-==================
+Function: ``error``
+===================
 
-Build an ``ClbError`` instance from the provided options.
+Build a ``ClbError`` instance from the provided options.
 
 - param  {Object} options argument passed to ``ClbError`` constructor
 - return {ClbError} the resulting error
@@ -42,8 +42,8 @@ Build an ``ClbError`` instance from the provided options.
 .. _module-clb-error.clbError_.httpError:
 
 
-Function ``httpError``
-======================
+Function: ``httpError``
+=======================
 
 return a `ClbError` instance built from a HTTP response.
 
@@ -57,4 +57,7 @@ standard HTTP status error.
     :param HttpResponse response: Angular $http Response object
     :return ClbError: a valid ClbError
     
+
+
+
 

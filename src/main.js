@@ -32,3 +32,7 @@ angular.module('hbpCollaboratory', [
     lodash.keyBy = lodash.indexBy;
   }
 });
+
+/**
+ * @typedef {string} UUID A string formatted as a valid UUID4
+ */

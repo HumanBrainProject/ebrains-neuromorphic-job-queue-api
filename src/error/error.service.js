@@ -68,7 +68,7 @@ function clbError($q) {
     httpError: httpError,
 
     /**
-     * Build an ``ClbError`` instance from the provided options.
+     * Build a ``ClbError`` instance from the provided options.
      *
      * - param  {Object} options argument passed to ``ClbError`` constructor
      * - return {ClbError} the resulting error

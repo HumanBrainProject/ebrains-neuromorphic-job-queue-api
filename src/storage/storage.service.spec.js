@@ -128,9 +128,40 @@ describe('clbStorage service', function() {
       var expectedResult = {results: [entity]};
       backend.expectGET(entityUrl('?managed_by_collab=1'))
       .respond(200, expectedResult);
-      service.getCollabHome(1).then(assign);
+      service.getCollabHome(1).then(assign).catch(assign);
       backend.flush();
-      expect(actual).toDeepEqual(expectedResult);
+      expect(actual).toDeepEqual(entity);
+    });
+
+    it('should raise an exception when no storage', function() {
+      var expectedResult = {results: []};
+      backend.expectGET(entityUrl('?managed_by_collab=1'))
+      .respond(200, expectedResult);
+      service.getCollabHome(1).catch(assign);
+      backend.flush();
+      expect(actual).toBeHbpError();
+      expect(actual.type).toBe('InvalidCollabStorage');
+      expect(actual.data.collab).toBe(1);
+      expect(actual.data.values).toEqual([]);
+    });
+
+    it('should raise an exception when more than one storage', function() {
+      var expectedResult = {results: [entity, {}]};
+      backend.expectGET(entityUrl('?managed_by_collab=1'))
+      .respond(200, expectedResult);
+      service.getCollabHome(1).catch(assign);
+      backend.flush();
+      expect(actual).toBeHbpError();
+      expect(actual.type).toBe('InvalidCollabStorage');
+      expect(actual.data.values).toDeepEqual(expectedResult.results);
+    });
+
+    it('should forward any server exception', function() {
+      backend.expectGET(entityUrl('?managed_by_collab=1'))
+      .respond(500);
+      service.getCollabHome(1).catch(assign);
+      backend.flush();
+      expect(actual).toBeHbpError();
     });
   });
 

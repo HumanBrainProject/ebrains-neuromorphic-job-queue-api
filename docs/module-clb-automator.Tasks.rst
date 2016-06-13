@@ -25,8 +25,8 @@ Document a list of available tasks.
 .. _module-clb-automator.Tasks.createCollab:
 
 
-Function ``createCollab``
-=========================
+Function: ``createCollab``
+==========================
 
 Create a collab defined by the given options.
 
@@ -45,8 +45,8 @@ Create a collab defined by the given options.
 .. _module-clb-automator.Tasks.createNavItem:
 
 
-Function ``createNavItem``
-==========================
+Function: ``createNavItem``
+===========================
 
 Create a new nav item.
 
@@ -64,8 +64,8 @@ Create a new nav item.
 .. _module-clb-automator.Tasks.overview:
 
 
-Function ``overview``
-=====================
+Function: ``overview``
+======================
 
 Set the content of the overview page.
 If an 'entity' is specified, it will use the content of that storage file
@@ -92,8 +92,8 @@ collab object in `context.collab`.
 .. _module-clb-automator.Tasks.storage:
 
 
-Function ``storage``
-====================
+Function: ``storage``
+=====================
 
 Copy files and folders to the destination collab storage.
 
@@ -110,4 +110,7 @@ Copy files and folders to the destination collab storage.
     :return object: created entities where keys are the same as provided in
                      config.storage
     
+
+
+
 

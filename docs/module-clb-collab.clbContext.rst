@@ -25,8 +25,8 @@ Description
 .. _module-clb-collab.clbContext.get:
 
 
-Function ``get``
-================
+Function: ``get``
+=================
 
 
 
@@ -36,4 +36,7 @@ Function ``get``
     :param string uuid: UUID of the context
     :return Promise: Resolve to the ClbContextModel instance
     
+
+
+
 

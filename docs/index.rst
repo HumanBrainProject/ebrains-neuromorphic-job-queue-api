@@ -24,7 +24,7 @@ Contents
 README
 ======
 
-   ------------------------
+------------------------
 
 .. image:: https://travis-ci.org/HumanBrainProject/angular-hbp-collaboratory.svg?branch=master
    :target: https://travis-ci.org/HumanBrainProject/angular-hbp-collaboratory
@@ -35,7 +35,7 @@ develop applications for the HBP Collaboratory.
 Install Using Bower
 ===================
 
-.. code-block::
+.. code-block:: bash
 
    bower install angular-hbp-collaboratory
 
@@ -88,7 +88,8 @@ Running tests on code change:
 Migration from angular-hbp-common
 ---------------------------------
 
-.. code-block::
+Here is a quick (and incomplete) checklist of refactoring to operate to your
+project if you want to migrate from angular-hbp-common to this cleaner library::
 
    Add dependency 'hbpCollaboratory'
    hbpUtil.ferr -> clbError.rejectHttpError (from clb-error module)
