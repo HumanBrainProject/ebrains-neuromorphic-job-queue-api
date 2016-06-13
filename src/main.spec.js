@@ -13,7 +13,7 @@ var globalConfig = {
       v0: 'http://collab/v0'
     },
     document: {
-      v1: 'http://document/v1'
+      v0: 'http://document/v1'
     },
     richtext: {
       v0: 'http://richtext/v0'
