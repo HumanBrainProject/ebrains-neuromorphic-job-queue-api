@@ -26,7 +26,7 @@ describe('clbStorage service', function() {
     service = clbStorage;
 
     baseUrl = function(path) {
-      return clbEnv.get('api.document.v1') + '/' + (path ? path : '');
+      return clbEnv.get('api.document.v0') + '/' + (path ? path : '');
     };
 
     entityUrl = function(path) {

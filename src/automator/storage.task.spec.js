@@ -21,7 +21,7 @@ describe('storage task handler', function() {
     scope = $rootScope;
     backend = $httpBackend;
     baseUrl = function(path) {
-      return clbEnv.get('api.document.v1') + '/' + (path ? path : '');
+      return clbEnv.get('api.document.v0') + '/' + (path ? path : '');
     };
     entityUrl = function(path) {
       return baseUrl('entity/' + (path ? path : ''));

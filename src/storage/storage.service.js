@@ -23,7 +23,7 @@ function clbStorage(
   clbEnv,
   clbError
 ) {
-  var baseUrl = clbEnv.get('api.document.v1');
+  var baseUrl = clbEnv.get('api.document.v0');
   var entityUrl = baseUrl + '/entity';
   var fileUrl = baseUrl + '/file/';
   var promises = {};
