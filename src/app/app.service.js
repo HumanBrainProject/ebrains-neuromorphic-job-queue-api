@@ -52,7 +52,7 @@ function clbApp(
   var sentMessages = {};
 
   /**
-   * @module hbpCollaboratoryAppToolkit
+   * Singleton class
    */
   function AppToolkit() { }
   AppToolkit.prototype = {

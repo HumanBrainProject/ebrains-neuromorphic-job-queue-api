@@ -1,16 +1,18 @@
-/* global _ */
 describe('clbResultSet', function() {
   var service;
   var scope;
   var actual;
+  var _;
   var assign = function(res) {
     actual = res;
   };
 
   beforeEach(module('clb-rest'));
-  beforeEach(inject(function($rootScope, clbResultSet) {
+  beforeEach(module('ngLodash'));
+  beforeEach(inject(function($rootScope, clbResultSet, lodash) {
     service = clbResultSet;
     scope = $rootScope;
+    _ = lodash;
   }));
 
   afterEach(function() {
@@ -62,8 +64,9 @@ describe('clbResultSet', function() {
         rs = null;
       });
 
-      _.forEach({
-        'initialize()': {
+      [{
+        name: 'initialize()',
+        data: {
           beforeFunc: function() {
             backend.expectGET(baseUrl).respond(500, null);
             rs = service.get($http.get(baseUrl), {
@@ -72,12 +75,18 @@ describe('clbResultSet', function() {
               }
             }).instance;
           }
-        }, 'without error handler': {
+        }
+      }, {
+        name: 'without error handler',
+        data: {
           beforeFunc: function() {
             backend.expectGET(baseUrl).respond(500, null);
             rs = service.get($http.get(baseUrl)).instance;
           }
-        }, 'next()': {
+        }
+      }, {
+        name: 'next()',
+        data: {
           beforeFunc: function() {
             backend.expectGET(baseUrl).respond({
               results: [],
@@ -91,7 +100,10 @@ describe('clbResultSet', function() {
             }).instance;
             rs.next();
           }
-        }, 'previous()': {
+        }
+      }, {
+        name: 'previous()',
+        data: {
           beforeFunc: function() {
             backend.expectGET(baseUrl).respond({
               results: [],
@@ -106,15 +118,15 @@ describe('clbResultSet', function() {
             rs.previous();
           }
         }
-      }, function(data, name) {
-        describe(name, function() {
+      }].forEach(function(spec) {
+        describe(spec.name, function() {
           var expectHbpError = function(error) {
             expect(error).toBeDefined('error is undefined');
             expect(error.type).toBeDefined('error.type is undefined');
             expect(error.code).toBeDefined('error.code is undefined');
             expect(error.code).toBe(500);
           };
-          beforeEach(data.beforeFunc);
+          beforeEach(spec.data.beforeFunc);
           it('should be a HbpError instance', function() {
             backend.flush();
             expectHbpError(rs.error);
@@ -173,9 +185,7 @@ describe('clbResultSet', function() {
       var expectedPage;
       var spyOk;
       var spyKo;
-      _.map(['previous', 'next'], function(dir) {
-        var capDir = _.capitalize(dir);
-
+      ['previous', 'next'].forEach(function(dir) {
         describe(dir + '()', function() {
           beforeEach(function() {
             spyOk = jasmine.createSpy('callback');
@@ -198,11 +208,11 @@ describe('clbResultSet', function() {
             .respond({results: expectedPage.previous});
           });
 
-          it('should set .has' + capDir + ' to true', function() {
+          it('should set .has' + dir + ' to true', function() {
             backend.expectGET(baseUrl);
             var rs = service.get($http.get(baseUrl)).instance;
             backend.flush();
-            expect(rs['has' + capDir]).toBe(true);
+            expect(rs['has' + _.capitalize(dir)]).toBe(true);
           });
 
           it('should return a promise', function() {

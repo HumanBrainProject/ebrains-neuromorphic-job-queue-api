@@ -3,20 +3,29 @@ describe('storage task handler', function() {
   var data;
   var scope;
   var copyEntity;
-  var entityStore;
   var storage;
+  var backend;
+  var baseUrl;
+  var entityUrl;
 
   beforeEach(module('clb-automator'));
   beforeEach(inject(function(
     $rootScope,
+    $httpBackend,
     clbAutomator,
-    hbpEntityStore,
-    clbStorage
+    clbStorage,
+    clbEnv
   ) {
     copyEntity = clbAutomator.handlers.storage;
-    entityStore = hbpEntityStore;
     storage = clbStorage;
     scope = $rootScope;
+    backend = $httpBackend;
+    baseUrl = function(path) {
+      return clbEnv.get('api.document.v1') + '/' + (path ? path : '');
+    };
+    entityUrl = function(path) {
+      return baseUrl('entity/' + (path ? path : ''));
+    };
   }));
   beforeEach(function() {
     data = {
@@ -49,9 +58,11 @@ describe('storage task handler', function() {
   });
 
   it('should copy a file to root', inject(function($q) {
-    spyOn(storage, 'getProjectByCollab')
+    backend.expectGET(entityUrl('?managed_by_collab=1'))
+    .respond(200, data.rootEntity);
+    spyOn(storage, 'getCollabHome')
       .and.returnValue($q.when(data.rootEntity));
-    spyOn(entityStore, 'copy').and.returnValue($q.when(data.newEntity));
+    spyOn(storage, 'copy').and.returnValue($q.when(data.newEntity));
     var config = {
       collab: data.collab.id,
       entities: {
@@ -68,8 +79,8 @@ describe('storage task handler', function() {
       expect(err).toBeUndefined();
     });
     scope.$digest();
-    expect(storage.getProjectByCollab).toHaveBeenCalledWith(data.collab.id);
-    expect(entityStore.copy).toHaveBeenCalledWith(
+    expect(storage.getCollabHome).toHaveBeenCalledWith(data.collab.id);
+    expect(storage.copy).toHaveBeenCalledWith(
       data.fileEntity._uuid,
       data.rootEntity._uuid
     );

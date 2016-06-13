@@ -5,14 +5,14 @@ angular.module('clb-collab')
  * Angular client to access Collab Team REST endpoint.
  *
  * @memberof module:clb-collab
- * @param  {object} $http             Angular Injection
- * @param  {object} $log              Angular Injection
- * @param  {object} $q                Angular Injection
- * @param  {object} lodash            Angular Injection
- * @param  {object} clbEnv            Angular Injection
- * @param  {object} clbError          Angular Injection
- * @param  {object} clbCollabTeamRole Angular Injection
- * @param  {object} clbUser           Angular Injection
+ * @param  {object} $http             Angular DI
+ * @param  {object} $log              Angular DI
+ * @param  {object} $q                Angular DI
+ * @param  {object} lodash            Angular DI
+ * @param  {object} clbEnv            Angular DI
+ * @param  {object} clbError          Angular DI
+ * @param  {object} clbCollabTeamRole Angular DI
+ * @param  {object} clbUser           Angular DI
  * @return {object}                   Angular Service
  */
 function clbCollabTeam(

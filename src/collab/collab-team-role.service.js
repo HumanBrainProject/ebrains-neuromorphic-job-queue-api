@@ -4,11 +4,11 @@ angular.module('clb-collab')
 /**
  * @namespace clbCollabTeamRole
  * @memberof module:clb-collab
- * @param  {object} $http    Angular Injection
- * @param  {object} $log     Angular Injection
- * @param  {object} $q       Angular Injection
- * @param  {object} clbEnv   Angular Injection
- * @param  {object} clbError Angular Injection
+ * @param  {object} $http    Angular DI
+ * @param  {object} $log     Angular DI
+ * @param  {object} $q       Angular DI
+ * @param  {object} clbEnv   Angular DI
+ * @param  {object} clbError Angular DI
  * @return {object}          Angular Service
  */
 function clbCollabTeamRole($http, $log, $q, clbEnv, clbError) {

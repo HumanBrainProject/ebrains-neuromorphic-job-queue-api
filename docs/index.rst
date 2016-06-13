@@ -12,8 +12,8 @@ Contents
 
    
    module-clb-app
-   module-hbpCollaboratoryAppToolkit
    module-clb-automator
+   module-clb-collab
    module-clb-env
    module-clb-form
    module-clb-rest
@@ -87,4 +87,22 @@ Running tests on code change:
 .. code-block:: bash
 
    gulp watch
+
+
+Migration from angular-hbp-common
+---------------------------------
+
+.. code-block::
+
+   Add dependency 'hbpCollaboratory'
+   hbpUtil.ferr -> clbError.rejectHttpError (from clb-error module)
+   hbpErrorService -> clbError              (from clb-error module)
+   hbpUtil.paginatedResultSet -> clbResultSet.get (from clb-rest module)
+   hbpIdentityUserDirectory -> clbUser      (from clb-identity module)
+   hbpCollabStore -> clbCollab              (from clb-collab module)
+   hbpCollabStore.context -> clbContext     (from clb-collab module)
+   hbpCollaboratoryNavStore -> clbCollabNav (from clb-collab module)
+   clbCollabApp -> clbCollabApp (from clb-collab module)
+
+   At some point, you can remove 'hbpCommon' Angular dependency
 

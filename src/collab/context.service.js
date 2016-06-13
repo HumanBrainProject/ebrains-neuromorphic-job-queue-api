@@ -4,11 +4,11 @@ angular.module('clb-collab')
 /**
  * @namespace clbContext
  * @memberof module:clb-collab
- * @param  {object} $http             Angular Injection
- * @param  {object} $q                Angular Injection
- * @param  {object} clbError          Angular Injection
- * @param  {object} clbEnv            Angular Injection
- * @param  {class}  ClbContextModel   Angular Injection
+ * @param  {object} $http             Angular DI
+ * @param  {object} $q                Angular DI
+ * @param  {object} clbError          Angular DI
+ * @param  {object} clbEnv            Angular DI
+ * @param  {class}  ClbContextModel   Angular DI
  * @return {object}                   the service
  */
 function clbContext($http, $q, clbError, clbEnv, ClbContextModel) {

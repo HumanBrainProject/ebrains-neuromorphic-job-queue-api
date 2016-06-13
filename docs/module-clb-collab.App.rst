@@ -1,10 +1,9 @@
-.. _hbpCollaboratory.clbCollabApp.App:
+.. _undefined.App:
 
 ==============
 Class: ``App``
 ==============
 
-Member Of :doc:`hbpCollaboratory.clbCollabApp`
 
 .. contents:: Local Navigation
    :local:
@@ -22,7 +21,7 @@ Description
 client representation of an application
 
 
-.. _hbpCollaboratory.clbCollabApp.App.toJson:
+.. _module-clb-collab.App.toJson:
 
 
 Function ``toJson``
@@ -37,7 +36,7 @@ string.
     
     :return object: server representation of an App instance
     
-.. _hbpCollaboratory.clbCollabApp.App.App.fromJson:
+.. _module-clb-collab.App.App.fromJson:
 
 
 Function ``App.fromJson``

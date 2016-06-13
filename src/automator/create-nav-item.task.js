@@ -4,8 +4,7 @@ angular.module('clb-automator')
   clbCollabApp,
   clbCollabNav,
   clbAutomator,
-  clbStorage,
-  hbpEntityStore
+  clbStorage
 ) {
   clbAutomator.registerHandler('nav', createNavItem);
 
@@ -55,7 +54,7 @@ angular.module('clb-automator')
       if (context && context.storage && context.storage[descriptor.entity]) {
         return setLink(context.storage[descriptor.entity]);
       }
-      return hbpEntityStore.get(descriptor.entity).then(setLink);
+      return clbStorage.getEntity(descriptor.entity).then(setLink);
     };
 
     $log.debug('Create nav item', descriptor, context);

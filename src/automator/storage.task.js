@@ -2,7 +2,6 @@ angular.module('clb-automator')
 .run(function createStorage(
   $log,
   $q,
-  hbpEntityStore,
   clbError,
   clbAutomator,
   clbStorage
@@ -28,14 +27,14 @@ angular.module('clb-automator')
       descriptor, 'entities'
     ).then(function() {
       return clbStorage
-        .getProjectByCollab(descriptor.collab || context.collab.id)
+        .getCollabHome(descriptor.collab || context.collab.id)
         .then(function(projectEntity) {
           var promises = {};
           angular.forEach(descriptor.entities, function(value, name) {
             if (angular.isString(value)) {
               $log.debug("Copy entity with UUID", value);
               promises[name] = (
-                hbpEntityStore.copy(value, projectEntity._uuid));
+                clbStorage.copy(value, projectEntity._uuid));
             } else {
               $log.warn('Invalid configuration for storage task', descriptor);
             }

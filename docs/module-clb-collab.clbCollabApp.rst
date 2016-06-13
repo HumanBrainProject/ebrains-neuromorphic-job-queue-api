@@ -1,10 +1,9 @@
-.. _hbpCollaboratory.clbCollabApp:
+.. _undefined.clbCollabApp:
 
-=======================================
+===========================
 Namespace: ``clbCollabApp``
-=======================================
+===========================
 
-Member Of :doc:`hbpCollaboratory`
 
 .. contents:: Local Navigation
    :local:
@@ -15,7 +14,6 @@ Children
 .. toctree::
    :maxdepth: 1
    
-   hbpCollaboratory.clbCollabApp.App
    
 Description
 ===========
@@ -24,7 +22,7 @@ clbCollabApp can be used to find and work with the
 registered HBP Collaboratory applications.
 
 
-.. _hbpCollaboratory.clbCollabApp.list:
+.. _module-clb-collab.clbCollabApp.list:
 
 
 Function ``list``
@@ -37,7 +35,21 @@ Function ``list``
     
     :return Promise: promise of the list of all applications
     
-.. _hbpCollaboratory.clbCollabApp.findOne:
+.. _module-clb-collab.clbCollabApp.getById:
+
+
+Function ``getById``
+====================
+
+Retrieve an App instance from its id.
+
+.. js:function:: getById(id)
+
+    
+    :param number id: the app id
+    :return Promise: promise of an app instance
+    
+.. _module-clb-collab.clbCollabApp.findOne:
 
 
 Function ``findOne``

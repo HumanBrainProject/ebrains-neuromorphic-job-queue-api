@@ -2,7 +2,7 @@
 
 /**
  * @namespace clbCollabNav
- * @memberof hbpCollaboratory
+ * @memberof module:clb-collab
  * @desc clbCollabNav provides tools to create and manage
  *       navigation items.
  */
@@ -21,7 +21,7 @@ angular.module('clb-collab')
    * @class NavItem
    * @desc
    * Client representation of a navigation item.
-   * @memberof hbpCollaboratory.clbCollabNav
+   * @memberof module:clb-collab.clbCollabNav
    * @param  {object} attr attributes of the new instance
    */
   var NavItem = function(attr) {
@@ -41,7 +41,7 @@ angular.module('clb-collab')
      * @desc
      * Return a server object representation that can be easily serialized
      * to JSON and send to the backend.
-     * @memberof hbpCollaboratory.clbCollabNav.NavItem
+     * @memberof module:clb-collab.clbCollabNav.NavItem
      * @return {object} server object representation
      */
     toJson: function() {
@@ -58,7 +58,7 @@ angular.module('clb-collab')
       };
     },
     /**
-     * @memberof hbpCollaboratory.clbCollabNav.NavItem
+     * @memberof module:clb-collab.clbCollabNav.NavItem
      * @param  {object} attrs NavItem instance attributes
      * @return {NavItemt} this instance
      */
@@ -76,7 +76,7 @@ angular.module('clb-collab')
       return this;
     },
     /**
-     * @memberof hbpCollaboratory.clbCollabNav.NavItem
+     * @memberof module:clb-collab.clbCollabNav.NavItem
      * @return {NavItem} this instance
      * @private
      */
@@ -111,7 +111,7 @@ angular.module('clb-collab')
   /**
    * Build an instance from the server object representation.
    *
-   * @memberof hbpCollaboratory.clbCollabNav.NavItem
+   * @memberof module:clb-collab.clbCollabNav.NavItem
    * @param  {number} collabId collab ID
    * @param  {string} json server object representation
    * @return {NavItem} new instance of NavItem
@@ -141,7 +141,7 @@ angular.module('clb-collab')
   /**
    * Retrieve the root item of the given collab.
    *
-   * @memberof hbpCollaboratory.clbCollabNav
+   * @memberof module:clb-collab.clbCollabNav
    * @param  {number} collabId collab ID
    * @return {Promise} promise the root nav item
    */
@@ -185,7 +185,7 @@ angular.module('clb-collab')
   };
 
   /**
-   * @memberof hbpCollaboratory.clbCollabNav
+   * @memberof module:clb-collab.clbCollabNav
    * @param  {number} collabId collab ID
    * @param  {number} nodeId   node ID
    * @return {NavItem} the matching nav item
@@ -204,7 +204,7 @@ angular.module('clb-collab')
   };
 
   /**
-   * @memberof hbpCollaboratory.clbCollabNav
+   * @memberof module:clb-collab.clbCollabNav
    * @param  {str} ctx The context UUID
    * @return {Promise}   The promise of a NavItem
    */
@@ -230,7 +230,7 @@ angular.module('clb-collab')
   };
 
   /**
-   * @memberof hbpCollaboratory.clbCollabNav
+   * @memberof module:clb-collab.clbCollabNav
    * @param  {number} collabId collab ID
    * @param  {number} navItem  the NavItem instance to add to the navigation
    * @return {Promise} promise of the added NavItem instance
@@ -243,7 +243,7 @@ angular.module('clb-collab')
   };
 
   /**
-   * @memberof hbpCollaboratory.clbCollabNav
+   * @memberof module:clb-collab.clbCollabNav
    * @param  {number} collabId collab ID
    * @param  {NavItem} navItem the NavItem instance to remove from the navigation
    * @return {Promise} promise of an undefined item at the end
@@ -256,7 +256,7 @@ angular.module('clb-collab')
   };
 
   /**
-   * @memberof hbpCollaboratory.clbCollabNav
+   * @memberof module:clb-collab.clbCollabNav
    * @param  {number} collabId collab ID
    * @param  {NavItem} navItem the instance to update
    * @return {Promise} promise the updated instance
@@ -279,6 +279,7 @@ angular.module('clb-collab')
    * A queue is used to ensure that the insert operation does not conflict
    * on a single client.
    *
+   * @memberof module:clb-collab.clbCollabNav
    * @param  {int} collabId   id of the collab
    * @param  {NavItem} navItem    Nav item instance
    * @param  {NavItem} parentItem parent item
@@ -300,6 +301,7 @@ angular.module('clb-collab')
    * @param  {int} collabId collab ID
    * @param  {int} nodeId   NavItem ID
    * @return {string}       the unique key
+   * @private
    */
   function key(collabId, nodeId) {
     return collabId + '--' + nodeId;

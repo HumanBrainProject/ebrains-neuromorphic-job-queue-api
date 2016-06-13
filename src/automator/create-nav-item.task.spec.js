@@ -3,7 +3,6 @@ describe('nav task handler', function() {
   var createNavItem;
   var data;
   var scope;
-  var entityStore;
   var navStore;
   var appStore;
   var storage;
@@ -11,14 +10,12 @@ describe('nav task handler', function() {
   beforeEach(module('clb-automator'));
   beforeEach(inject(function(
     $rootScope,
-    hbpEntityStore,
     clbAutomator,
     clbCollabNav,
     clbCollabApp,
     clbStorage
   ) {
     createNavItem = clbAutomator.handlers.nav;
-    entityStore = hbpEntityStore;
     navStore = clbCollabNav;
     appStore = clbCollabApp;
     storage = clbStorage;
@@ -115,14 +112,14 @@ describe('nav task handler', function() {
     });
 
     it('can use a uuid provided in the descriptor', inject(function($q) {
-      spyOn(entityStore, 'get').and.returnValue($q.when(data.entity));
+      spyOn(storage, 'getEntity').and.returnValue($q.when(data.entity));
       var descriptor = angular.extend({
         entity: data.entity._uuid,
         collab: data.collab.id
       }, data.mandatory);
       createNavItem(descriptor);
       scope.$digest();
-      expect(entityStore.get)
+      expect(storage.getEntity)
       .toHaveBeenCalledWith(data.entity._uuid);
       expect(storage.setContextMetadata)
       .toHaveBeenCalledWith(data.entity, data.navItem.context);

@@ -4,9 +4,9 @@ angular.module('clb-rest')
 /**
  * @namespace clbResultSet
  * @memberof module:clb-rest
- * @param  {object} $http           Angular Injection
- * @param  {object} $q              Angular Injection
- * @param  {object} clbError Angular Injection
+ * @param  {object} $http           Angular DI
+ * @param  {object} $q              Angular DI
+ * @param  {object} clbError Angular DI
  * @return {object}                 Angular Service
  */
 function clbResultSet($http, $q, clbError) {

@@ -6,16 +6,16 @@ angular.module('clb-identity')
  *
  * @namespace clbUser
  * @memberof module:clb-identity
- * @param  {object} $rootScope      Angular Injection
- * @param  {object} $q              Angular Injection
- * @param  {object} $http           Angular Injection
- * @param  {object} $cacheFactory   Angular Injection
- * @param  {object} $log            Angular Injection
- * @param  {object} lodash          Angular Injection
- * @param  {object} clbEnv          Angular Injection
- * @param  {object} clbError        Angular Injection
- * @param  {object} clbResultSet    Angular Injection
- * @param  {object} clbIdentityUtil Angular Injection
+ * @param  {object} $rootScope      Angular DI
+ * @param  {object} $q              Angular DI
+ * @param  {object} $http           Angular DI
+ * @param  {object} $cacheFactory   Angular DI
+ * @param  {object} $log            Angular DI
+ * @param  {object} lodash          Angular DI
+ * @param  {object} clbEnv          Angular DI
+ * @param  {object} clbError        Angular DI
+ * @param  {object} clbResultSet    Angular DI
+ * @param  {object} clbIdentityUtil Angular DI
  * @return {object} Angular Service
  */
 function clbUser(

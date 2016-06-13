@@ -5,7 +5,7 @@ describe('overview task handler', function() {
   var overview;
   var backend;
   var navStore;
-  var fileStore;
+  var storage;
   var q;
 
   beforeEach(module('clb-automator'));
@@ -15,13 +15,13 @@ describe('overview task handler', function() {
     $q,
     clbAutomator,
     clbCollabNav,
-    hbpFileStore
+    clbStorage
   ) {
     backend = $httpBackend;
     overview = clbAutomator.handlers.overview;
     scope = $rootScope;
     navStore = clbCollabNav;
-    fileStore = hbpFileStore;
+    storage = clbStorage;
     q = $q;
   }));
   beforeEach(function() {
@@ -70,7 +70,7 @@ describe('overview task handler', function() {
   it('should fill content using only descriptor', inject(function() {
     spyOn(navStore, 'getRoot')
       .and.returnValue(q.when(data.rootNavItem));
-    spyOn(fileStore, 'getContent')
+    spyOn(storage, 'getContent')
       .and.returnValue(q.when(data.fileContent));
     backend.expectPOST('http://richtext/v0/richtext/').respond(201);
     overview({
@@ -85,7 +85,7 @@ describe('overview task handler', function() {
   it('should fill content using mainly context', inject(function() {
     spyOn(navStore, 'getRoot')
       .and.returnValue(q.when(data.rootNavItem));
-    spyOn(fileStore, 'getContent')
+    spyOn(storage, 'getContent')
       .and.returnValue(q.when(data.fileContent));
     backend.expectPOST('http://richtext/v0/richtext/').respond(201);
     overview(

@@ -1,6 +1,6 @@
 angular.module('clb-automator')
 .run(function createOverview(
-  $log, $q, $http, clbEnv, hbpFileStore, clbError,
+  $log, $q, $http, clbEnv, clbStorage, clbError,
   clbAutomator, clbCollabNav, clbCollabApp
 ) {
   clbAutomator.registerHandler('overview', overview);
@@ -13,7 +13,7 @@ angular.module('clb-automator')
    * The collab is indicated either by an id in `descriptor.collab` or a
    * collab object in `context.collab`.
    *
-   * @memberof hbpCollaboratory.hbpCollaboratoryAutomator.Tasks
+   * @memberof module:clb-automator.Tasks
    * @param {object} descriptor the task configuration
    * @param {object} [descriptor.collab] id of the collab
    * @param {string} [descriptor.entity] either a label that can be found in
@@ -84,6 +84,6 @@ angular.module('clb-automator')
     } else {
       uuid = descriptor.entity;
     }
-    return hbpFileStore.getContent(uuid);
+    return clbStorage.getContent(uuid);
   }
 });

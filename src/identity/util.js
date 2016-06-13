@@ -7,8 +7,8 @@ angular.module('clb-identity')
  * The ``hbpIdentityUtil`` service groups together useful function for the hbpIdentity module.
  * @namespace clbIdentityUtil
  * @memberof module:clb-identity
- * @param  {object} $log   Angular Injection
- * @param  {object} lodash Angular Injection
+ * @param  {object} $log   Angular DI
+ * @param  {object} lodash Angular DI
  * @return {object}        Angular Service
  */
 function clbIdentityUtil($log, lodash) {

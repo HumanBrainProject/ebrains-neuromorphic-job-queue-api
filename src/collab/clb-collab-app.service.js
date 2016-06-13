@@ -2,7 +2,7 @@
 
 /**
  * @namespace clbCollabApp
- * @memberof hbpCollaboratory
+ * @memberof module:clb-collab
  * @desc
  * clbCollabApp can be used to find and work with the
  * registered HBP Collaboratory applications.
@@ -20,7 +20,7 @@ angular.module('clb-collab')
   /**
    * @class App
    * @desc client representation of an application
-   * @memberof hbpCollaboratory.clbCollabApp
+   * @memberof module:clb-collab
    * @param  {object} [attrs] a list of attributes to set to the App instance
    */
   var App = function(attrs) {
@@ -34,7 +34,7 @@ angular.module('clb-collab')
      * Transform an App instance into an object reprensentation compatible with
      * the backend schema. This object can then be easily converted to a JSON
      * string.
-     * @memberof hbpCollaboratory.clbCollabApp.App
+     * @memberof module:clb-collab.App
      * @return {object} server representation of an App instance
      */
     toJson: function() {
@@ -50,7 +50,7 @@ angular.module('clb-collab')
 
   /**
    * Create an app instance from a server representation.
-   * @memberof hbpCollaboratory.clbCollabApp.App
+   * @memberof module:clb-collab.App
    * @param  {object} json converted from the server JSON string
    * @return {App} the new App instance
    */
@@ -83,7 +83,7 @@ angular.module('clb-collab')
   };
 
   /**
-   * @memberof hbpCollaboratory.clbCollabApp
+   * @memberof module:clb-collab.clbCollabApp
    * @return {Promise} promise of the list of all applications
    */
   var list = function() {
@@ -97,6 +97,7 @@ angular.module('clb-collab')
 
   /**
    * Retrieve an App instance from its id.
+   * @memberof module:clb-collab.clbCollabApp
    * @param  {number} id the app id
    * @return {Promise} promise of an app instance
    */
@@ -117,7 +118,7 @@ angular.module('clb-collab')
   };
 
   /**
-   * @memberof hbpCollaboratory.clbCollabApp
+   * @memberof module:clb-collab.clbCollabApp
    * @param  {object} params query parameters
    * @return {Promise} promise of an App instance
    */

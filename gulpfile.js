@@ -95,8 +95,8 @@ gulp.task('doc', function(done) {
   child_process.exec([
     'jsdoc',
     '-c ./jsdoc.conf.json',
-    '--debug',
     './README.rst'
+    // '--debug', // Useful to see what is wrong.
   ].join(' '), function(err, stdout, stderr) {
     console.log(stdout);
     console.log(stderr);
