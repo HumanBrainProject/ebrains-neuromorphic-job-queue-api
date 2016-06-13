@@ -1,27 +1,22 @@
+.. image:: https://travis-ci.org/HumanBrainProject/angular-hbp-collaboratory.svg?branch=master
+   :target: https://travis-ci.org/HumanBrainProject/angular-hbp-collaboratory
+
 angular-hbp-collaboratory is a collection of AngularJS module to
 develop applications for the HBP Collaboratory.
 
-At the moment, the libraries depends on code that is not hosted on Github so
-it requires an EPFL account. Those dependencies should be released during
-summer 2016.
+Install Using Bower
+===================
 
-Presentation
-============
+```bash
+bower install angular-hbp-collaboratory
+```
 
+- `angular-hbp-collaboratory.js` provides all the needed AngularJS module
+- `angular-hbp-collaboratory.css` provides styles for the visual components
 
-Services
---------
+Alternatively you can rely on `src/angular-hbp-collaboratory/main.scss` if you
+plan to use Sass in your project.
 
-hbpCollaboratory core is an empty shell that wrap all available submodules
-to develop and AngularJS application based on the HBP Collaboratory.
-
-- :doc:`module:clb-storage.clbStorage` is a service for interacting
-  with a collab storage and linking nav items to storage entities.
-- :doc:`hbpCollaboratory.clbCollabNav` is a service for interacting
-  with a collab
-- :doc:`hbpCollaboratory.clbCollabApp` is a service for interacting
-  with registered application
-- :doc:`clb-automator` let you automate HBP Collaboratory related tasks
 
 Contributing
 ============
@@ -74,6 +69,14 @@ Migration from angular-hbp-common
    hbpCollabStore -> clbCollab              (from clb-collab module)
    hbpCollabStore.context -> clbContext     (from clb-collab module)
    hbpCollaboratoryNavStore -> clbCollabNav (from clb-collab module)
+   hbpCollaboratoryAppStore -> clbCollabApp (from clb-collab module)
    clbCollabApp -> clbCollabApp (from clb-collab module)
 
    At some point, you can remove 'hbpCommon' Angular dependency
+
+LICENSE
+=======
+
+MIT
+
+Read the project LICENSE file.
