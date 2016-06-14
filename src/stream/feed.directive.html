@@ -1,4 +1,4 @@
-<ul class="feed" ng-class="{'feed-empty': vm.activities.results.length === 0}">
+<ul class="feed list-unstyled" ng-class="{'feed-empty': vm.activities.results.length === 0}">
   <li ng-if="vm.error">
     <div class="alert alert-warning">
       <strong>Load Error:</strong> {{vm.error}}
@@ -8,7 +8,7 @@
   <li ng-if="vm.activities.results.length === 0">
     <div class="alert alert-info">Nothing new</div>
   </li>
-  <li ng-repeat="a in vm.activities.results" clb-activity="a"></li>
+  <li ng-repeat="a in vm.activities.results" clb-activity="a" class="clb-activity-item"></li>
   <li ng-if="vm.activities.hasNext">
     <a href="#" class="btn btn-default">More</a>
   </li>
