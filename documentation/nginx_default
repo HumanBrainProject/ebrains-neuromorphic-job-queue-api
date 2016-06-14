@@ -10,6 +10,11 @@ server {
         root   /usr/share/nginx/html;
         index  index.html index.htm;
     }
+
+    # redirect the old dashboard page
+    location /dashboard/ {
+        return 301 https://nmpi.hbpneuromorphic.eu/dashboard/;
+    }
 }
 
 server {
@@ -39,4 +44,3 @@ server {
         index  index.html index.htm;
     }
 }
-
