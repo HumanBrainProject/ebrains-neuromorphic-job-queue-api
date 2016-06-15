@@ -9,6 +9,5 @@
 angular.module('clb-stream', [
   'clb-env',
   'clb-error',
-  'clb-rest',
-  'angularMoment'
+  'clb-rest'
 ]);

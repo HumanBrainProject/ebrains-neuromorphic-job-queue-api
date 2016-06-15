@@ -1,5 +1,6 @@
 angular.module('customCollabApp', [
   'ui.codemirror',
+  'clb-ui-error',
   'hbpCollaboratory'
 ])
 .controller('CollabConfigurationController', function(

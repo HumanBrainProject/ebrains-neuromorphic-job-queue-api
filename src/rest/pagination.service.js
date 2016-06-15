@@ -13,7 +13,7 @@ function clbResultSet($http, $q, clbError) {
   /**
    * @attribute ResultSetEOL
    * @memberof module:clb-rest.clbResultSet
-   * @desc error thrown when hbpUtil.ResultSet is crawled when at an
+   * @desc error thrown when module:clb-rest.ResultSet is crawled when at an
    *       extremity.
    */
   var ResultSetEOL = clbError.error({
@@ -37,12 +37,27 @@ function clbResultSet($http, $q, clbError) {
    * @param  {Object} res     a HTTPResponse or a promise which resolve to a HTTPResponse
    * @param  {Object} [options] configuration
    * @param  {string} [options.nextUrlKey] name of (or dot notation path to) the attribute containing the URL to fetch next results
+   * @param  {function} [options.hasNextHandler] A function that receive the JSON data as its first argument and must
+   *                                             return a boolean value that will be assigned to the ``hasNext`` property.
+   *                                             When this option is given, ``options.nextUrlHandler`` SHOULD be defined as well.
+   * @param  {function} [options.nextHandler] A function that receive the JSON data as its first argument and must return a promise
+   *                                          to the next results. This handler will be called when ``next()`` is called on the
+   *                                          RecordSet.
+   *                                          When this option is given ``options.hasNextHandler`` MUST be defined as well.
+   *                                          When this option is given ``options.nextUrlKey`` is ignored.
    * @param  {string} [options.previousUrlKey] name of (or dot notation path to) the attribute containing the URL to fetch previous results
+   * @param  {function} [options.hasPreviousHandler] A function that receive the JSON data as its first argument and must
+   *                                                 return a boolean value that will be assigned to the ``hasPrevious`` property.
+   *                                                 When this option is given, ``options.previousUrlHandler`` SHOULD be defined as well.
+   * @param  {function} [options.previousHandler] A function that receive the JSON data as its first argument and must return a string value
+   *                                              that represent the previous URL that will be fetched by a call to ``.previous()``.
+   *                                              When this option is given ``options.hasPreviousHandler`` MUST be defined as well.
+   *                                              When this option is given ``options.previousUrlKey`` is ignored.
    * @param  {string} [options.resultKey] name of (or dot notation path to) the attribute containing an array with all the results
    * @param  {string} [options.countKey] name of (or dot notation path to) the attribute containing the number of results returned
    * @param  {function} [options.resultsFactory] a function to which a new array of results is passed.
-   *                    The function can return `undefined`, a `promise` or an `array` as result.
-   * @return {ResultSet}a new instance of ResultSet
+   *                    The function can return ``undefined``, a ``Promise`` or an ``array`` as result.
+   * @return {Promise} After the promise is fulfilled, it will return a new instance of :doc:`module-clb-rest.clbResultSet.ResultSet`.
    */
   function getPaginatedResultSet(res, options) {
     return new ResultSet(res, options).promise;
@@ -60,12 +75,40 @@ function clbResultSet($http, $q, clbError) {
    */
   function ResultSet(pRes, options) {
     var self = this;
+    // Hold call to next and previous when using customization.
+    var wrappedNextCall;
+    var wrappedPreviousCall;
 
+    /**
+     * The array containing all fetched results. Previous pages are added
+     * to the beginning of the results, next pages at the end.
+     * @type {array}
+     */
     self.results = [];
+    /**
+     * Define with the last ClbError instance that occured.
+     * @type {module:clb-error.ClbError}
+     */
     self.error = null;
+    /**
+     * ``true`` if there is more results to be loaded.
+     * @type {Boolean}
+     */
     self.hasNext = null;
+    /**
+     * ``true`` if there is previous page to be loaded.
+     * @type {Boolean}
+     */
     self.hasPrevious = null;
+    /**
+     * The promise associated with the last operation in the queue.
+     * @type {Promise}
+     */
     self.promise = null;
+    /**
+     * A function that handle any error during an operation.
+     * @type {Function}
+     */
     self.errorHandler = null;
     self.next = enqueue(next);
     self.previous = enqueue(previous);
@@ -76,7 +119,17 @@ function clbResultSet($http, $q, clbError) {
     options = angular.extend({
       resultKey: 'results',
       nextUrlKey: 'next',
+      hasNextHandler: function(rs) {
+        // by default, has next is defined if the received data
+        // defines a next URL.
+        return Boolean(at(rs, options.nextUrlKey));
+      },
       previousUrlKey: 'previous',
+      hasPreviousHandler: function(rs) {
+        // by default, has previous is defined if the received data
+        // defines a next URL.
+        return Boolean(at(rs, options.previousUrlKey));
+      },
       countKey: 'count'
     }, options);
 
@@ -87,7 +140,7 @@ function clbResultSet($http, $q, clbError) {
 
     /**
      * @name next
-     * @memberOf hbpUtil.ResultSet
+     * @memberof module:clb-rest.ResultSet
      * @desc
      * Retrieve the next result page.
      * @memberof module:clb-rest.clbResultSet.ResultSet
@@ -98,13 +151,16 @@ function clbResultSet($http, $q, clbError) {
       if (!self.hasNext) {
         return $q.reject(ResultSetEOL);
       }
-      return $http.get(self.nextUrl)
-      .then(handleNextResults);
+      var promise = (options.nextHandler ?
+        wrappedNextCall() :
+        $http.get(self.nextUrl)
+      );
+      return promise.then(handleNextResults);
     }
 
     /**
      * @name previous
-     * @memberOf hbpUtil.ResultSet
+     * @memberof module:clb-rest.ResultSet
      * @desc
      * Retrieve the previous result page
      *
@@ -114,13 +170,16 @@ function clbResultSet($http, $q, clbError) {
       if (!self.hasPrevious) {
         return $q.reject(ResultSetEOL);
       }
-      return $http.get(self.previousUrl)
-      .then(handlePreviousResults);
+      var promise = (options.previousHandler ?
+        wrappedPreviousCall() :
+        $http.get(self.previousUrl)
+      );
+      return promise.then(handlePreviousResults);
     }
 
     /**
      * @name toArray
-     * @memberof hbpUtil.ResultSet
+     * @memberof module:clb-rest.ResultSet
      * @desc
      * Retrieve an array containing ALL the results. Beware that this
      * can be very long to resolve depending on your dataset.
@@ -136,7 +195,7 @@ function clbResultSet($http, $q, clbError) {
 
     /**
      * Load all pages.
-     * @memberof hbpUtil.ResultSet
+     * @memberof module:clb-rest.ResultSet
      * @return {Promise} Resolve once everything is loaded
      */
     function all() {
@@ -158,7 +217,7 @@ function clbResultSet($http, $q, clbError) {
 
       var fResult;
       if (options.resultsFactory) {
-        fResult = options.resultsFactory(result);
+        fResult = options.resultsFactory(result, rs);
       }
       return $q.when(fResult)
       .then(function(computedResult) {
@@ -180,7 +239,7 @@ function clbResultSet($http, $q, clbError) {
       var result = at(rs, options.resultKey);
       var fResult;
       if (options.resultsFactory) {
-        fResult = options.resultsFactory(result);
+        fResult = options.resultsFactory(result, rs);
       }
       return $q.when(fResult)
       .then(function(computedResult) {
@@ -235,8 +294,16 @@ function clbResultSet($http, $q, clbError) {
      * @private
      */
     function bindNext(rs) {
-      self.nextUrl = at(rs, options.nextUrlKey);
-      self.hasNext = Boolean(self.nextUrl);
+      self.hasNext = options.hasNextHandler(rs);
+      if (options.nextHandler) {
+        wrappedNextCall = function() {
+          return options.nextHandler(rs);
+        };
+      } else if (self.hasNext) {
+        self.nextUrl = at(rs, options.nextUrlKey);
+      } else {
+        self.nextUrl = null;
+      }
     }
 
     /**
@@ -245,8 +312,16 @@ function clbResultSet($http, $q, clbError) {
      * @private
      */
     function bindPrevious(rs) {
-      self.previousUrl = at(rs, options.previousUrlKey);
-      self.hasPrevious = Boolean(self.previousUrl);
+      self.hasPrevious = options.hasPreviousHandler(rs);
+      if (options.previousHandler) {
+        wrappedPreviousCall = function() {
+          return options.previousHandler(rs);
+        };
+      } else if (self.hasPrevious) {
+        self.previousUrl = at(rs, options.previousUrlKey);
+      } else {
+        self.previousUrl = null;
+      }
     }
 
     /**
@@ -282,6 +357,7 @@ function clbResultSet($http, $q, clbError) {
      * Bootstrap the pagination.
      * @param  {HTTPResponse|Promise} res Angular HTTP Response
      * @return {ResultSet} self for chaining
+     * @private
      */
     function initialize(res) {
       return handleNextResults(res)

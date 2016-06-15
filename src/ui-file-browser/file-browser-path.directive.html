@@ -1,0 +1,16 @@
+<ul class="breadcrumb clb-file-browser-path">
+  <li class="root"
+    ng-if="!browserView.isRoot">
+    <a href ng-click="browserView.handleNavigation(browserView.rootEntity)">
+      {{browserView.rootEntity._name || '[top]'}}
+    </a>
+  </li>
+  <li ng-repeat="entity in ancestors">
+    <a href ng-click="browserView.handleNavigation(entity)">
+      {{entity._name}}
+    </a>
+  </li>
+  <li>
+    <span class="active">{{browserView.currentEntity._name || '[top]'}}</span>
+  </li>
+</ul>

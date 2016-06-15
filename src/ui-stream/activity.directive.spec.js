@@ -3,7 +3,7 @@ describe('clbActivity directive', function() {
   var scope;
   var resourceLocator;
 
-  beforeEach(module('clb-stream'));
+  beforeEach(module('clb-ui-stream'));
   beforeEach(inject(function(
     $compile,
     $rootScope,
@@ -14,9 +14,12 @@ describe('clbActivity directive', function() {
     compile = $compile;
     scope = $rootScope;
     resourceLocator = clbResourceLocator;
-    spyOn($templateCache, 'get').and.callFake(function(k) {
-      return $window.__html__['src/stream/' + k];
-    });
+    jasmine.cacheTemplate($templateCache,
+      'activity.directive.html',
+      'src/ui-stream/');
+    jasmine.cacheTemplate($templateCache,
+      'feed.directive.html',
+      'src/ui-stream/');
   }));
 
   beforeEach(function() {

@@ -6,7 +6,7 @@ describe('clb-form-group-state directive', function() {
   var div;
   var input;
 
-  beforeEach(module('clb-form'));
+  beforeEach(module('clb-ui-form'));
   beforeEach(inject(function($compile, $rootScope) {
     compile = $compile;
     scope = $rootScope;

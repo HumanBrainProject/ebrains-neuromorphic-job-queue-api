@@ -1,0 +1,1 @@
+angular.module('clb-ui-stream', ['angularMoment', 'clb-stream']);

@@ -41,7 +41,7 @@ gulp.task('lint', function() {
 });
 
 gulp.task('styles', function() {
-  return gulp.src(['src/main.scss'], {base: 'src'})
+  return gulp.src(['src/bootstrap.scss'], {base: 'src'})
   .pipe(sourcemaps.init())
     .pipe(sass({
       style: 'expanded',
@@ -107,7 +107,6 @@ gulp.task('doc', function(done) {
 // This task is for development only.
 // It generates the HTML doc using Sphinx
 gulp.task('doc:html', ['doc'], function(done) {
-  
   child_process.exec([
     'sphinx-build',
     '-c ./',

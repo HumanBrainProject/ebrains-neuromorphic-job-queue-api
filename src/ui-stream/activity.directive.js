@@ -1,4 +1,4 @@
-angular.module('clb-stream')
+angular.module('clb-ui-stream')
 .directive('clbActivity', clbActivity);
 
 /**

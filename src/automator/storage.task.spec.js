@@ -60,7 +60,7 @@ describe('storage task handler', function() {
   it('should copy a file to root', inject(function($q) {
     backend.expectGET(entityUrl('?managed_by_collab=1'))
     .respond(200, data.rootEntity);
-    spyOn(storage, 'getCollabHome')
+    spyOn(storage, 'getEntity')
       .and.returnValue($q.when(data.rootEntity));
     spyOn(storage, 'copy').and.returnValue($q.when(data.newEntity));
     var config = {
@@ -79,7 +79,7 @@ describe('storage task handler', function() {
       expect(err).toBeUndefined();
     });
     scope.$digest();
-    expect(storage.getCollabHome).toHaveBeenCalledWith(data.collab.id);
+    expect(storage.getEntity).toHaveBeenCalledWith({collab: data.collab.id});
     expect(storage.copy).toHaveBeenCalledWith(
       data.fileEntity._uuid,
       data.rootEntity._uuid

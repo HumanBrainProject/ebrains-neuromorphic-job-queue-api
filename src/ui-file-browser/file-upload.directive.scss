@@ -1,0 +1,50 @@
+.clb-file-upload {
+
+  border: 2px dashed $panel-default-border;
+  padding: 30px 20px;
+  margin-bottom: $line-height-computed;
+  text-align: center;
+  color: $text-muted;
+
+  span {
+    display: block;
+  }
+
+  .clb-file-upload-btn-file {
+    position: relative;
+    margin-top: 10px;
+    pointer-events: all;
+
+    & > input[type=file] {
+      position: absolute;
+      top: 0;
+      right: 0;
+      min-width: 100%;
+      min-height: 100%;
+      font-size: 999px;
+      text-align: right;
+      filter: alpha(opacity=0);
+      opacity: 0;
+      outline: none;
+      background: white;
+      cursor: inherit;
+      display: block;
+    }
+  }
+
+  & > * {
+    pointer-events: none;
+  }
+}
+
+.clb-file-upload.clb-file-upload-drag-enter {
+  background-color: $panel-default-heading-bg;
+  border-color: darken($panel-default-border, 10);
+  transition: all 0.5s;
+}
+
+.clb-file-upload.clb-file-upload-drag-leave {
+  background-color: transparent;
+  border-color: $panel-default-border;
+  transition: all 0.5s;
+}

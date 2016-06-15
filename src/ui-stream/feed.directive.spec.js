@@ -5,7 +5,7 @@ describe('clbFeed directive', function() {
   var $q;
   var feedResultSet;
 
-  beforeEach(module('clb-stream'));
+  beforeEach(module('clb-ui-stream'));
   beforeEach(inject(function(
     $compile,
     $rootScope,
@@ -18,9 +18,12 @@ describe('clbFeed directive', function() {
     scope = $rootScope;
     service = clbStream;
     $q = _$q_;
-    spyOn($templateCache, 'get').and.callFake(function(k) {
-      return $window.__html__['src/stream/' + k];
-    });
+    jasmine.cacheTemplate($templateCache,
+      'activity.directive.html',
+      'src/ui-stream/');
+    jasmine.cacheTemplate($templateCache,
+      'feed.directive.html',
+      'src/ui-stream/');
     scope.feedType = 'HBPType';
     scope.feedId = 1;
     feedResultSet = {

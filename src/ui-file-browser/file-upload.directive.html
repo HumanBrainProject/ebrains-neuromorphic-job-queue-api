@@ -1,0 +1,7 @@
+<div class="clb-file-upload" ng-class="{'clb-file-upload-drag-enter': dragEntered, 'clb-file-upload-drag-leave': !dragEntered}" ng-cloak>
+    <h4>Drop Files Here to Upload</h4>
+    <span>or</span>
+    <div class="btn btn-default clb-file-upload-btn-file">
+        Select Files <input type="file" multiple onchange="angular.element(this).scope().onFileChanged(this.files)" >
+    </div>
+</div>

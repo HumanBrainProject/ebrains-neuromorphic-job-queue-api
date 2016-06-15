@@ -1,2 +1,8 @@
-@import './stream/activity.directive';
-@import './stream/feed.directive';
+// This require the Collaboratory Theme
+// It is not linked here to make it easier to integrate in your project
+// if you want to deal with customization.
+// You can use clb-bootstrap.scss in the same folder if you want
+// the complete version.
+@import './ui-stream/activity.directive';
+@import './ui-stream/feed.directive';
+@import './ui-file-browser/file-upload.directive';

@@ -27,7 +27,7 @@ angular.module('clb-automator')
       descriptor, 'entities'
     ).then(function() {
       return clbStorage
-        .getCollabHome(descriptor.collab || context.collab.id)
+        .getEntity({collab: descriptor.collab || context.collab.id})
         .then(function(projectEntity) {
           var promises = {};
           angular.forEach(descriptor.entities, function(value, name) {
