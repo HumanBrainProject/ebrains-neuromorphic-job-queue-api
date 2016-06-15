@@ -1,0 +1,37 @@
+angular.module('clb-ui-file-browser')
+.directive('clbFileBrowserPath', clbFileBrowserPath);
+
+/**
+ * @namespace clbFileBrowserPath
+ * @desc
+ * clbFileBrowserPath directive is a child of clbFileBrowser directive
+ * that renders the breadcrumb according to the file browser setup.
+ *
+ * @example
+ * <clb-ui-file-browser-path></clb-ui-file-browser-path>
+ *
+ * @memberof module:clb-ui-file-browser.clbFileBrowser
+ * @param  {object} clbStorage Angular DI
+ * @return {object} Angular Directive
+ */
+function clbFileBrowserPath(clbStorage) {
+  return {
+    restrict: 'E',
+    require: '^clbFileBrowser',
+    templateUrl: 'file-browser-path.directive.html',
+    link: function(scope, element, attrs, ctrl) {
+      var handleAncestors = function(ancestors) {
+        scope.ancestors = ancestors;
+      };
+
+      var update = function() {
+        clbStorage.getAncestors(ctrl.currentEntity, ctrl.rootEntity)
+        .then(handleAncestors, ctrl.setError);
+      };
+
+      scope.browserView = ctrl;
+
+      scope.$watch('browserView.currentEntity', update);
+    }
+  };
+}

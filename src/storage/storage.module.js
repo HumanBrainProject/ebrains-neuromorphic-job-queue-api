@@ -9,5 +9,6 @@ angular.module('clb-storage', [
   'uuid4',
   'clb-error',
   'clb-env',
-  'clb-rest'
+  'clb-rest',
+  'clb-identity'
 ]);

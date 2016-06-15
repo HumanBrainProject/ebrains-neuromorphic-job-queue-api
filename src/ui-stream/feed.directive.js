@@ -1,4 +1,4 @@
-angular.module('clb-stream')
+angular.module('clb-ui-stream')
 .directive('clbFeed', clbFeed);
 
 /**
@@ -8,7 +8,7 @@ angular.module('clb-stream')
  * the HBP Stream service. It handles scrolling and loading of activities.
  * Each activity is rendered using the ``clb-activity`` directive.
  *
- * @memberof module:clb-stream
+ * @memberof module:clb-ui-stream
  * @return {object} the directive
  */
 function clbFeed() {

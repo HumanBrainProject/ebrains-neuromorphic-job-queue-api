@@ -1,6 +1,6 @@
 /* eslint camelcase:0 */
 
-describe('clbStorage service', function() {
+describe('clbStorage', function() {
   var backend;
   var service;
   var contextId;
@@ -52,93 +52,215 @@ describe('clbStorage service', function() {
   });
 
   describe('getEntity', function() {
-    it('retrieve an entity by ID', function() {
-      backend.expectGET(entityUrl(entity._uuid))
-      .respond(200, entity);
-      service.getEntity(entity._uuid).then(assign);
-      backend.flush(1);
-      expect(actual).toDeepEqual(entity);
+    describe('by UUID', function() {
+      it('accept a string', function() {
+        backend.expectGET(entityUrl(entity._uuid))
+        .respond(200, entity);
+        service.getEntity(entity._uuid).then(assign);
+        backend.flush(1);
+        expect(actual).toDeepEqual(entity);
+      });
+      it('accept an entity descriptor', function() {
+        backend.expectGET(entityUrl(entity._uuid))
+        .respond(200, entity);
+        service.getEntity(entity).then(assign);
+        backend.flush(1);
+        expect(actual).toDeepEqual(entity);
+      });
+      it('forward any exception', function() {
+        backend.expectGET(entityUrl(entity._uuid))
+        .respond(500);
+        service.getEntity(entity._uuid).then(assign).catch(assign);
+        backend.flush(1);
+        expect(actual).toBeHbpError();
+      });
+    });
+
+    describe('by Collab Context', function() {
+      it('accept a UUID set as locator.ctx', function() {
+        var results = {results: [{}]};
+        backend.expectGET(
+          entityUrl('?ctx_30FF9E92-B994-41D2-B6F9-9D03BC8C70AD=1'))
+        .respond(200, results);
+        service.getEntity({
+          ctx: contextId
+        }).then(assign);
+        backend.flush();
+        expect(actual).toDeepEqual(results);
+      });
+      it('forward any exception', function() {
+        backend.expectGET(
+          entityUrl('?ctx_30FF9E92-B994-41D2-B6F9-9D03BC8C70AD=1')
+        ).respond(500);
+        service.getEntity({ctx: contextId}).then(assign).catch(assign);
+        backend.flush(1);
+        expect(actual).toBeHbpError();
+      });
+    });
+
+    describe('using a collab ID', function() {
+      it('accept an ID set as locator.collab', function() {
+        var expectedResult = entity;
+        backend.expectGET(entityUrl('?managed_by_collab=1'))
+        .respond(200, expectedResult);
+        service.getEntity({collab: 1}).then(assign).catch(assign);
+        backend.flush();
+        expect(actual).toDeepEqual(entity);
+      });
+
+      it('should forward any server exception', function() {
+        backend.expectGET(entityUrl('?managed_by_collab=1'))
+        .respond(500);
+        service.getEntity({collab: 1}).then(assign).catch(assign);
+        backend.flush();
+        expect(actual).toBeHbpError();
+      });
     });
   });
 
-  describe('setContextMetadata(entity, contextId)', function() {
-    it('should let you define a metadata', function() {
-      backend.expectPOST(
-        baseUrl('file/' + entity._uuid + '/metadata'), {
-          'ctx_30FF9E92-B994-41D2-B6F9-9D03BC8C70AD': 1
-        }
-      ).respond(201);
-      service.setContextMetadata(entity, contextId);
-      backend.flush();
-    });
-    it('return a promise', function() {
-      backend.expectPOST(
-        baseUrl('file/' + entity._uuid + '/metadata'), {
-          'ctx_30FF9E92-B994-41D2-B6F9-9D03BC8C70AD': 1
-        }
-      ).respond(201);
-      expect(service.setContextMetadata(entity, contextId)).toBeAPromise();
-      backend.flush();
-    });
-  });
-  describe('getEntityByContext()', function() {
-    it('should retrieve a context', function() {
-      var results = {results: [{}]};
-      backend.expectGET(
-        entityUrl('?ctx_30FF9E92-B994-41D2-B6F9-9D03BC8C70AD=1'))
-      .respond(200, results);
-      service.getEntityByContext(contextId).then(assign);
-      backend.flush();
-      expect(actual).toDeepEqual(results);
-    });
-  });
-  describe('deleteContextMetadata(entity, contextId)', function() {
-    it('should delete the entity metadata key', function() {
-      backend.expectDELETE(
-        baseUrl('file/106884F1-9EA1-4542-AF73-E28F27629400/metadata')
-      ).respond(200);
-      service.deleteContextMetadata(entity, contextId);
-      backend.flush();
-    });
-  });
-  describe('updateContextMetadata(newEty, oldEty, contextId)', function() {
-    it('should update the context metadata', function() {
-      backend.expectDELETE(
-        baseUrl('file/106884F1-9EA1-4542-AF73-E28F27629400/metadata')
-      ).respond(200);
-      var newEntity = {
-        _uuid: 'new',
-        _entityType: 'file'
-      };
-      service.updateContextMetadata(newEntity, entity, contextId);
+  describe('getChildren', function() {
+    describe('root projects', function() {
+      var projectEntity;
+      beforeEach(function() {
+        projectEntity = {
+          _uuid: '331C0A79-A12F-46AF-9DE4-09C43C0D8FFB',
+          _entityType: 'project'
+        };
+      });
+      it('accept a null parent', function() {
+        backend.expectGET(baseUrl('project?sort=_name'))
+        .respond({
+          result: [projectEntity],
+          hasMore: false
+        });
+        service.getChildren().then(assign);
+        backend.flush();
+        expect(actual).toBeAPaginatedResultSet();
+        expect(actual.results).toDeepEqual([projectEntity]);
+      });
+      it('retrieve results', function() {
+        backend.expectGET(baseUrl('project?sort=_name'))
+        .respond({
+          result: [projectEntity],
+          hasMore: false
+        });
+        service.getChildren().then(assign);
+        backend.flush(1);
+        expect(actual.hasNext).toBe(false);
+        expect(actual.results).toEqual([projectEntity]);
+      });
+      it('support pagination', function() {
+        backend.expectGET(baseUrl('project?sort=_name'))
+        .respond({
+          result: [projectEntity],
+          hasMore: true
+        });
+        service.getChildren().then(assign);
+        backend.flush(1);
+        expect(actual.hasNext).toBe(true);
+        expect(actual.results).toEqual([]);
 
-      backend.expectPOST(
-        baseUrl('file/new/metadata'), {
-          'ctx_30FF9E92-B994-41D2-B6F9-9D03BC8C70AD': 1
-        }
-      ).respond(201);
-      backend.flush(1);
-      var expectedMetadata = {};
-      expectedMetadata['ctx_' + contextId] = 1;
-      backend.flush(1);
+        backend.expectGET(baseUrl('project?from=' + projectEntity._uuid +
+        '&sort=_name'))
+        .respond({
+          result: [projectEntity],
+          hasMore: false
+        });
+        actual.next();
+        backend.flush(1);
+        expect(actual.hasNext).toBe(false);
+        expect(actual.results).toEqual([projectEntity]);
+      });
+      it('support backward pagination', function() {
+        backend.expectGET(baseUrl('project?sort=_name'))
+        .respond({
+          result: [projectEntity],
+          hasPrevious: true
+        });
+        service.getChildren().then(assign);
+        backend.flush(1);
+        expect(actual.hasPrevious).toBe(true);
+        expect(actual.results).toEqual([]);
+
+        backend.expectGET(baseUrl('project?sort=_name' +
+          '&until=' + projectEntity._uuid))
+        .respond({
+          result: [projectEntity],
+          hasPrevious: false
+        });
+        actual.previous();
+        backend.flush(1);
+        expect(actual.hasPrevious).toBe(false);
+        expect(actual.results).toEqual([projectEntity]);
+      });
+    });
+    describe('from a folder', function() {
+      it('accept a parent entity', function() {
+        var folder = {
+          _uuid: 'ED0FFE22-4C02-4631-B05E-683D6E70784A',
+          _entityType: 'folder'
+        };
+        backend.expectGET(baseUrl('folder/' + folder._uuid +
+          '/children?sort=_name')
+        ).respond({});
+        service.getChildren(folder).then(assign);
+        backend.flush();
+        expect(actual).toBeAPaginatedResultSet();
+      });
     });
   });
-  describe('getCollabHome(collabId)', function() {
-    it('should retrieve a project entity given a collab', function() {
-      var expectedResult = entity;
-      backend.expectGET(entityUrl('?managed_by_collab=1'))
-      .respond(200, expectedResult);
-      service.getCollabHome(1).then(assign).catch(assign);
-      backend.flush();
-      expect(actual).toDeepEqual(entity);
-    });
 
-    it('should forward any server exception', function() {
-      backend.expectGET(entityUrl('?managed_by_collab=1'))
-      .respond(500);
-      service.getCollabHome(1).catch(assign);
-      backend.flush();
-      expect(actual).toBeHbpError();
+  describe('metadata', function() {
+    describe('setContextMetadata(entity, contextId)', function() {
+      it('should let you define a metadata', function() {
+        backend.expectPOST(
+          baseUrl('file/' + entity._uuid + '/metadata'), {
+            'ctx_30FF9E92-B994-41D2-B6F9-9D03BC8C70AD': 1
+          }
+        ).respond(201);
+        service.setContextMetadata(entity, contextId);
+        backend.flush();
+      });
+      it('return a promise', function() {
+        backend.expectPOST(
+          baseUrl('file/' + entity._uuid + '/metadata'), {
+            'ctx_30FF9E92-B994-41D2-B6F9-9D03BC8C70AD': 1
+          }
+        ).respond(201);
+        expect(service.setContextMetadata(entity, contextId)).toBeAPromise();
+        backend.flush();
+      });
+    });
+    describe('deleteContextMetadata(entity, contextId)', function() {
+      it('should delete the entity metadata key', function() {
+        backend.expectDELETE(
+          baseUrl('file/106884F1-9EA1-4542-AF73-E28F27629400/metadata')
+        ).respond(200);
+        service.deleteContextMetadata(entity, contextId);
+        backend.flush();
+      });
+    });
+    describe('updateContextMetadata(newEty, oldEty, contextId)', function() {
+      it('should update the context metadata', function() {
+        backend.expectDELETE(
+          baseUrl('file/106884F1-9EA1-4542-AF73-E28F27629400/metadata')
+        ).respond(200);
+        var newEntity = {
+          _uuid: 'new',
+          _entityType: 'file'
+        };
+        service.updateContextMetadata(newEntity, entity, contextId);
+
+        backend.expectPOST(
+          baseUrl('file/new/metadata'), {
+            'ctx_30FF9E92-B994-41D2-B6F9-9D03BC8C70AD': 1
+          }
+        ).respond(201);
+        backend.flush(1);
+        var expectedMetadata = {};
+        expectedMetadata['ctx_' + contextId] = 1;
+        backend.flush(1);
+      });
     });
   });
 

@@ -19,10 +19,12 @@ angular.module('hbpCollaboratory', [
   'clb-app',
   'clb-storage',
   'clb-collab',
-  'clb-form',
   'clb-stream',
   'clb-identity',
-  'clb-collab'
+  'clb-collab',
+  'clb-ui-form',
+  'clb-ui-file-browser',
+  'clb-ui-error'
 ]).run(function(lodash) {
   // keep lodash compatibility with older versions
   if (!lodash.indexBy) {

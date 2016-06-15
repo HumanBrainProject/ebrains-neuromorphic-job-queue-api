@@ -1,0 +1,13 @@
+<uib-alert type="danger" ng-if="error">
+  <div ng-switch on="error.type">
+    <div ng-switch-when="Validation">
+      Validation errors<span ng-show="error.data">:</span>
+      <ul>
+        <li ng-repeat="(attr, errors) in error.data">{{attr}}: {{errors.join(', ')}}</li>
+      </ul>
+    </div>
+    <div ng-switch-default>
+      {{error.message}}
+    </div>
+  </div>
+</uib-alert>

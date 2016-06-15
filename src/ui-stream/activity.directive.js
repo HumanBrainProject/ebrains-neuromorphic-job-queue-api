@@ -1,4 +1,4 @@
-angular.module('clb-stream')
+angular.module('clb-ui-stream')
 .directive('clbActivity', clbActivity);
 
 /**
@@ -10,7 +10,7 @@ angular.module('clb-stream')
  * It try to look up for a detailled description of the event and fallback
  * to the summary if he cannot.
  *
- * @memberof module:clb-stream
+ * @memberof module:clb-ui-stream
  * @return {object} the directive
  */
 function clbActivity() {

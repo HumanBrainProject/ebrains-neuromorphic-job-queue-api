@@ -1,9 +1,9 @@
-describe('clb-form clb-form-control-focus directive', function() {
+describe('clb-form-control-focus directive', function() {
   var compile;
   var scope;
   var timeout;
 
-  beforeEach(module('clb-form'));
+  beforeEach(module('clb-ui-form'));
 
   beforeEach(inject(function($compile, $rootScope, $timeout) {
     compile = $compile;

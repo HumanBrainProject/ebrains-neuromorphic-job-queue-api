@@ -32,8 +32,8 @@ Examples
 .. code-block:: javascript
    :caption: Give the focus to the search field
 
-   angular.module('exampleApp', ['clb-form']);
+   angular.module('exampleApp', ['clb-ui-form']);
    
    // HTML snippet:
-   // <form ng-app="exampleApp"><input type="search" clb-form-control-focus></form>
+   // <form ng-app="exampleApp"><input type="search" clb-ui-form-control-focus></form>
 

@@ -1,6 +1,6 @@
 /**
  * @namespace clbFormGroupState
- * @memberof module:clb-form
+ * @memberof module:clb-ui-form
  * @desc
  * ``clbFormGroupState`` directive flag the current form group with
  * the class has-error or has-success depending on its form field
@@ -10,7 +10,7 @@
  * <caption>Track a field validity at the ``.form-group`` level</caption>
  * angular.module('exampleApp', ['hbpCollaboratory']);
  */
-angular.module('clb-form')
+angular.module('clb-ui-form')
 .directive('clbFormGroupState', function formGroupState() {
   return {
     type: 'A',

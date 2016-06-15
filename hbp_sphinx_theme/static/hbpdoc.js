@@ -2,7 +2,7 @@
 /*eslint-env: browser*/
 window.addEventListener('load', function() {
     'use strict';
-    if(document.querySelector && document.addEventListener && document.body.setAttribute) {
+    if (document.querySelector && document.addEventListener && document.body.setAttribute) {
         document.querySelector('.hbpdoc-page').className += ' hbpdoc-floating-sidebar';
 
         var btns = document.querySelectorAll('.hbpdoc-toc-toggle');

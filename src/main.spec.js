@@ -26,6 +26,27 @@ var globalConfig = {
 
 window.bbpConfig = angular.copy(globalConfig);
 
+/**
+ * Enable partial caching on dev but still works when running karma:dist.
+ * @param  {object} $templateCache Angular Template Cache Service
+ * @param  {string} key            filename as passed to $templateCache.get()
+ * @param  {string} [prefix]       prefix to append to retrieve it in window.__html__[]
+ * @return {boolean} ``true`` if the operation suceed
+ */
+jasmine.cacheTemplate = function($templateCache, key, prefix) {
+  if (!window.__html__) {
+    return false;
+  }
+  if (window.__html__[(prefix ? prefix : '') + key]) {
+    $templateCache.put(
+      key,
+      window.__html__[(prefix ? prefix : '') + key]
+    );
+    return true;
+  }
+  return false;
+};
+
 beforeEach(function() {
   window.bbpConfig = angular.copy(globalConfig);
   var checkToDefine = function(actual, properties) {
@@ -98,10 +119,16 @@ beforeEach(function() {
     toBeHbpError: function() {
       return {
         compare: function(actual) {
-          var result = angular.isDefined(actual.type);
-          result = result && angular.isDefined(actual.code);
-          result = result && angular.isDefined(actual.message);
-          return {pass: result};
+          var result = {};
+          result.pass = Boolean(actual);
+          result.pass = result.pass && angular.isDefined(actual.type);
+          result.pass = result.pass && angular.isDefined(actual.code);
+          result.pass = result.pass && angular.isDefined(actual.message);
+          result.message = (result.pass ?
+            String(actual) + ' should not be a HbpError' :
+            String(actual) + ' should be a HbpError'
+          );
+          return result;
         }
       };
     },
