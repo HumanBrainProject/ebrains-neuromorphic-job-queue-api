@@ -15,6 +15,7 @@ angular.module('clb-ui-error')
  *   <clb-error-message clb-error='errorPermissions'></clb-error-message>
  * </div>
  *
+ * @memberof module:clb-ui-error
  * @return {object} The directive
  **/
 function clbErrorMessage() {

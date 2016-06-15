@@ -10,7 +10,7 @@ angular.module('clb-ui-stream')
  * It try to look up for a detailled description of the event and fallback
  * to the summary if he cannot.
  *
- * @memberof module:clb-stream
+ * @memberof module:clb-ui-stream
  * @return {object} the directive
  */
 function clbActivity() {

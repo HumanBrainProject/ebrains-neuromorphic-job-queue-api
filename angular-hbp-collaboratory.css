@@ -1,2 +1,43 @@
+li.clb-activity-item {
+  padding-bottom: 5px; }
+
+.clb-file-upload {
+  border: 2px dashed #ddd;
+  padding: 30px 20px;
+  margin-bottom: 17px;
+  text-align: center;
+  color: rgba(0, 0, 0, 0.4); }
+  .clb-file-upload span {
+    display: block; }
+  .clb-file-upload .clb-file-upload-btn-file {
+    position: relative;
+    margin-top: 10px;
+    pointer-events: all; }
+    .clb-file-upload .clb-file-upload-btn-file > input[type=file] {
+      position: absolute;
+      top: 0;
+      right: 0;
+      min-width: 100%;
+      min-height: 100%;
+      font-size: 999px;
+      text-align: right;
+      filter: alpha(opacity=0);
+      opacity: 0;
+      outline: none;
+      background: white;
+      cursor: inherit;
+      display: block; }
+  .clb-file-upload > * {
+    pointer-events: none; }
+
+.clb-file-upload.clb-file-upload-drag-enter {
+  background-color: #f5f5f5;
+  border-color: #c4c4c4;
+  transition: all 0.5s; }
+
+.clb-file-upload.clb-file-upload-drag-leave {
+  background-color: transparent;
+  border-color: #ddd;
+  transition: all 0.5s; }
 
 /*# sourceMappingURL=maps/angular-hbp-collaboratory.css.map */

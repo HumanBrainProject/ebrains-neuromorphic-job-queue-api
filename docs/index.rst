@@ -15,10 +15,13 @@ Contents
    module-clb-automator
    module-clb-collab
    module-clb-env
-   module-clb-form
    module-clb-rest
    module-clb-storage
    module-clb-stream
+   module-clb-ui-error
+   module-clb-ui-file-browser
+   module-clb-ui-form
+   module-clb-ui-stream
    hbpCollaboratory
    
 README
@@ -100,9 +103,26 @@ project if you want to migrate from angular-hbp-common to this cleaner library::
    hbpCollabStore.context -> clbContext     (from clb-collab module)
    hbpCollaboratoryNavStore -> clbCollabNav (from clb-collab module)
    hbpCollaboratoryAppStore -> clbCollabApp (from clb-collab module)
-   clbCollabApp -> clbCollabApp (from clb-collab module)
+   clbCollabApp -> clbCollabApp             (from clb-collab module)
+   hbpEntityStore -> clbStorage             (from clb-storage module)
+   hbpFileStore -> clbStorage               (from clb-storage module)
+   hbpProjectStore -> clbStorage            (from clb-storage module)
+   hbp-file-browser -> clb-ui-file-browser     (from clb-ui-file-browser module)
 
-   At some point, you can remove 'hbpCommon' Angular dependency
+Once the refactoring of module is done, there is the refactoring of methods::
+
+   clbStorage.getEntityByContext(ctx) -> clbStorage.getEntity({ctx: ctx})
+   clbStorage.get( -> clbStorage.getEntity(
+   clbStorage.getChildren now return a ResultSet like other services
+
+You can also use the directives provided by this package.
+Please be sure to check the change in the directive attributes prefix as well.::
+
+   hbp-file-browser -> clb-file-browser
+   hbp-error-message -> clb-error-message
+
+
+At some point, you can remove 'hbpCommon' Angular dependency
 
 LICENSE
 =======

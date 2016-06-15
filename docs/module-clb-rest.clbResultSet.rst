@@ -25,7 +25,7 @@ Description
 
 .. _module-clb-rest.clbResultSet.ResultSetEOL:
 
-Member: ``ResultSetEOL``: error thrown when hbpUtil.ResultSet is crawled when at an
+Member: ``ResultSetEOL``: error thrown when module:clb-rest.ResultSet is crawled when at an
       extremity.
 
 .. _module-clb-rest.clbResultSet.get:
