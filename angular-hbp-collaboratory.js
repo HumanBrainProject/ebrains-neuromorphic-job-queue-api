@@ -4326,6 +4326,20 @@ function clbFileBrowserPath(clbStorage) {
   };
 }
 
+angular.module('clb-ui-file-browser')
+.run(['$templateCache', function($templateCache) {
+  // During the build, templateUrl will be replaced by the inline template.
+  // We need to inject it in template cache as it is used for displaying
+  // the tooltip. Does it smell like a hack? sure, it is a hack!
+  var injector = {
+    template:'<div ng-init=browserView.defineThumbnailUrl(file)><div class="file-browser-thumbnail thumbnail" ng-if=browserView.thumbnailUrl aria-hidden=true><img ng-src={{browserView.thumbnailUrl}}></div>{{file._name}}</div>'
+  };
+  // If defined, it means that the template has been inlined during build.
+  if (injector.template) {
+    $templateCache.put('file-browser-tooltip.tpl.html', injector.template);
+  }
+}]);
+
 
 clbFileBrowser.$inject = ['lodash'];angular.module('clb-ui-file-browser')
 .directive('clbFileBrowser', clbFileBrowser);

@@ -1,6 +1,97 @@
 li.clb-activity-item {
   padding-bottom: 5px; }
 
+.clb-file-browser {
+  overflow-y: auto; }
+  .clb-file-browser .clb-file-browser-heading, .clb-file-browser .clb-file-browser-content {
+    padding-left: 12px;
+    padding-right: 12px; }
+    .clb-file-browser .clb-file-browser-heading ul, .clb-file-browser .clb-file-browser-content ul {
+      padding-left: 0px; }
+      .clb-file-browser .clb-file-browser-heading ul > li, .clb-file-browser .clb-file-browser-content ul > li {
+        display: inline; }
+  .clb-file-browser .clb-file-browser-heading {
+    font-size: 18px;
+    line-height: 45px;
+    width: 100%;
+    background-color: #f5f5f5;
+    box-shadow: 0 2px 5px 0 rgba(0, 0, 0, 0.26); }
+    .clb-file-browser .clb-file-browser-heading .clb-file-browser-heading-separator {
+      padding-left: 8px;
+      padding-right: 8px; }
+  .clb-file-browser .clb-file-browser-content .clb-file-browser-item {
+    display: inline-block;
+    margin-top: 12px;
+    margin-right: 12px;
+    width: calc(24% - 20px);
+    height: 40px;
+    vertical-align: top;
+    box-sizing: border-box;
+    cursor: default;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none; }
+    .clb-file-browser .clb-file-browser-content .clb-file-browser-item.clb-file-browser-item-error * {
+      color: #d9534f; }
+    .clb-file-browser .clb-file-browser-content .clb-file-browser-item.clb-file-browser-folder {
+      box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.26);
+      background-color: #fff; }
+      .clb-file-browser .clb-file-browser-content .clb-file-browser-item.clb-file-browser-folder .fa {
+        color: #888888;
+        margin-right: 15px; }
+    .clb-file-browser .clb-file-browser-content .clb-file-browser-item.clb-file-browser-item-selected {
+      color: #fff;
+      background-color: #f4d430;
+      box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.26); }
+      .clb-file-browser .clb-file-browser-content .clb-file-browser-item.clb-file-browser-item-selected .clb-file-browser-label .fa {
+        color: #fff; }
+      .clb-file-browser .clb-file-browser-content .clb-file-browser-item.clb-file-browser-item-selected .clb-file-browser-label span {
+        color: #fff; }
+    .clb-file-browser .clb-file-browser-content .clb-file-browser-item .clb-file-browser-label {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      line-height: 40px;
+      padding-left: 12px; }
+      .clb-file-browser .clb-file-browser-content .clb-file-browser-item .clb-file-browser-label span {
+        text-shadow: none; }
+      .clb-file-browser .clb-file-browser-content .clb-file-browser-item .clb-file-browser-label.btn {
+        padding-top: 0;
+        padding-right: 0;
+        padding-bottom: 0; }
+  .clb-file-browser .clb-file-browser-content .tooltip-inner {
+    max-width: 500px;
+    line-height: 30px; }
+  .clb-file-browser .clb-file-browser-content .clb-file-browser-item-error + .tooltip .tooltip-inner {
+    background-color: #d9534f; }
+  .clb-file-browser .clb-file-browser-content .clb-file-browser-item-error + .tooltip .tooltip-arrow {
+    border-bottom-color: #d9534f; }
+
+.clb-file-browser-path.breadcrumb {
+  background: transparent;
+  padding: 0;
+  margin-bottom: 0; }
+  .clb-file-browser-path.breadcrumb > li + li:before {
+    content: '/\00a0'; }
+
+.clb-file-browser-state-error .clb-file-browser-item-upload {
+  background-color: red; }
+
+.clb-file-browser-item-upload.progress {
+  height: 4px; }
+
+.file-browser-upload .close {
+  margin-right: 12px;
+  margin-top: 8px; }
+
+.file-browser-thumbnail {
+  margin: 0 auto;
+  text-align: center;
+  width: 164px; }
+  .file-browser-thumbnail img {
+    width: 100%;
+    height: auto; }
+
 .clb-file-upload {
   border: 2px dashed #ddd;
   padding: 30px 20px;
