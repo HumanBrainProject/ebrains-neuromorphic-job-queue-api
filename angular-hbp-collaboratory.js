@@ -3348,6 +3348,7 @@ function clbStorage(
     upload: upload,
     query: query,
     getContent: getContent,
+    downloadUrl: downloadUrl,
     getChildren: getChildren,
     getUserAccess: getUserAccess,
     getAncestors: getAncestors,
@@ -4029,6 +4030,25 @@ function clbStorage(
 
     return getEntity(entity._parent)
       .then(recurse, onError);
+  }
+
+  /**
+   * Asynchronously ask for a short-lived (a few seconds),
+   * presigned URL that can be used to access and
+   * download a file without authentication headers.
+   *
+   * @function
+   * @memberof module:clb-storage.clbStorage
+   * @param  {module:clb-storage.EntityDescriptor} entity The file to download
+   * @return {Promise}        Return a string containing the URL once the Promise
+   *                          is fulfilled.
+   */
+  function downloadUrl(entity) {
+    var id = entity._uuid || entity;
+    return $http.get(baseUrl + '/file/' + id + '/content/secure_link')
+    .then(function(response) {
+      return baseUrl + response.data.signed_url;
+    }).catch(clbError.rejectHttpError);
   }
 }
 

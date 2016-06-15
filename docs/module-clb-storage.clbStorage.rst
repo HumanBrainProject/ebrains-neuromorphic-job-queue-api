@@ -255,6 +255,23 @@ Possible error causes:
     :return Promise: a Promise that notify about progress and resolve
       with the new entity object.
     
+.. _module-clb-storage.clbStorage.downloadUrl:
+
+
+Function: ``downloadUrl``
+=========================
+
+Asynchronously ask for a short-lived (a few seconds),
+presigned URL that can be used to access and
+download a file without authentication headers.
+
+.. js:function:: downloadUrl(entity)
+
+    
+    :param module:clb-storage.EntityDescriptor entity: The file to download
+    :return Promise: Return a string containing the URL once the Promise
+                             is fulfilled.
+    
 
 .. _module-clb-storage.clbStorage.setContextMetadata:
 
