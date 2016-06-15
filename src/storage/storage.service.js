@@ -549,11 +549,13 @@ function clbStorage(
    */
   function uploadFile(file, entity, config) {
     var d = $q.defer();
-    $http.post(entityUrl(entity) + '/content/upload', file, angular.extend({
-      headers: {
-        'Content-Type': 'application/octet-stream'
-      }
-    }, config)
+    $http.post(fileUrl + '/' + entity._uuid + '/content/upload', file,
+      angular.extend({
+        headers: {
+          'Content-Type': 'application/octet-stream'
+        }
+      }, config
+    )
     ).success(function(entity) {
       d.notify({
         lengthComputable: true,
@@ -568,7 +570,7 @@ function clbStorage(
             type: 'Aborted'
           });
         }
-        return clbError('UploadError', {
+        return clbError.error('UploadError', {
           message: err.message,
           data: {
             file: file,
@@ -695,7 +697,8 @@ function clbStorage(
    * @return {Promise}        Return once fulfilled
    */
   function deleteEntity(entity) {
-    return $http.delete(entityUrl(entity)).catch(clbError.rejectHttpError);
+    return $http.delete(entityUrl + '/' + entity._uuid)
+    .catch(clbError.rejectHttpError);
   }
 
   /**

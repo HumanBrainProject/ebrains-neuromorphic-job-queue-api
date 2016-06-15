@@ -5,12 +5,12 @@
       <div class="nav navbar-nav navbar-text">
         <clb-file-browser-path></clb-file-browser-path>
       </div>
-      <div class="dropdown nav navbar-nav pull-right" dropdown ng-if="browserView.canEdit">
-        <button type="button" href class="btn btn-default navbar-btn dropdown-toggle" dropdown-toggle>
+      <div class="dropdown nav navbar-nav pull-right" uib-dropdown ng-if="browserView.canEdit">
+        <button type="button" href class="btn btn-default navbar-btn dropdown-toggle" uib-dropdown-toggle>
           <span class="glyphicon glyphicon-plus"></span>
           <span class="caret"></span>
         </button>
-        <ul class="dropdown-menu" role="menu">
+        <ul class="dropdown-menu" role="menu" uib-dropdown-menu>
           <li ng-if="browserView.canEdit"><a href ng-click="browserView.startCreateFolder()"><span class="fa fa-folder"></span> Create Folder</a></li>
           <li ng-if="browserView.canEdit"><a href ng-click="browserView.showFileUpload = true"><span class="fa fa-file"></span> Upload File</a></li>
         </ul>
