@@ -4281,7 +4281,8 @@ function clbErrorDialog($uibModal, clbError) {
    */
   function open(error, options) {
     options = angular.extend({
-      template:'<div class="panel panel-danger"><div class=panel-heading><h4>{{vm.error.type}}</h4></div><div class=panel-body><p>{{vm.error.message}}</p><div><button type=button class="btn btn-default" ng-click="isErrorSourceCollapsed = !isErrorSourceCollapsed">Show scary details</button><pre uib-collapse=isErrorSourceCollapsed>{{vm.error|json}}</pre></div></div><div class=panel-footer><button type=button ng-click=$close(true)><span class=close>&times;</span> Close</button></div></div>',
+      template:'<div class="error-dialog panel panel-danger"><div class=panel-heading><h4>{{vm.error.type}}</h4></div><div class=panel-body><p>{{vm.error.message}}</p></div><div class=panel-footer><div><button type=button ng-click=$close(true) class="btn btn-primary"><span class="glyphicon glyphicon-remove"></span> Close</button> <button type=button class="btn btn-default pull-right" ng-click="isErrorSourceDisplayed = !isErrorSourceDisplayed">{{isErrorSourceDisplayed ? \'Hide\' : \'Show\'}} scary details <span class=caret></span></button></div><div uib-collapse=!isErrorSourceDisplayed><h5>Error Type</h5><pre>{{vm.error.type}}</pre><h6>Error Code</h6><pre>{{vm.error.code}}</pre><h6>Message</h6><pre>{{vm.error.message}}</pre><div ng-if=vm.error.data><h6>Data</h6><pre>{{vm.error.data}}</pre></div><div><h6>Stack Trace</h6><pre>{{vm.error.stack}}</pre></div></div></div></div>',
+      class: 'error-dialog',
       controller: function() {
         var vm = this;
         vm.error = clbError.error(error);

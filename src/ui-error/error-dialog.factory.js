@@ -24,6 +24,7 @@ function clbErrorDialog($uibModal, clbError) {
   function open(error, options) {
     options = angular.extend({
       templateUrl: 'error-dialog.tpl.html',
+      class: 'error-dialog',
       controller: function() {
         var vm = this;
         vm.error = clbError.error(error);

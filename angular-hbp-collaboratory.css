@@ -131,4 +131,7 @@ li.clb-activity-item {
   border-color: #ddd;
   transition: all 0.5s; }
 
+.error-dialog.panel {
+  margin-bottom: 0; }
+
 /*# sourceMappingURL=maps/angular-hbp-collaboratory.css.map */
