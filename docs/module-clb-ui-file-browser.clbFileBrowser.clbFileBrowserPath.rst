@@ -31,5 +31,5 @@ Examples
 
 .. code-block:: javascript
 
-   <clb-ui-file-browser-path></clb-ui-file-browser-path>
+   <clb-file-browser-path></clb-file-browser-path>
 

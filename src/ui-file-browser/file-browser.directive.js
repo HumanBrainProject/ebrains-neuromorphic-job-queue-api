@@ -16,9 +16,9 @@ angular.module('clb-ui-file-browser')
  * - [entity]: the current entity that should be displayed.
  *
  * @example
- * <clb-ui-file-browser clb-root="someProjectEntity"
+ * <clb-file-browser clb-root="someProjectEntity"
  *                   clb-entity="someSubFolderEntity">
- * </clb-ui-file-browser>
+ * </clb-file-browser>
  *
  * @memberof module:clb-ui-file-browser
  * @return {object} Angular Directive

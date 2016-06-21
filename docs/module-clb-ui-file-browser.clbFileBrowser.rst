@@ -40,7 +40,7 @@ Examples
 
 .. code-block:: javascript
 
-   <clb-ui-file-browser clb-root="someProjectEntity"
+   <clb-file-browser clb-root="someProjectEntity"
                      clb-entity="someSubFolderEntity">
-   </clb-ui-file-browser>
+   </clb-file-browser>
 

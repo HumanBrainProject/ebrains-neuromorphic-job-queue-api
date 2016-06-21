@@ -8,7 +8,7 @@ angular.module('clb-ui-file-browser')
  * that renders the breadcrumb according to the file browser setup.
  *
  * @example
- * <clb-ui-file-browser-path></clb-ui-file-browser-path>
+ * <clb-file-browser-path></clb-file-browser-path>
  *
  * @memberof module:clb-ui-file-browser.clbFileBrowser
  * @param  {object} clbStorage Angular DI

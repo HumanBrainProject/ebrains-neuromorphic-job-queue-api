@@ -4322,7 +4322,7 @@ clbFileBrowserPath.$inject = ['clbStorage'];angular.module('clb-ui-file-browser'
  * that renders the breadcrumb according to the file browser setup.
  *
  * @example
- * <clb-ui-file-browser-path></clb-ui-file-browser-path>
+ * <clb-file-browser-path></clb-file-browser-path>
  *
  * @memberof module:clb-ui-file-browser.clbFileBrowser
  * @param  {object} clbStorage Angular DI
@@ -4383,9 +4383,9 @@ clbFileBrowser.$inject = ['lodash'];angular.module('clb-ui-file-browser')
  * - [entity]: the current entity that should be displayed.
  *
  * @example
- * <clb-ui-file-browser clb-root="someProjectEntity"
+ * <clb-file-browser clb-root="someProjectEntity"
  *                   clb-entity="someSubFolderEntity">
- * </clb-ui-file-browser>
+ * </clb-file-browser>
  *
  * @memberof module:clb-ui-file-browser
  * @return {object} Angular Directive
