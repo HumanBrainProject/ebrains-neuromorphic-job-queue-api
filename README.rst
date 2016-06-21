@@ -63,6 +63,29 @@ Migration from angular-hbp-common
 Here is a quick (and incomplete) checklist of refactoring to operate to your
 project if you want to migrate from angular-hbp-common to this cleaner library::
 
+Service Refactoring
+~~~~~~~~~~~~~~~~~~~
+
+First, rely on the services from angular-hbp-collaboratory. For this, you need
+to depends on the ``hbpCollaboratoryCore`` module.
+
+.. code-block::
+
+    // before
+    angular.module('myModule', ['hbpCommon', 'bbpDocumentClient']);
+
+    // after
+    angular.module('myModule', [
+      'hbpCollaboratoryCore',
+      'hbpCommon',
+      'bbpDocumentClient'
+    ]);
+
+If you use bower to install, it will ask you to resolve a conflict about the
+angular-bootstrap version. Stick to the angular-hbp-common declaration at
+this point. At this point, your code should still work, that will let you
+progressively refactor to use the new library instead of the old one.
+
    Add dependency 'hbpCollaboratory'
    hbpUtil.ferr -> clbError.rejectHttpError (from clb-error module)
    hbpErrorService -> clbError              (from clb-error module)
@@ -78,20 +101,121 @@ project if you want to migrate from angular-hbp-common to this cleaner library::
    hbpProjectStore -> clbStorage            (from clb-storage module)
    hbp-file-browser -> clb-ui-file-browser     (from clb-ui-file-browser module)
 
+In fact, ``hbpCollaboratoryCore`` is a shell module that will require many
+sub-modules as an easy way to migrate and import everything.
+It would be even better if your application require only the needed sub-modules
+as indicated by the refactoring list above.
+
 Once the refactoring of module is done, there is the refactoring of methods::
 
    clbStorage.getEntityByContext(ctx) -> clbStorage.getEntity({ctx: ctx})
    clbStorage.get( -> clbStorage.getEntity(
    clbStorage.getChildren now return a ResultSet like other services
 
+At this point, your javascript code should rely only on
+``angular-hbp-collaboratory``, with the exception of the UI. Your application
+should work as previously. If you were not using any directive from the
+beforementioned module, you are done and you can remove the old module import,
+as well as their reference in ``bower.json``
+
+.. code-block:: javascript
+
+     // If there is no UI components in use
+
+     // before
+     angular.module('myModule', [
+       'hbpCollaboratoryCore',
+       'hbpCommon',
+       'bbpDocumentClient'
+     ]);
+
+     // after
+     angular.module('myModule', [ // some of the following:
+       'clb-app',
+       'clb-automator',
+       'clb-collab',
+       'clb-env',
+       'clb-error',
+       'clb-identity',
+       'clb-rest',
+       'clb-storage',
+       'clb-stream'
+     ]);
+
+
+If your code is using some of the directive from angular-hbp-common or
+angular-hbp-document-client, you need to refactor them as well before being
+able to cut the old dependencies.
+
+UI Refactoring
+~~~~~~~~~~~~~~
+
+UI Bootstrap has been upgraded to the next major version and the components are
+now prefixed. This means you cannot use the UI part of angular-hbp-common with
+angular-hbp-collaboratory. At this point, you should entirely remove
+angular-hbp-common from your dependencies and require the UI package from
+angular-hbp-collaboratory.
+
+.. code-block:: javascript
+
+  // before
+  angular.module('myModule', [
+    'hbpCollaboratoryCore',
+    'hbpCommon',
+    'bbpDocumentClient'
+  ]);
+
+  // after
+  angular.module('myModule', [
+    'hbpCollaboratoryCore',
+    'hbpCollaboratoryUI',
+  ]);
+
+
+You now need to run ``bower update`` and resolve the conflict on ``angular-bootsrap``
+by choosing the version in ``angular-hbp-collaboratory``.
+
+If your code is using directives from this library, please refer to the angular-bootstrap
+_`Migration Guide <https://github.com/angular-ui/bootstrap/wiki/Migration-guide-for-prefixes>`.
+
 You can also use the directives provided by this package.
 Please be sure to check the change in the directive attributes prefix as well.::
 
-   hbp-file-browser -> clb-file-browser
-   hbp-error-message -> clb-error-message
+   hbp-file-browser -> clb-file-browser (root -> clb-root, entity -> clb-entity)
+   hbp-error-message -> clb-error-message (hbp-promise -> clb-promise, hbp-message -> clb-message)
 
+``hbpDialogFactory`` has been removed, with the exception of ``hbpDialogFactory.error`` which
+is now ``clbErrorDialog.open (module clb-ui-error)``. Those two refactore will have you covered::
 
-At some point, you can remove 'hbpCommon' Angular dependency
+   hbpDialogFactory -> clbErrorDialog
+   clbErrorDialog.error -> clbErrorDialog.open
+
+If you were using othe methods from clbDialogFactory (e.g.: ``.alert()`` or ``.confirm``),
+you need to rewrite them using angular-bootstrap ``$uibModal`` (read the
+_`documentation <https://angular-ui.github.io/bootstrap/#/modal>`)
+
+At the end of the process, your application should only load ``angular-hbp-collaboratory``
+
+.. code-block:: javascript
+
+    angular.module('myModule', [
+    // some of the following:
+      'clb-app',
+      'clb-automator',
+      'clb-collab',
+      'clb-env',
+      'clb-error',
+      'clb-identity',
+      'clb-rest',
+      'clb-storage',
+      'clb-stream',
+      'clb-ui-error',
+      'clb-ui-file-browser',
+      'clb-ui-form',
+      'clb-ui-loading',
+      'clb-stream'
+    ]);
+
 
 LICENSE
 =======

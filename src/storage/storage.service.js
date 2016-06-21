@@ -107,7 +107,12 @@ function clbStorage(
     }
     return $q.reject(clbError.error({
       type: 'InvalidArgument',
-      message: 'locator must be one of the accepted format'
+      message: 'Unable to locate entity because the `locator` argument' +
+               ' is not valid: ' + String(locator),
+      code: -10,
+      data: {
+        locator: locator
+      }
     }));
   }
 
