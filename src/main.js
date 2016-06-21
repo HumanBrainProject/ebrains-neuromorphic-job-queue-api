@@ -3,7 +3,7 @@
  * @module hbpCommonCompat
  * @private
  */
-angular.module('hbpCommonCompat').run(function(lodash) {
+angular.module('hbpCommonCompat', ['ngLodash']).run(function(lodash) {
   // keep lodash compatibility with older versions
   if (!lodash.indexBy) {
     lodash.indexBy = lodash.keyBy;
@@ -18,7 +18,6 @@ angular.module('hbpCommonCompat').run(function(lodash) {
  * @module hbpCollaboratoryCore
  */
 angular.module('hbpCollaboratoryCore', [
-  'ngLodash',
   'clb-app',
   'clb-automator',
   'clb-collab',
