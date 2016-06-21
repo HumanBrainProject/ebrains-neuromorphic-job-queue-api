@@ -7,6 +7,8 @@ angular.module('clb-ui-error')
  *
  * clb-error is a HbpError instance, built by the HbpErrorService
  *
+ * @namespace clbErrorMessage
+ * @memberof module:clb-ui-error
  * @example <caption>Retrieve the current context object</caption>
  * <div ng-controller='SomeController'>
  *   Validation error:
@@ -14,8 +16,6 @@ angular.module('clb-ui-error')
  *   Permission denied error:
  *   <clb-error-message clb-error='errorPermissions'></clb-error-message>
  * </div>
- *
- * @memberof module:clb-ui-error
  * @return {object} The directive
  **/
 function clbErrorMessage() {

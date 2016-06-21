@@ -12,6 +12,7 @@ Children
 .. toctree::
    :maxdepth: 1
    
+   module-clb-ui-error.clbErrorMessage
    
 Description
 ===========
@@ -19,22 +20,11 @@ Description
 
 
 
-.. _undefined.clbErrorMessage:
 
+.. _undefined.clbError:
 
-Function: ``clbErrorMessage``
-=============================
-
-The ``clb-error-message`` directive displays an error.
-
-
-clb-error is a HbpError instance, built by the HbpErrorService
-
-.. js:function:: clbErrorMessage()
-
-    
-    :return object: The directive
-    
+Member: ``clbError``: The factory ``clbUiError`` instantiates modal error dialogs.
+Notify the user about the given error.
 
 
 
