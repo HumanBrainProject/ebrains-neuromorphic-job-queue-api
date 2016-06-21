@@ -9,9 +9,8 @@ angular.module('clb-ui-file-browser')
  * clbFileBrowser Directive
  *
  * This directive renders a file browser. It handles creation of folder,
- * mutliple file uploads and selection of entity. Selection change can be
- * detected either by watching ``clb-entity`` attribute or by listening
- * to the event ``clbFileBrowser:focusChanged``.
+ * mutliple file uploads and selection of entity. Focus selection change can be
+ * detected by listening to the event ``clbFileBrowser:focusChanged``.
  *
  *
  * Attributes
