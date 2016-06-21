@@ -134,4 +134,12 @@ li.clb-activity-item {
 .error-dialog.panel {
   margin-bottom: 0; }
 
+[ng\:cloak],
+[ng-cloak],
+[data-ng-cloak],
+[x-ng-cloak],
+.ng-cloak,
+.x-ng-cloak {
+  display: none !important; }
+
 /*# sourceMappingURL=maps/angular-hbp-collaboratory.css.map */

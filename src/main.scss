@@ -11,3 +11,13 @@
 @import './ui-file-browser/file-upload.directive';
 
 @import './ui-error/error-dialog';
+
+// Angular JS ng-cloak styling
+[ng\:cloak],
+[ng-cloak],
+[data-ng-cloak],
+[x-ng-cloak],
+.ng-cloak,
+.x-ng-cloak {
+  display: none !important;
+}
