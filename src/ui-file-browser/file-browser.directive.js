@@ -8,14 +8,32 @@ angular.module('clb-ui-file-browser')
  * @desc
  * clbFileBrowser Directive
  *
- * This directive renders a file browser. It accepts the following
- * attributes:
+ * This directive renders a file browser. It handles creation of folder,
+ * mutliple file uploads and selection of entity. Selection change can be
+ * detected either by watching ``clb-entity`` attribute or by listening
+ * to the event ``clbFileBrowser:focusChanged``.
  *
- * - root: the root entity for the current browser. If root is null,
- * it will load all the visible projects.
- * - [entity]: the current entity that should be displayed.
  *
- * @example
+ * Attributes
+ * ----------
+ *
+ * ===================================  ==========================================================
+ * Parameter                            Description
+ * ===================================  ==========================================================
+ * ``{EntityDescriptor} [clb-root]``    A project or a folder that will be the root of the tree.
+ * ``{EntityDescriptor} [clb-entity]``  The selected entity.
+ * ===================================  ==========================================================
+ *
+ *
+ * Events
+ * ------
+ *
+ * ================================  ==========================================================
+ * clbFileBrowser:focusChanged       Emitted when the user focus a new file or folder
+ * clbFileBrowser:startCreateFolder  Emitted when the user start to create a new folder
+ * ================================  ==========================================================
+ *
+ * @example <caption>Simple directive usage</caption>
  * <clb-file-browser clb-root="someProjectEntity"
  *                   clb-entity="someSubFolderEntity">
  * </clb-file-browser>
