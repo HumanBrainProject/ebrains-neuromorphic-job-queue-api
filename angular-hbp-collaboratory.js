@@ -170,6 +170,16 @@ angular.module('clb-ui-error', [
 ]);
 
 /**
+ * The ``clb-ui-file-browser`` module provides Angular directive to work
+ * with the HBP Collaboratory storage.
+ *
+ *
+ * Featured Component
+ * ------------------
+ *
+ * - The directive :doc:`clb-file-browser <module-clb-ui-file-browser.clb-file-browser>`
+ *   provides an easy to use browser which let the user upload new files,
+ *   create folder and act as file selector.
  * @module clb-ui-file-browser
  */
 angular.module('clb-ui-file-browser', [
@@ -184,6 +194,12 @@ angular.module('clb-ui-file-browser', [
  * clb-ui-form provides directive to ease creation of forms.
  */
 angular.module('clb-ui-form', []);
+
+/**
+ * Provides a simple loading directive.
+ * @module clb-ui-loading
+ */
+angular.module('clb-ui-loading', []);
 
 /**
  * @module clb-ui-stream
@@ -4375,14 +4391,32 @@ clbFileBrowser.$inject = ['lodash'];angular.module('clb-ui-file-browser')
  * @desc
  * clbFileBrowser Directive
  *
- * This directive renders a file browser. It accepts the following
- * attributes:
+ * This directive renders a file browser. It handles creation of folder,
+ * mutliple file uploads and selection of entity. Selection change can be
+ * detected either by watching ``clb-entity`` attribute or by listening
+ * to the event ``clbFileBrowser:focusChanged``.
  *
- * - root: the root entity for the current browser. If root is null,
- * it will load all the visible projects.
- * - [entity]: the current entity that should be displayed.
  *
- * @example
+ * Attributes
+ * ----------
+ *
+ * ===================================  ==========================================================
+ * Parameter                            Description
+ * ===================================  ==========================================================
+ * ``{EntityDescriptor} [clb-root]``    A project or a folder that will be the root of the tree.
+ * ``{EntityDescriptor} [clb-entity]``  The selected entity.
+ * ===================================  ==========================================================
+ *
+ *
+ * Events
+ * ------
+ *
+ * ================================  ==========================================================
+ * clbFileBrowser:focusChanged       Emitted when the user focus a new file or folder
+ * clbFileBrowser:startCreateFolder  Emitted when the user start to create a new folder
+ * ================================  ==========================================================
+ *
+ * @example <caption>Simple directive usage</caption>
  * <clb-file-browser clb-root="someProjectEntity"
  *                   clb-entity="someSubFolderEntity">
  * </clb-file-browser>
@@ -4995,6 +5029,49 @@ angular.module('clb-ui-form')
     }
   };
 });
+
+angular.module('clb-ui-loading')
+.directive('clbLoading', clbLoading);
+
+/**
+ * The directive clbLoading displays a simple loading message. If a promise
+ * is given, the loading indicator will disappear once it is resolved.
+ *
+ * Attributes
+ * ----------
+ *
+ * =======================  ===================================================
+ * Name                     Description
+ * =======================  ===================================================
+ * {Promise} [clb-promise]  Hide the loading message upon fulfilment.
+ * {string} [clb-message]   Displayed loading string (default=``'loading...'``)
+ *
+ * @memberof module:clb-ui-loading
+ * @return {object} Angular directive descriptor
+ * @example <caption>Directive Usage Example</caption>
+ * <hbp-loading hbp-promise="myAsyncFunc()" hbp-message="'Loading My Async Func'">
+ * </hbp-loading>
+ */
+function clbLoading() {
+  return {
+    restrict: 'E',
+    scope: {
+      promise: '=?clbPromise',
+      message: '=?clbMessage'
+    },
+    template:'<div class=clb-loading ng-if=loading><span class="glyphicon glyphicon-refresh clb-spinning"></span> {{message}}</div>',
+    link: function(scope) {
+      scope.loading = true;
+      scope.message = scope.message || 'Loading...';
+      if (scope.promise) {
+        var complete = function() {
+          scope.loading = false;
+        };
+        scope.promise.then(complete, complete);
+      }
+    }
+  };
+}
 
 
 ActivityController.$inject = ['$log', 'clbResourceLocator'];angular.module('clb-ui-stream')

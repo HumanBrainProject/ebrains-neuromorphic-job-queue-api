@@ -21,6 +21,7 @@ Contents
    module-clb-ui-error
    module-clb-ui-file-browser
    module-clb-ui-form
+   module-clb-ui-loading
    module-clb-ui-stream
    hbpCollaboratory
    
