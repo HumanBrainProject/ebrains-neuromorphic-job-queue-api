@@ -35,7 +35,9 @@ function clbFileBrowserPath(clbStorage) {
 
       scope.browserView = ctrl;
 
-      scope.$watch('browserView.currentEntity', update);
+      scope.$watch('browserView.currentEntity', function(value) {
+        update(value);
+      });
     }
   };
 }

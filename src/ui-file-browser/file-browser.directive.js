@@ -117,19 +117,7 @@ function clbFileBrowser(lodash) {
      */
     function init(rootEntity, currentEntity) {
       vm.rootEntity = rootEntity;
-      if (!currentEntity || clbStorage.isContainer(currentEntity)) {
-        currentUpdate = update(currentEntity || rootEntity);
-      } else {
-        // Set the currentEntity to the parent and then focus the file
-        console.log('Current Entity', currentEntity);
-        currentUpdate = clbStorage.getEntity(currentEntity._parent)
-        .then(function(parent) {
-          return update(parent);
-        })
-        .then(function() {
-          handleFocusEvent(currentEntity);
-        });
-      }
+      currentUpdate = update(currentEntity || rootEntity);
     }
 
     /**
@@ -224,71 +212,90 @@ function clbFileBrowser(lodash) {
     }
 
     /**
+     * Promise fulfilment contains the nearest container. Either the current
+     * entity if it is a container, or its parent.
+     * @param  {EntityDescriptor} entity The starting point entity
+     * @return {Promise}          Fulfilment of the promise retrieve a container entity
+     */
+    function nearestContainer(entity) {
+      if (!entity) {
+        return $q.when(null);
+      }
+      if (clbStorage.isContainer(entity)) {
+        return $q.when(entity);
+      }
+      // Set the currentEntity to the parent and then focus the file
+      return clbStorage.getEntity(entity._parent);
+    }
+
+    /**
      * [update description]
      * @param  {EntityDescriptor} entity [description]
      * @return {Promise}        Resolve after update completion
      */
     function update(entity) {
-      vm.isLoading = true;
-      vm.currentEntity = entity;
-      vm.selectedEntity = entity; // we set the main entity has selected by default
-      vm.error = null;
-      vm.parent = null;
-      vm.files = null;
-      vm.folders = null;
-      vm.uploads = [];
-      vm.showFileUpload = false;
-      vm.showCreateFolder = false;
+      return nearestContainer(entity).then(function(container) {
+        vm.isLoading = true;
+        vm.currentEntity = container;
+        vm.selectedEntity = entity;
+        vm.error = null;
+        vm.parent = null;
+        vm.files = null;
+        vm.folders = null;
+        vm.uploads = [];
+        vm.showFileUpload = false;
+        vm.showCreateFolder = false;
+        assignIsRoot(container);
+        assignCanEdit(container);
 
-      assignIsRoot(entity);
-      assignCanEdit(entity);
+        // special exit case for the storage root
+        if (!container) {
+          return clbStorage.getChildren(null)
+          .then(function(rs) {
+            return rs.toArray();
+          })
+          .then(function(projects) {
+            vm.folders = projects;
+            vm.isLoading = false;
+          })
+          .catch(setError);
+        }
 
-      // special exit case for the storage root
-      if (!entity) {
-        return clbStorage.getChildren(null)
-        .then(function(rs) {
-          return rs.toArray();
-        })
-        .then(function(projects) {
-          vm.folders = projects;
-          vm.isLoading = false;
-        })
-        .catch(setError);
-      }
+        var promises = [];
 
-      var promises = [];
+        // define the new parent entity
+        if (!vm.isRoot && container._parent) {
+          promises.push(
+            clbStorage.getEntity(container._parent).then(assignParentEntity)
+          );
+        }
 
-      // define the new parent entity
-      if (!vm.isRoot && entity._parent) {
+        // define the view folders
+        folderLoader = clbStorage.getChildren(container, {
+          accept: ['folder'],
+          acceptLink: false
+        }).instance;
+        vm.folders = folderLoader.results;
         promises.push(
-          clbStorage.getEntity(entity._parent).then(assignParentEntity)
+          folderLoader.promise
+          .then(afterLoadFolders)
         );
-      }
 
-      // define the view folders
-      folderLoader = clbStorage.getChildren(entity, {
-        accept: ['folder'],
-        acceptLink: false
-      }).instance;
-      vm.folders = folderLoader.results;
-      promises.push(
-        folderLoader.promise
-        .then(afterLoadFolders)
-      );
+        fileLoader = clbStorage.getChildren(container, {
+          accept: ['file'],
+          acceptLink: false
+        }).instance;
+        vm.files = fileLoader.results;
+        promises.push(
+          fileLoader.promise
+          .then(afterLoadFiles)
+        );
 
-      fileLoader = clbStorage.getChildren(entity, {
-        accept: ['file'],
-        acceptLink: false
-      }).instance;
-      vm.files = fileLoader.results;
-      promises.push(
-        fileLoader.promise
-        .then(afterLoadFiles)
-      );
-
-      return $q.all(promises).then(function() {
-        vm.isLoading = false;
-      }, setError);
+        return $q.all(promises).then(function() {
+          vm.isLoading = false;
+        });
+      })
+      .catch(setError);
     }
 
     /**
@@ -455,7 +462,9 @@ function clbFileBrowserLink(scope, elt, attrs, ctrl) {
       return;
     }
     ctrl.init(root, scope.entity);
-    var delEntityWatcher = scope.$watch('entity', ctrl.handleNavigation);
+    var delEntityWatcher = scope.$watch('entity', function(value) {
+      ctrl.handleNavigation(value);
+    });
     scope.$on('$destroy', delEntityWatcher);
     delWaitForRootWatcher();
   });

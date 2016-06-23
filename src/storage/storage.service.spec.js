@@ -51,6 +51,24 @@ describe('clbStorage', function() {
     actual = null;
   });
 
+  describe('isContainer', function() {
+    it('should consider folder as a container', function() {
+      expect(service.isContainer({_entityType: 'folder'})).toBe(true);
+    });
+    it('should consider project as a container', function() {
+      expect(service.isContainer({_entityType: 'project'})).toBe(true);
+    });
+    it('should consider folder link as a container', function() {
+      expect(service.isContainer({_entityType: 'link:folder'})).toBe(true);
+    });
+    it('should not consider file as a container', function() {
+      expect(service.isContainer({_entityType: 'file'})).toBe(false);
+    });
+    it('should not consider file link as a container', function() {
+      expect(service.isContainer({_entityType: 'link:file'})).toBe(false);
+    });
+  });
+
   describe('getEntity', function() {
     describe('by UUID', function() {
       it('accept a string', function() {

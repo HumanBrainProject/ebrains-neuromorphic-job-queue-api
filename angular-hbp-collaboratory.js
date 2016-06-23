@@ -115,6 +115,14 @@ angular.module('clb-automator', [
 ]);
 
 /**
+ * @module clb-env
+ * @desc
+ * ``clb-env`` module provides a way to information from the global environment.
+ */
+
+angular.module('clb-env', []);
+
+/**
  * @module clb-collab
  * @desc
  * Contain services to interact with collabs (e.g.: retriving collab informations or
@@ -129,23 +137,6 @@ angular.module('clb-collab', [
   'uuid4'
 ]);
 
-/**
- * @module clb-env
- * @desc
- * ``clb-env`` module provides a way to information from the global environment.
- */
-
-angular.module('clb-env', []);
-
-angular.module('clb-error', []);
-
-/**
- * @module clb-rest
- * @desc
- * ``clb-rest`` module contains util for simplifying access to Rest service.
- */
-angular.module('clb-rest', ['clb-error']);
-
 angular.module('clb-identity', [
   'ngLodash',
   'clb-env',
@@ -154,50 +145,11 @@ angular.module('clb-identity', [
 ]);
 
 /**
- * The ``clb-ui-file-browser`` module provides Angular directive to work
- * with the HBP Collaboratory storage.
- *
- *
- * Featured Component
- * ------------------
- *
- * - The directive :doc:`clb-file-browser <module-clb-ui-file-browser.clb-file-browser>`
- *   provides an easy to use browser which let the user upload new files,
- *   create folder and act as file selector.
- * @module clb-ui-file-browser
- */
-angular.module('clb-ui-file-browser', [
-  'ui.bootstrap',
-  'clb-ui-error',
-  'clb-storage'
-]);
-
-/**
- * @module clb-ui-error
- */
-angular.module('clb-ui-error', [
-  'clb-error',
-  'ui.bootstrap.alert',
-  'uib/template/alert/alert.html'
-]);
-
-/**
- * @module clb-ui-form
+ * @module clb-rest
  * @desc
- * clb-ui-form provides directive to ease creation of forms.
+ * ``clb-rest`` module contains util for simplifying access to Rest service.
  */
-angular.module('clb-ui-form', []);
-
-/**
- * Provides a simple loading directive.
- * @module clb-ui-loading
- */
-angular.module('clb-ui-loading', []);
-
-/**
- * @module clb-ui-stream
- */
-angular.module('clb-ui-stream', ['angularMoment', 'clb-stream']);
+angular.module('clb-rest', ['clb-error']);
 
 /**
  * @module clb-stream
@@ -227,6 +179,54 @@ angular.module('clb-storage', [
   'clb-rest',
   'clb-identity'
 ]);
+
+/**
+ * The ``clb-ui-file-browser`` module provides Angular directive to work
+ * with the HBP Collaboratory storage.
+ *
+ *
+ * Featured Component
+ * ------------------
+ *
+ * - The directive :doc:`clb-file-browser <module-clb-ui-file-browser.clb-file-browser>`
+ *   provides an easy to use browser which let the user upload new files,
+ *   create folder and act as file selector.
+ * @module clb-ui-file-browser
+ */
+angular.module('clb-ui-file-browser', [
+  'ui.bootstrap',
+  'clb-ui-error',
+  'clb-storage'
+]);
+
+/**
+ * @module clb-ui-form
+ * @desc
+ * clb-ui-form provides directive to ease creation of forms.
+ */
+angular.module('clb-ui-form', []);
+
+angular.module('clb-error', []);
+
+/**
+ * @module clb-ui-error
+ */
+angular.module('clb-ui-error', [
+  'clb-error',
+  'ui.bootstrap.alert',
+  'uib/template/alert/alert.html'
+]);
+
+/**
+ * @module clb-ui-stream
+ */
+angular.module('clb-ui-stream', ['angularMoment', 'clb-stream']);
+
+/**
+ * Provides a simple loading directive.
+ * @module clb-ui-loading
+ */
+angular.module('clb-ui-loading', []);
 
 
 clbApp.$inject = ['$q', '$rootScope', '$timeout', '$window', 'clbError'];angular.module('clb-app')
@@ -1032,6 +1032,63 @@ angular.module('clb-automator')
     });
   }
 }]);
+
+/* global window */
+
+clbEnv.$inject = ['$injector'];
+angular.module('clb-env')
+.provider('clbEnv', clbEnv);
+
+/**
+ * Get environement information using dotted notation.
+ * @memberof module:clb-env
+ * @param {object} $injector AngularJS injection
+ * @return {object} provider
+ */
+function clbEnv($injector) {
+  return {
+    get: get,
+    $get: function() {
+      return {
+        get: get
+      };
+    }
+  };
+
+  /**
+   * ``get(key, [defaultValue])`` provides configuration value loaded at
+   * the application bootstrap.
+   *
+   * Accept a key and an optional default
+   * value. If the key cannot be found in the configurations, it will return
+   * the provided default value. If the defaultValue is undefied, it will
+   * throw an error.
+   *
+   * To ensures that those data are available when angular bootstrap the
+   * application, use angular.clbBootstrap(module, options).
+   *
+   * @memberof module:clb-env.clbEnv
+   * @param {string} key the environment variable to retrieve, using a key.
+   * @param {any} [defaultValue] an optional default value.
+   * @return {any} the value or ``defaultValue`` if the asked for configuration
+   *               is not defined.
+   */
+  function get(key, defaultValue) {
+    var parts = key.split('.');
+    var cursor = (window.bbpConfig ?
+                  window.bbpConfig : $injector.get('CLB_ENVIRONMENT'));
+    for (var i = 0; i < parts.length; i++) {
+      if (!(cursor && cursor.hasOwnProperty(parts[i]))) {
+        if (defaultValue !== undefined) {
+          return defaultValue;
+        }
+        throw new Error('UnkownConfigurationKey: <' + key + '>');
+      }
+      cursor = cursor[parts[i]];
+    }
+    return cursor;
+  }
+}
 
 /* eslint camelcase: 0 */
 
@@ -2107,604 +2164,6 @@ function clbContext($http, $q, clbError, clbEnv, ClbContextModel) {
   }
 }
 
-/* global window */
-
-clbEnv.$inject = ['$injector'];
-angular.module('clb-env')
-.provider('clbEnv', clbEnv);
-
-/**
- * Get environement information using dotted notation.
- * @memberof module:clb-env
- * @param {object} $injector AngularJS injection
- * @return {object} provider
- */
-function clbEnv($injector) {
-  return {
-    get: get,
-    $get: function() {
-      return {
-        get: get
-      };
-    }
-  };
-
-  /**
-   * ``get(key, [defaultValue])`` provides configuration value loaded at
-   * the application bootstrap.
-   *
-   * Accept a key and an optional default
-   * value. If the key cannot be found in the configurations, it will return
-   * the provided default value. If the defaultValue is undefied, it will
-   * throw an error.
-   *
-   * To ensures that those data are available when angular bootstrap the
-   * application, use angular.clbBootstrap(module, options).
-   *
-   * @memberof module:clb-env.clbEnv
-   * @param {string} key the environment variable to retrieve, using a key.
-   * @param {any} [defaultValue] an optional default value.
-   * @return {any} the value or ``defaultValue`` if the asked for configuration
-   *               is not defined.
-   */
-  function get(key, defaultValue) {
-    var parts = key.split('.');
-    var cursor = (window.bbpConfig ?
-                  window.bbpConfig : $injector.get('CLB_ENVIRONMENT'));
-    for (var i = 0; i < parts.length; i++) {
-      if (!(cursor && cursor.hasOwnProperty(parts[i]))) {
-        if (defaultValue !== undefined) {
-          return defaultValue;
-        }
-        throw new Error('UnkownConfigurationKey: <' + key + '>');
-      }
-      cursor = cursor[parts[i]];
-    }
-    return cursor;
-  }
-}
-
-/* global document */
-
-clbError.$inject = ['$q'];
-angular.module('clb-error')
-.factory('clbError', clbError);
-
-/**
- * @class ClbError
- * @memberof module:clb-error
- * @desc
- * ``ClbError`` describes a standard error object used
- * to display error message or intropect the situation.
- *
- * A ``ClbError`` instance provides the following properties:
- *
- * * ``type`` a camel case name of the error type.
- * * `message` a human readable message of the error that should
- * be displayed to the end user.
- * * ``data`` any important data that might help the software to
- * inspect the issue and take a recovering action.
- * * ``code`` an error numerical code.
- *
- * The ClbError extends the native Javascript Error instance so it also provides:
- * * ``name`` which is equal to the type
- * * ``stack`` the stack trace of the error (when available)
- *
- * Only ``type``, ``message``, and ``code`` should be considered to be present.
- * They receive default values when not specified by the situation.
- *
- * @param {object} [options] the parameters to use to build the error
- * @param {string} [options.type] the error type (default to ``'UnknownError'``)
- * @param {string} [options.message] the error message (default to ``'An unknown error occurred'``)
- * @param {int} [options.code] the error code (default to ``-1``)
- * @param {object} [options.data] any data that can be useful to deal with the error
- */
-function ClbError(options) {
-  options = angular.extend({
-    type: 'UnknownError',
-    message: 'An unknown error occurred.',
-    code: -1
-  }, options);
-  this.type = options.type;
-  this.name = this.type; // Conform to Error class
-  this.message = options.message;
-  this.data = options.data;
-  this.code = options.code;
-  this.stack = (new Error()).stack;
-}
-// Extend the Error prototype
-ClbError.prototype = Object.create(Error.prototype);
-ClbError.prototype.toString = function() {
-  return String(this.type) + ':' + this.message;
-};
-
-/**
- * @namespace clbError
- * @memberof module:clb-error
- * @desc
- * ``clbError`` provides helper functions that all return an
- * ``ClbError`` instance given a context object.
- * @param {object} $q AngularJS injection
- * @return {object} the service singleton
- */
-function clbError($q) {
-  return {
-    rejectHttpError: function(err) {
-      return $q.reject(httpError(err));
-    },
-    httpError: httpError,
-
-    /**
-     * Build a ``ClbError`` instance from the provided options.
-     *
-     * - param  {Object} options argument passed to ``ClbError`` constructor
-     * - return {ClbError} the resulting error
-     * @memberof module:clb-error.clbError
-     * @param  {object} options [description]
-     * @return {object}         [description]
-     */
-    error: function(options) {
-      if (options && options instanceof ClbError) {
-        return options;
-      }
-      return new ClbError(options);
-    }
-  };
-
-  /**
-   * @desc
-   * return a `ClbError` instance built from a HTTP response.
-   *
-   * In an ideal case, the response contains json data with an error object.
-   * It also fallback to a reason field and fill default error message for
-   * standard HTTP status error.
-   * @memberof module:clb-error.clbError
-   * @param  {HttpResponse} response Angular $http Response object
-   * @return {ClbError} a valid ClbError
-   */
-  function httpError(response) {
-    // return argument if it is already an
-    // instance of ClbError
-    if (response && response instanceof ClbError) {
-      return response;
-    }
-
-    if (response.status === undefined) {
-      return new ClbError({
-        message: 'Cannot parse error, invalid format.'
-      });
-    }
-    var error = new ClbError({code: response.status});
-
-    if (error.code === 0) {
-      error.type = 'ClientError';
-      error.message = 'The client cannot run the request.';
-      return error;
-    }
-    if (error.code === 404) {
-      error.type = 'NotFound';
-      error.message = 'Resource not found';
-      return error;
-    }
-    if (error.code === 403) {
-      error.type = 'Forbidden';
-      error.message = 'Permission denied: you are not allowed to display ' +
-                      'the page or perform the operation';
-      return error;
-    }
-    if (error.code === 502) {
-      error.type = 'BadGateway';
-      error.message = '502 Bad Gateway Error';
-      if (response.headers('content-type') === 'text/html') {
-        var doc = document.createElement('div');
-        doc.innerHTML = response.data;
-        var titleNode = doc.getElementsByTagName('title')[0];
-        if (titleNode) {
-          error.message = titleNode.innerHTML;
-        }
-      }
-      return error;
-    }
-    if (response.data) {
-      var errorSource = response.data;
-      if (errorSource.error) {
-        errorSource = errorSource.error;
-      }
-      if (errorSource.type) {
-        error.type = errorSource.type;
-      }
-      if (errorSource.data) {
-        error.data = errorSource.data;
-      }
-      if (errorSource.message) {
-        error.message = errorSource.message;
-      } else if (errorSource.reason) {
-        error.type = 'Error';
-        error.message = errorSource.reason;
-      }
-
-      if (!errorSource.type && !errorSource.data &&
-        !errorSource.message && !errorSource.reason) {
-        // unkown format, return raw data
-        error.data = errorSource;
-      }
-    }
-    return error;
-  }
-}
-
-
-clbResultSet.$inject = ['$http', '$q', 'clbError'];angular.module('clb-rest')
-.factory('clbResultSet', clbResultSet);
-
-/**
- * @namespace clbResultSet
- * @memberof module:clb-rest
- * @param  {object} $http           Angular DI
- * @param  {object} $q              Angular DI
- * @param  {object} clbError Angular DI
- * @return {object}                 Angular Service
- */
-function clbResultSet($http, $q, clbError) {
-  /**
-   * @attribute ResultSetEOL
-   * @memberof module:clb-rest.clbResultSet
-   * @desc error thrown when module:clb-rest.ResultSet is crawled when at an
-   *       extremity.
-   */
-  var ResultSetEOL = clbError.error({
-    type: 'ResultSet::EOL',
-    message: 'End of list reached'
-  });
-
-  return {
-    get: getPaginatedResultSet,
-    EOL: ResultSetEOL
-  };
-
-  /**
-   * @name get
-   * @memberof module:clb-rest.clbResultSet
-   * @desc
-   * Return a promise that will resolve once the result set first page is loaded.
-   *
-   * The promise contains the `instance` of the result set as well.
-   *
-   * @param  {Object} res     a HTTPResponse or a promise which resolve to a HTTPResponse
-   * @param  {Object} [options] configuration
-   * @param  {string} [options.nextUrlKey] name of (or dot notation path to) the attribute containing the URL to fetch next results
-   * @param  {function} [options.hasNextHandler] A function that receive the JSON data as its first argument and must
-   *                                             return a boolean value that will be assigned to the ``hasNext`` property.
-   *                                             When this option is given, ``options.nextUrlHandler`` SHOULD be defined as well.
-   * @param  {function} [options.nextHandler] A function that receive the JSON data as its first argument and must return a promise
-   *                                          to the next results. This handler will be called when ``next()`` is called on the
-   *                                          RecordSet.
-   *                                          When this option is given ``options.hasNextHandler`` MUST be defined as well.
-   *                                          When this option is given ``options.nextUrlKey`` is ignored.
-   * @param  {string} [options.previousUrlKey] name of (or dot notation path to) the attribute containing the URL to fetch previous results
-   * @param  {function} [options.hasPreviousHandler] A function that receive the JSON data as its first argument and must
-   *                                                 return a boolean value that will be assigned to the ``hasPrevious`` property.
-   *                                                 When this option is given, ``options.previousUrlHandler`` SHOULD be defined as well.
-   * @param  {function} [options.previousHandler] A function that receive the JSON data as its first argument and must return a string value
-   *                                              that represent the previous URL that will be fetched by a call to ``.previous()``.
-   *                                              When this option is given ``options.hasPreviousHandler`` MUST be defined as well.
-   *                                              When this option is given ``options.previousUrlKey`` is ignored.
-   * @param  {string} [options.resultKey] name of (or dot notation path to) the attribute containing an array with all the results
-   * @param  {string} [options.countKey] name of (or dot notation path to) the attribute containing the number of results returned
-   * @param  {function} [options.resultsFactory] a function to which a new array of results is passed.
-   *                    The function can return ``undefined``, a ``Promise`` or an ``array`` as result.
-   * @return {Promise} After the promise is fulfilled, it will return a new instance of :doc:`module-clb-rest.clbResultSet.ResultSet`.
-   */
-  function getPaginatedResultSet(res, options) {
-    return new ResultSet(res, options).promise;
-  }
-
-  /**
-   * @class ResultSet
-   * @memberof module:clb-rest.clbResultSet
-   * @desc
-   * Build a result set with internal support for fetching next and previous results.
-   *
-   * @param {Object} pRes the promise of the first result page
-   * @param {Object} options various options to specify how to handle the pagination
-   * @see {module:clb-rest.clbResultSet.get}
-   */
-  function ResultSet(pRes, options) {
-    var self = this;
-    // Hold call to next and previous when using customization.
-    var wrappedNextCall;
-    var wrappedPreviousCall;
-
-    /**
-     * The array containing all fetched results. Previous pages are added
-     * to the beginning of the results, next pages at the end.
-     * @type {array}
-     */
-    self.results = [];
-    /**
-     * Define with the last ClbError instance that occured.
-     * @type {module:clb-error.ClbError}
-     */
-    self.error = null;
-    /**
-     * ``true`` if there is more results to be loaded.
-     * @type {Boolean}
-     */
-    self.hasNext = null;
-    /**
-     * ``true`` if there is previous page to be loaded.
-     * @type {Boolean}
-     */
-    self.hasPrevious = null;
-    /**
-     * The promise associated with the last operation in the queue.
-     * @type {Promise}
-     */
-    self.promise = null;
-    /**
-     * A function that handle any error during an operation.
-     * @type {Function}
-     */
-    self.errorHandler = null;
-    self.next = enqueue(next);
-    self.previous = enqueue(previous);
-    self.toArray = enqueue(toArray);
-    self.all = enqueue(all);
-    self.count = -1;
-
-    options = angular.extend({
-      resultKey: 'results',
-      nextUrlKey: 'next',
-      hasNextHandler: function(rs) {
-        // by default, has next is defined if the received data
-        // defines a next URL.
-        return Boolean(at(rs, options.nextUrlKey));
-      },
-      previousUrlKey: 'previous',
-      hasPreviousHandler: function(rs) {
-        // by default, has previous is defined if the received data
-        // defines a next URL.
-        return Boolean(at(rs, options.previousUrlKey));
-      },
-      countKey: 'count'
-    }, options);
-
-    self.promise = $q.when(pRes)
-    .then(initialize)
-    .catch(handleError);
-    self.promise.instance = self;
-
-    /**
-     * @name next
-     * @memberof module:clb-rest.ResultSet
-     * @desc
-     * Retrieve the next result page.
-     * @memberof module:clb-rest.clbResultSet.ResultSet
-     *
-     * @return {Object} a promise that will resolve when the next page is fetched.
-     */
-    function next() {
-      if (!self.hasNext) {
-        return $q.reject(ResultSetEOL);
-      }
-      var promise = (options.nextHandler ?
-        wrappedNextCall() :
-        $http.get(self.nextUrl)
-      );
-      return promise.then(handleNextResults);
-    }
-
-    /**
-     * @name previous
-     * @memberof module:clb-rest.ResultSet
-     * @desc
-     * Retrieve the previous result page
-     *
-     * @return {Object} a promise that will resolve when the previous page is fetched.
-     */
-    function previous() {
-      if (!self.hasPrevious) {
-        return $q.reject(ResultSetEOL);
-      }
-      var promise = (options.previousHandler ?
-        wrappedPreviousCall() :
-        $http.get(self.previousUrl)
-      );
-      return promise.then(handlePreviousResults);
-    }
-
-    /**
-     * @name toArray
-     * @memberof module:clb-rest.ResultSet
-     * @desc
-     * Retrieve an array containing ALL the results. Beware that this
-     * can be very long to resolve depending on your dataset.
-     *
-     * @return {Promise} a promise that will resolve to the array when
-     * all data has been fetched.
-     */
-    function toArray() {
-      return all().then(function() {
-        return self.results.slice();
-      });
-    }
-
-    /**
-     * Load all pages.
-     * @memberof module:clb-rest.ResultSet
-     * @return {Promise} Resolve once everything is loaded
-     */
-    function all() {
-      if (self.hasNext) {
-        return next().then(all);
-      }
-      return $q.when(self);
-    }
-
-    /**
-     * parse the next result set according to options.
-     * @param  {HTTPResponse} res response containing the results.
-     * @return {ResultSet} self for chaining
-     * @private
-     */
-    function handleNextResults(res) {
-      var rs = res.data;
-      var result = at(rs, options.resultKey);
-
-      var fResult;
-      if (options.resultsFactory) {
-        fResult = options.resultsFactory(result, rs);
-      }
-      return $q.when(fResult)
-      .then(function(computedResult) {
-        self.results.push.apply(self.results, (computedResult || result));
-        counting(rs);
-        bindNext(rs);
-        return self;
-      });
-    }
-
-    /**
-     * parse the previous result set according to options.
-     * @param  {HTTPResponse} res response containing the results.
-     * @return {ResultSet} self for chaining
-     * @private
-     */
-    function handlePreviousResults(res) {
-      var rs = res.data;
-      var result = at(rs, options.resultKey);
-      var fResult;
-      if (options.resultsFactory) {
-        fResult = options.resultsFactory(result, rs);
-      }
-      return $q.when(fResult)
-      .then(function(computedResult) {
-        self.results.unshift.apply(self.results, (computedResult || result));
-        counting(rs);
-        bindPrevious(rs);
-        return self;
-      });
-    }
-
-    /**
-     * @name at
-     * @desc
-     * Lodash 'at' function replacement. This is needed because the 'at' function
-     * supports Object as first arg only starting from v4.0.0.
-     * Migration to that version has big impacts.
-     *
-     * See: https://lodash.com/docs#at
-     * @param {object} obj the object to search in
-     * @param {string} desc the dotted path to the location
-     * @return {instance} the found value
-     * @private
-     */
-    function at(obj, desc) {
-      var arr = desc.split('.');
-      while (arr.length && obj) {
-        obj = obj[arr.shift()];
-      }
-      return obj;
-    }
-
-    /**
-     * Handle an error retrieved by calling
-     * ``options.errorHandler``, passing the ``ClbError`` instance in parameter
-     * if ``options.errorHandler`` is a function.
-     * Then reject the current request with the same error instance.
-     * @param  {object} res the HTTP error object
-     * @return {Promise} rejected Promise with the error.
-     * @private
-     */
-    function handleError(res) {
-      self.error = clbError.httpError(res);
-      if (angular.isFunction(options.errorHandler)) {
-        options.errorHandler(self.error);
-      }
-      return $q.reject(self.error);
-    }
-
-    /**
-     * Configure the next page state of the result set.
-     * @param  {object} rs the last page results.
-     * @private
-     */
-    function bindNext(rs) {
-      self.hasNext = options.hasNextHandler(rs);
-      if (options.nextHandler) {
-        wrappedNextCall = function() {
-          return options.nextHandler(rs);
-        };
-      } else if (self.hasNext) {
-        self.nextUrl = at(rs, options.nextUrlKey);
-      } else {
-        self.nextUrl = null;
-      }
-    }
-
-    /**
-     * Configure the previous page state of the result set.
-     * @param  {object} rs the last page results.
-     * @private
-     */
-    function bindPrevious(rs) {
-      self.hasPrevious = options.hasPreviousHandler(rs);
-      if (options.previousHandler) {
-        wrappedPreviousCall = function() {
-          return options.previousHandler(rs);
-        };
-      } else if (self.hasPrevious) {
-        self.previousUrl = at(rs, options.previousUrlKey);
-      } else {
-        self.previousUrl = null;
-      }
-    }
-
-    /**
-     * Set the current count of results.
-     * @param  {object} rs the last page results.
-     * @private
-     */
-    function counting(rs) {
-      var c = at(rs, options.countKey);
-      if (angular.isDefined(c)) {
-        self.count = c;
-      }
-    }
-
-    /**
-     * Ensure that we don't mess with query result order.
-     * @param  {Function} fn the next function to run once all pending calls
-     *                       have been resolved.
-     * @return {Promise}     the promise will resolve when this function had run.
-     * @private
-     */
-    function enqueue(fn) {
-      return function() {
-        self.promise = $q
-        .when(self.promise.then(fn))
-        .catch(handleError);
-        self.promise.instance = self;
-        return self.promise;
-      };
-    }
-
-    /**
-     * Bootstrap the pagination.
-     * @param  {HTTPResponse|Promise} res Angular HTTP Response
-     * @return {ResultSet} self for chaining
-     * @private
-     */
-    function initialize(res) {
-      return handleNextResults(res)
-      .then(function() {
-        bindPrevious(res.data);
-        return self;
-      });
-    }
-  }
-}
-
 
 clbUser.$inject = ['$rootScope', '$q', '$http', '$cacheFactory', '$log', 'lodash', 'clbEnv', 'clbError', 'clbResultSet', 'clbIdentityUtil'];angular.module('clb-identity')
 .factory('clbUser', clbUser);
@@ -3332,995 +2791,375 @@ function clbIdentityUtil($log, lodash) {
   }
 }
 
-angular.module('clb-ui-file-browser')
-.directive('clbFileBrowserFolder', clbFileBrowserFolder);
+
+clbResultSet.$inject = ['$http', '$q', 'clbError'];angular.module('clb-rest')
+.factory('clbResultSet', clbResultSet);
 
 /**
- * @namespace clbFileBrowserFolder
- * @desc
- * clbFileBrowserFolder directive is a child directive of
- * clbFileBrowser that render a folder item within the file browser view.
- *
- * Available attributes:
- *
- * - clb-ui-file-browser-folder: the folder entity
- * - [clb-ui-file-browser-folder-icon]: a class name to display an icon
- * - [clb-ui-file-browser-folder-label]: a label name (default to folder._name)
- *
- * @example
- * <!-- minimal -->
- * <div clb-ui-file-browser-folder="folderEntity"></div>
- * <!-- all wings out -->
- * <div clb-ui-file-browser-folder="folderEntity"
- *      clb-ui-file-browser-folder-icon="fa fa-level-up"
- *      clb-ui-file-browser-label="up"></div>
- *
- * @memberof module:clb-ui-file-browser.clbFileBrowser
- * @return {object} Angular Directive
+ * @namespace clbResultSet
+ * @memberof module:clb-rest
+ * @param  {object} $http           Angular DI
+ * @param  {object} $q              Angular DI
+ * @param  {object} clbError Angular DI
+ * @return {object}                 Angular Service
  */
-function clbFileBrowserFolder() {
+function clbResultSet($http, $q, clbError) {
+  /**
+   * @attribute ResultSetEOL
+   * @memberof module:clb-rest.clbResultSet
+   * @desc error thrown when module:clb-rest.ResultSet is crawled when at an
+   *       extremity.
+   */
+  var ResultSetEOL = clbError.error({
+    type: 'ResultSet::EOL',
+    message: 'End of list reached'
+  });
+
   return {
-    restrict: 'A',
-    require: '^clbFileBrowser',
-    template:'<div class="clb-file-browser-item clb-file-browser-folder" ng-dblclick=browserView.handleNavigation(folder) ng-click=browserView.handleFocus(folder) hbp-on-touch=browserView.handleNavigation(folder) ng-class="{\'clb-file-browser-item-selected\': browserView.selectedEntity === folder}"><div class=clb-file-browser-label><i class=fa ng-class="folderIcon ? folderIcon : \'fa-folder\'"></i><span>{{folderLabel || folder._name}}</span></div></div>',
-    scope: {
-      folder: '=clbFileBrowserFolder',
-      folderIcon: '@clbFileBrowserFolderIcon',
-      folderLabel: '@clbFileBrowserFolderLabel'
-    },
-    link: function(scope, element, attrs, ctrl) {
-      // make the parent directive controller available in the scope
-      scope.browserView = ctrl;
-    }
-  };
-}
-
-
-clbFileBrowserPath.$inject = ['clbStorage'];angular.module('clb-ui-file-browser')
-.directive('clbFileBrowserPath', clbFileBrowserPath);
-
-/**
- * @namespace clbFileBrowserPath
- * @desc
- * clbFileBrowserPath directive is a child of clbFileBrowser directive
- * that renders the breadcrumb according to the file browser setup.
- *
- * @example
- * <clb-file-browser-path></clb-file-browser-path>
- *
- * @memberof module:clb-ui-file-browser.clbFileBrowser
- * @param  {object} clbStorage Angular DI
- * @return {object} Angular Directive
- */
-function clbFileBrowserPath(clbStorage) {
-  return {
-    restrict: 'E',
-    require: '^clbFileBrowser',
-    template:'<ul class="breadcrumb clb-file-browser-path"><li class=root ng-if=!browserView.isRoot><a ng-click=browserView.handleNavigation(browserView.rootEntity)>{{browserView.rootEntity._name || \'[top]\'}}</a></li><li ng-repeat="entity in ancestors"><a ng-click=browserView.handleNavigation(entity)>{{entity._name}}</a></li><li><span class=active>{{browserView.currentEntity._name || \'[top]\'}}</span></li></ul>',
-    link: function(scope, element, attrs, ctrl) {
-      var handleAncestors = function(ancestors) {
-        scope.ancestors = ancestors;
-      };
-
-      var update = function() {
-        if (ctrl.currentEntity) {
-          clbStorage.getAncestors(ctrl.currentEntity, ctrl.rootEntity)
-          .then(handleAncestors, ctrl.setError);
-        } else {
-          handleAncestors(null);
-        }
-      };
-
-      scope.browserView = ctrl;
-
-      scope.$watch('browserView.currentEntity', update);
-    }
-  };
-}
-
-angular.module('clb-ui-file-browser')
-.run(['$templateCache', function($templateCache) {
-  // During the build, templateUrl will be replaced by the inline template.
-  // We need to inject it in template cache as it is used for displaying
-  // the tooltip. Does it smell like a hack? sure, it is a hack!
-  var injector = {
-    template:'<div ng-init=browserView.defineThumbnailUrl(file)><div class="file-browser-thumbnail thumbnail" ng-if=browserView.thumbnailUrl aria-hidden=true><img ng-src={{browserView.thumbnailUrl}}></div>{{file._name}}</div>'
-  };
-  // If defined, it means that the template has been inlined during build.
-  if (injector.template) {
-    $templateCache.put('file-browser-tooltip.tpl.html', injector.template);
-  }
-}]);
-
-
-clbFileBrowser.$inject = ['lodash'];angular.module('clb-ui-file-browser')
-.directive('clbFileBrowser', clbFileBrowser);
-
-// --------------- //
-
-/**
- * @namespace clbFileBrowser
- * @desc
- * clbFileBrowser Directive
- *
- * This directive renders a file browser. It handles creation of folder,
- * mutliple file uploads and selection of entity. Focus selection change can be
- * detected by listening to the event ``clbFileBrowser:focusChanged``.
- *
- *
- * Attributes
- * ----------
- *
- * ===================================  ==========================================================
- * Parameter                            Description
- * ===================================  ==========================================================
- * ``{EntityDescriptor} [clb-root]``    A project or a folder that will be the root of the tree.
- * ``{EntityDescriptor} [clb-entity]``  The selected entity.
- * ===================================  ==========================================================
- *
- *
- * Events
- * ------
- *
- * ================================  ==========================================================
- * clbFileBrowser:focusChanged       Emitted when the user focus a new file or folder
- * clbFileBrowser:startCreateFolder  Emitted when the user start to create a new folder
- * ================================  ==========================================================
- *
- * @example <caption>Simple directive usage</caption>
- * <clb-file-browser clb-root="someProjectEntity"
- *                   clb-entity="someSubFolderEntity">
- * </clb-file-browser>
- *
- * @memberof module:clb-ui-file-browser
- * @return {object} Angular Directive
- * @param {object} lodash Angular DI
- */
-function clbFileBrowser(lodash) {
-  FileBrowserViewModel.$inject = ['$scope', '$log', '$q', '$timeout', 'clbStorage'];
-  return {
-    restrict: 'E',
-    scope: {
-      entity: '=?clbEntity',
-      root: '=clbRoot'
-    },
-    template:'<div class=clb-file-browser in-view-container ng-click=selectItem()><clb-error-message clb-error=browserView.error></clb-error-message><div class="navbar navbar-default"><div class=container-fluid><div class="nav navbar-nav navbar-text"><clb-file-browser-path></clb-file-browser-path></div><div class="dropdown nav navbar-nav pull-right" uib-dropdown ng-if=browserView.canEdit><button type=button href class="btn btn-default navbar-btn dropdown-toggle" uib-dropdown-toggle><span class="glyphicon glyphicon-plus"></span> <span class=caret></span></button><ul class=dropdown-menu role=menu uib-dropdown-menu><li ng-if=browserView.canEdit><a ng-click=browserView.startCreateFolder()><span class="fa fa-folder"></span> Create Folder</a></li><li ng-if=browserView.canEdit><a ng-click="browserView.showFileUpload = true"><span class="fa fa-file"></span> Upload File</a></li></ul></div></div></div><div class=clb-file-browser-content><div ng-if=browserView.isLoading class="alert alert-info" role=alert>Loading...</div><div class=file-browser-upload ng-if=browserView.showFileUpload><button type=button class="btn close pull-right" ng-click="browserView.showFileUpload = false"><span aria-hidden=true>&times;</span><span class=sr-only>Close</span></button><clb-file-upload on-drop=browserView.onFileChanged(files) on-error=browserView.setError(error)></clb-file-upload></div><ul><li ng-if=!browserView.isRoot clb-file-browser-folder=browserView.parent clb-file-browser-folder-label=.. clb-file-browser-folder-icon=fa-level-up></li><li ng-repeat="folder in browserView.folders" clb-file-browser-folder=folder></li><li ng-if=browserView.showCreateFolder class=clb-file-browser-item><div class=clb-file-browser-folder><form class="form form-inline" action=index.html method=post ng-submit=browserView.doCreateFolder($event)><div class=input-group><input type=text class="form-control new-folder-name" name=newFolderName ng-model=browserView.newFolderName> <span class=input-group-btn><input class="btn btn-primary" type=submit name=name value=Ok> <button class="btn btn-default" type=button ng-click=browserView.cancelCreateFolder()><span aria-hidden=true>&times;</span><span class=sr-only>Cancel</span></button></span></div></form></div></li><li class=clb-file-browser-item ng-if=browserView.hasMoreFolders><a class="clb-file-browser-label btn" hbp-perform-action=browserView.loadMoreFolders()><span class="fa fa-refresh"></span> Load More Folders</a></li><li ng-repeat="file in browserView.files" ng-dblclick=browseToEntity(file) ng-click=browserView.handleFocus(file) uib-tooltip-template="\'file-browser-tooltip.tpl.html\'" tooltip-placement=bottom tooltip-popup-delay=600 class=clb-file-browser-item ng-class="{ \'clb-file-browser-item-selected\': browserView.selectedEntity === file }"><div class=clb-file-browser-label><hbp-content-icon content=file._contentType></hbp-content-icon><span>{{file._name || file._uuid}}</span></div></li><li ng-repeat="uploadInfo in browserView.uploads" ng-click=browserView.handleFocus(null) uib-tooltip={{uploadInfo.content.name}} tooltip-placement=bottom tooltip-popup-delay=600 class=clb-file-browser-item ng-class="\'clb-file-browser-state-\' + uploadInfo.state"><div class=clb-file-browser-label><hbp-content-icon content=file._contentType></hbp-content-icon><span>{{uploadInfo.content.name}}</span></div><div class="clb-file-browser-item-upload progress"><div class=progress-bar role=progressbar aria-valuenow={{uploadInfo.progress}} aria-valuemin=0 aria-valuemax=100 style="width: {{uploadInfo.progress.percentage}}%"><span class=sr-only>{{uploadInfo.progress.percentage}}% Complete</span></div></div></li><li class=clb-file-browser-item ng-if=browserView.hasMoreFiles><a class="clb-file-browser-label btn" hbp-perform-action=browserView.loadMoreFiles()><span class="fa fa-refresh"></span> Load more files</a></li></ul></div></div>',
-    link: clbFileBrowserLink,
-    controllerAs: 'browserView',
-    controller: FileBrowserViewModel
+    get: getPaginatedResultSet,
+    EOL: ResultSetEOL
   };
 
   /**
-   * @namespace FileBrowserViewModel
+   * @name get
+   * @memberof module:clb-rest.clbResultSet
    * @desc
-   * ViewModel of the clbFileBrowser directive. This instance is
-   * accessible by all direct children of the file browser.
+   * Return a promise that will resolve once the result set first page is loaded.
    *
-   * It is responsible to handle all the interactions between the user
-   * and the services. It does not update the views directly but sends
-   * the relevant events when necessary.
-   * @memberof module:clb-ui-file-browser.clbFileBrowser
-   * @param {object} $scope     Angular DI
-   * @param {object} $log       Angular DI
-   * @param {object} $q         Angular DI
-   * @param {object} $timeout   Angular DI
-   * @param {object} clbStorage Angular DI
+   * The promise contains the `instance` of the result set as well.
+   *
+   * @param  {Object} res     a HTTPResponse or a promise which resolve to a HTTPResponse
+   * @param  {Object} [options] configuration
+   * @param  {string} [options.nextUrlKey] name of (or dot notation path to) the attribute containing the URL to fetch next results
+   * @param  {function} [options.hasNextHandler] A function that receive the JSON data as its first argument and must
+   *                                             return a boolean value that will be assigned to the ``hasNext`` property.
+   *                                             When this option is given, ``options.nextUrlHandler`` SHOULD be defined as well.
+   * @param  {function} [options.nextHandler] A function that receive the JSON data as its first argument and must return a promise
+   *                                          to the next results. This handler will be called when ``next()`` is called on the
+   *                                          RecordSet.
+   *                                          When this option is given ``options.hasNextHandler`` MUST be defined as well.
+   *                                          When this option is given ``options.nextUrlKey`` is ignored.
+   * @param  {string} [options.previousUrlKey] name of (or dot notation path to) the attribute containing the URL to fetch previous results
+   * @param  {function} [options.hasPreviousHandler] A function that receive the JSON data as its first argument and must
+   *                                                 return a boolean value that will be assigned to the ``hasPrevious`` property.
+   *                                                 When this option is given, ``options.previousUrlHandler`` SHOULD be defined as well.
+   * @param  {function} [options.previousHandler] A function that receive the JSON data as its first argument and must return a string value
+   *                                              that represent the previous URL that will be fetched by a call to ``.previous()``.
+   *                                              When this option is given ``options.hasPreviousHandler`` MUST be defined as well.
+   *                                              When this option is given ``options.previousUrlKey`` is ignored.
+   * @param  {string} [options.resultKey] name of (or dot notation path to) the attribute containing an array with all the results
+   * @param  {string} [options.countKey] name of (or dot notation path to) the attribute containing the number of results returned
+   * @param  {function} [options.resultsFactory] a function to which a new array of results is passed.
+   *                    The function can return ``undefined``, a ``Promise`` or an ``array`` as result.
+   * @return {Promise} After the promise is fulfilled, it will return a new instance of :doc:`module-clb-rest.clbResultSet.ResultSet`.
    */
-  function FileBrowserViewModel(
-    $scope,
-    $log,
-    $q,
-    $timeout,
-    clbStorage
-  ) {
-    var vm = this;
-    vm.currentEntity = null; // the (container) entity that this view currently describe
-    vm.folders = []; // array of displayed folder
-    vm.hasMoreFolders = false;
-    vm.files = [];   // array of displayed files
-    vm.uploads = []; // array of file currently uploading
-    vm.hasMoreFiles = false;
-    vm.selectedEntity = null; // currently focused entity
-    vm.rootEntity = null; // the top level entity;
-    vm.isRoot = true;
-    vm.error = null;
-    vm.isLoading = true;
-    vm.canEdit = false;
-    vm.thumbnailUrl = null; // current file thumbnail if any
-
-    vm.init = init;
-    vm.handleFocus = handleFocusEvent;
-    vm.handleNavigation = handleNavigationEvent;
-    vm.loadMoreFiles = loadMoreFiles;
-    vm.loadMoreFolders = loadMoreFolders;
-    vm.onFileChanged = onFileChanged;
-    vm.startCreateFolder = startCreateFolder;
-    vm.doCreateFolder = doCreateFolder;
-    vm.cancelCreateFolder = cancelCreateFolder;
-    vm.defineThumbnailUrl = defineThumbnailUrl;
-
-    // ---------------- //
-
-    var currentUpdate;
-    var folderLoader;
-    var fileLoader;
-
-    /**
-     * Initialize the controller
-     * @param  {EntityDescriptor} rootEntity    Cannot get past this ancestor
-     * @param  {EntityDescriptor} currentEntity The selected entity
-     * @private
-     */
-    function init(rootEntity, currentEntity) {
-      vm.rootEntity = rootEntity;
-      if (!currentEntity || clbStorage.isContainer(currentEntity)) {
-        currentUpdate = update(currentEntity || rootEntity);
-      } else {
-        // Set the currentEntity to the parent and then focus the file
-        console.log('Current Entity', currentEntity);
-        currentUpdate = clbStorage.getEntity(currentEntity._parent)
-        .then(function(parent) {
-          return update(parent);
-        })
-        .then(function() {
-          handleFocusEvent(currentEntity);
-        });
-      }
-    }
-
-    /**
-     * @method handleFocus
-     * @desc
-     * When the user focus on a browser item,
-     * emit a 'clbFileBrowser:focusChanged' event.
-     *
-     * The event signature is (event, newEntity, previousEntity).
-     *
-     * @param  {Object} entity selected entity
-     * @memberof module:clb-ui-file-browser.clbFileBrowser.FileBrowserViewModel
-     */
-    function handleFocusEvent(entity) {
-      if (entity === vm.selectedEntity) {
-        return;
-      }
-      $scope.$emit('clbFileBrowser:focusChanged', entity, vm.selectedEntity);
-      vm.selectedEntity = entity;
-    }
-
-    /**
-     * @method handleNavigation
-     * @desc When the current context change, trigger a navigation update.
-     *
-     * This will render the view for the new current entity. All navigations
-     * are chained to ensure that the future view will end in a consistant
-     * state. As multiple requests are needed to render a view, request result
-     * would sometimes finish after a new navigation event already occured.
-     *
-     * @param  {Object} entity the new current entity
-     * @return {promise} resolve when the navigation is done.
-     * @memberof module:clb-ui-file-browser.clbFileBrowser.FileBrowserViewModel
-     */
-    function handleNavigationEvent(entity) {
-      if (angular.isUndefined(entity) || entity === vm.currentEntity) {
-        return;
-      }
-      currentUpdate = currentUpdate.finally(function() {
-        return update(entity);
-      });
-      return currentUpdate;
-    }
-
-    /**
-     * Handle error case
-     * @private
-     * @param {object} err The error to set
-     */
-    function setError(err) {
-      $log.error('error catched by file browser:', err);
-      vm.error = err;
-      vm.isLoading = false;
-    }
-
-    /**
-     * @private
-     */
-    function startCreateFolder() {
-      vm.showCreateFolder = true;
-      $timeout(function() {
-        // the event is captured by the directive scope in order to update
-        // the DOM. I choose to not update the DOM in the ViewModel but
-        // rather in the directive link function.
-        $scope.$emit('clbFileBrowser:startCreateFolder');
-      });
-    }
-
-    /**
-     * @private
-     * @param  {Event} $event The browser event
-     */
-    function doCreateFolder($event) {
-      $event.preventDefault();
-      clbStorage.create('folder', vm.currentEntity, vm.newFolderName)
-      .then(function(entity) {
-        vm.newFolderName = '';
-        return update(entity);
-      })
-      .then(function() {
-        vm.showFileUpload = true;
-      })
-      .catch(setError);
-    }
-
-    /**
-     * @private
-     */
-    function cancelCreateFolder() {
-      vm.newFolderName = '';
-      vm.showCreateFolder = false;
-    }
-
-    /**
-     * [update description]
-     * @param  {EntityDescriptor} entity [description]
-     * @return {Promise}        Resolve after update completion
-     */
-    function update(entity) {
-      vm.isLoading = true;
-      vm.currentEntity = entity;
-      vm.selectedEntity = entity; // we set the main entity has selected by default
-      vm.error = null;
-      vm.parent = null;
-      vm.files = null;
-      vm.folders = null;
-      vm.uploads = [];
-      vm.showFileUpload = false;
-      vm.showCreateFolder = false;
-
-      assignIsRoot(entity);
-      assignCanEdit(entity);
-
-      // special exit case for the storage root
-      if (!entity) {
-        return clbStorage.getChildren(null)
-        .then(function(rs) {
-          return rs.toArray();
-        })
-        .then(function(projects) {
-          vm.folders = projects;
-          vm.isLoading = false;
-        })
-        .catch(setError);
-      }
-
-      var promises = [];
-
-      // define the new parent entity
-      if (!vm.isRoot && entity._parent) {
-        promises.push(
-          clbStorage.getEntity(entity._parent).then(assignParentEntity)
-        );
-      }
-
-      // define the view folders
-      folderLoader = clbStorage.getChildren(entity, {
-        accept: ['folder'],
-        acceptLink: false
-      }).instance;
-      vm.folders = folderLoader.results;
-      promises.push(
-        folderLoader.promise
-        .then(afterLoadFolders)
-      );
-
-      fileLoader = clbStorage.getChildren(entity, {
-        accept: ['file'],
-        acceptLink: false
-      }).instance;
-      vm.files = fileLoader.results;
-      promises.push(
-        fileLoader.promise
-        .then(afterLoadFiles)
-      );
-
-      return $q.all(promises).then(function() {
-        vm.isLoading = false;
-      }, setError);
-    }
-
-    /**
-     * Load the next page of file entities for the current entity.
-     *
-     * @return {Promise} resolve when the files are loaded
-     * @memberof module:clb-ui-file-browser.clbFileBrowser.FileBrowserViewModel
-     */
-    function loadMoreFiles() {
-      return fileLoader.next()
-      .then(afterLoadFiles)
-      .catch(setError);
-    }
-
-    /**
-     * Load the next page of folder entities for the current entity.
-     *
-     * @return {Promise} resolve when the folders are loaded
-     * @memberof module:clb-ui-file-browser.clbFileBrowser.FileBrowserViewModel
-     */
-    function loadMoreFolders() {
-      return folderLoader.next()
-      .then(afterLoadFolders)
-      .catch(setError);
-    }
-
-    /**
-     * @private
-     */
-    function afterLoadFiles() {
-      vm.hasMoreFiles = fileLoader.hasNext;
-    }
-
-    /**
-     * @private
-     */
-    function afterLoadFolders() {
-      vm.hasMoreFolders = folderLoader.hasNext;
-    }
-
-    /**
-     * @private
-     * @param  {EntityDescriptor} entity [description]
-     */
-    function assignIsRoot(entity) {
-      if (!entity) {
-        vm.isRoot = true;
-      } else if (vm.rootEntity) {
-        vm.isRoot = (entity._uuid === vm.rootEntity._uuid);
-      } else {
-        vm.isRoot = false;
-      }
-    }
-
-    /**
-     * @private
-     * @param  {EntityDescriptor} entity The parent entity
-     */
-    function assignParentEntity(entity) {
-      vm.parent = entity;
-    }
-
-    /**
-     * Upload files that the user just added to the uploader widget.
-     *
-     * @param  {Array} files array of File
-     */
-    function onFileChanged(files) {
-      lodash.each(files, function(f) {
-        upload(f)
-        .then(function(entity) {
-          vm.files.push(entity);
-        });
-      });
-      vm.showFileUpload = false;
-    }
-
-    /**
-     * Create a file entity and upload its associated content.
-     *
-     * @param  {File} file the file to create and upload
-     * @return {Promise} resolve when the file has been uploaded
-     */
-    function upload(file) {
-      var uploadInfo = {
-        content: file,
-        state: null
-      };
-      vm.uploads.push(uploadInfo);
-      return clbStorage.upload(file, {
-        parent: vm.currentEntity
-      })
-      .then(function(entity) {
-        // update file status
-        file.state = 'success';
-        lodash.remove(vm.uploads, function(info) {
-          return info === uploadInfo;
-        });
-        return entity;
-      }, function(err) {
-        $log.error('upload error:', err);
-        uploadInfo.state = 'error';
-        setError(err);
-        return $q.reject(err);
-      }, function(progressEvent) {
-        if (progressEvent && progressEvent.lengthComputable) {
-          // update file status
-          uploadInfo.state = 'progress';
-          uploadInfo.progress = progressEvent;
-          uploadInfo.progress.percentage = (progressEvent.loaded * 100) /
-            progressEvent.total;
-        }
-      });
-    }
-
-    /**
-     * Set the thumbnailUrl.
-     * @param  {EntityDescriptor} file a file entity
-     */
-    function defineThumbnailUrl(file) {
-      vm.thumbnailUrl = null;
-      if (file._contentType && file._contentType.match(/^image\//)) {
-        clbStorage.downloadUrl(file).then(function(res) {
-          vm.thumbnailUrl = res;
-        });
-      }
-    }
-
-    var lastAssignCanEditRequest = $q.when();
-    /**
-     * @private
-     * @param  {EntityDescriptor} entity a file entity
-     * @return {Promise}        [description]
-     */
-    function assignCanEdit(entity) {
-      lastAssignCanEditRequest = lastAssignCanEditRequest
-      .then(function() {
-        if (!entity) {
-          vm.canEdit = false;
-          return;
-        }
-        return clbStorage.getUserAccess(entity).then(function(acl) {
-          vm.canEdit = acl.canWrite;
-        });
-      });
-      return lastAssignCanEditRequest;
-    }
+  function getPaginatedResultSet(res, options) {
+    return new ResultSet(res, options).promise;
   }
-}
-
-/**
- * @private
- * @param  {object} scope   Angular DI
- * @param  {Element} elt    Angular DI
- * @param  {object} attrs   Angular DI
- * @param  {object} ctrl    Angular DI
- */
-function clbFileBrowserLink(scope, elt, attrs, ctrl) {
-  // run the init function once, when the root has been defined.
-  // this ensure the main page is not loaded first with all projects,
-  // then with the correct root.
-  var delWaitForRootWatcher = scope.$watch('root', function(root) {
-    if (angular.isUndefined(root)) {
-      return;
-    }
-    ctrl.init(root, scope.entity);
-    var delEntityWatcher = scope.$watch('entity', ctrl.handleNavigation);
-    scope.$on('$destroy', delEntityWatcher);
-    delWaitForRootWatcher();
-  });
-  scope.$on('$destroy', delWaitForRootWatcher);
-  scope.$on('clbFileBrowser:startCreateFolder', function(evt) {
-    evt.preventDefault();
-    elt[0].querySelector('.new-folder-name').focus();
-  });
-}
-
-/**
- * @namespace clbFileUpload
- * @desc
- * clbFileUpload directive.
- *
- * Provide an upload widget where user can stack files that should be
- * uploaded at some point. The directive doesn't proceed to upload by itself
- * but rather triggers the onDrop callback.
- *
- * The directive accepts the following attributes:
- *
- * - on-drop: a function to call when one or more files are dropped or selected
- * the callback will receive an array of File instance.
- * - on-error: a function to call when an error occurs. It receives an HbpError
- * instance in parameter.
- *
- * @example
- * <clb-file-upload on-drop="handleFileUpload(files)"
- *                       on-error="handleError(error)">
- * </clb-file-upload>
- * @memberof module:clb-ui-file-browser
- */
-angular.module('clb-ui-file-browser')
-.directive('clbFileUpload', function() {
-  'use strict';
-  return {
-    template:'<div class=clb-file-upload ng-class="{\'clb-file-upload-drag-enter\': dragEntered, \'clb-file-upload-drag-leave\': !dragEntered}" ng-cloak><h4>Drop Files Here to Upload</h4><span>or</span><div class="btn btn-default clb-file-upload-btn-file">Select Files <input type=file multiple onchange=angular.element(this).scope().onFileChanged(this.files)></div></div>',
-    restrict: 'E',
-    scope: {
-      onDrop: '&',
-      onError: '&',
-      foldersAllowed: '='
-    },
-    link: function(scope, element) {
-      var processDragOver = function(event) {
-        event.preventDefault();
-        event.stopPropagation();
-      };
-
-      var processDragEnter = function(event) {
-        event.preventDefault();
-        event.stopPropagation();
-
-        scope.dragEntered = true;
-        scope.$apply();
-      };
-
-      var processDragLeave = function(event) {
-        event.preventDefault();
-        event.stopPropagation();
-
-        scope.dragEntered = false;
-        scope.$apply();
-      };
-
-      scope.processDrop = function(event) {
-        event.preventDefault();
-        event.stopPropagation();
-
-        if (!event.dataTransfer && event.originalEvent) {
-          event.dataTransfer = event.originalEvent.dataTransfer;
-        }
-
-        scope.dragEntered = false;
-
-        if (!scope.foldersAllowed) {
-          var folders = getFolders(event.dataTransfer);
-          if (folders.length > 0) {
-            var err = new Error('Folders not allowed');
-            err.name = 'foldersNotAllowed';
-            err.files = folders;
-            scope.onError({error: err});
-            return false;
-          }
-        }
-
-        scope.onDrop({files: event.dataTransfer.files});
-      };
-
-      /**
-       * return the list of folders in the input dataTransfer object
-       * @private
-       * @param {DataTransfer} dataTransfer contains folder and files
-       * @return {array/File}               contain only folders
-       */
-      function getFolders(dataTransfer) {
-        var retList = [];
-
-        // supported by chrome only
-        var items = dataTransfer.items;
-        if (items) {
-          for (var i = 0; i < items.length; i++) {
-            if (items[i].webkitGetAsEntry().isDirectory) {
-              retList.push(items[i].webkitGetAsEntry().name);
-            }
-          }
-        } else {
-          // check if unix folders
-          var files = dataTransfer.files;
-          for (var j = 0; j < files.length; j++) {
-            // assuming that the chances a (dropped) file is exactly multiple of 4k are low
-            if (files[j].size % 4096 === 0) {
-              retList.push(files[j].name);
-            }
-          }
-        }
-
-        // Safari is detecting the error when trying to upload it
-
-        // not covered case: FF on OSX
-
-        return retList;
-      }
-
-      scope.onFileChanged = function(files) {
-        scope.onDrop({files: files});
-      };
-
-      // enter
-      element.on('dragover', processDragOver);
-      element.on('dragenter', processDragEnter);
-      // exit
-      element.on('dragleave', processDragLeave);
-
-      element.on('drop', scope.processDrop);
-    }
-  };
-});
-
-
-clbErrorDialog.$inject = ['$uibModal', 'clbError'];angular.module('clb-ui-error')
-.factory('clbErrorDialog', clbErrorDialog);
-
-/**
- * The factory ``clbUiError`` instantiates modal error dialogs.
- * Notify the user about the given error.
- * @name clbError
- * @memberof module:clb-ui-error
- * @param  {object} $uibModal Angular DI
- * @param  {object} clbError  Angular DI
- * @return {object}           Angular Factory
- */
-function clbErrorDialog($uibModal, clbError) {
-  return {
-    open: open
-  };
 
   /**
-   * Open an error modal dialog
-   * @param  {HBPError} error The error do displays
-   * @param  {object} options Any options will be passed to $uibModal.open
-   * @return {Promse}         The result of $uibModal.open
+   * @class ResultSet
+   * @memberof module:clb-rest.clbResultSet
+   * @desc
+   * Build a result set with internal support for fetching next and previous results.
+   *
+   * @param {Object} pRes the promise of the first result page
+   * @param {Object} options various options to specify how to handle the pagination
+   * @see {module:clb-rest.clbResultSet.get}
    */
-  function open(error, options) {
+  function ResultSet(pRes, options) {
+    var self = this;
+    // Hold call to next and previous when using customization.
+    var wrappedNextCall;
+    var wrappedPreviousCall;
+
+    /**
+     * The array containing all fetched results. Previous pages are added
+     * to the beginning of the results, next pages at the end.
+     * @type {array}
+     */
+    self.results = [];
+    /**
+     * Define with the last ClbError instance that occured.
+     * @type {module:clb-error.ClbError}
+     */
+    self.error = null;
+    /**
+     * ``true`` if there is more results to be loaded.
+     * @type {Boolean}
+     */
+    self.hasNext = null;
+    /**
+     * ``true`` if there is previous page to be loaded.
+     * @type {Boolean}
+     */
+    self.hasPrevious = null;
+    /**
+     * The promise associated with the last operation in the queue.
+     * @type {Promise}
+     */
+    self.promise = null;
+    /**
+     * A function that handle any error during an operation.
+     * @type {Function}
+     */
+    self.errorHandler = null;
+    self.next = enqueue(next);
+    self.previous = enqueue(previous);
+    self.toArray = enqueue(toArray);
+    self.all = enqueue(all);
+    self.count = -1;
+
     options = angular.extend({
-      template:'<div class="error-dialog panel panel-danger"><div class=panel-heading><h4>{{vm.error.type}}</h4></div><div class=panel-body><p>{{vm.error.message}}</p></div><div class=panel-footer><div><button type=button ng-click=$close(true) class="btn btn-primary"><span class="glyphicon glyphicon-remove"></span> Close</button> <button type=button class="btn btn-default pull-right" ng-click="isErrorSourceDisplayed = !isErrorSourceDisplayed">{{isErrorSourceDisplayed ? \'Hide\' : \'Show\'}} scary details <span class=caret></span></button></div><div uib-collapse=!isErrorSourceDisplayed><h5>Error Type</h5><pre>{{vm.error.type}}</pre><h6>Error Code</h6><pre>{{vm.error.code}}</pre><h6>Message</h6><pre>{{vm.error.message}}</pre><div ng-if=vm.error.data><h6>Data</h6><pre>{{vm.error.data}}</pre></div><div><h6>Stack Trace</h6><pre>{{vm.error.stack}}</pre></div></div></div></div>',
-      class: 'error-dialog',
-      controller: function() {
-        var vm = this;
-        vm.error = clbError.error(error);
+      resultKey: 'results',
+      nextUrlKey: 'next',
+      hasNextHandler: function(rs) {
+        // by default, has next is defined if the received data
+        // defines a next URL.
+        return Boolean(at(rs, options.nextUrlKey));
       },
-      controllerAs: 'vm',
-      bindToController: true
+      previousUrlKey: 'previous',
+      hasPreviousHandler: function(rs) {
+        // by default, has previous is defined if the received data
+        // defines a next URL.
+        return Boolean(at(rs, options.previousUrlKey));
+      },
+      countKey: 'count'
     }, options);
-    return $uibModal.open(options);
-  }
-}
 
-angular.module('clb-ui-error')
-.directive('clbErrorMessage', clbErrorMessage);
+    self.promise = $q.when(pRes)
+    .then(initialize)
+    .catch(handleError);
+    self.promise.instance = self;
 
-/**
- * The ``clb-error-message`` directive displays an error.
- *
- *
- * clb-error is a HbpError instance, built by the HbpErrorService
- *
- * @namespace clbErrorMessage
- * @memberof module:clb-ui-error
- * @example <caption>Retrieve the current context object</caption>
- * <div ng-controller='SomeController'>
- *   Validation error:
- *   <clb-error-message clb-error='error'></clb-error-message>
- *   Permission denied error:
- *   <clb-error-message clb-error='errorPermissions'></clb-error-message>
- * </div>
- * @return {object} The directive
- **/
-function clbErrorMessage() {
-  return {
-    restrict: 'E',
-    scope: {
-      error: '=?clbError'
-    },
-    template:'<uib-alert type=danger ng-if=error><div ng-switch on=error.type><div ng-switch-when=Validation>Validation errors<span ng-show=error.data>:</span><ul><li ng-repeat="(attr, errors) in error.data">{{attr}}: {{errors.join(\', \')}}</li></ul></div><div ng-switch-default>{{error.message}}</div></div></uib-alert>'
-  };
-}
-
-/**
- * @namespace clbFormControlFocus
- * @memberof module:clb-ui-form
- * @desc
- * The ``clbFormControlFocus`` Directive mark a form element as the one that
- * should receive the focus first.
- * @example <caption>Give the focus to the search field</caption>
- * angular.module('exampleApp', ['clb-ui-form']);
- *
- * // HTML snippet:
- * // <form ng-app="exampleApp"><input type="search" clb-ui-form-control-focus></form>
- */
-angular.module('clb-ui-form')
-.directive('clbFormControlFocus', ['$timeout', function clbFormControlFocus($timeout) {
-  return {
-    type: 'A',
-    link: function formControlFocusLink(scope, elt) {
-      $timeout(function() {
-        elt[0].focus();
-      }, 0, false);
+    /**
+     * @name next
+     * @memberof module:clb-rest.ResultSet
+     * @desc
+     * Retrieve the next result page.
+     * @memberof module:clb-rest.clbResultSet.ResultSet
+     *
+     * @return {Object} a promise that will resolve when the next page is fetched.
+     */
+    function next() {
+      if (!self.hasNext) {
+        return $q.reject(ResultSetEOL);
+      }
+      var promise = (options.nextHandler ?
+        wrappedNextCall() :
+        $http.get(self.nextUrl)
+      );
+      return promise.then(handleNextResults);
     }
-  };
-}]);
 
-/**
- * @namespace clbFormGroupState
- * @memberof module:clb-ui-form
- * @desc
- * ``clbFormGroupState`` directive flag the current form group with
- * the class has-error or has-success depending on its form field
- * current state.
- *
- * @example
- * <caption>Track a field validity at the ``.form-group`` level</caption>
- * angular.module('exampleApp', ['hbpCollaboratory']);
- */
-angular.module('clb-ui-form')
-.directive('clbFormGroupState', function formGroupState() {
-  return {
-    type: 'A',
-    scope: {
-      model: '=clbFormGroupState'
-    },
-    link: function formGroupStateLink(scope, elt) {
-      scope.$watchGroup(['model.$touched', 'model.$valid'], function() {
-        if (!scope.model) {
-          return;
-        }
-        elt.removeClass('has-error', 'has-success');
-        if (!scope.model.$touched) {
-          return;
-        }
-        if (scope.model.$valid) {
-          elt.addClass('has-success');
-        } else {
-          elt.addClass('has-error');
-        }
-      }, true);
+    /**
+     * @name previous
+     * @memberof module:clb-rest.ResultSet
+     * @desc
+     * Retrieve the previous result page
+     *
+     * @return {Object} a promise that will resolve when the previous page is fetched.
+     */
+    function previous() {
+      if (!self.hasPrevious) {
+        return $q.reject(ResultSetEOL);
+      }
+      var promise = (options.previousHandler ?
+        wrappedPreviousCall() :
+        $http.get(self.previousUrl)
+      );
+      return promise.then(handlePreviousResults);
     }
-  };
-});
 
-angular.module('clb-ui-loading')
-.directive('clbLoading', clbLoading);
+    /**
+     * @name toArray
+     * @memberof module:clb-rest.ResultSet
+     * @desc
+     * Retrieve an array containing ALL the results. Beware that this
+     * can be very long to resolve depending on your dataset.
+     *
+     * @return {Promise} a promise that will resolve to the array when
+     * all data has been fetched.
+     */
+    function toArray() {
+      return all().then(function() {
+        return self.results.slice();
+      });
+    }
 
-/**
- * The directive clbLoading displays a simple loading message. If a promise
- * is given, the loading indicator will disappear once it is resolved.
- *
- * Attributes
- * ----------
- *
- * =======================  ===================================================
- * Name                     Description
- * =======================  ===================================================
- * {Promise} [clb-promise]  Hide the loading message upon fulfilment.
- * {string} [clb-message]   Displayed loading string (default=``'loading...'``)
- *
- * @memberof module:clb-ui-loading
- * @return {object} Angular directive descriptor
- * @example <caption>Directive Usage Example</caption>
- * <hbp-loading hbp-promise="myAsyncFunc()" hbp-message="'Loading My Async Func'">
- * </hbp-loading>
- */
-function clbLoading() {
-  return {
-    restrict: 'E',
-    scope: {
-      promise: '=?clbPromise',
-      message: '=?clbMessage'
-    },
-    template:'<div class=clb-loading ng-if=loading><span class="glyphicon glyphicon-refresh clb-spinning"></span> {{message}}</div>',
-    link: function(scope) {
-      scope.loading = true;
-      scope.message = scope.message || 'Loading...';
-      if (scope.promise) {
-        var complete = function() {
-          scope.loading = false;
+    /**
+     * Load all pages.
+     * @memberof module:clb-rest.ResultSet
+     * @return {Promise} Resolve once everything is loaded
+     */
+    function all() {
+      if (self.hasNext) {
+        return next().then(all);
+      }
+      return $q.when(self);
+    }
+
+    /**
+     * parse the next result set according to options.
+     * @param  {HTTPResponse} res response containing the results.
+     * @return {ResultSet} self for chaining
+     * @private
+     */
+    function handleNextResults(res) {
+      var rs = res.data;
+      var result = at(rs, options.resultKey);
+
+      var fResult;
+      if (options.resultsFactory) {
+        fResult = options.resultsFactory(result, rs);
+      }
+      return $q.when(fResult)
+      .then(function(computedResult) {
+        self.results.push.apply(self.results, (computedResult || result));
+        counting(rs);
+        bindNext(rs);
+        return self;
+      });
+    }
+
+    /**
+     * parse the previous result set according to options.
+     * @param  {HTTPResponse} res response containing the results.
+     * @return {ResultSet} self for chaining
+     * @private
+     */
+    function handlePreviousResults(res) {
+      var rs = res.data;
+      var result = at(rs, options.resultKey);
+      var fResult;
+      if (options.resultsFactory) {
+        fResult = options.resultsFactory(result, rs);
+      }
+      return $q.when(fResult)
+      .then(function(computedResult) {
+        self.results.unshift.apply(self.results, (computedResult || result));
+        counting(rs);
+        bindPrevious(rs);
+        return self;
+      });
+    }
+
+    /**
+     * @name at
+     * @desc
+     * Lodash 'at' function replacement. This is needed because the 'at' function
+     * supports Object as first arg only starting from v4.0.0.
+     * Migration to that version has big impacts.
+     *
+     * See: https://lodash.com/docs#at
+     * @param {object} obj the object to search in
+     * @param {string} desc the dotted path to the location
+     * @return {instance} the found value
+     * @private
+     */
+    function at(obj, desc) {
+      var arr = desc.split('.');
+      while (arr.length && obj) {
+        obj = obj[arr.shift()];
+      }
+      return obj;
+    }
+
+    /**
+     * Handle an error retrieved by calling
+     * ``options.errorHandler``, passing the ``ClbError`` instance in parameter
+     * if ``options.errorHandler`` is a function.
+     * Then reject the current request with the same error instance.
+     * @param  {object} res the HTTP error object
+     * @return {Promise} rejected Promise with the error.
+     * @private
+     */
+    function handleError(res) {
+      self.error = clbError.httpError(res);
+      if (angular.isFunction(options.errorHandler)) {
+        options.errorHandler(self.error);
+      }
+      return $q.reject(self.error);
+    }
+
+    /**
+     * Configure the next page state of the result set.
+     * @param  {object} rs the last page results.
+     * @private
+     */
+    function bindNext(rs) {
+      self.hasNext = options.hasNextHandler(rs);
+      if (options.nextHandler) {
+        wrappedNextCall = function() {
+          return options.nextHandler(rs);
         };
-        scope.promise.then(complete, complete);
+      } else if (self.hasNext) {
+        self.nextUrl = at(rs, options.nextUrlKey);
+      } else {
+        self.nextUrl = null;
       }
     }
-  };
-}
 
-
-ActivityController.$inject = ['$log', 'clbResourceLocator'];angular.module('clb-ui-stream')
-.directive('clbActivity', clbActivity);
-
-/**
- * @name clbActivity
- * @desc
- * ``clb-activity`` directive is displays an activity retrieved by
- * the HBP Stream service in a common way.
- *
- * It try to look up for a detailled description of the event and fallback
- * to the summary if he cannot.
- *
- * @memberof module:clb-ui-stream
- * @return {object} the directive
- */
-function clbActivity() {
-  return {
-    restrict: 'A',
-    scope: {
-      activity: '=clbActivity'
-    },
-    controller: ActivityController,
-    controllerAs: 'vm',
-    bindToController: true,
-    template:'<span class=clb-activity-time am-time-ago=vm.activity.time></span><div class=clearfix></div><a class=clb-activity-summary ng-href={{vm.primaryLink}}>{{vm.activity.summary}}</a>',
-    link: {
-      post: function(scope, elt, attr, ctrl) {
-        elt.addClass('clb-activity').addClass(ctrl.verbClass);
-        scope.$watch('vm.activity.verb', function(newVal) {
-          if (newVal) {
-            elt.addClass('clb-activity-' + newVal.toLowerCase());
-          }
-        });
+    /**
+     * Configure the previous page state of the result set.
+     * @param  {object} rs the last page results.
+     * @private
+     */
+    function bindPrevious(rs) {
+      self.hasPrevious = options.hasPreviousHandler(rs);
+      if (options.previousHandler) {
+        wrappedPreviousCall = function() {
+          return options.previousHandler(rs);
+        };
+      } else if (self.hasPrevious) {
+        self.previousUrl = at(rs, options.previousUrlKey);
+      } else {
+        self.previousUrl = null;
       }
     }
-  };
-}
 
-/**
- * ViewModel of an activity used to render the clb-activity directive
- * @param {object} $log angular injection
- * @param {object} clbResourceLocator angular injection
- */
-function ActivityController($log, clbResourceLocator) {
-  var vm = this;
-
-  activate();
-
-  /* ------------- */
-  /**
-   * init controller
-   */
-  function activate() {
-    clbResourceLocator.urlFor(vm.activity.object)
-    .then(function(url) {
-      vm.primaryLink = url;
-    })
-    .catch(function(err) {
-      $log.error(err);
-    });
-  }
-}
-
-
-FeedController.$inject = ['$log', 'clbStream'];angular.module('clb-ui-stream')
-.directive('clbFeed', clbFeed);
-
-/**
- * @name clbFeed
- * @desc
- * ``clb-feed`` directive displays a feed of activity retrieved by
- * the HBP Stream service. It handles scrolling and loading of activities.
- * Each activity is rendered using the ``clb-activity`` directive.
- *
- * @memberof module:clb-ui-stream
- * @return {object} the directive
- */
-function clbFeed() {
-  return {
-    restrict: 'E',
-    scope: {
-      feedType: '=clbFeedType',
-      feedId: '=clbFeedId'
-    },
-    controller: FeedController,
-    controllerAs: 'vm',
-    bindToController: true,
-    template:'<ul class="feed list-unstyled" ng-class="{\'feed-empty\': vm.activities.results.length === 0}"><li ng-if=vm.error><div class="alert alert-warning"><strong>Load Error:</strong> {{vm.error}}</div></li><li ng-if="!vm.activities && !vm.error"><hbp-loading></hbp-loading></li><li ng-if="vm.activities.results.length === 0"><div class="alert alert-info">Nothing new</div></li><li ng-repeat="a in vm.activities.results" clb-activity=a class=clb-activity-item></li><li ng-if=vm.activities.hasNext><a href=# class="btn btn-default">More</a></li></ul>',
-    link: function(scope, elt) {
-      elt.addClass('clb-feed');
+    /**
+     * Set the current count of results.
+     * @param  {object} rs the last page results.
+     * @private
+     */
+    function counting(rs) {
+      var c = at(rs, options.countKey);
+      if (angular.isDefined(c)) {
+        self.count = c;
+      }
     }
-  };
-}
 
-/**
- * ViewModel of an activity used to render the clb-activity directive
- * @param {object} $log angular injection
- * @param {object} clbStream angular injection
- */
-function FeedController($log, clbStream) {
-  var vm = this;
+    /**
+     * Ensure that we don't mess with query result order.
+     * @param  {Function} fn the next function to run once all pending calls
+     *                       have been resolved.
+     * @return {Promise}     the promise will resolve when this function had run.
+     * @private
+     */
+    function enqueue(fn) {
+      return function() {
+        self.promise = $q
+        .when(self.promise.then(fn))
+        .catch(handleError);
+        self.promise.instance = self;
+        return self.promise;
+      };
+    }
 
-  activate();
-
-  /* ------------- */
-  /**
-   * init controller
-   */
-  function activate() {
-    clbStream.getStream(vm.feedType, vm.feedId).then(function(rs) {
-      vm.activities = rs;
-    })
-    .catch(function(err) {
-      vm.error = err.message;
-    });
+    /**
+     * Bootstrap the pagination.
+     * @param  {HTTPResponse|Promise} res Angular HTTP Response
+     * @return {ResultSet} self for chaining
+     * @private
+     */
+    function initialize(res) {
+      return handleNextResults(res)
+      .then(function() {
+        bindPrevious(res.data);
+        return self;
+      });
+    }
   }
 }
 
@@ -4565,6 +3404,7 @@ function clbStorage(
     getChildren: getChildren,
     getUserAccess: getUserAccess,
     getAncestors: getAncestors,
+    isContainer: isContainer,
     copy: copy,
     create: create,
     delete: deleteEntity,
@@ -4600,6 +3440,7 @@ function clbStorage(
         message: 'locator argument is mandatory'
       }));
     }
+    $log.debug('clbStorage.getEntity using locator', locator);
     if (angular.isString(locator) && uuid4.validate(locator)) {
       return getEntityByUUID(locator);
     }
@@ -4669,6 +3510,7 @@ function clbStorage(
    * @return {Promise}      Return the results
    */
   function query(params) {
+    $log.debug('clbStorage.query with', params);
     return $http.get(entityUrl + '/', {
       params: params
     }).then(function(response) {
@@ -5216,6 +4058,16 @@ function clbStorage(
   }
 
   /**
+   * Return true if the entity is a container (e.g.: a project, a folder, ...)
+   * @param  {EntityDescriptor} entity The entity to evaluate
+   * @return {Boolean}                 Return true if it is a container
+   */
+  function isContainer(entity) {
+    return Boolean(entity._entityType &&
+      entity._entityType.match(/project|folder/));
+  }
+
+  /**
    * Retrieve an array of entities from root to the current entity
    * (where `root` and `entity` are omitted).
    * @function
@@ -5271,6 +4123,1178 @@ function clbStorage(
       return baseUrl + response.data.signed_url;
     }).catch(clbError.rejectHttpError);
   }
+}
+
+angular.module('clb-ui-file-browser')
+.directive('clbFileBrowserFolder', clbFileBrowserFolder);
+
+/**
+ * @namespace clbFileBrowserFolder
+ * @desc
+ * clbFileBrowserFolder directive is a child directive of
+ * clbFileBrowser that render a folder item within the file browser view.
+ *
+ * Available attributes:
+ *
+ * - clb-ui-file-browser-folder: the folder entity
+ * - [clb-ui-file-browser-folder-icon]: a class name to display an icon
+ * - [clb-ui-file-browser-folder-label]: a label name (default to folder._name)
+ *
+ * @example
+ * <!-- minimal -->
+ * <div clb-ui-file-browser-folder="folderEntity"></div>
+ * <!-- all wings out -->
+ * <div clb-ui-file-browser-folder="folderEntity"
+ *      clb-ui-file-browser-folder-icon="fa fa-level-up"
+ *      clb-ui-file-browser-label="up"></div>
+ *
+ * @memberof module:clb-ui-file-browser.clbFileBrowser
+ * @return {object} Angular Directive
+ */
+function clbFileBrowserFolder() {
+  return {
+    restrict: 'A',
+    require: '^clbFileBrowser',
+    template:'<div class="clb-file-browser-item clb-file-browser-folder" ng-dblclick=browserView.handleNavigation(folder) ng-click=browserView.handleFocus(folder) hbp-on-touch=browserView.handleNavigation(folder) ng-class="{\'clb-file-browser-item-selected\': browserView.selectedEntity === folder}"><div class=clb-file-browser-label><i class=fa ng-class="folderIcon ? folderIcon : \'fa-folder\'"></i><span>{{folderLabel || folder._name}}</span></div></div>',
+    scope: {
+      folder: '=clbFileBrowserFolder',
+      folderIcon: '@clbFileBrowserFolderIcon',
+      folderLabel: '@clbFileBrowserFolderLabel'
+    },
+    link: function(scope, element, attrs, ctrl) {
+      // make the parent directive controller available in the scope
+      scope.browserView = ctrl;
+    }
+  };
+}
+
+
+clbFileBrowserPath.$inject = ['clbStorage'];angular.module('clb-ui-file-browser')
+.directive('clbFileBrowserPath', clbFileBrowserPath);
+
+/**
+ * @namespace clbFileBrowserPath
+ * @desc
+ * clbFileBrowserPath directive is a child of clbFileBrowser directive
+ * that renders the breadcrumb according to the file browser setup.
+ *
+ * @example
+ * <clb-file-browser-path></clb-file-browser-path>
+ *
+ * @memberof module:clb-ui-file-browser.clbFileBrowser
+ * @param  {object} clbStorage Angular DI
+ * @return {object} Angular Directive
+ */
+function clbFileBrowserPath(clbStorage) {
+  return {
+    restrict: 'E',
+    require: '^clbFileBrowser',
+    template:'<ul class="breadcrumb clb-file-browser-path"><li class=root ng-if=!browserView.isRoot><a ng-click=browserView.handleNavigation(browserView.rootEntity)>{{browserView.rootEntity._name || \'[top]\'}}</a></li><li ng-repeat="entity in ancestors"><a ng-click=browserView.handleNavigation(entity)>{{entity._name}}</a></li><li><span class=active>{{browserView.currentEntity._name || \'[top]\'}}</span></li></ul>',
+    link: function(scope, element, attrs, ctrl) {
+      var handleAncestors = function(ancestors) {
+        scope.ancestors = ancestors;
+      };
+
+      var update = function() {
+        if (ctrl.currentEntity) {
+          clbStorage.getAncestors(ctrl.currentEntity, ctrl.rootEntity)
+          .then(handleAncestors, ctrl.setError);
+        } else {
+          handleAncestors(null);
+        }
+      };
+
+      scope.browserView = ctrl;
+
+      scope.$watch('browserView.currentEntity', function(value) {
+        update(value);
+      });
+    }
+  };
+}
+
+angular.module('clb-ui-file-browser')
+.run(['$templateCache', function($templateCache) {
+  // During the build, templateUrl will be replaced by the inline template.
+  // We need to inject it in template cache as it is used for displaying
+  // the tooltip. Does it smell like a hack? sure, it is a hack!
+  var injector = {
+    template:'<div ng-init=browserView.defineThumbnailUrl(file)><div class="file-browser-thumbnail thumbnail" ng-if=browserView.thumbnailUrl aria-hidden=true><img ng-src={{browserView.thumbnailUrl}}></div>{{file._name}}</div>'
+  };
+  // If defined, it means that the template has been inlined during build.
+  if (injector.template) {
+    $templateCache.put('file-browser-tooltip.tpl.html', injector.template);
+  }
+}]);
+
+
+clbFileBrowser.$inject = ['lodash'];angular.module('clb-ui-file-browser')
+.directive('clbFileBrowser', clbFileBrowser);
+
+// --------------- //
+
+/**
+ * @namespace clbFileBrowser
+ * @desc
+ * clbFileBrowser Directive
+ *
+ * This directive renders a file browser. It handles creation of folder,
+ * mutliple file uploads and selection of entity. Focus selection change can be
+ * detected by listening to the event ``clbFileBrowser:focusChanged``.
+ *
+ *
+ * Attributes
+ * ----------
+ *
+ * ===================================  ==========================================================
+ * Parameter                            Description
+ * ===================================  ==========================================================
+ * ``{EntityDescriptor} [clb-root]``    A project or a folder that will be the root of the tree.
+ * ``{EntityDescriptor} [clb-entity]``  The selected entity.
+ * ===================================  ==========================================================
+ *
+ *
+ * Events
+ * ------
+ *
+ * ================================  ==========================================================
+ * clbFileBrowser:focusChanged       Emitted when the user focus a new file or folder
+ * clbFileBrowser:startCreateFolder  Emitted when the user start to create a new folder
+ * ================================  ==========================================================
+ *
+ * @example <caption>Simple directive usage</caption>
+ * <clb-file-browser clb-root="someProjectEntity"
+ *                   clb-entity="someSubFolderEntity">
+ * </clb-file-browser>
+ *
+ * @memberof module:clb-ui-file-browser
+ * @return {object} Angular Directive
+ * @param {object} lodash Angular DI
+ */
+function clbFileBrowser(lodash) {
+  FileBrowserViewModel.$inject = ['$scope', '$log', '$q', '$timeout', 'clbStorage'];
+  return {
+    restrict: 'E',
+    scope: {
+      entity: '=?clbEntity',
+      root: '=clbRoot'
+    },
+    template:'<div class=clb-file-browser in-view-container ng-click=selectItem()><clb-error-message clb-error=browserView.error></clb-error-message><div class="navbar navbar-default"><div class=container-fluid><div class="nav navbar-nav navbar-text"><clb-file-browser-path></clb-file-browser-path></div><div class="dropdown nav navbar-nav pull-right" uib-dropdown ng-if=browserView.canEdit><button type=button href class="btn btn-default navbar-btn dropdown-toggle" uib-dropdown-toggle><span class="glyphicon glyphicon-plus"></span> <span class=caret></span></button><ul class=dropdown-menu role=menu uib-dropdown-menu><li ng-if=browserView.canEdit><a ng-click=browserView.startCreateFolder()><span class="fa fa-folder"></span> Create Folder</a></li><li ng-if=browserView.canEdit><a ng-click="browserView.showFileUpload = true"><span class="fa fa-file"></span> Upload File</a></li></ul></div></div></div><div class=clb-file-browser-content><div ng-if=browserView.isLoading class="alert alert-info" role=alert>Loading...</div><div class=file-browser-upload ng-if=browserView.showFileUpload><button type=button class="btn close pull-right" ng-click="browserView.showFileUpload = false"><span aria-hidden=true>&times;</span><span class=sr-only>Close</span></button><clb-file-upload on-drop=browserView.onFileChanged(files) on-error=browserView.setError(error)></clb-file-upload></div><ul><li ng-if=!browserView.isRoot clb-file-browser-folder=browserView.parent clb-file-browser-folder-label=.. clb-file-browser-folder-icon=fa-level-up></li><li ng-repeat="folder in browserView.folders" clb-file-browser-folder=folder></li><li ng-if=browserView.showCreateFolder class=clb-file-browser-item><div class=clb-file-browser-folder><form class="form form-inline" action=index.html method=post ng-submit=browserView.doCreateFolder($event)><div class=input-group><input type=text class="form-control new-folder-name" name=newFolderName ng-model=browserView.newFolderName> <span class=input-group-btn><input class="btn btn-primary" type=submit name=name value=Ok> <button class="btn btn-default" type=button ng-click=browserView.cancelCreateFolder()><span aria-hidden=true>&times;</span><span class=sr-only>Cancel</span></button></span></div></form></div></li><li class=clb-file-browser-item ng-if=browserView.hasMoreFolders><a class="clb-file-browser-label btn" hbp-perform-action=browserView.loadMoreFolders()><span class="fa fa-refresh"></span> Load More Folders</a></li><li ng-repeat="file in browserView.files" ng-dblclick=browseToEntity(file) ng-click=browserView.handleFocus(file) uib-tooltip-template="\'file-browser-tooltip.tpl.html\'" tooltip-placement=bottom tooltip-popup-delay=600 class=clb-file-browser-item ng-class="{ \'clb-file-browser-item-selected\': browserView.selectedEntity === file }"><div class=clb-file-browser-label><hbp-content-icon content=file._contentType></hbp-content-icon><span>{{file._name || file._uuid}}</span></div></li><li ng-repeat="uploadInfo in browserView.uploads" ng-click=browserView.handleFocus(null) uib-tooltip={{uploadInfo.content.name}} tooltip-placement=bottom tooltip-popup-delay=600 class=clb-file-browser-item ng-class="\'clb-file-browser-state-\' + uploadInfo.state"><div class=clb-file-browser-label><hbp-content-icon content=file._contentType></hbp-content-icon><span>{{uploadInfo.content.name}}</span></div><div class="clb-file-browser-item-upload progress"><div class=progress-bar role=progressbar aria-valuenow={{uploadInfo.progress}} aria-valuemin=0 aria-valuemax=100 style="width: {{uploadInfo.progress.percentage}}%"><span class=sr-only>{{uploadInfo.progress.percentage}}% Complete</span></div></div></li><li class=clb-file-browser-item ng-if=browserView.hasMoreFiles><a class="clb-file-browser-label btn" hbp-perform-action=browserView.loadMoreFiles()><span class="fa fa-refresh"></span> Load more files</a></li></ul></div></div>',
+    link: clbFileBrowserLink,
+    controllerAs: 'browserView',
+    controller: FileBrowserViewModel
+  };
+
+  /**
+   * @namespace FileBrowserViewModel
+   * @desc
+   * ViewModel of the clbFileBrowser directive. This instance is
+   * accessible by all direct children of the file browser.
+   *
+   * It is responsible to handle all the interactions between the user
+   * and the services. It does not update the views directly but sends
+   * the relevant events when necessary.
+   * @memberof module:clb-ui-file-browser.clbFileBrowser
+   * @param {object} $scope     Angular DI
+   * @param {object} $log       Angular DI
+   * @param {object} $q         Angular DI
+   * @param {object} $timeout   Angular DI
+   * @param {object} clbStorage Angular DI
+   */
+  function FileBrowserViewModel(
+    $scope,
+    $log,
+    $q,
+    $timeout,
+    clbStorage
+  ) {
+    var vm = this;
+    vm.currentEntity = null; // the (container) entity that this view currently describe
+    vm.folders = []; // array of displayed folder
+    vm.hasMoreFolders = false;
+    vm.files = [];   // array of displayed files
+    vm.uploads = []; // array of file currently uploading
+    vm.hasMoreFiles = false;
+    vm.selectedEntity = null; // currently focused entity
+    vm.rootEntity = null; // the top level entity;
+    vm.isRoot = true;
+    vm.error = null;
+    vm.isLoading = true;
+    vm.canEdit = false;
+    vm.thumbnailUrl = null; // current file thumbnail if any
+
+    vm.init = init;
+    vm.handleFocus = handleFocusEvent;
+    vm.handleNavigation = handleNavigationEvent;
+    vm.loadMoreFiles = loadMoreFiles;
+    vm.loadMoreFolders = loadMoreFolders;
+    vm.onFileChanged = onFileChanged;
+    vm.startCreateFolder = startCreateFolder;
+    vm.doCreateFolder = doCreateFolder;
+    vm.cancelCreateFolder = cancelCreateFolder;
+    vm.defineThumbnailUrl = defineThumbnailUrl;
+
+    // ---------------- //
+
+    var currentUpdate;
+    var folderLoader;
+    var fileLoader;
+
+    /**
+     * Initialize the controller
+     * @param  {EntityDescriptor} rootEntity    Cannot get past this ancestor
+     * @param  {EntityDescriptor} currentEntity The selected entity
+     * @private
+     */
+    function init(rootEntity, currentEntity) {
+      vm.rootEntity = rootEntity;
+      currentUpdate = update(currentEntity || rootEntity);
+    }
+
+    /**
+     * @method handleFocus
+     * @desc
+     * When the user focus on a browser item,
+     * emit a 'clbFileBrowser:focusChanged' event.
+     *
+     * The event signature is (event, newEntity, previousEntity).
+     *
+     * @param  {Object} entity selected entity
+     * @memberof module:clb-ui-file-browser.clbFileBrowser.FileBrowserViewModel
+     */
+    function handleFocusEvent(entity) {
+      if (entity === vm.selectedEntity) {
+        return;
+      }
+      $scope.$emit('clbFileBrowser:focusChanged', entity, vm.selectedEntity);
+      vm.selectedEntity = entity;
+    }
+
+    /**
+     * @method handleNavigation
+     * @desc When the current context change, trigger a navigation update.
+     *
+     * This will render the view for the new current entity. All navigations
+     * are chained to ensure that the future view will end in a consistant
+     * state. As multiple requests are needed to render a view, request result
+     * would sometimes finish after a new navigation event already occured.
+     *
+     * @param  {Object} entity the new current entity
+     * @return {promise} resolve when the navigation is done.
+     * @memberof module:clb-ui-file-browser.clbFileBrowser.FileBrowserViewModel
+     */
+    function handleNavigationEvent(entity) {
+      if (angular.isUndefined(entity) || entity === vm.currentEntity) {
+        return;
+      }
+      currentUpdate = currentUpdate.finally(function() {
+        return update(entity);
+      });
+      return currentUpdate;
+    }
+
+    /**
+     * Handle error case
+     * @private
+     * @param {object} err The error to set
+     */
+    function setError(err) {
+      $log.error('error catched by file browser:', err);
+      vm.error = err;
+      vm.isLoading = false;
+    }
+
+    /**
+     * @private
+     */
+    function startCreateFolder() {
+      vm.showCreateFolder = true;
+      $timeout(function() {
+        // the event is captured by the directive scope in order to update
+        // the DOM. I choose to not update the DOM in the ViewModel but
+        // rather in the directive link function.
+        $scope.$emit('clbFileBrowser:startCreateFolder');
+      });
+    }
+
+    /**
+     * @private
+     * @param  {Event} $event The browser event
+     */
+    function doCreateFolder($event) {
+      $event.preventDefault();
+      clbStorage.create('folder', vm.currentEntity, vm.newFolderName)
+      .then(function(entity) {
+        vm.newFolderName = '';
+        return update(entity);
+      })
+      .then(function() {
+        vm.showFileUpload = true;
+      })
+      .catch(setError);
+    }
+
+    /**
+     * @private
+     */
+    function cancelCreateFolder() {
+      vm.newFolderName = '';
+      vm.showCreateFolder = false;
+    }
+
+    /**
+     * Promise fulfilment contains the nearest container. Either the current
+     * entity if it is a container, or its parent.
+     * @param  {EntityDescriptor} entity The starting point entity
+     * @return {Promise}          Fulfilment of the promise retrieve a container entity
+     */
+    function nearestContainer(entity) {
+      if (!entity) {
+        return $q.when(null);
+      }
+      if (clbStorage.isContainer(entity)) {
+        return $q.when(entity);
+      }
+      // Set the currentEntity to the parent and then focus the file
+      return clbStorage.getEntity(entity._parent);
+    }
+
+    /**
+     * [update description]
+     * @param  {EntityDescriptor} entity [description]
+     * @return {Promise}        Resolve after update completion
+     */
+    function update(entity) {
+      return nearestContainer(entity).then(function(container) {
+        vm.isLoading = true;
+        vm.currentEntity = container;
+        vm.selectedEntity = entity;
+        vm.error = null;
+        vm.parent = null;
+        vm.files = null;
+        vm.folders = null;
+        vm.uploads = [];
+        vm.showFileUpload = false;
+        vm.showCreateFolder = false;
+        assignIsRoot(container);
+        assignCanEdit(container);
+
+        // special exit case for the storage root
+        if (!container) {
+          return clbStorage.getChildren(null)
+          .then(function(rs) {
+            return rs.toArray();
+          })
+          .then(function(projects) {
+            vm.folders = projects;
+            vm.isLoading = false;
+          })
+          .catch(setError);
+        }
+
+        var promises = [];
+
+        // define the new parent entity
+        if (!vm.isRoot && container._parent) {
+          promises.push(
+            clbStorage.getEntity(container._parent).then(assignParentEntity)
+          );
+        }
+
+        // define the view folders
+        folderLoader = clbStorage.getChildren(container, {
+          accept: ['folder'],
+          acceptLink: false
+        }).instance;
+        vm.folders = folderLoader.results;
+        promises.push(
+          folderLoader.promise
+          .then(afterLoadFolders)
+        );
+
+        fileLoader = clbStorage.getChildren(container, {
+          accept: ['file'],
+          acceptLink: false
+        }).instance;
+        vm.files = fileLoader.results;
+        promises.push(
+          fileLoader.promise
+          .then(afterLoadFiles)
+        );
+
+        return $q.all(promises).then(function() {
+          vm.isLoading = false;
+        });
+      })
+      .catch(setError);
+    }
+
+    /**
+     * Load the next page of file entities for the current entity.
+     *
+     * @return {Promise} resolve when the files are loaded
+     * @memberof module:clb-ui-file-browser.clbFileBrowser.FileBrowserViewModel
+     */
+    function loadMoreFiles() {
+      return fileLoader.next()
+      .then(afterLoadFiles)
+      .catch(setError);
+    }
+
+    /**
+     * Load the next page of folder entities for the current entity.
+     *
+     * @return {Promise} resolve when the folders are loaded
+     * @memberof module:clb-ui-file-browser.clbFileBrowser.FileBrowserViewModel
+     */
+    function loadMoreFolders() {
+      return folderLoader.next()
+      .then(afterLoadFolders)
+      .catch(setError);
+    }
+
+    /**
+     * @private
+     */
+    function afterLoadFiles() {
+      vm.hasMoreFiles = fileLoader.hasNext;
+    }
+
+    /**
+     * @private
+     */
+    function afterLoadFolders() {
+      vm.hasMoreFolders = folderLoader.hasNext;
+    }
+
+    /**
+     * @private
+     * @param  {EntityDescriptor} entity [description]
+     */
+    function assignIsRoot(entity) {
+      if (!entity) {
+        vm.isRoot = true;
+      } else if (vm.rootEntity) {
+        vm.isRoot = (entity._uuid === vm.rootEntity._uuid);
+      } else {
+        vm.isRoot = false;
+      }
+    }
+
+    /**
+     * @private
+     * @param  {EntityDescriptor} entity The parent entity
+     */
+    function assignParentEntity(entity) {
+      vm.parent = entity;
+    }
+
+    /**
+     * Upload files that the user just added to the uploader widget.
+     *
+     * @param  {Array} files array of File
+     */
+    function onFileChanged(files) {
+      lodash.each(files, function(f) {
+        upload(f)
+        .then(function(entity) {
+          vm.files.push(entity);
+        });
+      });
+      vm.showFileUpload = false;
+    }
+
+    /**
+     * Create a file entity and upload its associated content.
+     *
+     * @param  {File} file the file to create and upload
+     * @return {Promise} resolve when the file has been uploaded
+     */
+    function upload(file) {
+      var uploadInfo = {
+        content: file,
+        state: null
+      };
+      vm.uploads.push(uploadInfo);
+      return clbStorage.upload(file, {
+        parent: vm.currentEntity
+      })
+      .then(function(entity) {
+        // update file status
+        file.state = 'success';
+        lodash.remove(vm.uploads, function(info) {
+          return info === uploadInfo;
+        });
+        return entity;
+      }, function(err) {
+        $log.error('upload error:', err);
+        uploadInfo.state = 'error';
+        setError(err);
+        return $q.reject(err);
+      }, function(progressEvent) {
+        if (progressEvent && progressEvent.lengthComputable) {
+          // update file status
+          uploadInfo.state = 'progress';
+          uploadInfo.progress = progressEvent;
+          uploadInfo.progress.percentage = (progressEvent.loaded * 100) /
+            progressEvent.total;
+        }
+      });
+    }
+
+    /**
+     * Set the thumbnailUrl.
+     * @param  {EntityDescriptor} file a file entity
+     */
+    function defineThumbnailUrl(file) {
+      vm.thumbnailUrl = null;
+      if (file._contentType && file._contentType.match(/^image\//)) {
+        clbStorage.downloadUrl(file).then(function(res) {
+          vm.thumbnailUrl = res;
+        });
+      }
+    }
+
+    var lastAssignCanEditRequest = $q.when();
+    /**
+     * @private
+     * @param  {EntityDescriptor} entity a file entity
+     * @return {Promise}        [description]
+     */
+    function assignCanEdit(entity) {
+      lastAssignCanEditRequest = lastAssignCanEditRequest
+      .then(function() {
+        if (!entity) {
+          vm.canEdit = false;
+          return;
+        }
+        return clbStorage.getUserAccess(entity).then(function(acl) {
+          vm.canEdit = acl.canWrite;
+        });
+      });
+      return lastAssignCanEditRequest;
+    }
+  }
+}
+
+/**
+ * @private
+ * @param  {object} scope   Angular DI
+ * @param  {Element} elt    Angular DI
+ * @param  {object} attrs   Angular DI
+ * @param  {object} ctrl    Angular DI
+ */
+function clbFileBrowserLink(scope, elt, attrs, ctrl) {
+  // run the init function once, when the root has been defined.
+  // this ensure the main page is not loaded first with all projects,
+  // then with the correct root.
+  var delWaitForRootWatcher = scope.$watch('root', function(root) {
+    if (angular.isUndefined(root)) {
+      return;
+    }
+    ctrl.init(root, scope.entity);
+    var delEntityWatcher = scope.$watch('entity', function(value) {
+      ctrl.handleNavigation(value);
+    });
+    scope.$on('$destroy', delEntityWatcher);
+    delWaitForRootWatcher();
+  });
+  scope.$on('$destroy', delWaitForRootWatcher);
+  scope.$on('clbFileBrowser:startCreateFolder', function(evt) {
+    evt.preventDefault();
+    elt[0].querySelector('.new-folder-name').focus();
+  });
+}
+
+/**
+ * @namespace clbFileUpload
+ * @desc
+ * clbFileUpload directive.
+ *
+ * Provide an upload widget where user can stack files that should be
+ * uploaded at some point. The directive doesn't proceed to upload by itself
+ * but rather triggers the onDrop callback.
+ *
+ * The directive accepts the following attributes:
+ *
+ * - on-drop: a function to call when one or more files are dropped or selected
+ * the callback will receive an array of File instance.
+ * - on-error: a function to call when an error occurs. It receives an HbpError
+ * instance in parameter.
+ *
+ * @example
+ * <clb-file-upload on-drop="handleFileUpload(files)"
+ *                       on-error="handleError(error)">
+ * </clb-file-upload>
+ * @memberof module:clb-ui-file-browser
+ */
+angular.module('clb-ui-file-browser')
+.directive('clbFileUpload', function() {
+  'use strict';
+  return {
+    template:'<div class=clb-file-upload ng-class="{\'clb-file-upload-drag-enter\': dragEntered, \'clb-file-upload-drag-leave\': !dragEntered}" ng-cloak><h4>Drop Files Here to Upload</h4><span>or</span><div class="btn btn-default clb-file-upload-btn-file">Select Files <input type=file multiple onchange=angular.element(this).scope().onFileChanged(this.files)></div></div>',
+    restrict: 'E',
+    scope: {
+      onDrop: '&',
+      onError: '&',
+      foldersAllowed: '='
+    },
+    link: function(scope, element) {
+      var processDragOver = function(event) {
+        event.preventDefault();
+        event.stopPropagation();
+      };
+
+      var processDragEnter = function(event) {
+        event.preventDefault();
+        event.stopPropagation();
+
+        scope.dragEntered = true;
+        scope.$apply();
+      };
+
+      var processDragLeave = function(event) {
+        event.preventDefault();
+        event.stopPropagation();
+
+        scope.dragEntered = false;
+        scope.$apply();
+      };
+
+      scope.processDrop = function(event) {
+        event.preventDefault();
+        event.stopPropagation();
+
+        if (!event.dataTransfer && event.originalEvent) {
+          event.dataTransfer = event.originalEvent.dataTransfer;
+        }
+
+        scope.dragEntered = false;
+
+        if (!scope.foldersAllowed) {
+          var folders = getFolders(event.dataTransfer);
+          if (folders.length > 0) {
+            var err = new Error('Folders not allowed');
+            err.name = 'foldersNotAllowed';
+            err.files = folders;
+            scope.onError({error: err});
+            return false;
+          }
+        }
+
+        scope.onDrop({files: event.dataTransfer.files});
+      };
+
+      /**
+       * return the list of folders in the input dataTransfer object
+       * @private
+       * @param {DataTransfer} dataTransfer contains folder and files
+       * @return {array/File}               contain only folders
+       */
+      function getFolders(dataTransfer) {
+        var retList = [];
+
+        // supported by chrome only
+        var items = dataTransfer.items;
+        if (items) {
+          for (var i = 0; i < items.length; i++) {
+            if (items[i].webkitGetAsEntry().isDirectory) {
+              retList.push(items[i].webkitGetAsEntry().name);
+            }
+          }
+        } else {
+          // check if unix folders
+          var files = dataTransfer.files;
+          for (var j = 0; j < files.length; j++) {
+            // assuming that the chances a (dropped) file is exactly multiple of 4k are low
+            if (files[j].size % 4096 === 0) {
+              retList.push(files[j].name);
+            }
+          }
+        }
+
+        // Safari is detecting the error when trying to upload it
+
+        // not covered case: FF on OSX
+
+        return retList;
+      }
+
+      scope.onFileChanged = function(files) {
+        scope.onDrop({files: files});
+      };
+
+      // enter
+      element.on('dragover', processDragOver);
+      element.on('dragenter', processDragEnter);
+      // exit
+      element.on('dragleave', processDragLeave);
+
+      element.on('drop', scope.processDrop);
+    }
+  };
+});
+
+/**
+ * @namespace clbFormControlFocus
+ * @memberof module:clb-ui-form
+ * @desc
+ * The ``clbFormControlFocus`` Directive mark a form element as the one that
+ * should receive the focus first.
+ * @example <caption>Give the focus to the search field</caption>
+ * angular.module('exampleApp', ['clb-ui-form']);
+ *
+ * // HTML snippet:
+ * // <form ng-app="exampleApp"><input type="search" clb-ui-form-control-focus></form>
+ */
+angular.module('clb-ui-form')
+.directive('clbFormControlFocus', ['$timeout', function clbFormControlFocus($timeout) {
+  return {
+    type: 'A',
+    link: function formControlFocusLink(scope, elt) {
+      $timeout(function() {
+        elt[0].focus();
+      }, 0, false);
+    }
+  };
+}]);
+
+/**
+ * @namespace clbFormGroupState
+ * @memberof module:clb-ui-form
+ * @desc
+ * ``clbFormGroupState`` directive flag the current form group with
+ * the class has-error or has-success depending on its form field
+ * current state.
+ *
+ * @example
+ * <caption>Track a field validity at the ``.form-group`` level</caption>
+ * angular.module('exampleApp', ['hbpCollaboratory']);
+ */
+angular.module('clb-ui-form')
+.directive('clbFormGroupState', function formGroupState() {
+  return {
+    type: 'A',
+    scope: {
+      model: '=clbFormGroupState'
+    },
+    link: function formGroupStateLink(scope, elt) {
+      scope.$watchGroup(['model.$touched', 'model.$valid'], function() {
+        if (!scope.model) {
+          return;
+        }
+        elt.removeClass('has-error', 'has-success');
+        if (!scope.model.$touched) {
+          return;
+        }
+        if (scope.model.$valid) {
+          elt.addClass('has-success');
+        } else {
+          elt.addClass('has-error');
+        }
+      }, true);
+    }
+  };
+});
+
+/* global document */
+
+clbError.$inject = ['$q'];
+angular.module('clb-error')
+.factory('clbError', clbError);
+
+/**
+ * @class ClbError
+ * @memberof module:clb-error
+ * @desc
+ * ``ClbError`` describes a standard error object used
+ * to display error message or intropect the situation.
+ *
+ * A ``ClbError`` instance provides the following properties:
+ *
+ * * ``type`` a camel case name of the error type.
+ * * `message` a human readable message of the error that should
+ * be displayed to the end user.
+ * * ``data`` any important data that might help the software to
+ * inspect the issue and take a recovering action.
+ * * ``code`` an error numerical code.
+ *
+ * The ClbError extends the native Javascript Error instance so it also provides:
+ * * ``name`` which is equal to the type
+ * * ``stack`` the stack trace of the error (when available)
+ *
+ * Only ``type``, ``message``, and ``code`` should be considered to be present.
+ * They receive default values when not specified by the situation.
+ *
+ * @param {object} [options] the parameters to use to build the error
+ * @param {string} [options.type] the error type (default to ``'UnknownError'``)
+ * @param {string} [options.message] the error message (default to ``'An unknown error occurred'``)
+ * @param {int} [options.code] the error code (default to ``-1``)
+ * @param {object} [options.data] any data that can be useful to deal with the error
+ */
+function ClbError(options) {
+  options = angular.extend({
+    type: 'UnknownError',
+    message: 'An unknown error occurred.',
+    code: -1
+  }, options);
+  this.type = options.type;
+  this.name = this.type; // Conform to Error class
+  this.message = options.message;
+  this.data = options.data;
+  this.code = options.code;
+  this.stack = (new Error()).stack;
+}
+// Extend the Error prototype
+ClbError.prototype = Object.create(Error.prototype);
+ClbError.prototype.toString = function() {
+  return String(this.type) + ':' + this.message;
+};
+
+/**
+ * @namespace clbError
+ * @memberof module:clb-error
+ * @desc
+ * ``clbError`` provides helper functions that all return an
+ * ``ClbError`` instance given a context object.
+ * @param {object} $q AngularJS injection
+ * @return {object} the service singleton
+ */
+function clbError($q) {
+  return {
+    rejectHttpError: function(err) {
+      return $q.reject(httpError(err));
+    },
+    httpError: httpError,
+
+    /**
+     * Build a ``ClbError`` instance from the provided options.
+     *
+     * - param  {Object} options argument passed to ``ClbError`` constructor
+     * - return {ClbError} the resulting error
+     * @memberof module:clb-error.clbError
+     * @param  {object} options [description]
+     * @return {object}         [description]
+     */
+    error: function(options) {
+      if (options && options instanceof ClbError) {
+        return options;
+      }
+      return new ClbError(options);
+    }
+  };
+
+  /**
+   * @desc
+   * return a `ClbError` instance built from a HTTP response.
+   *
+   * In an ideal case, the response contains json data with an error object.
+   * It also fallback to a reason field and fill default error message for
+   * standard HTTP status error.
+   * @memberof module:clb-error.clbError
+   * @param  {HttpResponse} response Angular $http Response object
+   * @return {ClbError} a valid ClbError
+   */
+  function httpError(response) {
+    // return argument if it is already an
+    // instance of ClbError
+    if (response && response instanceof ClbError) {
+      return response;
+    }
+
+    if (response.status === undefined) {
+      return new ClbError({
+        message: 'Cannot parse error, invalid format.'
+      });
+    }
+    var error = new ClbError({code: response.status});
+
+    if (error.code === 0) {
+      error.type = 'ClientError';
+      error.message = 'The client cannot run the request.';
+      return error;
+    }
+    if (error.code === 404) {
+      error.type = 'NotFound';
+      error.message = 'Resource not found';
+      return error;
+    }
+    if (error.code === 403) {
+      error.type = 'Forbidden';
+      error.message = 'Permission denied: you are not allowed to display ' +
+                      'the page or perform the operation';
+      return error;
+    }
+    if (error.code === 502) {
+      error.type = 'BadGateway';
+      error.message = '502 Bad Gateway Error';
+      if (response.headers('content-type') === 'text/html') {
+        var doc = document.createElement('div');
+        doc.innerHTML = response.data;
+        var titleNode = doc.getElementsByTagName('title')[0];
+        if (titleNode) {
+          error.message = titleNode.innerHTML;
+        }
+      }
+      return error;
+    }
+    if (response.data) {
+      var errorSource = response.data;
+      if (errorSource.error) {
+        errorSource = errorSource.error;
+      }
+      if (errorSource.type) {
+        error.type = errorSource.type;
+      }
+      if (errorSource.data) {
+        error.data = errorSource.data;
+      }
+      if (errorSource.message) {
+        error.message = errorSource.message;
+      } else if (errorSource.reason) {
+        error.type = 'Error';
+        error.message = errorSource.reason;
+      }
+
+      if (!errorSource.type && !errorSource.data &&
+        !errorSource.message && !errorSource.reason) {
+        // unkown format, return raw data
+        error.data = errorSource;
+      }
+    }
+    return error;
+  }
+}
+
+
+clbErrorDialog.$inject = ['$uibModal', 'clbError'];angular.module('clb-ui-error')
+.factory('clbErrorDialog', clbErrorDialog);
+
+/**
+ * The factory ``clbUiError`` instantiates modal error dialogs.
+ * Notify the user about the given error.
+ * @name clbError
+ * @memberof module:clb-ui-error
+ * @param  {object} $uibModal Angular DI
+ * @param  {object} clbError  Angular DI
+ * @return {object}           Angular Factory
+ */
+function clbErrorDialog($uibModal, clbError) {
+  return {
+    open: open
+  };
+
+  /**
+   * Open an error modal dialog
+   * @param  {HBPError} error The error do displays
+   * @param  {object} options Any options will be passed to $uibModal.open
+   * @return {Promse}         The result of $uibModal.open
+   */
+  function open(error, options) {
+    options = angular.extend({
+      template:'<div class="error-dialog panel panel-danger"><div class=panel-heading><h4>{{vm.error.type}}</h4></div><div class=panel-body><p>{{vm.error.message}}</p></div><div class=panel-footer><div><button type=button ng-click=$close(true) class="btn btn-primary"><span class="glyphicon glyphicon-remove"></span> Close</button> <button type=button class="btn btn-default pull-right" ng-click="isErrorSourceDisplayed = !isErrorSourceDisplayed">{{isErrorSourceDisplayed ? \'Hide\' : \'Show\'}} scary details <span class=caret></span></button></div><div uib-collapse=!isErrorSourceDisplayed><h5>Error Type</h5><pre>{{vm.error.type}}</pre><h6>Error Code</h6><pre>{{vm.error.code}}</pre><h6>Message</h6><pre>{{vm.error.message}}</pre><div ng-if=vm.error.data><h6>Data</h6><pre>{{vm.error.data}}</pre></div><div><h6>Stack Trace</h6><pre>{{vm.error.stack}}</pre></div></div></div></div>',
+      class: 'error-dialog',
+      controller: function() {
+        var vm = this;
+        vm.error = clbError.error(error);
+      },
+      controllerAs: 'vm',
+      bindToController: true
+    }, options);
+    return $uibModal.open(options);
+  }
+}
+
+angular.module('clb-ui-error')
+.directive('clbErrorMessage', clbErrorMessage);
+
+/**
+ * The ``clb-error-message`` directive displays an error.
+ *
+ *
+ * clb-error is a HbpError instance, built by the HbpErrorService
+ *
+ * @namespace clbErrorMessage
+ * @memberof module:clb-ui-error
+ * @example <caption>Retrieve the current context object</caption>
+ * <div ng-controller='SomeController'>
+ *   Validation error:
+ *   <clb-error-message clb-error='error'></clb-error-message>
+ *   Permission denied error:
+ *   <clb-error-message clb-error='errorPermissions'></clb-error-message>
+ * </div>
+ * @return {object} The directive
+ **/
+function clbErrorMessage() {
+  return {
+    restrict: 'E',
+    scope: {
+      error: '=?clbError'
+    },
+    template:'<uib-alert type=danger ng-if=error><div ng-switch on=error.type><div ng-switch-when=Validation>Validation errors<span ng-show=error.data>:</span><ul><li ng-repeat="(attr, errors) in error.data">{{attr}}: {{errors.join(\', \')}}</li></ul></div><div ng-switch-default>{{error.message}}</div></div></uib-alert>'
+  };
+}
+
+
+ActivityController.$inject = ['$log', 'clbResourceLocator'];angular.module('clb-ui-stream')
+.directive('clbActivity', clbActivity);
+
+/**
+ * @name clbActivity
+ * @desc
+ * ``clb-activity`` directive is displays an activity retrieved by
+ * the HBP Stream service in a common way.
+ *
+ * It try to look up for a detailled description of the event and fallback
+ * to the summary if he cannot.
+ *
+ * @memberof module:clb-ui-stream
+ * @return {object} the directive
+ */
+function clbActivity() {
+  return {
+    restrict: 'A',
+    scope: {
+      activity: '=clbActivity'
+    },
+    controller: ActivityController,
+    controllerAs: 'vm',
+    bindToController: true,
+    template:'<span class=clb-activity-time am-time-ago=vm.activity.time></span><div class=clearfix></div><a class=clb-activity-summary ng-href={{vm.primaryLink}}>{{vm.activity.summary}}</a>',
+    link: {
+      post: function(scope, elt, attr, ctrl) {
+        elt.addClass('clb-activity').addClass(ctrl.verbClass);
+        scope.$watch('vm.activity.verb', function(newVal) {
+          if (newVal) {
+            elt.addClass('clb-activity-' + newVal.toLowerCase());
+          }
+        });
+      }
+    }
+  };
+}
+
+/**
+ * ViewModel of an activity used to render the clb-activity directive
+ * @param {object} $log angular injection
+ * @param {object} clbResourceLocator angular injection
+ */
+function ActivityController($log, clbResourceLocator) {
+  var vm = this;
+
+  activate();
+
+  /* ------------- */
+  /**
+   * init controller
+   */
+  function activate() {
+    clbResourceLocator.urlFor(vm.activity.object)
+    .then(function(url) {
+      vm.primaryLink = url;
+    })
+    .catch(function(err) {
+      $log.error(err);
+    });
+  }
+}
+
+
+FeedController.$inject = ['$log', 'clbStream'];angular.module('clb-ui-stream')
+.directive('clbFeed', clbFeed);
+
+/**
+ * @name clbFeed
+ * @desc
+ * ``clb-feed`` directive displays a feed of activity retrieved by
+ * the HBP Stream service. It handles scrolling and loading of activities.
+ * Each activity is rendered using the ``clb-activity`` directive.
+ *
+ * @memberof module:clb-ui-stream
+ * @return {object} the directive
+ */
+function clbFeed() {
+  return {
+    restrict: 'E',
+    scope: {
+      feedType: '=clbFeedType',
+      feedId: '=clbFeedId'
+    },
+    controller: FeedController,
+    controllerAs: 'vm',
+    bindToController: true,
+    template:'<ul class="feed list-unstyled" ng-class="{\'feed-empty\': vm.activities.results.length === 0}"><li ng-if=vm.error><div class="alert alert-warning"><strong>Load Error:</strong> {{vm.error}}</div></li><li ng-if="!vm.activities && !vm.error"><hbp-loading></hbp-loading></li><li ng-if="vm.activities.results.length === 0"><div class="alert alert-info">Nothing new</div></li><li ng-repeat="a in vm.activities.results" clb-activity=a class=clb-activity-item></li><li ng-if=vm.activities.hasNext><a href=# class="btn btn-default">More</a></li></ul>',
+    link: function(scope, elt) {
+      elt.addClass('clb-feed');
+    }
+  };
+}
+
+/**
+ * ViewModel of an activity used to render the clb-activity directive
+ * @param {object} $log angular injection
+ * @param {object} clbStream angular injection
+ */
+function FeedController($log, clbStream) {
+  var vm = this;
+
+  activate();
+
+  /* ------------- */
+  /**
+   * init controller
+   */
+  function activate() {
+    clbStream.getStream(vm.feedType, vm.feedId).then(function(rs) {
+      vm.activities = rs;
+    })
+    .catch(function(err) {
+      vm.error = err.message;
+    });
+  }
+}
+
+angular.module('clb-ui-loading')
+.directive('clbLoading', clbLoading);
+
+/**
+ * The directive clbLoading displays a simple loading message. If a promise
+ * is given, the loading indicator will disappear once it is resolved.
+ *
+ * Attributes
+ * ----------
+ *
+ * =======================  ===================================================
+ * Name                     Description
+ * =======================  ===================================================
+ * {Promise} [clb-promise]  Hide the loading message upon fulfilment.
+ * {string} [clb-message]   Displayed loading string (default=``'loading...'``)
+ *
+ * @memberof module:clb-ui-loading
+ * @return {object} Angular directive descriptor
+ * @example <caption>Directive Usage Example</caption>
+ * <hbp-loading hbp-promise="myAsyncFunc()" hbp-message="'Loading My Async Func'">
+ * </hbp-loading>
+ */
+function clbLoading() {
+  return {
+    restrict: 'E',
+    scope: {
+      promise: '=?clbPromise',
+      message: '=?clbMessage'
+    },
+    template:'<div class=clb-loading ng-if=loading><span class="glyphicon glyphicon-refresh clb-spinning"></span> {{message}}</div>',
+    link: function(scope) {
+      scope.loading = true;
+      scope.message = scope.message || 'Loading...';
+      if (scope.promise) {
+        var complete = function() {
+          scope.loading = false;
+        };
+        scope.promise.then(complete, complete);
+      }
+    }
+  };
 }
 })();
 //# sourceMappingURL=maps/angular-hbp-collaboratory.js.map
