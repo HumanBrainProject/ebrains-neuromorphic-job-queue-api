@@ -111,13 +111,25 @@ function clbFileBrowser(lodash) {
 
     /**
      * Initialize the controller
-     * @param  {module:clb-storage.EntityDescriptor} rootEntity    [description]
-     * @param  {module:clb-storage.EntityDescriptor} currentEntity [description]
+     * @param  {EntityDescriptor} rootEntity    Cannot get past this ancestor
+     * @param  {EntityDescriptor} currentEntity The selected entity
      * @private
      */
     function init(rootEntity, currentEntity) {
       vm.rootEntity = rootEntity;
-      currentUpdate = update(currentEntity || rootEntity);
+      if (!currentEntity || clbStorage.isContainer(currentEntity)) {
+        currentUpdate = update(currentEntity || rootEntity);
+      } else {
+        // Set the currentEntity to the parent and then focus the file
+        console.log('Current Entity', currentEntity);
+        currentUpdate = clbStorage.getEntity(currentEntity._parent)
+        .then(function(parent) {
+          return update(parent);
+        })
+        .then(function() {
+          handleFocusEvent(currentEntity);
+        });
+      }
     }
 
     /**
@@ -213,7 +225,7 @@ function clbFileBrowser(lodash) {
 
     /**
      * [update description]
-     * @param  {module:clb-storage.EntityDescriptor} entity [description]
+     * @param  {EntityDescriptor} entity [description]
      * @return {Promise}        Resolve after update completion
      */
     function update(entity) {
@@ -319,7 +331,7 @@ function clbFileBrowser(lodash) {
 
     /**
      * @private
-     * @param  {module:clb-storage.EntityDescriptor} entity [description]
+     * @param  {EntityDescriptor} entity [description]
      */
     function assignIsRoot(entity) {
       if (!entity) {
@@ -333,7 +345,7 @@ function clbFileBrowser(lodash) {
 
     /**
      * @private
-     * @param  {module:clb-storage.EntityDescriptor} entity The parent entity
+     * @param  {EntityDescriptor} entity The parent entity
      */
     function assignParentEntity(entity) {
       vm.parent = entity;
@@ -394,7 +406,7 @@ function clbFileBrowser(lodash) {
 
     /**
      * Set the thumbnailUrl.
-     * @param  {module:clb-storage.EntityDescriptor} file a file entity
+     * @param  {EntityDescriptor} file a file entity
      */
     function defineThumbnailUrl(file) {
       vm.thumbnailUrl = null;
@@ -408,7 +420,7 @@ function clbFileBrowser(lodash) {
     var lastAssignCanEditRequest = $q.when();
     /**
      * @private
-     * @param  {module:clb-storage.EntityDescriptor} entity a file entity
+     * @param  {EntityDescriptor} entity a file entity
      * @return {Promise}        [description]
      */
     function assignCanEdit(entity) {

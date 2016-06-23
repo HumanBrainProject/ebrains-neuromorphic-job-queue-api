@@ -15,6 +15,8 @@ describe('clbFileBrowser', function() {
   var clbError;
   var fileResultSet;
   var folderResultSet;
+  var fakeGetChildren;
+  var entityProject;
 
   beforeEach(module('clb-ui-file-browser'));
   beforeEach(inject(function(
@@ -57,13 +59,36 @@ describe('clbFileBrowser', function() {
     entityFile = {
       _uuid: 'AA7D6620-CB56-4D0C-AAE1-D1DEBCFBEFF1',
       _entityType: 'file',
-      _name: 'myfile'
+      _name: 'myfile',
+      _parent: '51677A22-F12E-45CD-9E43-007EE3E2F314'
     };
     entityFolder = {
       _uuid: '51677A22-F12E-45CD-9E43-007EE3E2F314',
       _name: 'myfolder',
       _entityType: 'folder',
       _parent: '5E5D28DF-2B75-40E7-8918-72F885C52A48'
+    };
+    entityProject = {
+      _uuid: '5E5D28DF-2B75-40E7-8918-72F885C52A48',
+      _name: 'someproject',
+      _entityType: 'project'
+    };
+    // The content of data does not match the one from the server.
+    // It is using the default from clbResultSet, not the heavily modified
+    // version from clbStorage.
+    fileResultSet = resultSet.get({data: {
+      results: [entityFile]
+    }}).instance;
+
+    folderResultSet = resultSet.get({data: {
+      results: [entityFolder]
+    }}).instance;
+
+    fakeGetChildren = function(parent, options) {
+      if (options && options.accept[0] === 'file') {
+        return fileResultSet.promise;
+      }
+      return folderResultSet.promise;
     };
 
     scope = $rootScope.$new();
@@ -90,11 +115,7 @@ describe('clbFileBrowser', function() {
     });
 
     it('should retrieve all projects', function() {
-      var rs = resultSet.get({data: {results: [{
-        _uuid: '5E5D28DF-2B75-40E7-8918-72F885C52A48',
-        _name: 'someproject',
-        _entityType: 'project'
-      }]}}).instance;
+      var rs = resultSet.get({data: {results: [entityProject]}}).instance;
       spyOn(storage, 'getChildren').and
       .returnValue(rs.promise);
       spyOn(rs, 'toArray').and.callThrough();
@@ -104,6 +125,57 @@ describe('clbFileBrowser', function() {
       expect(rs.toArray).toHaveBeenCalledWith();
       expect(isolatedScope.browserView.folders).toEqual(rs.results);
       expect(isolatedScope.browserView.folders.length).toBe(1);
+    });
+  });
+
+  describe('when clbEntity is a file', function() {
+    beforeEach(function() {
+      spyOn(storage, 'getEntity')
+      .and.callFake(function(locator) {
+        console.log('FAKE', locator);
+        if (locator === entityFolder._uuid) {
+          return $q.when(entityFolder);
+        } else if (locator === entityFile._uuid) {
+          return $q.when(entityFile);
+        } else if (locator === entityProject._uuid) {
+          return $q.when(entityProject);
+        }
+        fail('Unexpected locator:' + locator);
+      });
+
+      spyOn(storage, 'getUserAccess')
+      .and.returnValue($q.when({canRead: true}));
+
+      spyOn(storage, 'getAncestors')
+      .and.callFake(function(entity) {
+        console.log('FAKE getAncestors', entity);
+        expect(entity).toBe(entityFile);
+        return $q.when([entityFolder]);
+      });
+
+      spyOn(storage, 'getChildren')
+      .and.callFake(fakeGetChildren);
+
+      scope.clbEntity = entityFile;
+
+      $compile(element)(scope);
+      scope.$apply();
+      isolatedScope = element.isolateScope();
+    });
+
+    it('should resolve the parent entity', function() {
+      expect(storage.getEntity).toHaveBeenCalledWith(entityFolder._uuid);
+    });
+
+    it('should list parent entity children', function() {
+      expect(storage.getChildren).toHaveBeenCalledWith(entityFolder, {
+        accept: ['file'],
+        acceptLink: false
+      });
+      expect(storage.getChildren).toHaveBeenCalledWith(entityFolder, {
+        accept: ['folder'],
+        acceptLink: false
+      });
     });
   });
 
@@ -117,24 +189,8 @@ describe('clbFileBrowser', function() {
         _entityType: 'project'
       };
 
-      // The content of data does not match the one from the server.
-      // It is using the default from clbResultSet, not the heavily modified
-      // version from clbStorage.
-      fileResultSet = resultSet.get({data: {
-        results: [entityFile]
-      }}).instance;
-
-      folderResultSet = resultSet.get({data: {
-        results: [entityFolder]
-      }}).instance;
-
       spyOn(storage, 'getChildren')
-      .and.callFake(function(parent, options) {
-        if (options && options.accept[0] === 'file') {
-          return fileResultSet.promise;
-        }
-        return folderResultSet.promise;
-      });
+      .and.callFake(fakeGetChildren);
 
       spyOn(storage, 'getEntity')
       .and.returnValue($q.when(project));

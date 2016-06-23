@@ -25,8 +25,12 @@ function clbFileBrowserPath(clbStorage) {
       };
 
       var update = function() {
-        clbStorage.getAncestors(ctrl.currentEntity, ctrl.rootEntity)
-        .then(handleAncestors, ctrl.setError);
+        if (ctrl.currentEntity) {
+          clbStorage.getAncestors(ctrl.currentEntity, ctrl.rootEntity)
+          .then(handleAncestors, ctrl.setError);
+        } else {
+          handleAncestors(null);
+        }
       };
 
       scope.browserView = ctrl;
