@@ -13,3 +13,4 @@ globals:
   spyOn: false
   inject: false
   expect: false
+  fail: false

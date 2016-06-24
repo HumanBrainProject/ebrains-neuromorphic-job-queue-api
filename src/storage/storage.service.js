@@ -56,6 +56,7 @@ function clbStorage(
     getChildren: getChildren,
     getUserAccess: getUserAccess,
     getAncestors: getAncestors,
+    isContainer: isContainer,
     copy: copy,
     create: create,
     delete: deleteEntity,
@@ -91,6 +92,7 @@ function clbStorage(
         message: 'locator argument is mandatory'
       }));
     }
+    $log.debug('clbStorage.getEntity using locator', locator);
     if (angular.isString(locator) && uuid4.validate(locator)) {
       return getEntityByUUID(locator);
     }
@@ -160,6 +162,7 @@ function clbStorage(
    * @return {Promise}      Return the results
    */
   function query(params) {
+    $log.debug('clbStorage.query with', params);
     return $http.get(entityUrl + '/', {
       params: params
     }).then(function(response) {
@@ -704,6 +707,16 @@ function clbStorage(
   function deleteEntity(entity) {
     return $http.delete(entityUrl + '/' + entity._uuid)
     .catch(clbError.rejectHttpError);
+  }
+
+  /**
+   * Return true if the entity is a container (e.g.: a project, a folder, ...)
+   * @param  {EntityDescriptor} entity The entity to evaluate
+   * @return {Boolean}                 Return true if it is a container
+   */
+  function isContainer(entity) {
+    return Boolean(entity._entityType &&
+      entity._entityType.match(/project|folder/));
   }
 
   /**

@@ -8,7 +8,7 @@ module.exports = function(config) {
       'src/main.spec.js',
       'src/**/*.spec.js'
     ]),
-    reporters: [],
+    reporters: ['progress'],
     preprocessors: {}
   });
 };

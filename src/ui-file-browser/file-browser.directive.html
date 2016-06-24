@@ -1,4 +1,4 @@
-<div class="clb-file-browser container-fluid" in-view-container ng-click="selectItem()">
+<div class="clb-file-browser" in-view-container ng-click="selectItem()">
   <clb-error-message clb-error='browserView.error'></clb-error-message>
   <div class="navbar navbar-default">
     <div class="container-fluid">
@@ -67,7 +67,7 @@
             <span>{{file._name || file._uuid}}</span>
           </div>
       </li>
-        <!-- uploads -->
+      <!-- uploads -->
       <li ng-repeat="uploadInfo in browserView.uploads"
           ng-click="browserView.handleFocus(null)"
           uib-tooltip="{{uploadInfo.content.name}}" tooltip-placement="bottom" tooltip-popup-delay="600"
