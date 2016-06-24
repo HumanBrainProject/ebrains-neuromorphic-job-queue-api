@@ -1,0 +1,24 @@
+<div ng-if="user" class="clb-usercard clb-card clb-card-default">
+    <h3 class="clb-usercard-header">
+        <span class="clb-usercard-name">{{user.displayName}}</span>
+        <span class="text-muted clb-usercard-username">@{{user.username}}</span>
+    </h3>
+    <div class="clb-usercard-pix">
+        <img ng-src="{{user.picture}}" ng-if="user.picture" />
+        <clb-generated-icon clb-text="user.displayName" ng-if="!user.picture"></clb-generated-icon>
+    </div>
+    <div class="clb-usercard-institution" ng-if="institution">
+        <span class="clb-usercard-institution-title">{{institution.title}}</span>,
+        <span class="clb-usercard-institution-name">{{institution.name}}</span>,
+        <span class="clb-usercard-institution-dept">{{institution.department}}</span>
+    </div>
+    <div class="clb-usercard-contact">
+        <a class="clb-usercard-contact-item clb-usercard-email" target="_top" href="mailto:{{email}}" ng-if="email"><span class="glyphicon glyphicon-envelope"></span> {{email}}</a>
+        <span class="clb-usercard-contact-item clb-usercard-phone" ng-if="phone"><span class="glyphicon glyphicon-phone"></span> {{phone}}</span>
+        <span class="clb-usercard-contact-item clb-usercard-im-list" ng-if="ims.length"><span class="glyphicon glyphicon-bullhorn"></span>
+            <span class="clb-usercard-im" ng-repeat="im in ims">
+                {{im.value}}({{im.type}})
+            </span>
+        </span>
+    </div>
+</div>

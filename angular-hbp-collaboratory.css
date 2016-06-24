@@ -134,6 +134,34 @@ li.clb-activity-item {
 .error-dialog.panel {
   margin-bottom: 0; }
 
+.clb-usercard {
+  min-height: 80px;
+  position: relative; }
+  .clb-usercard .clb-usercard-pix {
+    height: 100%;
+    left: 0;
+    overflow: hidden;
+    position: absolute;
+    top: 0; }
+    .clb-usercard .clb-usercard-pix .clb-generated-icon {
+      display: inline-block;
+      height: 80px;
+      width: 80px; }
+    .clb-usercard .clb-usercard-pix > img {
+      border: 0;
+      height: auto;
+      vertical-align: middle;
+      width: 80px; }
+  .clb-usercard .clb-usercard-header {
+    margin-bottom: 8px;
+    margin-top: 12px; }
+  .clb-usercard .clb-usercard-name,
+  .clb-usercard .clb-usercard-institution,
+  .clb-usercard .clb-usercard-contact {
+    margin-left: 92px; }
+  .clb-usercard .clb-usercard-contact-item {
+    padding-right: 12px; }
+
 [ng\:cloak],
 [ng-cloak],
 [data-ng-cloak],
