@@ -1,4 +1,4 @@
-angular.module('clb-ui-file-browser')
+angular.module('clb-ui-storage')
 .directive('clbFileChooser', clbFileChooser);
 
 /**
@@ -11,7 +11,7 @@ angular.module('clb-ui-file-browser')
  * [ng-model]            The ngModel to bind to the chosen value
  * [clb-validate]        a string, array of string, regex or function (can be async)
  * ====================  ===========================================================
- * @memberof module:clb-ui-file-browser
+ * @memberof module:clb-ui-storage
  * @param {object} $q Angular DI
  * @return {object} Entity Descriptor
  */

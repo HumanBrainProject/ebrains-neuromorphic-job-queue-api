@@ -1,4 +1,4 @@
-angular.module('clb-ui-file-browser')
+angular.module('clb-ui-storage')
 .directive('clbFileBrowserFolder', clbFileBrowserFolder);
 
 /**
@@ -9,19 +9,19 @@ angular.module('clb-ui-file-browser')
  *
  * Available attributes:
  *
- * - clb-ui-file-browser-folder: the folder entity
- * - [clb-ui-file-browser-folder-icon]: a class name to display an icon
- * - [clb-ui-file-browser-folder-label]: a label name (default to folder._name)
+ * - clb-ui-storage-folder: the folder entity
+ * - [clb-ui-storage-folder-icon]: a class name to display an icon
+ * - [clb-ui-storage-folder-label]: a label name (default to folder._name)
  *
  * @example
  * <!-- minimal -->
- * <div clb-ui-file-browser-folder="folderEntity"></div>
+ * <div clb-ui-storage-folder="folderEntity"></div>
  * <!-- all wings out -->
- * <div clb-ui-file-browser-folder="folderEntity"
- *      clb-ui-file-browser-folder-icon="fa fa-level-up"
- *      clb-ui-file-browser-label="up"></div>
+ * <div clb-ui-storage-folder="folderEntity"
+ *      clb-ui-storage-folder-icon="fa fa-level-up"
+ *      clb-ui-storage-label="up"></div>
  *
- * @memberof module:clb-ui-file-browser.clbFileBrowser
+ * @memberof module:clb-ui-storage.clbFileBrowser
  * @return {object} Angular Directive
  */
 function clbFileBrowserFolder() {

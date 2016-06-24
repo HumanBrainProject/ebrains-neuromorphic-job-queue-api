@@ -18,7 +18,7 @@ describe('clbFileBrowser', function() {
   var fakeGetChildren;
   var entityProject;
 
-  beforeEach(module('clb-ui-file-browser'));
+  beforeEach(module('clb-ui-storage'));
   beforeEach(inject(function(
     _$rootScope_,
     _$compile_,
@@ -37,19 +37,19 @@ describe('clbFileBrowser', function() {
 
     jasmine.cacheTemplate($templateCache,
       'file-browser.directive.html',
-      'src/ui-file-browser/');
+      'src/ui-storage/');
     jasmine.cacheTemplate($templateCache,
       'file-browser-folder.directive.html',
-      'src/ui-file-browser/');
+      'src/ui-storage/');
     jasmine.cacheTemplate($templateCache,
       'file-browser-path.directive.html',
-      'src/ui-file-browser/');
+      'src/ui-storage/');
     jasmine.cacheTemplate($templateCache,
       'file-browser-tooltip.directive.html',
-      'src/ui-file-browser/');
+      'src/ui-storage/');
     jasmine.cacheTemplate($templateCache,
       'file-upload.directive.html',
-      'src/ui-file-browser/');
+      'src/ui-storage/');
     jasmine.cacheTemplate($templateCache,
       'error-message.directive.html',
       'src/ui-error/');

@@ -60,7 +60,7 @@ angular.module('hbpCollaboratoryCore', [
  */
 angular.module('hbpCollaboratoryUI', [
   'clb-ui-error',
-  'clb-ui-file-browser',
+  'clb-ui-storage',
   'clb-ui-form',
   'clb-ui-identity',
   'clb-ui-loading',
@@ -193,25 +193,6 @@ angular.module('clb-ui-error', [
 ]);
 
 /**
- * The ``clb-ui-file-browser`` module provides Angular directive to work
- * with the HBP Collaboratory storage.
- *
- *
- * Featured Component
- * ------------------
- *
- * - The directive :doc:`clb-file-browser <module-clb-ui-file-browser.clb-file-browser>`
- *   provides an easy to use browser which let the user upload new files,
- *   create folder and act as file selector.
- * @module clb-ui-file-browser
- */
-angular.module('clb-ui-file-browser', [
-  'ui.bootstrap',
-  'clb-ui-error',
-  'clb-storage'
-]);
-
-/**
  * @module clb-ui-form
  * @desc
  * clb-ui-form provides directive to ease creation of forms.
@@ -223,6 +204,25 @@ angular.module('clb-ui-form', []);
  * @module clb-ui-loading
  */
 angular.module('clb-ui-loading', []);
+
+/**
+ * The ``clb-ui-storage`` module provides Angular directive to work
+ * with the HBP Collaboratory storage.
+ *
+ *
+ * Featured Component
+ * ------------------
+ *
+ * - The directive :doc:`clb-file-browser <module-clb-ui-storage.clb-file-browser>`
+ *   provides an easy to use browser which let the user upload new files,
+ *   create folder and act as file selector.
+ * @module clb-ui-storage
+ */
+angular.module('clb-ui-storage', [
+  'ui.bootstrap',
+  'clb-ui-error',
+  'clb-storage'
+]);
 
 /**
  * @module clb-ui-stream
@@ -4364,7 +4364,112 @@ function clbErrorMessage() {
   };
 }
 
-angular.module('clb-ui-file-browser')
+/**
+ * @namespace clbFormControlFocus
+ * @memberof module:clb-ui-form
+ * @desc
+ * The ``clbFormControlFocus`` Directive mark a form element as the one that
+ * should receive the focus first.
+ * @example <caption>Give the focus to the search field</caption>
+ * angular.module('exampleApp', ['clb-ui-form']);
+ *
+ * // HTML snippet:
+ * // <form ng-app="exampleApp"><input type="search" clb-ui-form-control-focus></form>
+ */
+angular.module('clb-ui-form')
+.directive('clbFormControlFocus', ['$timeout', function clbFormControlFocus($timeout) {
+  return {
+    type: 'A',
+    link: function formControlFocusLink(scope, elt) {
+      $timeout(function() {
+        elt[0].focus();
+      }, 0, false);
+    }
+  };
+}]);
+
+/**
+ * @namespace clbFormGroupState
+ * @memberof module:clb-ui-form
+ * @desc
+ * ``clbFormGroupState`` directive flag the current form group with
+ * the class has-error or has-success depending on its form field
+ * current state.
+ *
+ * @example
+ * <caption>Track a field validity at the ``.form-group`` level</caption>
+ * angular.module('exampleApp', ['hbpCollaboratory']);
+ */
+angular.module('clb-ui-form')
+.directive('clbFormGroupState', function formGroupState() {
+  return {
+    type: 'A',
+    scope: {
+      model: '=clbFormGroupState'
+    },
+    link: function formGroupStateLink(scope, elt) {
+      scope.$watchGroup(['model.$touched', 'model.$valid'], function() {
+        if (!scope.model) {
+          return;
+        }
+        elt.removeClass('has-error', 'has-success');
+        if (!scope.model.$touched) {
+          return;
+        }
+        if (scope.model.$valid) {
+          elt.addClass('has-success');
+        } else {
+          elt.addClass('has-error');
+        }
+      }, true);
+    }
+  };
+});
+
+angular.module('clb-ui-loading')
+.directive('clbLoading', clbLoading);
+
+/**
+ * The directive clbLoading displays a simple loading message. If a promise
+ * is given, the loading indicator will disappear once it is resolved.
+ *
+ * Attributes
+ * ----------
+ *
+ * =======================  ===================================================
+ * Name                     Description
+ * =======================  ===================================================
+ * {Promise} [clb-promise]  Hide the loading message upon fulfilment.
+ * {string} [clb-message]   Displayed loading string (default=``'loading...'``)
+ *
+ * @memberof module:clb-ui-loading
+ * @return {object} Angular directive descriptor
+ * @example <caption>Directive Usage Example</caption>
+ * <hbp-loading hbp-promise="myAsyncFunc()" hbp-message="'Loading My Async Func'">
+ * </hbp-loading>
+ */
+function clbLoading() {
+  return {
+    restrict: 'E',
+    scope: {
+      promise: '=?clbPromise',
+      message: '=?clbMessage'
+    },
+    template:'<div class=clb-loading ng-if=loading><span class="glyphicon glyphicon-refresh clb-spinning"></span> {{message}}</div>',
+    link: function(scope) {
+      scope.loading = true;
+      scope.message = scope.message || 'Loading...';
+      if (scope.promise) {
+        var complete = function() {
+          scope.loading = false;
+        };
+        scope.promise.then(complete, complete);
+      }
+    }
+  };
+}
+
+angular.module('clb-ui-storage')
 .directive('clbFileBrowserFolder', clbFileBrowserFolder);
 
 /**
@@ -4375,19 +4480,19 @@ angular.module('clb-ui-file-browser')
  *
  * Available attributes:
  *
- * - clb-ui-file-browser-folder: the folder entity
- * - [clb-ui-file-browser-folder-icon]: a class name to display an icon
- * - [clb-ui-file-browser-folder-label]: a label name (default to folder._name)
+ * - clb-ui-storage-folder: the folder entity
+ * - [clb-ui-storage-folder-icon]: a class name to display an icon
+ * - [clb-ui-storage-folder-label]: a label name (default to folder._name)
  *
  * @example
  * <!-- minimal -->
- * <div clb-ui-file-browser-folder="folderEntity"></div>
+ * <div clb-ui-storage-folder="folderEntity"></div>
  * <!-- all wings out -->
- * <div clb-ui-file-browser-folder="folderEntity"
- *      clb-ui-file-browser-folder-icon="fa fa-level-up"
- *      clb-ui-file-browser-label="up"></div>
+ * <div clb-ui-storage-folder="folderEntity"
+ *      clb-ui-storage-folder-icon="fa fa-level-up"
+ *      clb-ui-storage-label="up"></div>
  *
- * @memberof module:clb-ui-file-browser.clbFileBrowser
+ * @memberof module:clb-ui-storage.clbFileBrowser
  * @return {object} Angular Directive
  */
 function clbFileBrowserFolder() {
@@ -4408,7 +4513,7 @@ function clbFileBrowserFolder() {
 }
 
 
-clbFileBrowserPath.$inject = ['clbStorage'];angular.module('clb-ui-file-browser')
+clbFileBrowserPath.$inject = ['clbStorage'];angular.module('clb-ui-storage')
 .directive('clbFileBrowserPath', clbFileBrowserPath);
 
 /**
@@ -4420,7 +4525,7 @@ clbFileBrowserPath.$inject = ['clbStorage'];angular.module('clb-ui-file-browser'
  * @example
  * <clb-file-browser-path></clb-file-browser-path>
  *
- * @memberof module:clb-ui-file-browser.clbFileBrowser
+ * @memberof module:clb-ui-storage.clbFileBrowser
  * @param  {object} clbStorage Angular DI
  * @return {object} Angular Directive
  */
@@ -4452,7 +4557,7 @@ function clbFileBrowserPath(clbStorage) {
   };
 }
 
-angular.module('clb-ui-file-browser')
+angular.module('clb-ui-storage')
 .run(['$templateCache', function($templateCache) {
   // During the build, templateUrl will be replaced by the inline template.
   // We need to inject it in template cache as it is used for displaying
@@ -4467,7 +4572,7 @@ angular.module('clb-ui-file-browser')
 }]);
 
 
-clbFileBrowser.$inject = ['lodash'];angular.module('clb-ui-file-browser')
+clbFileBrowser.$inject = ['lodash'];angular.module('clb-ui-storage')
 .directive('clbFileBrowser', clbFileBrowser);
 
 // --------------- //
@@ -4506,7 +4611,7 @@ clbFileBrowser.$inject = ['lodash'];angular.module('clb-ui-file-browser')
  *                   clb-entity="someSubFolderEntity">
  * </clb-file-browser>
  *
- * @memberof module:clb-ui-file-browser
+ * @memberof module:clb-ui-storage
  * @return {object} Angular Directive
  * @param {object} lodash Angular DI
  */
@@ -4533,7 +4638,7 @@ function clbFileBrowser(lodash) {
    * It is responsible to handle all the interactions between the user
    * and the services. It does not update the views directly but sends
    * the relevant events when necessary.
-   * @memberof module:clb-ui-file-browser.clbFileBrowser
+   * @memberof module:clb-ui-storage.clbFileBrowser
    * @param {object} $scope     Angular DI
    * @param {object} $log       Angular DI
    * @param {object} $q         Angular DI
@@ -4599,7 +4704,7 @@ function clbFileBrowser(lodash) {
      * The event signature is (event, newEntity, previousEntity).
      *
      * @param  {Object} entity selected entity
-     * @memberof module:clb-ui-file-browser.clbFileBrowser.FileBrowserViewModel
+     * @memberof module:clb-ui-storage.clbFileBrowser.FileBrowserViewModel
      */
     function handleFocusEvent(entity) {
       if (entity === vm.selectedEntity) {
@@ -4620,7 +4725,7 @@ function clbFileBrowser(lodash) {
      *
      * @param  {Object} entity the new current entity
      * @return {promise} resolve when the navigation is done.
-     * @memberof module:clb-ui-file-browser.clbFileBrowser.FileBrowserViewModel
+     * @memberof module:clb-ui-storage.clbFileBrowser.FileBrowserViewModel
      */
     function handleNavigationEvent(entity) {
       if (angular.isUndefined(entity) || entity === vm.currentEntity) {
@@ -4772,7 +4877,7 @@ function clbFileBrowser(lodash) {
      * Load the next page of file entities for the current entity.
      *
      * @return {Promise} resolve when the files are loaded
-     * @memberof module:clb-ui-file-browser.clbFileBrowser.FileBrowserViewModel
+     * @memberof module:clb-ui-storage.clbFileBrowser.FileBrowserViewModel
      */
     function loadMoreFiles() {
       return fileLoader.next()
@@ -4784,7 +4889,7 @@ function clbFileBrowser(lodash) {
      * Load the next page of folder entities for the current entity.
      *
      * @return {Promise} resolve when the folders are loaded
-     * @memberof module:clb-ui-file-browser.clbFileBrowser.FileBrowserViewModel
+     * @memberof module:clb-ui-storage.clbFileBrowser.FileBrowserViewModel
      */
     function loadMoreFolders() {
       return folderLoader.next()
@@ -4946,7 +5051,7 @@ function clbFileBrowserLink(scope, elt, attrs, ctrl) {
 }
 
 
-clbFileChooser.$inject = ['$q'];angular.module('clb-ui-file-browser')
+clbFileChooser.$inject = ['$q'];angular.module('clb-ui-storage')
 .directive('clbFileChooser', clbFileChooser);
 
 /**
@@ -4959,7 +5064,7 @@ clbFileChooser.$inject = ['$q'];angular.module('clb-ui-file-browser')
  * [ng-model]            The ngModel to bind to the chosen value
  * [clb-validate]        a string, array of string, regex or function (can be async)
  * ====================  ===========================================================
- * @memberof module:clb-ui-file-browser
+ * @memberof module:clb-ui-storage
  * @param {object} $q Angular DI
  * @return {object} Entity Descriptor
  */
@@ -5045,9 +5150,9 @@ function clbFileChooser($q) {
  * <clb-file-upload on-drop="handleFileUpload(files)"
  *                       on-error="handleError(error)">
  * </clb-file-upload>
- * @memberof module:clb-ui-file-browser
+ * @memberof module:clb-ui-storage
  */
-angular.module('clb-ui-file-browser')
+angular.module('clb-ui-storage')
 .directive('clbFileUpload', function() {
   'use strict';
   return {
@@ -5153,111 +5258,6 @@ angular.module('clb-ui-file-browser')
     }
   };
 });
-
-/**
- * @namespace clbFormControlFocus
- * @memberof module:clb-ui-form
- * @desc
- * The ``clbFormControlFocus`` Directive mark a form element as the one that
- * should receive the focus first.
- * @example <caption>Give the focus to the search field</caption>
- * angular.module('exampleApp', ['clb-ui-form']);
- *
- * // HTML snippet:
- * // <form ng-app="exampleApp"><input type="search" clb-ui-form-control-focus></form>
- */
-angular.module('clb-ui-form')
-.directive('clbFormControlFocus', ['$timeout', function clbFormControlFocus($timeout) {
-  return {
-    type: 'A',
-    link: function formControlFocusLink(scope, elt) {
-      $timeout(function() {
-        elt[0].focus();
-      }, 0, false);
-    }
-  };
-}]);
-
-/**
- * @namespace clbFormGroupState
- * @memberof module:clb-ui-form
- * @desc
- * ``clbFormGroupState`` directive flag the current form group with
- * the class has-error or has-success depending on its form field
- * current state.
- *
- * @example
- * <caption>Track a field validity at the ``.form-group`` level</caption>
- * angular.module('exampleApp', ['hbpCollaboratory']);
- */
-angular.module('clb-ui-form')
-.directive('clbFormGroupState', function formGroupState() {
-  return {
-    type: 'A',
-    scope: {
-      model: '=clbFormGroupState'
-    },
-    link: function formGroupStateLink(scope, elt) {
-      scope.$watchGroup(['model.$touched', 'model.$valid'], function() {
-        if (!scope.model) {
-          return;
-        }
-        elt.removeClass('has-error', 'has-success');
-        if (!scope.model.$touched) {
-          return;
-        }
-        if (scope.model.$valid) {
-          elt.addClass('has-success');
-        } else {
-          elt.addClass('has-error');
-        }
-      }, true);
-    }
-  };
-});
-
-angular.module('clb-ui-loading')
-.directive('clbLoading', clbLoading);
-
-/**
- * The directive clbLoading displays a simple loading message. If a promise
- * is given, the loading indicator will disappear once it is resolved.
- *
- * Attributes
- * ----------
- *
- * =======================  ===================================================
- * Name                     Description
- * =======================  ===================================================
- * {Promise} [clb-promise]  Hide the loading message upon fulfilment.
- * {string} [clb-message]   Displayed loading string (default=``'loading...'``)
- *
- * @memberof module:clb-ui-loading
- * @return {object} Angular directive descriptor
- * @example <caption>Directive Usage Example</caption>
- * <hbp-loading hbp-promise="myAsyncFunc()" hbp-message="'Loading My Async Func'">
- * </hbp-loading>
- */
-function clbLoading() {
-  return {
-    restrict: 'E',
-    scope: {
-      promise: '=?clbPromise',
-      message: '=?clbMessage'
-    },
-    template:'<div class=clb-loading ng-if=loading><span class="glyphicon glyphicon-refresh clb-spinning"></span> {{message}}</div>',
-    link: function(scope) {
-      scope.loading = true;
-      scope.message = scope.message || 'Loading...';
-      if (scope.promise) {
-        var complete = function() {
-          scope.loading = false;
-        };
-        scope.promise.then(complete, complete);
-      }
-    }
-  };
-}
 
 
 ActivityController.$inject = ['$log', 'clbResourceLocator'];angular.module('clb-ui-stream')

@@ -1,4 +1,4 @@
-angular.module('clb-ui-file-browser')
+angular.module('clb-ui-storage')
 .run(function($templateCache) {
   // During the build, templateUrl will be replaced by the inline template.
   // We need to inject it in template cache as it is used for displaying

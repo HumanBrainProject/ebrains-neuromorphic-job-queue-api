@@ -4,7 +4,7 @@ describe('clb-file-chooser', function() {
   var element;
   var entities;
 
-  beforeEach(module('clb-ui-file-browser'));
+  beforeEach(module('clb-ui-storage'));
   beforeEach(inject(function(
     $rootScope,
     $q,
@@ -15,16 +15,16 @@ describe('clb-file-chooser', function() {
   ) {
     jasmine.cacheTemplate($templateCache,
       'file-chooser.directive.html',
-      'src/ui-file-browser/');
+      'src/ui-storage/');
     jasmine.cacheTemplate($templateCache,
       'file-browser.directive.html',
-      'src/ui-file-browser/');
+      'src/ui-storage/');
     jasmine.cacheTemplate($templateCache,
       'file-browser-folder.directive.html',
-      'src/ui-file-browser/');
+      'src/ui-storage/');
     jasmine.cacheTemplate($templateCache,
       'file-browser-path.directive.html',
-      'src/ui-file-browser/');
+      'src/ui-storage/');
     jasmine.cacheTemplate($templateCache,
       'error-message.directive.html',
       'src/ui-error/');

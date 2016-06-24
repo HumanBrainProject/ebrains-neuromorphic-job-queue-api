@@ -1,4 +1,4 @@
-angular.module('clb-ui-file-browser')
+angular.module('clb-ui-storage')
 .directive('clbFileBrowserPath', clbFileBrowserPath);
 
 /**
@@ -10,7 +10,7 @@ angular.module('clb-ui-file-browser')
  * @example
  * <clb-file-browser-path></clb-file-browser-path>
  *
- * @memberof module:clb-ui-file-browser.clbFileBrowser
+ * @memberof module:clb-ui-storage.clbFileBrowser
  * @param  {object} clbStorage Angular DI
  * @return {object} Angular Directive
  */

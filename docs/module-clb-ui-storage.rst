@@ -1,6 +1,6 @@
-===============================
-Module: ``clb-ui-file-browser``
-===============================
+==========================
+Module: ``clb-ui-storage``
+==========================
 
 
 .. contents:: Local Navigation
@@ -12,20 +12,20 @@ Children
 .. toctree::
    :maxdepth: 1
    
-   module-clb-ui-file-browser.clbFileBrowser
-   module-clb-ui-file-browser.clbFileUpload
+   module-clb-ui-storage.clbFileBrowser
+   module-clb-ui-storage.clbFileUpload
    
 Description
 ===========
 
-The ``clb-ui-file-browser`` module provides Angular directive to work
+The ``clb-ui-storage`` module provides Angular directive to work
 with the HBP Collaboratory storage.
 
 
 Featured Component
 ------------------
 
-- The directive :doc:`clb-file-browser <module-clb-ui-file-browser.clb-file-browser>`
+- The directive :doc:`clb-file-browser <module-clb-ui-storage.clb-file-browser>`
   provides an easy to use browser which let the user upload new files,
   create folder and act as file selector.
 

@@ -1,4 +1,4 @@
-angular.module('clb-ui-file-browser')
+angular.module('clb-ui-storage')
 .directive('clbFileBrowser', clbFileBrowser);
 
 // --------------- //
@@ -37,7 +37,7 @@ angular.module('clb-ui-file-browser')
  *                   clb-entity="someSubFolderEntity">
  * </clb-file-browser>
  *
- * @memberof module:clb-ui-file-browser
+ * @memberof module:clb-ui-storage
  * @return {object} Angular Directive
  * @param {object} lodash Angular DI
  */
@@ -63,7 +63,7 @@ function clbFileBrowser(lodash) {
    * It is responsible to handle all the interactions between the user
    * and the services. It does not update the views directly but sends
    * the relevant events when necessary.
-   * @memberof module:clb-ui-file-browser.clbFileBrowser
+   * @memberof module:clb-ui-storage.clbFileBrowser
    * @param {object} $scope     Angular DI
    * @param {object} $log       Angular DI
    * @param {object} $q         Angular DI
@@ -129,7 +129,7 @@ function clbFileBrowser(lodash) {
      * The event signature is (event, newEntity, previousEntity).
      *
      * @param  {Object} entity selected entity
-     * @memberof module:clb-ui-file-browser.clbFileBrowser.FileBrowserViewModel
+     * @memberof module:clb-ui-storage.clbFileBrowser.FileBrowserViewModel
      */
     function handleFocusEvent(entity) {
       if (entity === vm.selectedEntity) {
@@ -150,7 +150,7 @@ function clbFileBrowser(lodash) {
      *
      * @param  {Object} entity the new current entity
      * @return {promise} resolve when the navigation is done.
-     * @memberof module:clb-ui-file-browser.clbFileBrowser.FileBrowserViewModel
+     * @memberof module:clb-ui-storage.clbFileBrowser.FileBrowserViewModel
      */
     function handleNavigationEvent(entity) {
       if (angular.isUndefined(entity) || entity === vm.currentEntity) {
@@ -302,7 +302,7 @@ function clbFileBrowser(lodash) {
      * Load the next page of file entities for the current entity.
      *
      * @return {Promise} resolve when the files are loaded
-     * @memberof module:clb-ui-file-browser.clbFileBrowser.FileBrowserViewModel
+     * @memberof module:clb-ui-storage.clbFileBrowser.FileBrowserViewModel
      */
     function loadMoreFiles() {
       return fileLoader.next()
@@ -314,7 +314,7 @@ function clbFileBrowser(lodash) {
      * Load the next page of folder entities for the current entity.
      *
      * @return {Promise} resolve when the folders are loaded
-     * @memberof module:clb-ui-file-browser.clbFileBrowser.FileBrowserViewModel
+     * @memberof module:clb-ui-storage.clbFileBrowser.FileBrowserViewModel
      */
     function loadMoreFolders() {
       return folderLoader.next()

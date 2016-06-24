@@ -20,9 +20,9 @@ Contents
    module-clb-storage
    module-clb-stream
    module-clb-ui-error
-   module-clb-ui-file-browser
    module-clb-ui-form
    module-clb-ui-loading
+   module-clb-ui-storage
    module-clb-ui-stream
    
 README
@@ -131,7 +131,7 @@ progressively refactor to use the new library instead of the old one.
    hbpEntityStore -> clbStorage             (from clb-storage module)
    hbpFileStore -> clbStorage               (from clb-storage module)
    hbpProjectStore -> clbStorage            (from clb-storage module)
-   hbp-file-browser -> clb-ui-file-browser     (from clb-ui-file-browser module)
+   hbp-file-browser -> clb-ui-storage     (from clb-ui-storage module)
 
 In fact, ``hbpCollaboratoryCore`` is a shell module that will require many
 sub-modules as an easy way to migrate and import everything.
@@ -242,7 +242,7 @@ At the end of the process, your application should only load ``angular-hbp-colla
       'clb-storage',
       'clb-stream',
       'clb-ui-error',
-      'clb-ui-file-browser',
+      'clb-ui-storage',
       'clb-ui-form',
       'clb-ui-loading',
       'clb-stream'
