@@ -16,13 +16,13 @@
         <div class="panel-heading">
           <h4>User Avatar</h4>
         </div>
-        <div class="panel-body">
-          <p>Default</p>
+        <div class="panel-body" ng-controller="UiIdentityController as vm">
+          <p>Default Avatar</p>
           <clb-user-avatar clb-user="{displayName: 'John Doe'}"></clb-user-avatar>
           <clb-user-avatar clb-user="{displayName: 'wohn Doe'}"></clb-user-avatar>
           <clb-user-avatar clb-user="{displayName: 'mohn Doe'}"></clb-user-avatar>
 
-          <p>Override Colors</p>
+          <p>Override Avatar Colors</p>
           <style>
             .grey-background .clb-user-avatar-icon-fill {
               fill: #d4d4d4;
@@ -38,9 +38,13 @@
           <clb-user-avatar class="pink-text outline-text" clb-user="{displayName: 'aohn Doe'}"></clb-user-avatar>
           <clb-user-avatar class="grey-background pink-text" clb-user="{displayName: 'bohn Doe'}"></clb-user-avatar>
 
-          <p>Override Size</p>
+          <p>Override Avatar Size</p>
           <clb-user-avatar style="width: 20px; height: 20px;" clb-user="{displayName: 'oohn Doe'}"></clb-user-avatar>
           <clb-user-avatar style="width: 80px; height: 80px;" clb-user="{displayName: 'xohn Doe'}"></clb-user-avatar>
+          <clb-user-avatar style="width: 60px; height: 60px;" clb-user="vm.user"></clb-user-avatar>
+
+          <p>User Card</p>
+          <clb-usercard clb-user="vm.user"></clb-usercard>
         </div>
       </div>
 

@@ -164,8 +164,9 @@ li.clb-activity-item {
 
 .clb-user-avatar {
   display: inline-block;
-  height: 40px;
-  width: 40px; }
+  height: 32px;
+  vertical-align: middle;
+  width: 32px; }
 
 .clb-user-avatar-img {
   height: auto;
