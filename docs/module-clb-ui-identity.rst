@@ -12,6 +12,7 @@ Children
 .. toctree::
    :maxdepth: 1
    
+   module-clb-ui-identity.clbUserAvatar
    
 Description
 ===========
