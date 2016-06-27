@@ -62,7 +62,6 @@ angular.module('hbpCollaboratoryUI', [
   'clb-ui-error',
   'clb-ui-storage',
   'clb-ui-form',
-  'clb-ui-identity',
   'clb-ui-loading',
   'clb-ui-stream',
   'hbpCommonCompat'
