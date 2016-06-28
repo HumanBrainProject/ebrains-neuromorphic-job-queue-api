@@ -27,6 +27,7 @@ angular.module('hbpCollaboratoryCore', [
   'clb-rest',
   'clb-storage',
   'clb-stream',
+  'clb-ctx-data',
   'hbpCommonCompat'
 ]);
 
