@@ -50,6 +50,7 @@ angular.module('hbpCollaboratoryCore', [
   'clb-rest',
   'clb-storage',
   'clb-stream',
+  'clb-ctx-data',
   'hbpCommonCompat'
 ]);
 
@@ -138,16 +139,6 @@ angular.module('clb-collab', [
  */
 angular.module('clb-ctx-data', ['uuid4', 'clb-env', 'clb-error']);
 
-/**
- * @module clb-env
- * @desc
- * ``clb-env`` module provides a way to information from the global environment.
- */
-
-angular.module('clb-env', []);
-
-angular.module('clb-error', []);
-
 angular.module('clb-identity', [
   'ngLodash',
   'clb-env',
@@ -155,12 +146,28 @@ angular.module('clb-identity', [
   'clb-rest'
 ]);
 
+angular.module('clb-error', []);
+
 /**
  * @module clb-rest
  * @desc
  * ``clb-rest`` module contains util for simplifying access to Rest service.
  */
 angular.module('clb-rest', ['clb-error']);
+
+/**
+ * @module clb-stream
+ * @desc
+ * The `clb-stream` module contains a service and a few directives to retrieve
+ * and display the HBP Collaboratory stream provided
+ * by the various applications.
+ */
+
+angular.module('clb-stream', [
+  'clb-env',
+  'clb-error',
+  'clb-rest'
+]);
 
 /**
  * @module clb-storage
@@ -175,20 +182,6 @@ angular.module('clb-storage', [
   'clb-env',
   'clb-rest',
   'clb-identity'
-]);
-
-/**
- * @module clb-stream
- * @desc
- * The `clb-stream` module contains a service and a few directives to retrieve
- * and display the HBP Collaboratory stream provided
- * by the various applications.
- */
-
-angular.module('clb-stream', [
-  'clb-env',
-  'clb-error',
-  'clb-rest'
 ]);
 
 /**
@@ -214,10 +207,12 @@ angular.module('clb-ui-form', []);
 angular.module('clb-ui-identity', ['ngLodash', 'clb-identity']);
 
 /**
- * Provides a simple loading directive.
- * @module clb-ui-loading
+ * @module clb-env
+ * @desc
+ * ``clb-env`` module provides a way to information from the global environment.
  */
-angular.module('clb-ui-loading', []);
+
+angular.module('clb-env', []);
 
 /**
  * The ``clb-ui-storage`` module provides Angular directive to work
@@ -237,6 +232,12 @@ angular.module('clb-ui-storage', [
   'clb-ui-error',
   'clb-storage'
 ]);
+
+/**
+ * Provides a simple loading directive.
+ * @module clb-ui-loading
+ */
+angular.module('clb-ui-loading', []);
 
 /**
  * @module clb-ui-stream
@@ -2158,7 +2159,7 @@ clbCtxData.$inject = ['$http', '$q', 'uuid4', 'clbEnv', 'clbError'];angular.modu
  * @memberof clb-ctx-data
  * @param  {object} $http    Angular DI
  * @param  {object} $q       Angular DI
- * @param  {object} uuid     Angular DI
+ * @param  {object} uuid4     Angular DI
  * @param  {object} clbEnv   Angular DI
  * @param  {object} clbError Angular DI
  * @return {object}          Angular Service Descriptor
@@ -2250,259 +2251,6 @@ function clbCtxData($http, $q, uuid4, clbEnv, clbError) {
       },
       code: -3
     });
-  }
-}
-
-/* global window */
-
-clbEnv.$inject = ['$injector'];
-angular.module('clb-env')
-.provider('clbEnv', clbEnv);
-
-/**
- * @namespace angular
- */
-
-/**
- * Get environement information using dotted notation with the `clbEnv` provider
- * or service.
- *
- * Before being used, clbEnv must be initialized with the context values. You
- * can do so by setting up a global bbpConfig variable or using
- * :ref:`angular.clbBootstrap <angular.clbBootstrap>`.
- *
- * @function clbEnv
- * @memberof angular
- * @param {object} $injector AngularJS injection
- * @return {object} provider
- * @example <caption>Basic usage of clbEnv</caption>
- * angular.module('myApp', ['clbEnv', 'rest'])
- * .service('myService', function(clbEnv, clbResultSet) {
- *   return {
- *     listCollab: function() {
- *       // return a paginated list of all collabs
- *       return clbResultSet.get($http.get(clbEnv.get('api.collab.v0') + '/'));
- *     }
- *   };
- * });
- * @example <caption>Use clbEnv in your configuration</caption>
- * angular.module('myApp', ['clbEnv', 'rest'])
- * .config(function(clbEnvProvider, myAppServiceProvider) {
- *   // also demonstrate how we accept a custom variable.
- *   myAppServiceProvider.setMaxFileUpload(clbEnvProvider.get('myapp.maxFileUpload', '1m'))
- * });
- */
-function clbEnv($injector) {
-  return {
-    get: get,
-    $get: function() {
-      return {
-        get: get
-      };
-    }
-  };
-
-  /**
-   * ``get(key, [defaultValue])`` provides configuration value loaded at
-   * the application bootstrap.
-   *
-   * Accept a key and an optional default
-   * value. If the key cannot be found in the configurations, it will return
-   * the provided default value. If the defaultValue is undefied, it will
-   * throw an error.
-   *
-   * To ensures that those data are available when angular bootstrap the
-   * application, use angular.clbBootstrap(module, options).
-   *
-   * @memberof module:clb-env.clbEnv
-   * @param {string} key the environment variable to retrieve, using a key.
-   * @param {any} [defaultValue] an optional default value.
-   * @return {any} the value or ``defaultValue`` if the asked for configuration
-   *               is not defined.
-   */
-  function get(key, defaultValue) {
-    var parts = key.split('.');
-    var cursor = (window.bbpConfig ?
-                  window.bbpConfig : $injector.get('CLB_ENVIRONMENT'));
-    for (var i = 0; i < parts.length; i++) {
-      if (!(cursor && cursor.hasOwnProperty(parts[i]))) {
-        if (defaultValue !== undefined) {
-          return defaultValue;
-        }
-        throw new Error('UnkownConfigurationKey: <' + key + '>');
-      }
-      cursor = cursor[parts[i]];
-    }
-    return cursor;
-  }
-}
-
-/* global document */
-
-clbError.$inject = ['$q'];
-angular.module('clb-error')
-.factory('clbError', clbError);
-
-/**
- * @class ClbError
- * @memberof module:clb-error
- * @desc
- * ``ClbError`` describes a standard error object used
- * to display error message or intropect the situation.
- *
- * A ``ClbError`` instance provides the following properties:
- *
- * * ``type`` a camel case name of the error type.
- * * `message` a human readable message of the error that should
- * be displayed to the end user.
- * * ``data`` any important data that might help the software to
- * inspect the issue and take a recovering action.
- * * ``code`` an error numerical code.
- *
- * The ClbError extends the native Javascript Error instance so it also provides:
- * * ``name`` which is equal to the type
- * * ``stack`` the stack trace of the error (when available)
- *
- * Only ``type``, ``message``, and ``code`` should be considered to be present.
- * They receive default values when not specified by the situation.
- *
- * @param {object} [options] the parameters to use to build the error
- * @param {string} [options.type] the error type (default to ``'UnknownError'``)
- * @param {string} [options.message] the error message (default to ``'An unknown error occurred'``)
- * @param {int} [options.code] the error code (default to ``-1``)
- * @param {object} [options.data] any data that can be useful to deal with the error
- */
-function ClbError(options) {
-  options = angular.extend({
-    type: 'UnknownError',
-    message: 'An unknown error occurred.',
-    code: -1
-  }, options);
-  this.type = options.type;
-  this.name = this.type; // Conform to Error class
-  this.message = options.message;
-  this.data = options.data;
-  this.code = options.code;
-  this.stack = (new Error()).stack;
-}
-// Extend the Error prototype
-ClbError.prototype = Object.create(Error.prototype);
-ClbError.prototype.toString = function() {
-  return String(this.type) + ':' + this.message;
-};
-
-/**
- * @namespace clbError
- * @memberof module:clb-error
- * @desc
- * ``clbError`` provides helper functions that all return an
- * ``ClbError`` instance given a context object.
- * @param {object} $q AngularJS injection
- * @return {object} the service singleton
- */
-function clbError($q) {
-  return {
-    rejectHttpError: function(err) {
-      return $q.reject(httpError(err));
-    },
-    httpError: httpError,
-
-    /**
-     * Build a ``ClbError`` instance from the provided options.
-     *
-     * - param  {Object} options argument passed to ``ClbError`` constructor
-     * - return {ClbError} the resulting error
-     * @memberof module:clb-error.clbError
-     * @param  {object} options [description]
-     * @return {object}         [description]
-     */
-    error: function(options) {
-      if (options && options instanceof ClbError) {
-        return options;
-      }
-      return new ClbError(options);
-    }
-  };
-
-  /**
-   * @desc
-   * return a `ClbError` instance built from a HTTP response.
-   *
-   * In an ideal case, the response contains json data with an error object.
-   * It also fallback to a reason field and fill default error message for
-   * standard HTTP status error.
-   * @memberof module:clb-error.clbError
-   * @param  {HttpResponse} response Angular $http Response object
-   * @return {ClbError} a valid ClbError
-   */
-  function httpError(response) {
-    // return argument if it is already an
-    // instance of ClbError
-    if (response && response instanceof ClbError) {
-      return response;
-    }
-
-    if (response.status === undefined) {
-      return new ClbError({
-        message: 'Cannot parse error, invalid format.'
-      });
-    }
-    var error = new ClbError({code: response.status});
-
-    if (error.code === 0) {
-      error.type = 'ClientError';
-      error.message = 'The client cannot run the request.';
-      return error;
-    }
-    if (error.code === 404) {
-      error.type = 'NotFound';
-      error.message = 'Resource not found';
-      return error;
-    }
-    if (error.code === 403) {
-      error.type = 'Forbidden';
-      error.message = 'Permission denied: you are not allowed to display ' +
-                      'the page or perform the operation';
-      return error;
-    }
-    if (error.code === 502) {
-      error.type = 'BadGateway';
-      error.message = '502 Bad Gateway Error';
-      if (response.headers('content-type') === 'text/html') {
-        var doc = document.createElement('div');
-        doc.innerHTML = response.data;
-        var titleNode = doc.getElementsByTagName('title')[0];
-        if (titleNode) {
-          error.message = titleNode.innerHTML;
-        }
-      }
-      return error;
-    }
-    if (response.data) {
-      var errorSource = response.data;
-      if (errorSource.error) {
-        errorSource = errorSource.error;
-      }
-      if (errorSource.type) {
-        error.type = errorSource.type;
-      }
-      if (errorSource.data) {
-        error.data = errorSource.data;
-      }
-      if (errorSource.message) {
-        error.message = errorSource.message;
-      } else if (errorSource.reason) {
-        error.type = 'Error';
-        error.message = errorSource.reason;
-      }
-
-      if (!errorSource.type && !errorSource.data &&
-        !errorSource.message && !errorSource.reason) {
-        // unkown format, return raw data
-        error.data = errorSource;
-      }
-    }
-    return error;
   }
 }
 
@@ -3117,6 +2865,175 @@ function clbIdentityUtil($log, lodash) {
   }
 }
 
+/* global document */
+
+clbError.$inject = ['$q'];
+angular.module('clb-error')
+.factory('clbError', clbError);
+
+/**
+ * @class ClbError
+ * @memberof module:clb-error
+ * @desc
+ * ``ClbError`` describes a standard error object used
+ * to display error message or intropect the situation.
+ *
+ * A ``ClbError`` instance provides the following properties:
+ *
+ * * ``type`` a camel case name of the error type.
+ * * `message` a human readable message of the error that should
+ * be displayed to the end user.
+ * * ``data`` any important data that might help the software to
+ * inspect the issue and take a recovering action.
+ * * ``code`` an error numerical code.
+ *
+ * The ClbError extends the native Javascript Error instance so it also provides:
+ * * ``name`` which is equal to the type
+ * * ``stack`` the stack trace of the error (when available)
+ *
+ * Only ``type``, ``message``, and ``code`` should be considered to be present.
+ * They receive default values when not specified by the situation.
+ *
+ * @param {object} [options] the parameters to use to build the error
+ * @param {string} [options.type] the error type (default to ``'UnknownError'``)
+ * @param {string} [options.message] the error message (default to ``'An unknown error occurred'``)
+ * @param {int} [options.code] the error code (default to ``-1``)
+ * @param {object} [options.data] any data that can be useful to deal with the error
+ */
+function ClbError(options) {
+  options = angular.extend({
+    type: 'UnknownError',
+    message: 'An unknown error occurred.',
+    code: -1
+  }, options);
+  this.type = options.type;
+  this.name = this.type; // Conform to Error class
+  this.message = options.message;
+  this.data = options.data;
+  this.code = options.code;
+  this.stack = (new Error()).stack;
+}
+// Extend the Error prototype
+ClbError.prototype = Object.create(Error.prototype);
+ClbError.prototype.toString = function() {
+  return String(this.type) + ':' + this.message;
+};
+
+/**
+ * @namespace clbError
+ * @memberof module:clb-error
+ * @desc
+ * ``clbError`` provides helper functions that all return an
+ * ``ClbError`` instance given a context object.
+ * @param {object} $q AngularJS injection
+ * @return {object} the service singleton
+ */
+function clbError($q) {
+  return {
+    rejectHttpError: function(err) {
+      return $q.reject(httpError(err));
+    },
+    httpError: httpError,
+
+    /**
+     * Build a ``ClbError`` instance from the provided options.
+     *
+     * - param  {Object} options argument passed to ``ClbError`` constructor
+     * - return {ClbError} the resulting error
+     * @memberof module:clb-error.clbError
+     * @param  {object} options [description]
+     * @return {object}         [description]
+     */
+    error: function(options) {
+      if (options && options instanceof ClbError) {
+        return options;
+      }
+      return new ClbError(options);
+    }
+  };
+
+  /**
+   * @desc
+   * return a `ClbError` instance built from a HTTP response.
+   *
+   * In an ideal case, the response contains json data with an error object.
+   * It also fallback to a reason field and fill default error message for
+   * standard HTTP status error.
+   * @memberof module:clb-error.clbError
+   * @param  {HttpResponse} response Angular $http Response object
+   * @return {ClbError} a valid ClbError
+   */
+  function httpError(response) {
+    // return argument if it is already an
+    // instance of ClbError
+    if (response && response instanceof ClbError) {
+      return response;
+    }
+
+    if (response.status === undefined) {
+      return new ClbError({
+        message: 'Cannot parse error, invalid format.'
+      });
+    }
+    var error = new ClbError({code: response.status});
+
+    if (error.code === 0) {
+      error.type = 'ClientError';
+      error.message = 'The client cannot run the request.';
+      return error;
+    }
+    if (error.code === 404) {
+      error.type = 'NotFound';
+      error.message = 'Resource not found';
+      return error;
+    }
+    if (error.code === 403) {
+      error.type = 'Forbidden';
+      error.message = 'Permission denied: you are not allowed to display ' +
+                      'the page or perform the operation';
+      return error;
+    }
+    if (error.code === 502) {
+      error.type = 'BadGateway';
+      error.message = '502 Bad Gateway Error';
+      if (response.headers('content-type') === 'text/html') {
+        var doc = document.createElement('div');
+        doc.innerHTML = response.data;
+        var titleNode = doc.getElementsByTagName('title')[0];
+        if (titleNode) {
+          error.message = titleNode.innerHTML;
+        }
+      }
+      return error;
+    }
+    if (response.data) {
+      var errorSource = response.data;
+      if (errorSource.error) {
+        errorSource = errorSource.error;
+      }
+      if (errorSource.type) {
+        error.type = errorSource.type;
+      }
+      if (errorSource.data) {
+        error.data = errorSource.data;
+      }
+      if (errorSource.message) {
+        error.message = errorSource.message;
+      } else if (errorSource.reason) {
+        error.type = 'Error';
+        error.message = errorSource.reason;
+      }
+
+      if (!errorSource.type && !errorSource.data &&
+        !errorSource.message && !errorSource.reason) {
+        // unkown format, return raw data
+        error.data = errorSource;
+      }
+    }
+    return error;
+  }
+}
+
 
 clbResultSet.$inject = ['$http', '$q', 'clbError'];angular.module('clb-rest')
 .factory('clbResultSet', clbResultSet);
@@ -3486,6 +3403,188 @@ function clbResultSet($http, $q, clbError) {
         return self;
       });
     }
+  }
+}
+
+
+clbResourceLocator.$inject = ['$q', '$log', 'clbError'];angular.module('clb-stream')
+.provider('clbResourceLocator', clbResourceLocatorProvider);
+
+var urlHandlers = [];
+
+/**
+ * Configure the clbResourceLocator service.
+ * @return {object} An AngularJS provider instance
+ */
+function clbResourceLocatorProvider() {
+  var provider = {
+    $get: clbResourceLocator,
+    registerUrlHandler: registerUrlHandler,
+    urlHandlers: urlHandlers
+  };
+
+  /**
+   * Add a function that can generate URL for some types of object reference.
+   *
+   * The function should return a string representing the URL.
+   * Any other response means that the handler is not able to generate a proper
+   * URL for this type of object.
+   *
+   * The function signature is ``function(objectReference) { return 'url' // or nothing}``
+   * @memberof module:clb-stream
+   * @param  {function} handler a function that can generate URL string for some objects
+   * @return {provider} The provider, for chaining.
+   */
+  function registerUrlHandler(handler) {
+    if (angular.isFunction(handler)) {
+      urlHandlers.push(handler);
+    }
+    return provider;
+  }
+
+  return provider;
+}
+
+/**
+ * @name clbResourceLocator
+ * @desc
+ * resourceLocator service
+ * @memberof module:clb-stream
+ * @param {object} $q AngularJS injection
+ * @param {object} $log AngularJS injection
+ * @param {object} clbError AngularJS injection
+ * @return {object} the service singleton
+ */
+function clbResourceLocator($q, $log, clbError) {
+  return {
+    urlFor: urlFor
+  };
+
+  /**
+   * @desc
+   * Asynchronous resolution of an object reference to an URL that access
+   * this resource.
+   *
+   * The URL is generated using the registered URL handlers. If no URL
+   * can be generated, a HbpError is thrown with ``type==='ObjectTypeException'``.
+   * If the object reference is not valid, a HbpError is throw with
+   * ``type==='AttributeError'``. In both case ``data.ref will be set with
+   * reference for which there is an issue.
+   *
+   * @memberof module:clb-stream.clbResourceLocator
+   * @param  {object} ref object reference
+   * @return {string} a atring representing the URL for this object reference
+   */
+  function urlFor(ref) {
+    if (!validRef(ref)) {
+      return $q.reject(invalidReferenceException(ref));
+    }
+    var next = function(i) {
+      if (i < urlHandlers.length) {
+        return $q.when(urlHandlers[i](ref)).then(function(url) {
+          if (angular.isString(url)) {
+            $log.debug('generated URL', url);
+            return url;
+          }
+          if (angular.isDefined(url)) {
+            $log.warn('unexpected result from URL handler', url);
+          }
+          return next(i + 1);
+        });
+      }
+      return $q.reject(objectTypeException(ref));
+    };
+    return next(0);
+  }
+
+  /**
+   * build an objectTypeException.
+   * @private
+   * @param  {object} ref ClbObjectReference
+   * @return {HbpError}   error to be sent
+   */
+  function objectTypeException(ref) {
+    return clbError.error({
+      type: 'ObjectTypeException',
+      message: 'Unkown object type <' + (ref && ref.type) + '>',
+      data: {ref: ref}
+    });
+  }
+
+  /**
+   * build an objectTypeException.
+   * @private
+   * @param  {object} ref ClbObjectReference
+   * @return {HbpError}   error to be sent
+   */
+  function invalidReferenceException(ref) {
+    return clbError.error({
+      type: 'AttributeError',
+      message: 'Invalid object reference <' + ref + '>',
+      data: {ref: ref}
+    });
+  }
+
+  /**
+   * Return wheter the object reference is valid or not.
+   *
+   * To be valid an ObjectReference must have a defined ``id`` and ``type``
+   * @param  {any} ref the potential object reference
+   * @return {boolean} whether it is or not an object reference
+   */
+  function validRef(ref) {
+    return Boolean(ref && ref.id && ref.type);
+  }
+}
+
+
+clbStream.$inject = ['$http', '$log', 'clbEnv', 'clbError', 'clbResultSet'];angular.module('clb-stream')
+.factory('clbStream', clbStream);
+
+/**
+ * ``clbStream`` service is used to retrieve feed of activities
+ * given a user, a collab or a specific context.
+ *
+ * @memberof module:clb-stream
+ * @namespace clbStream
+ * @param {function} $http angular dependency injection
+ * @param {function} $log angular dependency injection
+ * @param {function} clbEnv angular dependency injection
+ * @param {function} clbError angular dependency injection
+ * @param {function} clbResultSet angular dependency injection
+ * @return {object} the clbActivityStream service
+ */
+function clbStream($http, $log, clbEnv, clbError, clbResultSet) {
+  return {
+    getStream: getStream
+  };
+
+  /* -------------------- */
+
+  /**
+   * Get a feed of activities regarding an item type and id.
+   * @memberof module:clb-stream.clbStream
+   * @param  {string} type The type of object to get the feed for
+   * @param  {string|int} id   The id of the object to get the feed for
+   * @return {Promise}         resolve to the feed of activities
+   */
+  function getStream(type, id) {
+    var url = clbEnv.get('api.stream.v0') + '/stream/' +
+                         type + ':' + id + '/';
+    return clbResultSet.get($http.get(url), {
+      resultsFactory: function(results) {
+        if (!(results && results.length)) {
+          return;
+        }
+        for (var i = 0; i < results.length; i++) {
+          var activity = results[i];
+          if (activity.time) {
+            activity.time = new Date(Date.parse(activity.time));
+          }
+        }
+      }
+    })
+    .catch(clbError.rejectHttpError);
   }
 }
 
@@ -4270,188 +4369,6 @@ function clbStorage(
 }
 
 
-clbResourceLocator.$inject = ['$q', '$log', 'clbError'];angular.module('clb-stream')
-.provider('clbResourceLocator', clbResourceLocatorProvider);
-
-var urlHandlers = [];
-
-/**
- * Configure the clbResourceLocator service.
- * @return {object} An AngularJS provider instance
- */
-function clbResourceLocatorProvider() {
-  var provider = {
-    $get: clbResourceLocator,
-    registerUrlHandler: registerUrlHandler,
-    urlHandlers: urlHandlers
-  };
-
-  /**
-   * Add a function that can generate URL for some types of object reference.
-   *
-   * The function should return a string representing the URL.
-   * Any other response means that the handler is not able to generate a proper
-   * URL for this type of object.
-   *
-   * The function signature is ``function(objectReference) { return 'url' // or nothing}``
-   * @memberof module:clb-stream
-   * @param  {function} handler a function that can generate URL string for some objects
-   * @return {provider} The provider, for chaining.
-   */
-  function registerUrlHandler(handler) {
-    if (angular.isFunction(handler)) {
-      urlHandlers.push(handler);
-    }
-    return provider;
-  }
-
-  return provider;
-}
-
-/**
- * @name clbResourceLocator
- * @desc
- * resourceLocator service
- * @memberof module:clb-stream
- * @param {object} $q AngularJS injection
- * @param {object} $log AngularJS injection
- * @param {object} clbError AngularJS injection
- * @return {object} the service singleton
- */
-function clbResourceLocator($q, $log, clbError) {
-  return {
-    urlFor: urlFor
-  };
-
-  /**
-   * @desc
-   * Asynchronous resolution of an object reference to an URL that access
-   * this resource.
-   *
-   * The URL is generated using the registered URL handlers. If no URL
-   * can be generated, a HbpError is thrown with ``type==='ObjectTypeException'``.
-   * If the object reference is not valid, a HbpError is throw with
-   * ``type==='AttributeError'``. In both case ``data.ref will be set with
-   * reference for which there is an issue.
-   *
-   * @memberof module:clb-stream.clbResourceLocator
-   * @param  {object} ref object reference
-   * @return {string} a atring representing the URL for this object reference
-   */
-  function urlFor(ref) {
-    if (!validRef(ref)) {
-      return $q.reject(invalidReferenceException(ref));
-    }
-    var next = function(i) {
-      if (i < urlHandlers.length) {
-        return $q.when(urlHandlers[i](ref)).then(function(url) {
-          if (angular.isString(url)) {
-            $log.debug('generated URL', url);
-            return url;
-          }
-          if (angular.isDefined(url)) {
-            $log.warn('unexpected result from URL handler', url);
-          }
-          return next(i + 1);
-        });
-      }
-      return $q.reject(objectTypeException(ref));
-    };
-    return next(0);
-  }
-
-  /**
-   * build an objectTypeException.
-   * @private
-   * @param  {object} ref ClbObjectReference
-   * @return {HbpError}   error to be sent
-   */
-  function objectTypeException(ref) {
-    return clbError.error({
-      type: 'ObjectTypeException',
-      message: 'Unkown object type <' + (ref && ref.type) + '>',
-      data: {ref: ref}
-    });
-  }
-
-  /**
-   * build an objectTypeException.
-   * @private
-   * @param  {object} ref ClbObjectReference
-   * @return {HbpError}   error to be sent
-   */
-  function invalidReferenceException(ref) {
-    return clbError.error({
-      type: 'AttributeError',
-      message: 'Invalid object reference <' + ref + '>',
-      data: {ref: ref}
-    });
-  }
-
-  /**
-   * Return wheter the object reference is valid or not.
-   *
-   * To be valid an ObjectReference must have a defined ``id`` and ``type``
-   * @param  {any} ref the potential object reference
-   * @return {boolean} whether it is or not an object reference
-   */
-  function validRef(ref) {
-    return Boolean(ref && ref.id && ref.type);
-  }
-}
-
-
-clbStream.$inject = ['$http', '$log', 'clbEnv', 'clbError', 'clbResultSet'];angular.module('clb-stream')
-.factory('clbStream', clbStream);
-
-/**
- * ``clbStream`` service is used to retrieve feed of activities
- * given a user, a collab or a specific context.
- *
- * @memberof module:clb-stream
- * @namespace clbStream
- * @param {function} $http angular dependency injection
- * @param {function} $log angular dependency injection
- * @param {function} clbEnv angular dependency injection
- * @param {function} clbError angular dependency injection
- * @param {function} clbResultSet angular dependency injection
- * @return {object} the clbActivityStream service
- */
-function clbStream($http, $log, clbEnv, clbError, clbResultSet) {
-  return {
-    getStream: getStream
-  };
-
-  /* -------------------- */
-
-  /**
-   * Get a feed of activities regarding an item type and id.
-   * @memberof module:clb-stream.clbStream
-   * @param  {string} type The type of object to get the feed for
-   * @param  {string|int} id   The id of the object to get the feed for
-   * @return {Promise}         resolve to the feed of activities
-   */
-  function getStream(type, id) {
-    var url = clbEnv.get('api.stream.v0') + '/stream/' +
-                         type + ':' + id + '/';
-    return clbResultSet.get($http.get(url), {
-      resultsFactory: function(results) {
-        if (!(results && results.length)) {
-          return;
-        }
-        for (var i = 0; i < results.length; i++) {
-          var activity = results[i];
-          if (activity.time) {
-            activity.time = new Date(Date.parse(activity.time));
-          }
-        }
-      }
-    })
-    .catch(clbError.rejectHttpError);
-  }
-}
-
-
 clbErrorDialog.$inject = ['$uibModal', 'clbError'];angular.module('clb-ui-error')
 .factory('clbErrorDialog', clbErrorDialog);
 
@@ -4706,48 +4623,88 @@ function clbUsercardCacheTemplate($templateCache) {
   }
 }
 
-angular.module('clb-ui-loading')
-.directive('clbLoading', clbLoading);
+/* global window */
+
+clbEnv.$inject = ['$injector'];
+angular.module('clb-env')
+.provider('clbEnv', clbEnv);
 
 /**
- * The directive clbLoading displays a simple loading message. If a promise
- * is given, the loading indicator will disappear once it is resolved.
- *
- * Attributes
- * ----------
- *
- * =======================  ===================================================
- * Name                     Description
- * =======================  ===================================================
- * {Promise} [clb-promise]  Hide the loading message upon fulfilment.
- * {string} [clb-message]   Displayed loading string (default=``'loading...'``)
- * =======================  ===================================================
- *
- * @memberof module:clb-ui-loading
- * @return {object} Angular directive descriptor
- * @example <caption>Directive Usage Example</caption>
- * <hbp-loading hbp-promise="myAsyncFunc()" hbp-message="'Loading My Async Func'">
- * </hbp-loading>
+ * @namespace angular
  */
-function clbLoading() {
+
+/**
+ * Get environement information using dotted notation with the `clbEnv` provider
+ * or service.
+ *
+ * Before being used, clbEnv must be initialized with the context values. You
+ * can do so by setting up a global bbpConfig variable or using
+ * :ref:`angular.clbBootstrap <angular.clbBootstrap>`.
+ *
+ * @function clbEnv
+ * @memberof angular
+ * @param {object} $injector AngularJS injection
+ * @return {object} provider
+ * @example <caption>Basic usage of clbEnv</caption>
+ * angular.module('myApp', ['clbEnv', 'rest'])
+ * .service('myService', function(clbEnv, clbResultSet) {
+ *   return {
+ *     listCollab: function() {
+ *       // return a paginated list of all collabs
+ *       return clbResultSet.get($http.get(clbEnv.get('api.collab.v0') + '/'));
+ *     }
+ *   };
+ * });
+ * @example <caption>Use clbEnv in your configuration</caption>
+ * angular.module('myApp', ['clbEnv', 'rest'])
+ * .config(function(clbEnvProvider, myAppServiceProvider) {
+ *   // also demonstrate how we accept a custom variable.
+ *   myAppServiceProvider.setMaxFileUpload(clbEnvProvider.get('myapp.maxFileUpload', '1m'))
+ * });
+ */
+function clbEnv($injector) {
   return {
-    restrict: 'E',
-    scope: {
-      promise: '=?clbPromise',
-      message: '=?clbMessage'
-    },
-    template:'<div class=clb-loading ng-if=loading><span class="glyphicon glyphicon-refresh clb-spinning"></span> {{message}}</div>',
-    link: function(scope) {
-      scope.loading = true;
-      scope.message = scope.message || 'Loading...';
-      if (scope.promise) {
-        var complete = function() {
-          scope.loading = false;
-        };
-        scope.promise.then(complete, complete);
-      }
+    get: get,
+    $get: function() {
+      return {
+        get: get
+      };
     }
   };
+
+  /**
+   * ``get(key, [defaultValue])`` provides configuration value loaded at
+   * the application bootstrap.
+   *
+   * Accept a key and an optional default
+   * value. If the key cannot be found in the configurations, it will return
+   * the provided default value. If the defaultValue is undefied, it will
+   * throw an error.
+   *
+   * To ensures that those data are available when angular bootstrap the
+   * application, use angular.clbBootstrap(module, options).
+   *
+   * @memberof module:clb-env.clbEnv
+   * @param {string} key the environment variable to retrieve, using a key.
+   * @param {any} [defaultValue] an optional default value.
+   * @return {any} the value or ``defaultValue`` if the asked for configuration
+   *               is not defined.
+   */
+  function get(key, defaultValue) {
+    var parts = key.split('.');
+    var cursor = (window.bbpConfig ?
+                  window.bbpConfig : $injector.get('CLB_ENVIRONMENT'));
+    for (var i = 0; i < parts.length; i++) {
+      if (!(cursor && cursor.hasOwnProperty(parts[i]))) {
+        if (defaultValue !== undefined) {
+          return defaultValue;
+        }
+        throw new Error('UnkownConfigurationKey: <' + key + '>');
+      }
+      cursor = cursor[parts[i]];
+    }
+    return cursor;
+  }
 }
 
 angular.module('clb-ui-storage')
@@ -5539,6 +5496,50 @@ angular.module('clb-ui-storage')
     }
   };
 });
+
+angular.module('clb-ui-loading')
+.directive('clbLoading', clbLoading);
+
+/**
+ * The directive clbLoading displays a simple loading message. If a promise
+ * is given, the loading indicator will disappear once it is resolved.
+ *
+ * Attributes
+ * ----------
+ *
+ * =======================  ===================================================
+ * Name                     Description
+ * =======================  ===================================================
+ * {Promise} [clb-promise]  Hide the loading message upon fulfilment.
+ * {string} [clb-message]   Displayed loading string (default=``'loading...'``)
+ * =======================  ===================================================
+ *
+ * @memberof module:clb-ui-loading
+ * @return {object} Angular directive descriptor
+ * @example <caption>Directive Usage Example</caption>
+ * <hbp-loading hbp-promise="myAsyncFunc()" hbp-message="'Loading My Async Func'">
+ * </hbp-loading>
+ */
+function clbLoading() {
+  return {
+    restrict: 'E',
+    scope: {
+      promise: '=?clbPromise',
+      message: '=?clbMessage'
+    },
+    template:'<div class=clb-loading ng-if=loading><span class="glyphicon glyphicon-refresh clb-spinning"></span> {{message}}</div>',
+    link: function(scope) {
+      scope.loading = true;
+      scope.message = scope.message || 'Loading...';
+      if (scope.promise) {
+        var complete = function() {
+          scope.loading = false;
+        };
+        scope.promise.then(complete, complete);
+      }
+    }
+  };
+}
 
 
 ActivityController.$inject = ['$log', 'clbResourceLocator'];angular.module('clb-ui-stream')

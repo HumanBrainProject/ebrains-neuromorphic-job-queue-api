@@ -14,6 +14,7 @@ Contents
    module-clb-app
    module-clb-automator
    module-clb-collab
+   module-clb-context-data
    module-clb-env
    module-hbpCommonCompat
    module-clb-rest
@@ -133,7 +134,9 @@ progressively refactor to use the new library instead of the old one::
    hbpEntityStore -> clbStorage             (from clb-storage module)
    hbpFileStore -> clbStorage               (from clb-storage module)
    hbpProjectStore -> clbStorage            (from clb-storage module)
-   hbp-file-browser -> clb-ui-storage     (from clb-ui-storage module)
+   hbpConfigStore -> Manually refactor to clbCtxData (from clb-ctx-data)
+     The service now use JSON as data format and the method signature
+     changed from method(config) to method(ctx, data)
 
 In fact, ``hbpCollaboratoryCore`` is a shell module that will require many
 sub-modules as an easy way to migrate and import everything.
@@ -220,7 +223,7 @@ _`Migration Guide <https://github.com/angular-ui/bootstrap/wiki/Migration-guide-
 You can also use the directives provided by this package.
 Please be sure to check the change in the directive attributes prefix as well.::
 
-   hbp-file-browser -> clb-file-browser (root -> clb-root, entity -> clb-entity)
+   hbp-file-browser -> clb-ui-storage (root -> clb-root, entity -> clb-entity)
    hbp-error-message -> clb-error-message (hbp-promise -> clb-promise, hbp-message -> clb-message)
    hbp-usercard -> clb-usercard (hbp-user -> clb-user, hbp-template -> clb-template)
 
