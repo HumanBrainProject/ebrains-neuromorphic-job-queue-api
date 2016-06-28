@@ -1,10 +1,10 @@
-.. _module-clb-ui-file-browser.clbFileBrowser.FileBrowserViewModel:
+.. _module-clb-ui-storage.clbFileBrowser.FileBrowserViewModel:
 
 ===================================
 Namespace: ``FileBrowserViewModel``
 ===================================
 
-Member Of :doc:`module-clb-ui-file-browser.clbFileBrowser`
+Member Of :doc:`module-clb-ui-storage.clbFileBrowser`
 
 .. contents:: Local Navigation
    :local:
@@ -27,7 +27,7 @@ and the services. It does not update the views directly but sends
 the relevant events when necessary.
 
 
-.. _module-clb-ui-file-browser.clbFileBrowser.FileBrowserViewModel.handleFocus:
+.. _module-clb-ui-storage.clbFileBrowser.FileBrowserViewModel.handleFocus:
 
 
 Function: ``handleFocus``
@@ -43,7 +43,7 @@ The event signature is (event, newEntity, previousEntity).
     
     :param Object entity: selected entity
     
-.. _module-clb-ui-file-browser.clbFileBrowser.FileBrowserViewModel.handleNavigation:
+.. _module-clb-ui-storage.clbFileBrowser.FileBrowserViewModel.handleNavigation:
 
 
 Function: ``handleNavigation``
@@ -62,7 +62,7 @@ would sometimes finish after a new navigation event already occured.
     :param Object entity: the new current entity
     :return promise: resolve when the navigation is done.
     
-.. _module-clb-ui-file-browser.clbFileBrowser.FileBrowserViewModel.loadMoreFiles:
+.. _module-clb-ui-storage.clbFileBrowser.FileBrowserViewModel.loadMoreFiles:
 
 
 Function: ``loadMoreFiles``
@@ -75,7 +75,7 @@ Load the next page of file entities for the current entity.
     
     :return Promise: resolve when the files are loaded
     
-.. _module-clb-ui-file-browser.clbFileBrowser.FileBrowserViewModel.loadMoreFolders:
+.. _module-clb-ui-storage.clbFileBrowser.FileBrowserViewModel.loadMoreFolders:
 
 
 Function: ``loadMoreFolders``

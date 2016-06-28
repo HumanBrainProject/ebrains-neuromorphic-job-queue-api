@@ -18,9 +18,9 @@
  * <clb-file-upload on-drop="handleFileUpload(files)"
  *                       on-error="handleError(error)">
  * </clb-file-upload>
- * @memberof module:clb-ui-file-browser
+ * @memberof module:clb-ui-storage
  */
-angular.module('clb-ui-file-browser')
+angular.module('clb-ui-storage')
 .directive('clbFileUpload', function() {
   'use strict';
   return {

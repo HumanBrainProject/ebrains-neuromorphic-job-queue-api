@@ -177,20 +177,6 @@ Promise a list of users who matched the given query string.
     :param function options.factory: the factory function to use
     :return Promise: will return a ResultSet containing the results
     
-.. _module-clb-identity.clbUser.isHbpMember:
-
-
-Function: ``isHbpMember``
-=========================
-
-Return a promise that will resolve to true if the current user is a
-HBP member.
-
-.. js:function:: isHbpMember()
-
-    
-    :return Promise: Resolve to a boolean
-    
 
 .. _module-clb-identity.clbUser.getCurrentUserOnly:
 

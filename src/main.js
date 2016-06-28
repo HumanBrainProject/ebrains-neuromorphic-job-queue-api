@@ -37,7 +37,7 @@ angular.module('hbpCollaboratoryCore', [
  */
 angular.module('hbpCollaboratoryUI', [
   'clb-ui-error',
-  'clb-ui-file-browser',
+  'clb-ui-storage',
   'clb-ui-form',
   'clb-ui-identity',
   'clb-ui-loading',

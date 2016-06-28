@@ -14,9 +14,9 @@ Children
 .. toctree::
    :maxdepth: 1
    
-   module-clb-ui-file-browser.clbFileBrowser.clbFileBrowserFolder
-   module-clb-ui-file-browser.clbFileBrowser.clbFileBrowserPath
-   module-clb-ui-file-browser.clbFileBrowser.FileBrowserViewModel
+   module-clb-ui-storage.clbFileBrowser.clbFileBrowserFolder
+   module-clb-ui-storage.clbFileBrowser.clbFileBrowserPath
+   module-clb-ui-storage.clbFileBrowser.FileBrowserViewModel
    
 Description
 ===========
