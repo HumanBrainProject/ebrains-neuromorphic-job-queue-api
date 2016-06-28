@@ -1,4 +1,9 @@
 /* global deferredBootstrapper, window, document */
+
+/**
+ * @namespace angular
+ */
+
 angular.clbBootstrap = clbBootstrap;
 
 /**
@@ -12,6 +17,7 @@ angular.clbBootstrap = clbBootstrap;
  *
  * At least ``auth.clientId`` should be edited in the config.json file.
  *
+ * @memberof angular
  * @param {string} module the name of the Angular application module to load.
  * @param {object} options pass those options to deferredBootstrap
  * @param {object} options.env HBP environment JSON (https://collab.humanbrainproject.eu/config.json)

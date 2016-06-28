@@ -4,10 +4,6 @@ angular.module('clb-env')
 .provider('clbEnv', clbEnv);
 
 /**
- * @namespace angular
- */
-
-/**
  * Get environement information using dotted notation with the `clbEnv` provider
  * or service.
  *
@@ -16,7 +12,7 @@ angular.module('clb-env')
  * :ref:`angular.clbBootstrap <angular.clbBootstrap>`.
  *
  * @function clbEnv
- * @memberof angular
+ * @memberof module:clb-env
  * @param {object} $injector AngularJS injection
  * @return {object} provider
  * @example <caption>Basic usage of clbEnv</caption>
