@@ -11,8 +11,44 @@
     <link rel="stylesheet" type="text/css" href="../bower_components/codemirror/lib/codemirror.css">
   </head>
   <body>
-    <div class="container" ng-controller="CollabConfigurationController as vm">
+    <div class="container">
       <div class="panel panel-default">
+        <div class="panel-heading">
+          <h4>User Avatar</h4>
+        </div>
+        <div class="panel-body" ng-controller="UiIdentityController as vm">
+          <p>Default Avatar</p>
+          <clb-user-avatar clb-user="{displayName: 'John Doe'}"></clb-user-avatar>
+          <clb-user-avatar clb-user="{displayName: 'wohn Doe'}"></clb-user-avatar>
+          <clb-user-avatar clb-user="{displayName: 'mohn Doe'}"></clb-user-avatar>
+
+          <p>Override Avatar Colors</p>
+          <style>
+            .grey-background .clb-user-avatar-icon-fill {
+              fill: #d4d4d4;
+            }
+            .pink-text .clb-user-avatar-icon-text {
+              fill: #ff66cc;
+            }
+            .outline-text .clb-user-avatar-icon-text {
+              stroke: #000000;
+            }
+          </style>
+          <clb-user-avatar class="grey-background" clb-user="{displayName: 'iohn Doe'}"></clb-user-avatar>
+          <clb-user-avatar class="pink-text outline-text" clb-user="{displayName: 'aohn Doe'}"></clb-user-avatar>
+          <clb-user-avatar class="grey-background pink-text" clb-user="{displayName: 'bohn Doe'}"></clb-user-avatar>
+
+          <p>Override Avatar Size</p>
+          <clb-user-avatar style="width: 20px; height: 20px;" clb-user="{displayName: 'oohn Doe'}"></clb-user-avatar>
+          <clb-user-avatar style="width: 80px; height: 80px;" clb-user="{displayName: 'xohn Doe'}"></clb-user-avatar>
+          <clb-user-avatar style="width: 60px; height: 60px;" clb-user="vm.user"></clb-user-avatar>
+
+          <p>User Card</p>
+          <clb-usercard clb-user="vm.user"></clb-usercard>
+        </div>
+      </div>
+
+      <div class="panel panel-default" ng-controller="CollabConfigurationController as vm">
         <div class="panel-heading">
           <h4>Create a custom Collab with <code><a href="http://humanbrainproject.github.io/angular-hbp-collaboratory/module-clb-automator.html">clb-automator</a></code></h4>
         </div>
@@ -37,8 +73,14 @@
           </form>
         </div>
       </div>
-      <div class="container">
-        <uib-alert type="danger">Hello World</uib-alert>
+
+      <div class="panel panel-default">
+        <div class="panel-heading">
+          <h4>Alert box</h4>
+        </div>
+        <div class="panel-body">
+          <uib-alert type="danger">Hello World</uib-alert>
+        </div>
       </div>
     </div>
     <!-- bower:js -->

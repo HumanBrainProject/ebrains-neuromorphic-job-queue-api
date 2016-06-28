@@ -62,6 +62,7 @@ angular.module('hbpCollaboratoryUI', [
   'clb-ui-error',
   'clb-ui-file-browser',
   'clb-ui-form',
+  'clb-ui-identity',
   'clb-ui-loading',
   'clb-ui-stream',
   'hbpCommonCompat'
@@ -84,19 +85,6 @@ angular.module('hbpCollaboratory', [
  */
 
 /**
- * @module clb-app
- * @desc
- * ``clb-app`` module provides utilities to retrieve current
- * HBP Collaboratory Context in an app and to communicate with the current
- * Collaboratory instance.
- *
- * This module must be bootstraped using ``angular.clbBootstrap`` function as
- * it needs to load the global environment loaded in CLB_ENBIRONMENT angular
- * constant.
- */
-angular.module('clb-app', ['clb-env', 'clb-error']);
-
-/**
  * @module clb-automator
  * @desc
  * `clb-automator` module provides an automation library for the Collaboratory
@@ -115,14 +103,6 @@ angular.module('clb-automator', [
 ]);
 
 /**
- * @module clb-env
- * @desc
- * ``clb-env`` module provides a way to information from the global environment.
- */
-
-angular.module('clb-env', []);
-
-/**
  * @module clb-collab
  * @desc
  * Contain services to interact with collabs (e.g.: retriving collab informations or
@@ -137,12 +117,26 @@ angular.module('clb-collab', [
   'uuid4'
 ]);
 
-angular.module('clb-identity', [
-  'ngLodash',
-  'clb-env',
-  'clb-error',
-  'clb-rest'
-]);
+/**
+ * @module clb-env
+ * @desc
+ * ``clb-env`` module provides a way to information from the global environment.
+ */
+
+angular.module('clb-env', []);
+
+/**
+ * @module clb-app
+ * @desc
+ * ``clb-app`` module provides utilities to retrieve current
+ * HBP Collaboratory Context in an app and to communicate with the current
+ * Collaboratory instance.
+ *
+ * This module must be bootstraped using ``angular.clbBootstrap`` function as
+ * it needs to load the global environment loaded in CLB_ENBIRONMENT angular
+ * constant.
+ */
+angular.module('clb-app', ['clb-env', 'clb-error']);
 
 /**
  * @module clb-rest
@@ -150,6 +144,21 @@ angular.module('clb-identity', [
  * ``clb-rest`` module contains util for simplifying access to Rest service.
  */
 angular.module('clb-rest', ['clb-error']);
+
+/**
+ * @module clb-storage
+ * @desc
+ * The ``clb-storage`` module contains tools needed to access and work with the
+ * HBP Document Service. It is targeted to integrate easily with the HBP
+ * Collaboratory, even if the service is more generic.
+ */
+angular.module('clb-storage', [
+  'uuid4',
+  'clb-error',
+  'clb-env',
+  'clb-rest',
+  'clb-identity'
+]);
 
 /**
  * @module clb-stream
@@ -165,19 +174,20 @@ angular.module('clb-stream', [
   'clb-rest'
 ]);
 
-/**
- * @module clb-storage
- * @desc
- * The ``clb-storage`` module contains tools needed to access and work with the
- * HBP Document Service. It is targeted to integrate easily with the HBP
- * Collaboratory, even if the service is more generic.
- */
-angular.module('clb-storage', [
-  'uuid4',
-  'clb-error',
+angular.module('clb-identity', [
+  'ngLodash',
   'clb-env',
-  'clb-rest',
-  'clb-identity'
+  'clb-error',
+  'clb-rest'
+]);
+
+/**
+ * @module clb-ui-error
+ */
+angular.module('clb-ui-error', [
+  'clb-error',
+  'ui.bootstrap.alert',
+  'uib/template/alert/alert.html'
 ]);
 
 /**
@@ -206,21 +216,11 @@ angular.module('clb-ui-file-browser', [
  */
 angular.module('clb-ui-form', []);
 
-angular.module('clb-error', []);
-
 /**
- * @module clb-ui-error
+ * Provides UI widgets around user and groups.
+ * @module clb-ui-identity
  */
-angular.module('clb-ui-error', [
-  'clb-error',
-  'ui.bootstrap.alert',
-  'uib/template/alert/alert.html'
-]);
-
-/**
- * @module clb-ui-stream
- */
-angular.module('clb-ui-stream', ['angularMoment', 'clb-stream']);
+angular.module('clb-ui-identity', ['ngLodash', 'clb-identity']);
 
 /**
  * Provides a simple loading directive.
@@ -228,212 +228,12 @@ angular.module('clb-ui-stream', ['angularMoment', 'clb-stream']);
  */
 angular.module('clb-ui-loading', []);
 
-
-clbApp.$inject = ['$q', '$rootScope', '$timeout', '$window', 'clbError'];angular.module('clb-app')
-.factory('clbApp', clbApp);
-
 /**
- * @namespace clbApp
- * @memberof module:clb-app
- * @desc
- * An AngularJS service to interface a web application with the HBP Collaboratory.
- * This library provides a few helper to work within the Collaboratory environment.
- *
- * Usage
- * -----
- *
- * - :ref:`module-clb-app.clbApp.context` is used to set and retrieve
- *   the current context.
- * - :ref:`module-clb-app.clbApp.emit` is used to send a command
- *   to the HBP Collaboratory and wait for its answer.
- *
- * @example <caption>Retrieve the current context object</caption>
- * clbApp.context()
- * .then(function(context) {
- *   console.log(context.ctx, context.state, context.collab);
- * })
- * .catch(function(err) {
- *   // Cannot set the state
- * });
- *
- * @example <caption>Set the current state in order for a user to be able to copy-paste its current URL and reopen the same collab with your app loaded at the same place.</caption>
- * clbApp.context({state: 'lorem ipsum'})
- * .then(function(context) {
- *   console.log(context.ctx, context.state, context.collab);
- * })
- * .catch(function(err) {
- *   // Cannot set the state
- * });
- *
- * @param  {object} $q AngularJS service injection
- * @param  {object} $rootScope AngularJS service injection
- * @param  {object} $timeout AngularJS service injection
- * @param  {object} $window AngularJS service injection
- * @param  {object} clbError AngularJS service injection
- * @return {object}         the service singleton
+ * @module clb-ui-stream
  */
-function clbApp(
-  $q,
-  $rootScope,
-  $timeout,
-  $window,
-  clbError
-) {
-  var eventId = 0;
-  var sentMessages = {};
+angular.module('clb-ui-stream', ['angularMoment', 'clb-stream']);
 
-  /**
-   * Singleton class
-   */
-  function AppToolkit() { }
-  AppToolkit.prototype = {
-    emit: emit,
-    context: context
-  };
-
-  $window.addEventListener('message', function(event) {
-    $rootScope.$emit('message', event.data);
-  });
-
-  $rootScope.$on('message', function(event, message) {
-    if (!message || !message.origin || !sentMessages[message.origin]) {
-      return;
-    }
-    if (message.eventName === 'resolved') {
-      sentMessages[message.origin].resolve(message.data);
-    } else if (message.eventName === 'error') {
-      sentMessages[message.origin].reject(clbError.error(message.data));
-    }
-    sentMessages[message.origin] = null;
-  });
-
-  /**
-   * Send a message to the HBP Collaboratory.
-   * @memberof module:clb-app.clbApp
-   * @param  {string} name name of the event to be propagated
-   * @param  {object} data corresponding data to be sent alongside the event
-   * @return  {Promise} resolve with the message response
-   */
-  function emit(name, data) {
-    eventId++;
-    sentMessages[eventId] = $q.defer();
-    var promise = sentMessages[eventId].promise;
-    $window.parent.postMessage({
-      apiVersion: 1,
-      eventName: name,
-      data: data,
-      ticket: eventId
-    }, '*');
-    return promise;
-  }
-
-  var currentContext;
-
-  /**
-   * @typedef HbpCollaboratoryContext
-   * @memberof module:clb-app.clbApp
-   * @type {object}
-   * @property {string} mode - the current mode, either 'run' or 'edit'
-   * @property {string} ctx - the UUID of the current context
-   * @property {string} state - an application defined state string
-   */
-
-   /**
-    * @memberof module:clb-app.clbApp
-    * @desc
-    * Asynchronously retrieve the current HBP Collaboratory Context, including
-    * the mode, the ctx UUID and the application state if any.
-    * @function context
-    * @param {object} data new values to send to HBP Collaboratory frontend
-    * @return {Promise} resolve to the context
-    * @static
-    */
-  function context(data) {
-    var d = $q.defer();
-    var kill = $timeout(function() {
-      d.reject(clbError.error({
-        type: 'TimeoutException',
-        message: 'No context can be retrieved'
-      }));
-    }, 250);
-
-    if (data) {
-      // discard context if new data should be set.
-      currentContext = null;
-    }
-
-    if (currentContext) {
-      // directly return context when cached.
-      return d.resolve(currentContext);
-    }
-    emit('workspace.context', data)
-    .then(function(context) {
-      $timeout.cancel(kill);
-      currentContext = context;
-      d.resolve(context);
-    })
-    .catch(function(err) {
-      d.reject(clbError.error(err));
-    });
-    return d.promise;
-  }
-  return new AppToolkit();
-}
-
-/* global deferredBootstrapper, window, document */
-angular.clbBootstrap = clbBootstrap;
-
-/**
- * Bootstrap AngularJS application with the environment configuration loaded.
- * @param {string} module the name of the Angular application module to load.
- * @param {objects} options pass those options to deferredBootstrap
- * @return {Promise} return once the environment has been bootstrapped
- */
-function clbBootstrap(module, options) {
-  if (window.bbpConfig) {
-    options.env = window.bbpConfig;
-  }
-  if (!options.element) {
-    options.element = document.body;
-  }
-  options.module = module;
-  if (!options.moduleResolves) {
-    options.moduleResolves = {};
-  }
-  options.moduleResolves = [{
-    module: 'clb-env',
-    resolve: {
-      // use injection here as it is not resolved automatically on build.
-      CLB_ENVIRONMENT: ['$q', '$http', function($q, $http) {
-        // Remove any previously defined CLB_ENVIRONMENT
-        // As this results in unpredictable results when multiple apps
-        // use this strategy.
-        var invoker = angular.module(['clb-env'])._invokeQueue;
-        for (var i = 0; i < invoker.length; i++) {
-          var inv = invoker[i];
-          if (inv[2][0] === 'CLB_ENVIRONMENT') {
-            invoker.splice(i, 1);
-            i--;
-          }
-        }
-        if (angular.isString(options.env)) {
-          return $http.get(options.env)
-          .then(function(res) {
-            // Set bbpConfig for backward compatibility
-            window.bbpConfig = res.data;
-            return res.data;
-          });
-        }
-        // Set bbpConfig for backward compatibility
-        if (!window.bbpConfig) {
-          window.bbpConfig = options.env;
-        }
-        return $q.when(options.env);
-      }]
-    }
-  }];
-  return deferredBootstrapper.bootstrap(options);
-}
+angular.module('clb-error', []);
 
 
 clbAutomator.$inject = ['$q', '$log', 'clbError'];angular.module('clb-automator')
@@ -1032,63 +832,6 @@ angular.module('clb-automator')
     });
   }
 }]);
-
-/* global window */
-
-clbEnv.$inject = ['$injector'];
-angular.module('clb-env')
-.provider('clbEnv', clbEnv);
-
-/**
- * Get environement information using dotted notation.
- * @memberof module:clb-env
- * @param {object} $injector AngularJS injection
- * @return {object} provider
- */
-function clbEnv($injector) {
-  return {
-    get: get,
-    $get: function() {
-      return {
-        get: get
-      };
-    }
-  };
-
-  /**
-   * ``get(key, [defaultValue])`` provides configuration value loaded at
-   * the application bootstrap.
-   *
-   * Accept a key and an optional default
-   * value. If the key cannot be found in the configurations, it will return
-   * the provided default value. If the defaultValue is undefied, it will
-   * throw an error.
-   *
-   * To ensures that those data are available when angular bootstrap the
-   * application, use angular.clbBootstrap(module, options).
-   *
-   * @memberof module:clb-env.clbEnv
-   * @param {string} key the environment variable to retrieve, using a key.
-   * @param {any} [defaultValue] an optional default value.
-   * @return {any} the value or ``defaultValue`` if the asked for configuration
-   *               is not defined.
-   */
-  function get(key, defaultValue) {
-    var parts = key.split('.');
-    var cursor = (window.bbpConfig ?
-                  window.bbpConfig : $injector.get('CLB_ENVIRONMENT'));
-    for (var i = 0; i < parts.length; i++) {
-      if (!(cursor && cursor.hasOwnProperty(parts[i]))) {
-        if (defaultValue !== undefined) {
-          return defaultValue;
-        }
-        throw new Error('UnkownConfigurationKey: <' + key + '>');
-      }
-      cursor = cursor[parts[i]];
-    }
-    return cursor;
-  }
-}
 
 /* eslint camelcase: 0 */
 
@@ -2164,631 +1907,268 @@ function clbContext($http, $q, clbError, clbEnv, ClbContextModel) {
   }
 }
 
+/* global window */
 
-clbUser.$inject = ['$rootScope', '$q', '$http', '$cacheFactory', '$log', 'lodash', 'clbEnv', 'clbError', 'clbResultSet', 'clbIdentityUtil'];angular.module('clb-identity')
-.factory('clbUser', clbUser);
+clbEnv.$inject = ['$injector'];
+angular.module('clb-env')
+.provider('clbEnv', clbEnv);
 
 /**
- * ``clbUser`` service let you retrieve and edit user and groups.
- *
- * @namespace clbUser
- * @memberof module:clb-identity
- * @param  {object} $rootScope      Angular DI
- * @param  {object} $q              Angular DI
- * @param  {object} $http           Angular DI
- * @param  {object} $cacheFactory   Angular DI
- * @param  {object} $log            Angular DI
- * @param  {object} lodash          Angular DI
- * @param  {object} clbEnv          Angular DI
- * @param  {object} clbError        Angular DI
- * @param  {object} clbResultSet    Angular DI
- * @param  {object} clbIdentityUtil Angular DI
- * @return {object} Angular Service
+ * Get environement information using dotted notation.
+ * @memberof module:clb-env
+ * @param {object} $injector AngularJS injection
+ * @return {object} provider
  */
-function clbUser(
-  $rootScope,
-  $q,
-  $http,
-  $cacheFactory,
-  $log,
-  lodash,
-  clbEnv,
-  clbError,
-  clbResultSet,
-  clbIdentityUtil
-) {
-  var userCache = $cacheFactory('clbUser');
-  var userUrl = clbEnv.get('api.user.v1') + '/user';
-  // key used to store the logged in user in the cache
-  var currentUserKey = '_currentUser_';
-  activate();
-
+function clbEnv($injector) {
   return {
-    get: getPromiseId2userInfo,
-    getCurrentUserOnly: getCurrentUserOnly,
-    getCurrentUser: getCurrentUser,
-    create: create,
-    update: update,
-    list: list,
-    search: search,
-    isGroupMember: isGroupMember,
-    isHbpMember: isHbpMember,
-    adminGroups: adminGroups,
-    memberGroups: groups
+    get: get,
+    $get: function() {
+      return {
+        get: get
+      };
+    }
   };
 
   /**
-   * Bootstrap the service
-   * @private
-   */
-  function activate() {
-    $rootScope.$on('user:disconnected', function() {
-      userCache.removeAll();
-    });
-  }
-
-  /**
-   * Create requests with a maximum length of 2000 chars.
-   * @param  {array/any} source Array of params to generate URL for
-   * @param  {string} urlPrefix   The beginning of the URL
-   * @param  {string} destination An array to put all the URL into
-   * @param  {string} argName     Name of the argument
-   * @private
-   */
-  function splitInURl(source, urlPrefix, destination, argName) {
-    if (source.length === 0) {
-      return;
-    }
-    var url = urlPrefix + source[0];
-    var sep = '&' + argName + '=';
-    for (var i = 1; i < source.length; i++) {
-      if (url.length + source[i].length + sep.length < 2000) {
-        // If we still have enough room in the url we add the id to it
-        url += sep + source[i];
-      } else {
-        // We flush the call and start a new one
-        destination.push(url);
-        url = urlPrefix + source[i];
-      }
-    }
-    destination.push(url);
-  }
-
-  /**
-   * Add a list of user to the cache.
-   * @param {array} addedUserList Array of users to add
-   * @param {object} response A key/value store where key is the user id
-   * @private
-   */
-  function addToCache(addedUserList, response) {
-    for (var i = 0; i < addedUserList.length; i++) {
-      var addedUser = addedUserList[i];
-      if (addedUser.displayName === undefined) {
-        addedUser.displayName = addedUser.name;
-      }
-      // add to response
-      response[addedUser.id] = addedUser;
-      // add to cache
-      userCache.put(addedUser.id, addedUser);
-    }
-  }
-
-  /**
-   * @desc
-   * Return a promise that will resolve to a list of groups and users
-   * based on the given array of ``ids``.
+   * ``get(key, [defaultValue])`` provides configuration value loaded at
+   * the application bootstrap.
    *
-   * In case of error, the promise is rejected with a ``ClbError`` instance.
+   * Accept a key and an optional default
+   * value. If the key cannot be found in the configurations, it will return
+   * the provided default value. If the defaultValue is undefied, it will
+   * throw an error.
    *
-   * Return a promise with an map of id->userInfo based on the
-   * provided list of IDs.
-   * @function get
-   * @memberof module:clb-identity.clbUser
-   * @param  {array} ids Array of ID
-   * @return {Promise}   Resolve to a map of ID/UserInfo
-   * @private
-   */
-  function getPromiseId2userInfo(ids) {
-    var deferred = $q.defer();
-
-    var uncachedUser = [];
-    var response = {};
-    var urls = [];
-
-    var rejectDeferred = function() {
-      deferred.reject.apply(deferred, ids);
-    };
-    var processResponseAndCarryOn = function(data) {
-      // atm group and user api response data format is different
-      var items;
-      if (data.data.result) {
-        items = data.data.result;
-      } else if (data.data._embedded.users) {
-        items = data.data._embedded.users;
-      } else if (data.data._embedded.groups) {
-        items = data.data._embedded.groups;
-      } else if (data.data.content) {
-        items = data.data.content;
-      } else {
-        $log.error("Unable to find a resultset in data", data);
-      }
-      addToCache(items, response);
-      if (urls && urls.length > 0) {
-        return $http.get(urls.shift())
-        .then(processResponseAndCarryOn, rejectDeferred);
-      }
-      deferred.resolve(response);
-    };
-
-    angular.forEach(ids, function(id) {
-      var user = userCache.get(id);
-      if (user) { // The id is already cached
-        response[id] = user;
-      } else {
-        uncachedUser.push(id);
-      }
-    });
-
-    if (uncachedUser.length === 0) {
-      // All ids are already available -> we resolve the promise
-      deferred.resolve(response);
-    } else {
-      // Get the list of URLs to call
-      var userBaseUrl = '/search?id=';
-      splitInURl(uncachedUser, userUrl + userBaseUrl, urls, 'id');
-
-      // Async calls and combination of result
-      $http.get(urls.shift()).then(processResponseAndCarryOn, rejectDeferred);
-    }
-
-    return deferred.promise;
-  }
-
-   /**
-    * @name isGroupMember
-    * @desc
-    * Return a promise that will resolve to true if the current user is a member of one of the groups in input.
-    *
-    * `groups` can be either a string or an array.
-    *
-    * @memberof module:clb-identity.clbUser
-    * @function
-    * @param  {array}  groups A list of groups
-    * @return {Promise}       Resolve to a boolean
-    */
-  function isGroupMember(groups) {
-    return this.getCurrentUser().then(function(user) {
-      var compFunc = function(group) {
-        return lodash.some(user.groups, function(g) {
-          return g.name === group;
-        });
-      };
-      var groupList = lodash.isArray(groups) ? groups : [groups];
-      return lodash.some(groupList, compFunc);
-    });
-  }
-
-  /**
-   * Promise a ResultSet containing the groups that the user is member of.
+   * To ensures that those data are available when angular bootstrap the
+   * application, use angular.clbBootstrap(module, options).
    *
-   * @param  {string} [userId] the user id or 'me' if unspecified
-   * @param  {object} options optional request parameters
-   * @param  {int} options.pageSize the size of a result page
-   * @return {Promise}      will return a ResultSet of groups
+   * @memberof module:clb-env.clbEnv
+   * @param {string} key the environment variable to retrieve, using a key.
+   * @param {any} [defaultValue] an optional default value.
+   * @return {any} the value or ``defaultValue`` if the asked for configuration
+   *               is not defined.
    */
-  function groups(userId, options) {
-    if (angular.isObject(userId)) {
-      options = userId;
-      userId = 'me';
-    }
-    userId = userId || 'me';
-    options = angular.extend({sort: 'name'}, options);
-    var params = clbIdentityUtil.queryParams(options);
-    var url = userUrl + '/' + userId + '/member-groups';
-    if (options.filter) {
-      try {
-        url += '?' + appendFilterToPath(options.filter, ['name']);
-      } catch (ex) {
-        return $q.reject(ex);
-      }
-    }
-    return clbResultSet.get(
-      $http.get(url, {params: params}),
-      paginationOptions('groups', options.factory)
-    );
-  }
-
-  /**
-   * Promise a ResultSet containing the groups that the user can administrate.
-   *
-   * @param  {string} [userId] the user id or 'me' if unspecified
-   * @param  {object} options optional request parameters
-   * @param  {int} options.pageSize the size of a result page
-   * @return {Promise}      will return a ResultSet of groups
-   */
-  function adminGroups(userId, options) {
-    if (angular.isObject(userId)) {
-      options = userId;
-      userId = 'me';
-    }
-    userId = userId || 'me';
-    options = angular.extend({sort: 'name'}, options);
-    var params = clbIdentityUtil.queryParams(options);
-    var url = [userUrl, userId, 'admin-groups'].join('/');
-    if (options.filter) {
-      try {
-        url += '?' + appendFilterToPath(options.filter, ['name']);
-      } catch (ex) {
-        return $q.reject(ex);
-      }
-    }
-    return clbResultSet.get(
-      $http.get(url, {
-        params: params
-      }),
-      paginationOptions('groups', options.factory)
-    );
-  }
-
-  /**
-   * Append a list of filters to an URL.
-   * @param  {object} [filter] Keys are filter names and value is the filter string
-   * @param  {array}  [supportedFilters] list of authorised keys for the filter property
-   * @throws {HbpError} FilterNotSupportedError
-   * @return {string}   resulting path
-   * @private
-   */
-  function appendFilterToPath(filter, supportedFilters) {
-    if (!filter) {
-      return;
-    }
-    var queryString = '';
-    var fn = function(k) {
-      return function(vi) {
-        queryString += k + '=' + encodeURIComponent(vi) + '&';
-      };
-    };
-    for (var k in filter) {
-      if (filter.hasOwnProperty(k)) {
-        if (supportedFilters.indexOf(k) === -1) {
-          throw clbError.error({
-            type: 'FilterNotSupportedError',
-            message: 'Cannot filter on property: ' + k
-          });
+  function get(key, defaultValue) {
+    var parts = key.split('.');
+    var cursor = (window.bbpConfig ?
+                  window.bbpConfig : $injector.get('CLB_ENVIRONMENT'));
+    for (var i = 0; i < parts.length; i++) {
+      if (!(cursor && cursor.hasOwnProperty(parts[i]))) {
+        if (defaultValue !== undefined) {
+          return defaultValue;
         }
-        var v = filter[k];
-        if (angular.isArray(v)) {
-          lodash.each(v, fn(k));
-        } else {
-          queryString += k + '=' + encodeURIComponent(v) + '&';
-        }
+        throw new Error('UnkownConfigurationKey: <' + key + '>');
       }
+      cursor = cursor[parts[i]];
     }
-    return queryString.slice(0, -1);
-  }
-
-  /**
-   * Return pagination config to pass to ``clbResultSet.get``.
-   * @param  {string} pluralType Plural form to look for in the results
-   * @param  {function} factory  Factory function to use to build a batch of results
-   * @return {object}            Options to pass to ``clbResultSet.get``
-   */
-  function paginationOptions(pluralType, factory) {
-    return {
-      resultKey: '_embedded.' + pluralType,
-      nextUrlKey: '_links.next.href',
-      previousUrlKey: '_links.prev.href',
-      countKey: 'page.totalElements',
-      resultsFactory: factory
-    };
-  }
-
-  /**
-   * @name getCurrentUserOnly
-   * @desc
-   * Return a promise that will resolve to the current user, NOT including group
-   * info.
-   *
-   * In case of error, the promise is rejected with a `HbpError` instance.
-   *
-   * @memberof module:clb-identity.clbUser
-   * @return {Promise} Resolve to the current user
-   */
-  function getCurrentUserOnly() {
-    var user = userCache.get(currentUserKey);
-    if (user) {
-      return $q.when(user);
-    }
-    // load it from user profile service
-    return $http.get(userUrl + '/me').then(
-      function(userData) {
-        // merge groups into user profile
-        var profile = userData.data;
-
-        // add to cache
-        userCache.put(currentUserKey, profile);
-        return profile;
-      }, clbError.rejectHttpError);
-  }
-
-  /**
-   * @name getCurrentUser
-   * @desc
-   * Return a promise that will resolve to the current user.
-   *
-   * In case of error, the promise is rejected with a `HbpError` instance.
-   *
-   * @memberof module:clb-identity.clbUser
-   * @function
-   * @return {Promise} Resolve to the Current User
-   */
-  function getCurrentUser() {
-    var user = userCache.get(currentUserKey);
-    if (user && user.groups) {
-      return $q.when(user);
-    }
-
-    var request = {};
-    if (!user) {
-      request.user = this.getCurrentUserOnly();
-    }
-
-    request.groups = clbResultSet.get(
-      $http.get(userUrl + '/me/member-groups'),
-      paginationOptions('groups')
-    ).then(function(rs) {
-      return rs.toArray();
-    });
-
-    // load it from user profile service
-    return $q.all(request).then(function(aggregatedData) {
-      // merge groups into user profile
-      var profile = aggregatedData.user || user;
-      profile.groups = aggregatedData.groups;
-
-      // add to cache
-      userCache.put(currentUserKey, profile);
-      return profile;
-    }, clbError.rejectHttpError);
-  }
-
-  /**
-   * @name create
-   * @desc
-   * Create the given `user`.
-   *
-   * The method return a promise that will resolve to the created user instance.
-   * In case of error, a `HbpError` instance is retrieved.
-   *
-   * @memberof module:clb-identity.clbUser
-   * @function
-   * @param {object} user Data to build the user from
-   * @return {Promise} Resolve to the new User
-   */
-  function create(user) {
-    return $http.post(userUrl, user).then(
-      function() {
-        return user;
-      },
-      clbError.rejectHttpError
-    );
-  }
-
-  /**
-   * @name update
-   * @desc
-   * Update the described `user` with the given `data`.
-   *
-   * If data is omitted, `user` is assumed to be the updated user object that
-   * should be persisted. When data is present, user can be either a `User`
-   * instance or the user id.
-   *
-   * The method return a promise that will resolve to the updated user instance.
-   * Note that this instance is a copy of the user. If you own a user instance
-   * already, you cannot assume this method will update it.
-   *
-   * @memberof module:clb-identity.clbUser
-   * @function
-   * @param  {object} user User to update
-   * @param  {object} [data] Data to update the user with if not already in ``user`` instance
-   * @return {Promise}       Resolve to the User instance
-   */
-  function update(user, data) {
-    data = data || user;
-    var id = (typeof user === 'string' ? user : user.id);
-    return $http.patch(userUrl + '/' + id, data).then(
-      function() {
-        userCache.remove(id);
-        var cachedCurrentUser = userCache.get(currentUserKey);
-        if (cachedCurrentUser && cachedCurrentUser.id === id) {
-          userCache.remove(currentUserKey);
-        }
-        return getPromiseId2userInfo([id]).then(
-          function(users) {
-            return lodash.first(lodash.values(users));
-          }
-        );
-      },
-      clbError.rejectHttpError
-    );
-  }
-
-  /**
-   * @name list
-   * @desc
-   * Retrieves a list of users filtered, sorted and paginated according to the options.
-   *
-   * The returned promise will be resolved with the list of fetched user profiles
-   * and 2 fuctions (optional) to load next page and/or previous page.
-   * {{next}} and {{prev}} returns a promise that will be resolved with an object
-   * like the one returned by the current function.
-   *
-   * Return object example:
-   * {
-   *  results: [...],
-   *  next: function() {},
-   *  prev: function() {}
-   * }
-   *
-   * Available options:
-   *
-   * * sort: property to sort on. prepend '-' to reverse order.
-   * * page: page to be loaded (default: 0)
-   * * pageSize: max number or items to be loaded (default: 10, when 0 all records are loaded)
-   * * filter: an Object containing the field name as key and
-   *       the query as a String or an Array of strings
-   * * managedOnly: returns only the users managed by the current logged in user
-   *
-   * Supported filter values:
-   *
-   * * ``'displayName'``
-   * * ``'email'``
-   * * ``'id'``
-   * * ``'username'``
-   * * ``'accountType'``
-   *
-   * @memberof module:clb-identity.clbUser
-   * @function
-   * @param {object} [options] Parameters to use
-   * @param {string} [options.sort] Attribute to sort the user with (default to ``'familyName'``)
-   * @param {string} [options.filter] Object containing query filters
-   * @param {function} [options.factory] A function that accept an array of user data and build object from them
-   * @param {int} [options.pageSize] The number of result per page ; if 0, load all results
-   * @param {int} [options.page] The result page to retrieve
-   * @return {Promise} Resolve to the user ResultSet instance
-   */
-  function list(options) {
-    var opt = angular.extend({
-      sort: 'familyName'
-    }, options);
-    var endpoint = userUrl;
-
-    // append filter part to endpoint
-    if (opt.filter) {
-      var supportedFilters = [
-        'displayName',
-        'email',
-        'id',
-        'username',
-        'accountType'
-      ];
-      try {
-        endpoint += '/search?' + appendFilterToPath(
-          opt.filter, supportedFilters);
-      } catch (ex) {
-        return $q.reject(ex);
-      }
-    }
-
-    var pageOptions = paginationOptions('users', opt.factory);
-    var params = clbIdentityUtil.queryParams(opt);
-
-    var result = clbResultSet.get($http.get(endpoint, {
-      params: params
-    }), pageOptions);
-
-    // if pageSize=0 load everything
-    return (opt.pageSize === 0) ? result.instance.all() : result;
-  }
-
-  /**
-   * Promise a list of users who matched the given query string.
-   *
-   * @memberof module:clb-identity.clbUser
-   * @param  {string} queryString the search query
-   * @param  {object} [options]   query options
-   * @param  {int} [options.pageSize] the number of result to retrieve
-   * @param  {function} [options.factory] the factory function to use
-   * @return {Promise} will return a ResultSet containing the results
-   */
-  function search(queryString, options) {
-    options = angular.extend({}, options);
-    var params = clbIdentityUtil.queryParams(options);
-    params.str = queryString;
-    var url = userUrl + '/searchByText';
-
-    return clbResultSet.get($http.get(url, {
-      params: params
-    }), paginationOptions('users', options.factory));
-  }
-
-  /**
-   * @name isHbpMember
-   * @desc
-   * Return a promise that will resolve to true if the current user is a
-   * HBP member.
-   *
-   * @memberof module:clb-identity.clbUser
-   * @function
-   * @return {Promise} Resolve to a boolean
-   */
-  function isHbpMember() {
-    return this.isGroupMember(
-      clbEnv.get('collab.groups.hbpMember', 'hbp-member'));
+    return cursor;
   }
 }
 
 
-clbIdentityUtil.$inject = ['$log', 'lodash'];angular.module('clb-identity')
-.factory('clbIdentityUtil', clbIdentityUtil);
-
-/* ------------------ */
+clbApp.$inject = ['$q', '$rootScope', '$timeout', '$window', 'clbError'];angular.module('clb-app')
+.factory('clbApp', clbApp);
 
 /**
- * The ``hbpIdentityUtil`` service groups together useful function for the hbpIdentity module.
- * @namespace clbIdentityUtil
- * @memberof module:clb-identity
- * @param  {object} $log   Angular DI
- * @param  {object} lodash Angular DI
- * @return {object}        Angular Service
+ * @namespace clbApp
+ * @memberof module:clb-app
+ * @desc
+ * An AngularJS service to interface a web application with the HBP Collaboratory.
+ * This library provides a few helper to work within the Collaboratory environment.
+ *
+ * Usage
+ * -----
+ *
+ * - :ref:`module-clb-app.clbApp.context` is used to set and retrieve
+ *   the current context.
+ * - :ref:`module-clb-app.clbApp.emit` is used to send a command
+ *   to the HBP Collaboratory and wait for its answer.
+ *
+ * @example <caption>Retrieve the current context object</caption>
+ * clbApp.context()
+ * .then(function(context) {
+ *   console.log(context.ctx, context.state, context.collab);
+ * })
+ * .catch(function(err) {
+ *   // Cannot set the state
+ * });
+ *
+ * @example <caption>Set the current state in order for a user to be able to copy-paste its current URL and reopen the same collab with your app loaded at the same place.</caption>
+ * clbApp.context({state: 'lorem ipsum'})
+ * .then(function(context) {
+ *   console.log(context.ctx, context.state, context.collab);
+ * })
+ * .catch(function(err) {
+ *   // Cannot set the state
+ * });
+ *
+ * @param  {object} $q AngularJS service injection
+ * @param  {object} $rootScope AngularJS service injection
+ * @param  {object} $timeout AngularJS service injection
+ * @param  {object} $window AngularJS service injection
+ * @param  {object} clbError AngularJS service injection
+ * @return {object}         the service singleton
  */
-function clbIdentityUtil($log, lodash) {
-  return {
-    queryParams: queryParams
-  };
+function clbApp(
+  $q,
+  $rootScope,
+  $timeout,
+  $window,
+  clbError
+) {
+  var eventId = 0;
+  var sentMessages = {};
 
   /**
-   * @name queryParams
-   * @memberof module:clb-identity.clbIdentityUtil
-   * @desc
-   * Accept an object with the following attributes:
-   *
-   * - page: the result page to load (default: 0)
-   * - pageSize: the size of a page (default: 50)
-   * - filter: an Object containing the field name as key and
-   *           the query as a String or an Array of strings
-   * - sort: the ordering column as a string. prepend with '-' to reverse order.
-   *
-   * @param  {Object} options sort and filter keys
-   * @return {Object} params suitable for $http requests
+   * Singleton class
    */
-  function queryParams(options) {
-    var defaultOptions = {
-      page: 0,
-      pageSize: 50
-    };
-    var opt = angular.extend(defaultOptions, options);
+  function AppToolkit() { }
+  AppToolkit.prototype = {
+    emit: emit,
+    context: context
+  };
 
-    var sortStr;
-    if (opt.sort) {
-      var sortVal = opt.sort;
-      if (lodash.isArray(sortVal) && sortVal.length > 0) {
-        sortVal = sortVal[0];
-        $log.warn('Multiple field sorting not supported. Using: ' + sortVal);
-      }
-      sortStr = lodash(sortVal).toString();
+  $window.addEventListener('message', function(event) {
+    $rootScope.$emit('message', event.data);
+  });
 
-      if (sortStr.charAt(0) === '-') {
-        sortStr = sortStr.substring(1) + ',desc';
-      }
+  $rootScope.$on('message', function(event, message) {
+    if (!message || !message.origin || !sentMessages[message.origin]) {
+      return;
+    }
+    if (message.eventName === 'resolved') {
+      sentMessages[message.origin].resolve(message.data);
+    } else if (message.eventName === 'error') {
+      sentMessages[message.origin].reject(clbError.error(message.data));
+    }
+    sentMessages[message.origin] = null;
+  });
+
+  /**
+   * Send a message to the HBP Collaboratory.
+   * @memberof module:clb-app.clbApp
+   * @param  {string} name name of the event to be propagated
+   * @param  {object} data corresponding data to be sent alongside the event
+   * @return  {Promise} resolve with the message response
+   */
+  function emit(name, data) {
+    eventId++;
+    sentMessages[eventId] = $q.defer();
+    var promise = sentMessages[eventId].promise;
+    $window.parent.postMessage({
+      apiVersion: 1,
+      eventName: name,
+      data: data,
+      ticket: eventId
+    }, '*');
+    return promise;
+  }
+
+  var currentContext;
+
+  /**
+   * @typedef HbpCollaboratoryContext
+   * @memberof module:clb-app.clbApp
+   * @type {object}
+   * @property {string} mode - the current mode, either 'run' or 'edit'
+   * @property {string} ctx - the UUID of the current context
+   * @property {string} state - an application defined state string
+   */
+
+   /**
+    * @memberof module:clb-app.clbApp
+    * @desc
+    * Asynchronously retrieve the current HBP Collaboratory Context, including
+    * the mode, the ctx UUID and the application state if any.
+    * @function context
+    * @param {object} data new values to send to HBP Collaboratory frontend
+    * @return {Promise} resolve to the context
+    * @static
+    */
+  function context(data) {
+    var d = $q.defer();
+    var kill = $timeout(function() {
+      d.reject(clbError.error({
+        type: 'TimeoutException',
+        message: 'No context can be retrieved'
+      }));
+    }, 250);
+
+    if (data) {
+      // discard context if new data should be set.
+      currentContext = null;
     }
 
-    return {
-      page: opt.page,
-      pageSize: opt.pageSize,
-      sort: sortStr
-    };
+    if (currentContext) {
+      // directly return context when cached.
+      return d.resolve(currentContext);
+    }
+    emit('workspace.context', data)
+    .then(function(context) {
+      $timeout.cancel(kill);
+      currentContext = context;
+      d.resolve(context);
+    })
+    .catch(function(err) {
+      d.reject(clbError.error(err));
+    });
+    return d.promise;
   }
+  return new AppToolkit();
+}
+
+/* global deferredBootstrapper, window, document */
+angular.clbBootstrap = clbBootstrap;
+
+/**
+ * Bootstrap AngularJS application with the environment configuration loaded.
+ * @param {string} module the name of the Angular application module to load.
+ * @param {objects} options pass those options to deferredBootstrap
+ * @return {Promise} return once the environment has been bootstrapped
+ */
+function clbBootstrap(module, options) {
+  if (window.bbpConfig) {
+    options.env = window.bbpConfig;
+  }
+  if (!options.element) {
+    options.element = document.body;
+  }
+  options.module = module;
+  if (!options.moduleResolves) {
+    options.moduleResolves = {};
+  }
+  options.moduleResolves = [{
+    module: 'clb-env',
+    resolve: {
+      // use injection here as it is not resolved automatically on build.
+      CLB_ENVIRONMENT: ['$q', '$http', function($q, $http) {
+        // Remove any previously defined CLB_ENVIRONMENT
+        // As this results in unpredictable results when multiple apps
+        // use this strategy.
+        var invoker = angular.module(['clb-env'])._invokeQueue;
+        for (var i = 0; i < invoker.length; i++) {
+          var inv = invoker[i];
+          if (inv[2][0] === 'CLB_ENVIRONMENT') {
+            invoker.splice(i, 1);
+            i--;
+          }
+        }
+        if (angular.isString(options.env)) {
+          return $http.get(options.env)
+          .then(function(res) {
+            // Set bbpConfig for backward compatibility
+            window.bbpConfig = res.data;
+            return res.data;
+          });
+        }
+        // Set bbpConfig for backward compatibility
+        if (!window.bbpConfig) {
+          window.bbpConfig = options.env;
+        }
+        return $q.when(options.env);
+      }]
+    }
+  }];
+  return deferredBootstrapper.bootstrap(options);
 }
 
 
@@ -3160,188 +2540,6 @@ function clbResultSet($http, $q, clbError) {
         return self;
       });
     }
-  }
-}
-
-
-clbResourceLocator.$inject = ['$q', '$log', 'clbError'];angular.module('clb-stream')
-.provider('clbResourceLocator', clbResourceLocatorProvider);
-
-var urlHandlers = [];
-
-/**
- * Configure the clbResourceLocator service.
- * @return {object} An AngularJS provider instance
- */
-function clbResourceLocatorProvider() {
-  var provider = {
-    $get: clbResourceLocator,
-    registerUrlHandler: registerUrlHandler,
-    urlHandlers: urlHandlers
-  };
-
-  /**
-   * Add a function that can generate URL for some types of object reference.
-   *
-   * The function should return a string representing the URL.
-   * Any other response means that the handler is not able to generate a proper
-   * URL for this type of object.
-   *
-   * The function signature is ``function(objectReference) { return 'url' // or nothing}``
-   * @memberof module:clb-stream
-   * @param  {function} handler a function that can generate URL string for some objects
-   * @return {provider} The provider, for chaining.
-   */
-  function registerUrlHandler(handler) {
-    if (angular.isFunction(handler)) {
-      urlHandlers.push(handler);
-    }
-    return provider;
-  }
-
-  return provider;
-}
-
-/**
- * @name clbResourceLocator
- * @desc
- * resourceLocator service
- * @memberof module:clb-stream
- * @param {object} $q AngularJS injection
- * @param {object} $log AngularJS injection
- * @param {object} clbError AngularJS injection
- * @return {object} the service singleton
- */
-function clbResourceLocator($q, $log, clbError) {
-  return {
-    urlFor: urlFor
-  };
-
-  /**
-   * @desc
-   * Asynchronous resolution of an object reference to an URL that access
-   * this resource.
-   *
-   * The URL is generated using the registered URL handlers. If no URL
-   * can be generated, a HbpError is thrown with ``type==='ObjectTypeException'``.
-   * If the object reference is not valid, a HbpError is throw with
-   * ``type==='AttributeError'``. In both case ``data.ref will be set with
-   * reference for which there is an issue.
-   *
-   * @memberof module:clb-stream.clbResourceLocator
-   * @param  {object} ref object reference
-   * @return {string} a atring representing the URL for this object reference
-   */
-  function urlFor(ref) {
-    if (!validRef(ref)) {
-      return $q.reject(invalidReferenceException(ref));
-    }
-    var next = function(i) {
-      if (i < urlHandlers.length) {
-        return $q.when(urlHandlers[i](ref)).then(function(url) {
-          if (angular.isString(url)) {
-            $log.debug('generated URL', url);
-            return url;
-          }
-          if (angular.isDefined(url)) {
-            $log.warn('unexpected result from URL handler', url);
-          }
-          return next(i + 1);
-        });
-      }
-      return $q.reject(objectTypeException(ref));
-    };
-    return next(0);
-  }
-
-  /**
-   * build an objectTypeException.
-   * @private
-   * @param  {object} ref ClbObjectReference
-   * @return {HbpError}   error to be sent
-   */
-  function objectTypeException(ref) {
-    return clbError.error({
-      type: 'ObjectTypeException',
-      message: 'Unkown object type <' + (ref && ref.type) + '>',
-      data: {ref: ref}
-    });
-  }
-
-  /**
-   * build an objectTypeException.
-   * @private
-   * @param  {object} ref ClbObjectReference
-   * @return {HbpError}   error to be sent
-   */
-  function invalidReferenceException(ref) {
-    return clbError.error({
-      type: 'AttributeError',
-      message: 'Invalid object reference <' + ref + '>',
-      data: {ref: ref}
-    });
-  }
-
-  /**
-   * Return wheter the object reference is valid or not.
-   *
-   * To be valid an ObjectReference must have a defined ``id`` and ``type``
-   * @param  {any} ref the potential object reference
-   * @return {boolean} whether it is or not an object reference
-   */
-  function validRef(ref) {
-    return Boolean(ref && ref.id && ref.type);
-  }
-}
-
-
-clbStream.$inject = ['$http', '$log', 'clbEnv', 'clbError', 'clbResultSet'];angular.module('clb-stream')
-.factory('clbStream', clbStream);
-
-/**
- * ``clbStream`` service is used to retrieve feed of activities
- * given a user, a collab or a specific context.
- *
- * @memberof module:clb-stream
- * @namespace clbStream
- * @param {function} $http angular dependency injection
- * @param {function} $log angular dependency injection
- * @param {function} clbEnv angular dependency injection
- * @param {function} clbError angular dependency injection
- * @param {function} clbResultSet angular dependency injection
- * @return {object} the clbActivityStream service
- */
-function clbStream($http, $log, clbEnv, clbError, clbResultSet) {
-  return {
-    getStream: getStream
-  };
-
-  /* -------------------- */
-
-  /**
-   * Get a feed of activities regarding an item type and id.
-   * @memberof module:clb-stream.clbStream
-   * @param  {string} type The type of object to get the feed for
-   * @param  {string|int} id   The id of the object to get the feed for
-   * @return {Promise}         resolve to the feed of activities
-   */
-  function getStream(type, id) {
-    var url = clbEnv.get('api.stream.v0') + '/stream/' +
-                         type + ':' + id + '/';
-    return clbResultSet.get($http.get(url), {
-      resultsFactory: function(results) {
-        if (!(results && results.length)) {
-          return;
-        }
-        for (var i = 0; i < results.length; i++) {
-          var activity = results[i];
-          if (activity.time) {
-            activity.time = new Date(Date.parse(activity.time));
-          }
-        }
-      }
-    })
-    .catch(clbError.rejectHttpError);
   }
 }
 
@@ -4125,6 +3323,884 @@ function clbStorage(
   }
 }
 
+
+clbResourceLocator.$inject = ['$q', '$log', 'clbError'];angular.module('clb-stream')
+.provider('clbResourceLocator', clbResourceLocatorProvider);
+
+var urlHandlers = [];
+
+/**
+ * Configure the clbResourceLocator service.
+ * @return {object} An AngularJS provider instance
+ */
+function clbResourceLocatorProvider() {
+  var provider = {
+    $get: clbResourceLocator,
+    registerUrlHandler: registerUrlHandler,
+    urlHandlers: urlHandlers
+  };
+
+  /**
+   * Add a function that can generate URL for some types of object reference.
+   *
+   * The function should return a string representing the URL.
+   * Any other response means that the handler is not able to generate a proper
+   * URL for this type of object.
+   *
+   * The function signature is ``function(objectReference) { return 'url' // or nothing}``
+   * @memberof module:clb-stream
+   * @param  {function} handler a function that can generate URL string for some objects
+   * @return {provider} The provider, for chaining.
+   */
+  function registerUrlHandler(handler) {
+    if (angular.isFunction(handler)) {
+      urlHandlers.push(handler);
+    }
+    return provider;
+  }
+
+  return provider;
+}
+
+/**
+ * @name clbResourceLocator
+ * @desc
+ * resourceLocator service
+ * @memberof module:clb-stream
+ * @param {object} $q AngularJS injection
+ * @param {object} $log AngularJS injection
+ * @param {object} clbError AngularJS injection
+ * @return {object} the service singleton
+ */
+function clbResourceLocator($q, $log, clbError) {
+  return {
+    urlFor: urlFor
+  };
+
+  /**
+   * @desc
+   * Asynchronous resolution of an object reference to an URL that access
+   * this resource.
+   *
+   * The URL is generated using the registered URL handlers. If no URL
+   * can be generated, a HbpError is thrown with ``type==='ObjectTypeException'``.
+   * If the object reference is not valid, a HbpError is throw with
+   * ``type==='AttributeError'``. In both case ``data.ref will be set with
+   * reference for which there is an issue.
+   *
+   * @memberof module:clb-stream.clbResourceLocator
+   * @param  {object} ref object reference
+   * @return {string} a atring representing the URL for this object reference
+   */
+  function urlFor(ref) {
+    if (!validRef(ref)) {
+      return $q.reject(invalidReferenceException(ref));
+    }
+    var next = function(i) {
+      if (i < urlHandlers.length) {
+        return $q.when(urlHandlers[i](ref)).then(function(url) {
+          if (angular.isString(url)) {
+            $log.debug('generated URL', url);
+            return url;
+          }
+          if (angular.isDefined(url)) {
+            $log.warn('unexpected result from URL handler', url);
+          }
+          return next(i + 1);
+        });
+      }
+      return $q.reject(objectTypeException(ref));
+    };
+    return next(0);
+  }
+
+  /**
+   * build an objectTypeException.
+   * @private
+   * @param  {object} ref ClbObjectReference
+   * @return {HbpError}   error to be sent
+   */
+  function objectTypeException(ref) {
+    return clbError.error({
+      type: 'ObjectTypeException',
+      message: 'Unkown object type <' + (ref && ref.type) + '>',
+      data: {ref: ref}
+    });
+  }
+
+  /**
+   * build an objectTypeException.
+   * @private
+   * @param  {object} ref ClbObjectReference
+   * @return {HbpError}   error to be sent
+   */
+  function invalidReferenceException(ref) {
+    return clbError.error({
+      type: 'AttributeError',
+      message: 'Invalid object reference <' + ref + '>',
+      data: {ref: ref}
+    });
+  }
+
+  /**
+   * Return wheter the object reference is valid or not.
+   *
+   * To be valid an ObjectReference must have a defined ``id`` and ``type``
+   * @param  {any} ref the potential object reference
+   * @return {boolean} whether it is or not an object reference
+   */
+  function validRef(ref) {
+    return Boolean(ref && ref.id && ref.type);
+  }
+}
+
+
+clbStream.$inject = ['$http', '$log', 'clbEnv', 'clbError', 'clbResultSet'];angular.module('clb-stream')
+.factory('clbStream', clbStream);
+
+/**
+ * ``clbStream`` service is used to retrieve feed of activities
+ * given a user, a collab or a specific context.
+ *
+ * @memberof module:clb-stream
+ * @namespace clbStream
+ * @param {function} $http angular dependency injection
+ * @param {function} $log angular dependency injection
+ * @param {function} clbEnv angular dependency injection
+ * @param {function} clbError angular dependency injection
+ * @param {function} clbResultSet angular dependency injection
+ * @return {object} the clbActivityStream service
+ */
+function clbStream($http, $log, clbEnv, clbError, clbResultSet) {
+  return {
+    getStream: getStream
+  };
+
+  /* -------------------- */
+
+  /**
+   * Get a feed of activities regarding an item type and id.
+   * @memberof module:clb-stream.clbStream
+   * @param  {string} type The type of object to get the feed for
+   * @param  {string|int} id   The id of the object to get the feed for
+   * @return {Promise}         resolve to the feed of activities
+   */
+  function getStream(type, id) {
+    var url = clbEnv.get('api.stream.v0') + '/stream/' +
+                         type + ':' + id + '/';
+    return clbResultSet.get($http.get(url), {
+      resultsFactory: function(results) {
+        if (!(results && results.length)) {
+          return;
+        }
+        for (var i = 0; i < results.length; i++) {
+          var activity = results[i];
+          if (activity.time) {
+            activity.time = new Date(Date.parse(activity.time));
+          }
+        }
+      }
+    })
+    .catch(clbError.rejectHttpError);
+  }
+}
+
+
+clbUser.$inject = ['$rootScope', '$q', '$http', '$cacheFactory', '$log', 'lodash', 'clbEnv', 'clbError', 'clbResultSet', 'clbIdentityUtil'];angular.module('clb-identity')
+.factory('clbUser', clbUser);
+
+/**
+ * ``clbUser`` service let you retrieve and edit user and groups.
+ *
+ * @namespace clbUser
+ * @memberof module:clb-identity
+ * @param  {object} $rootScope      Angular DI
+ * @param  {object} $q              Angular DI
+ * @param  {object} $http           Angular DI
+ * @param  {object} $cacheFactory   Angular DI
+ * @param  {object} $log            Angular DI
+ * @param  {object} lodash          Angular DI
+ * @param  {object} clbEnv          Angular DI
+ * @param  {object} clbError        Angular DI
+ * @param  {object} clbResultSet    Angular DI
+ * @param  {object} clbIdentityUtil Angular DI
+ * @return {object} Angular Service
+ */
+function clbUser(
+  $rootScope,
+  $q,
+  $http,
+  $cacheFactory,
+  $log,
+  lodash,
+  clbEnv,
+  clbError,
+  clbResultSet,
+  clbIdentityUtil
+) {
+  var userCache = $cacheFactory('clbUser');
+  var userUrl = clbEnv.get('api.user.v1') + '/user';
+  // key used to store the logged in user in the cache
+  var currentUserKey = '_currentUser_';
+  activate();
+
+  return {
+    get: getPromiseId2userInfo,
+    getCurrentUserOnly: getCurrentUserOnly,
+    getCurrentUser: getCurrentUser,
+    create: create,
+    update: update,
+    list: list,
+    search: search,
+    isGroupMember: isGroupMember,
+    isHbpMember: isHbpMember,
+    adminGroups: adminGroups,
+    memberGroups: groups
+  };
+
+  /**
+   * Bootstrap the service
+   * @private
+   */
+  function activate() {
+    $rootScope.$on('user:disconnected', function() {
+      userCache.removeAll();
+    });
+  }
+
+  /**
+   * Create requests with a maximum length of 2000 chars.
+   * @param  {array/any} source Array of params to generate URL for
+   * @param  {string} urlPrefix   The beginning of the URL
+   * @param  {string} destination An array to put all the URL into
+   * @param  {string} argName     Name of the argument
+   * @private
+   */
+  function splitInURl(source, urlPrefix, destination, argName) {
+    if (source.length === 0) {
+      return;
+    }
+    var url = urlPrefix + source[0];
+    var sep = '&' + argName + '=';
+    for (var i = 1; i < source.length; i++) {
+      if (url.length + source[i].length + sep.length < 2000) {
+        // If we still have enough room in the url we add the id to it
+        url += sep + source[i];
+      } else {
+        // We flush the call and start a new one
+        destination.push(url);
+        url = urlPrefix + source[i];
+      }
+    }
+    destination.push(url);
+  }
+
+  /**
+   * Add a list of user to the cache.
+   * @param {array} addedUserList Array of users to add
+   * @param {object} response A key/value store where key is the user id
+   * @private
+   */
+  function addToCache(addedUserList, response) {
+    for (var i = 0; i < addedUserList.length; i++) {
+      var addedUser = addedUserList[i];
+      if (addedUser.displayName === undefined) {
+        addedUser.displayName = addedUser.name;
+      }
+      // add to response
+      response[addedUser.id] = addedUser;
+      // add to cache
+      userCache.put(addedUser.id, addedUser);
+    }
+  }
+
+  /**
+   * @desc
+   * Return a promise that will resolve to a list of groups and users
+   * based on the given array of ``ids``.
+   *
+   * In case of error, the promise is rejected with a ``ClbError`` instance.
+   *
+   * Return a promise with an map of id->userInfo based on the
+   * provided list of IDs.
+   * @function get
+   * @memberof module:clb-identity.clbUser
+   * @param  {array} ids Array of ID
+   * @return {Promise}   Resolve to a map of ID/UserInfo
+   * @private
+   */
+  function getPromiseId2userInfo(ids) {
+    var deferred = $q.defer();
+
+    var uncachedUser = [];
+    var response = {};
+    var urls = [];
+
+    var rejectDeferred = function() {
+      deferred.reject.apply(deferred, ids);
+    };
+    var processResponseAndCarryOn = function(data) {
+      // atm group and user api response data format is different
+      var items;
+      if (data.data.result) {
+        items = data.data.result;
+      } else if (data.data._embedded.users) {
+        items = data.data._embedded.users;
+      } else if (data.data._embedded.groups) {
+        items = data.data._embedded.groups;
+      } else if (data.data.content) {
+        items = data.data.content;
+      } else {
+        $log.error("Unable to find a resultset in data", data);
+      }
+      addToCache(items, response);
+      if (urls && urls.length > 0) {
+        return $http.get(urls.shift())
+        .then(processResponseAndCarryOn, rejectDeferred);
+      }
+      deferred.resolve(response);
+    };
+
+    angular.forEach(ids, function(id) {
+      var user = userCache.get(id);
+      if (user) { // The id is already cached
+        response[id] = user;
+      } else {
+        uncachedUser.push(id);
+      }
+    });
+
+    if (uncachedUser.length === 0) {
+      // All ids are already available -> we resolve the promise
+      deferred.resolve(response);
+    } else {
+      // Get the list of URLs to call
+      var userBaseUrl = '/search?id=';
+      splitInURl(uncachedUser, userUrl + userBaseUrl, urls, 'id');
+
+      // Async calls and combination of result
+      $http.get(urls.shift()).then(processResponseAndCarryOn, rejectDeferred);
+    }
+
+    return deferred.promise;
+  }
+
+   /**
+    * @name isGroupMember
+    * @desc
+    * Return a promise that will resolve to true if the current user is a member of one of the groups in input.
+    *
+    * `groups` can be either a string or an array.
+    *
+    * @memberof module:clb-identity.clbUser
+    * @function
+    * @param  {array}  groups A list of groups
+    * @return {Promise}       Resolve to a boolean
+    */
+  function isGroupMember(groups) {
+    return this.getCurrentUser().then(function(user) {
+      var compFunc = function(group) {
+        return lodash.some(user.groups, function(g) {
+          return g.name === group;
+        });
+      };
+      var groupList = lodash.isArray(groups) ? groups : [groups];
+      return lodash.some(groupList, compFunc);
+    });
+  }
+
+  /**
+   * Promise a ResultSet containing the groups that the user is member of.
+   *
+   * @param  {string} [userId] the user id or 'me' if unspecified
+   * @param  {object} options optional request parameters
+   * @param  {int} options.pageSize the size of a result page
+   * @return {Promise}      will return a ResultSet of groups
+   */
+  function groups(userId, options) {
+    if (angular.isObject(userId)) {
+      options = userId;
+      userId = 'me';
+    }
+    userId = userId || 'me';
+    options = angular.extend({sort: 'name'}, options);
+    var params = clbIdentityUtil.queryParams(options);
+    var url = userUrl + '/' + userId + '/member-groups';
+    if (options.filter) {
+      try {
+        url += '?' + appendFilterToPath(options.filter, ['name']);
+      } catch (ex) {
+        return $q.reject(ex);
+      }
+    }
+    return clbResultSet.get(
+      $http.get(url, {params: params}),
+      paginationOptions('groups', options.factory)
+    );
+  }
+
+  /**
+   * Promise a ResultSet containing the groups that the user can administrate.
+   *
+   * @param  {string} [userId] the user id or 'me' if unspecified
+   * @param  {object} options optional request parameters
+   * @param  {int} options.pageSize the size of a result page
+   * @return {Promise}      will return a ResultSet of groups
+   */
+  function adminGroups(userId, options) {
+    if (angular.isObject(userId)) {
+      options = userId;
+      userId = 'me';
+    }
+    userId = userId || 'me';
+    options = angular.extend({sort: 'name'}, options);
+    var params = clbIdentityUtil.queryParams(options);
+    var url = [userUrl, userId, 'admin-groups'].join('/');
+    if (options.filter) {
+      try {
+        url += '?' + appendFilterToPath(options.filter, ['name']);
+      } catch (ex) {
+        return $q.reject(ex);
+      }
+    }
+    return clbResultSet.get(
+      $http.get(url, {
+        params: params
+      }),
+      paginationOptions('groups', options.factory)
+    );
+  }
+
+  /**
+   * Append a list of filters to an URL.
+   * @param  {object} [filter] Keys are filter names and value is the filter string
+   * @param  {array}  [supportedFilters] list of authorised keys for the filter property
+   * @throws {HbpError} FilterNotSupportedError
+   * @return {string}   resulting path
+   * @private
+   */
+  function appendFilterToPath(filter, supportedFilters) {
+    if (!filter) {
+      return;
+    }
+    var queryString = '';
+    var fn = function(k) {
+      return function(vi) {
+        queryString += k + '=' + encodeURIComponent(vi) + '&';
+      };
+    };
+    for (var k in filter) {
+      if (filter.hasOwnProperty(k)) {
+        if (supportedFilters.indexOf(k) === -1) {
+          throw clbError.error({
+            type: 'FilterNotSupportedError',
+            message: 'Cannot filter on property: ' + k
+          });
+        }
+        var v = filter[k];
+        if (angular.isArray(v)) {
+          lodash.each(v, fn(k));
+        } else {
+          queryString += k + '=' + encodeURIComponent(v) + '&';
+        }
+      }
+    }
+    return queryString.slice(0, -1);
+  }
+
+  /**
+   * Return pagination config to pass to ``clbResultSet.get``.
+   * @param  {string} pluralType Plural form to look for in the results
+   * @param  {function} factory  Factory function to use to build a batch of results
+   * @return {object}            Options to pass to ``clbResultSet.get``
+   */
+  function paginationOptions(pluralType, factory) {
+    return {
+      resultKey: '_embedded.' + pluralType,
+      nextUrlKey: '_links.next.href',
+      previousUrlKey: '_links.prev.href',
+      countKey: 'page.totalElements',
+      resultsFactory: factory
+    };
+  }
+
+  /**
+   * @name getCurrentUserOnly
+   * @desc
+   * Return a promise that will resolve to the current user, NOT including group
+   * info.
+   *
+   * In case of error, the promise is rejected with a `HbpError` instance.
+   *
+   * @memberof module:clb-identity.clbUser
+   * @return {Promise} Resolve to the current user
+   */
+  function getCurrentUserOnly() {
+    var user = userCache.get(currentUserKey);
+    if (user) {
+      return $q.when(user);
+    }
+    // load it from user profile service
+    return $http.get(userUrl + '/me').then(
+      function(userData) {
+        // merge groups into user profile
+        var profile = userData.data;
+
+        // add to cache
+        userCache.put(currentUserKey, profile);
+        return profile;
+      }, clbError.rejectHttpError);
+  }
+
+  /**
+   * @name getCurrentUser
+   * @desc
+   * Return a promise that will resolve to the current user.
+   *
+   * In case of error, the promise is rejected with a `HbpError` instance.
+   *
+   * @memberof module:clb-identity.clbUser
+   * @function
+   * @return {Promise} Resolve to the Current User
+   */
+  function getCurrentUser() {
+    var user = userCache.get(currentUserKey);
+    if (user && user.groups) {
+      return $q.when(user);
+    }
+
+    var request = {};
+    if (!user) {
+      request.user = this.getCurrentUserOnly();
+    }
+
+    request.groups = clbResultSet.get(
+      $http.get(userUrl + '/me/member-groups'),
+      paginationOptions('groups')
+    ).then(function(rs) {
+      return rs.toArray();
+    });
+
+    // load it from user profile service
+    return $q.all(request).then(function(aggregatedData) {
+      // merge groups into user profile
+      var profile = aggregatedData.user || user;
+      profile.groups = aggregatedData.groups;
+
+      // add to cache
+      userCache.put(currentUserKey, profile);
+      return profile;
+    }, clbError.rejectHttpError);
+  }
+
+  /**
+   * @name create
+   * @desc
+   * Create the given `user`.
+   *
+   * The method return a promise that will resolve to the created user instance.
+   * In case of error, a `HbpError` instance is retrieved.
+   *
+   * @memberof module:clb-identity.clbUser
+   * @function
+   * @param {object} user Data to build the user from
+   * @return {Promise} Resolve to the new User
+   */
+  function create(user) {
+    return $http.post(userUrl, user).then(
+      function() {
+        return user;
+      },
+      clbError.rejectHttpError
+    );
+  }
+
+  /**
+   * @name update
+   * @desc
+   * Update the described `user` with the given `data`.
+   *
+   * If data is omitted, `user` is assumed to be the updated user object that
+   * should be persisted. When data is present, user can be either a `User`
+   * instance or the user id.
+   *
+   * The method return a promise that will resolve to the updated user instance.
+   * Note that this instance is a copy of the user. If you own a user instance
+   * already, you cannot assume this method will update it.
+   *
+   * @memberof module:clb-identity.clbUser
+   * @function
+   * @param  {object} user User to update
+   * @param  {object} [data] Data to update the user with if not already in ``user`` instance
+   * @return {Promise}       Resolve to the User instance
+   */
+  function update(user, data) {
+    data = data || user;
+    var id = (typeof user === 'string' ? user : user.id);
+    return $http.patch(userUrl + '/' + id, data).then(
+      function() {
+        userCache.remove(id);
+        var cachedCurrentUser = userCache.get(currentUserKey);
+        if (cachedCurrentUser && cachedCurrentUser.id === id) {
+          userCache.remove(currentUserKey);
+        }
+        return getPromiseId2userInfo([id]).then(
+          function(users) {
+            return lodash.first(lodash.values(users));
+          }
+        );
+      },
+      clbError.rejectHttpError
+    );
+  }
+
+  /**
+   * @name list
+   * @desc
+   * Retrieves a list of users filtered, sorted and paginated according to the options.
+   *
+   * The returned promise will be resolved with the list of fetched user profiles
+   * and 2 fuctions (optional) to load next page and/or previous page.
+   * {{next}} and {{prev}} returns a promise that will be resolved with an object
+   * like the one returned by the current function.
+   *
+   * Return object example:
+   * {
+   *  results: [...],
+   *  next: function() {},
+   *  prev: function() {}
+   * }
+   *
+   * Available options:
+   *
+   * * sort: property to sort on. prepend '-' to reverse order.
+   * * page: page to be loaded (default: 0)
+   * * pageSize: max number or items to be loaded (default: 10, when 0 all records are loaded)
+   * * filter: an Object containing the field name as key and
+   *       the query as a String or an Array of strings
+   * * managedOnly: returns only the users managed by the current logged in user
+   *
+   * Supported filter values:
+   *
+   * * ``'displayName'``
+   * * ``'email'``
+   * * ``'id'``
+   * * ``'username'``
+   * * ``'accountType'``
+   *
+   * @memberof module:clb-identity.clbUser
+   * @function
+   * @param {object} [options] Parameters to use
+   * @param {string} [options.sort] Attribute to sort the user with (default to ``'familyName'``)
+   * @param {string} [options.filter] Object containing query filters
+   * @param {function} [options.factory] A function that accept an array of user data and build object from them
+   * @param {int} [options.pageSize] The number of result per page ; if 0, load all results
+   * @param {int} [options.page] The result page to retrieve
+   * @return {Promise} Resolve to the user ResultSet instance
+   */
+  function list(options) {
+    var opt = angular.extend({
+      sort: 'familyName'
+    }, options);
+    var endpoint = userUrl;
+
+    // append filter part to endpoint
+    if (opt.filter) {
+      var supportedFilters = [
+        'displayName',
+        'email',
+        'id',
+        'username',
+        'accountType'
+      ];
+      try {
+        endpoint += '/search?' + appendFilterToPath(
+          opt.filter, supportedFilters);
+      } catch (ex) {
+        return $q.reject(ex);
+      }
+    }
+
+    var pageOptions = paginationOptions('users', opt.factory);
+    var params = clbIdentityUtil.queryParams(opt);
+
+    var result = clbResultSet.get($http.get(endpoint, {
+      params: params
+    }), pageOptions);
+
+    // if pageSize=0 load everything
+    return (opt.pageSize === 0) ? result.instance.all() : result;
+  }
+
+  /**
+   * Promise a list of users who matched the given query string.
+   *
+   * @memberof module:clb-identity.clbUser
+   * @param  {string} queryString the search query
+   * @param  {object} [options]   query options
+   * @param  {int} [options.pageSize] the number of result to retrieve
+   * @param  {function} [options.factory] the factory function to use
+   * @return {Promise} will return a ResultSet containing the results
+   */
+  function search(queryString, options) {
+    options = angular.extend({}, options);
+    var params = clbIdentityUtil.queryParams(options);
+    params.str = queryString;
+    var url = userUrl + '/searchByText';
+
+    return clbResultSet.get($http.get(url, {
+      params: params
+    }), paginationOptions('users', options.factory));
+  }
+
+  /**
+   * @name isHbpMember
+   * @desc
+   * Return a promise that will resolve to true if the current user is a
+   * HBP member.
+   *
+   * @memberof module:clb-identity.clbUser
+   * @function
+   * @return {Promise} Resolve to a boolean
+   */
+  function isHbpMember() {
+    return this.isGroupMember(
+      clbEnv.get('collab.groups.hbpMember', 'hbp-member'));
+  }
+}
+
+
+clbIdentityUtil.$inject = ['$log', 'lodash'];angular.module('clb-identity')
+.factory('clbIdentityUtil', clbIdentityUtil);
+
+/* ------------------ */
+
+/**
+ * The ``hbpIdentityUtil`` service groups together useful function for the hbpIdentity module.
+ * @namespace clbIdentityUtil
+ * @memberof module:clb-identity
+ * @param  {object} $log   Angular DI
+ * @param  {object} lodash Angular DI
+ * @return {object}        Angular Service
+ */
+function clbIdentityUtil($log, lodash) {
+  return {
+    queryParams: queryParams
+  };
+
+  /**
+   * @name queryParams
+   * @memberof module:clb-identity.clbIdentityUtil
+   * @desc
+   * Accept an object with the following attributes:
+   *
+   * - page: the result page to load (default: 0)
+   * - pageSize: the size of a page (default: 50)
+   * - filter: an Object containing the field name as key and
+   *           the query as a String or an Array of strings
+   * - sort: the ordering column as a string. prepend with '-' to reverse order.
+   *
+   * @param  {Object} options sort and filter keys
+   * @return {Object} params suitable for $http requests
+   */
+  function queryParams(options) {
+    var defaultOptions = {
+      page: 0,
+      pageSize: 50
+    };
+    var opt = angular.extend(defaultOptions, options);
+
+    var sortStr;
+    if (opt.sort) {
+      var sortVal = opt.sort;
+      if (lodash.isArray(sortVal) && sortVal.length > 0) {
+        sortVal = sortVal[0];
+        $log.warn('Multiple field sorting not supported. Using: ' + sortVal);
+      }
+      sortStr = lodash(sortVal).toString();
+
+      if (sortStr.charAt(0) === '-') {
+        sortStr = sortStr.substring(1) + ',desc';
+      }
+    }
+
+    return {
+      page: opt.page,
+      pageSize: opt.pageSize,
+      sort: sortStr
+    };
+  }
+}
+
+
+clbErrorDialog.$inject = ['$uibModal', 'clbError'];angular.module('clb-ui-error')
+.factory('clbErrorDialog', clbErrorDialog);
+
+/**
+ * The factory ``clbUiError`` instantiates modal error dialogs.
+ * Notify the user about the given error.
+ * @name clbError
+ * @memberof module:clb-ui-error
+ * @param  {object} $uibModal Angular DI
+ * @param  {object} clbError  Angular DI
+ * @return {object}           Angular Factory
+ */
+function clbErrorDialog($uibModal, clbError) {
+  return {
+    open: open
+  };
+
+  /**
+   * Open an error modal dialog
+   * @param  {HBPError} error The error do displays
+   * @param  {object} options Any options will be passed to $uibModal.open
+   * @return {Promse}         The result of $uibModal.open
+   */
+  function open(error, options) {
+    options = angular.extend({
+      template:'<div class="error-dialog panel panel-danger"><div class=panel-heading><h4>{{vm.error.type}}</h4></div><div class=panel-body><p>{{vm.error.message}}</p></div><div class=panel-footer><div><button type=button ng-click=$close(true) class="btn btn-primary"><span class="glyphicon glyphicon-remove"></span> Close</button> <button type=button class="btn btn-default pull-right" ng-click="isErrorSourceDisplayed = !isErrorSourceDisplayed">{{isErrorSourceDisplayed ? \'Hide\' : \'Show\'}} scary details <span class=caret></span></button></div><div uib-collapse=!isErrorSourceDisplayed><h5>Error Type</h5><pre>{{vm.error.type}}</pre><h6>Error Code</h6><pre>{{vm.error.code}}</pre><h6>Message</h6><pre>{{vm.error.message}}</pre><div ng-if=vm.error.data><h6>Data</h6><pre>{{vm.error.data}}</pre></div><div><h6>Stack Trace</h6><pre>{{vm.error.stack}}</pre></div></div></div></div>',
+      class: 'error-dialog',
+      controller: function() {
+        var vm = this;
+        vm.error = clbError.error(error);
+      },
+      controllerAs: 'vm',
+      bindToController: true
+    }, options);
+    return $uibModal.open(options);
+  }
+}
+
+angular.module('clb-ui-error')
+.directive('clbErrorMessage', clbErrorMessage);
+
+/**
+ * The ``clb-error-message`` directive displays an error.
+ *
+ *
+ * clb-error is a HbpError instance, built by the HbpErrorService
+ *
+ * @namespace clbErrorMessage
+ * @memberof module:clb-ui-error
+ * @example <caption>Retrieve the current context object</caption>
+ * <div ng-controller='SomeController'>
+ *   Validation error:
+ *   <clb-error-message clb-error='error'></clb-error-message>
+ *   Permission denied error:
+ *   <clb-error-message clb-error='errorPermissions'></clb-error-message>
+ * </div>
+ * @return {object} The directive
+ **/
+function clbErrorMessage() {
+  return {
+    restrict: 'E',
+    scope: {
+      error: '=?clbError'
+    },
+    template:'<uib-alert type=danger ng-if=error><div ng-switch on=error.type><div ng-switch-when=Validation>Validation errors<span ng-show=error.data>:</span><ul><li ng-repeat="(attr, errors) in error.data">{{attr}}: {{errors.join(\', \')}}</li></ul></div><div ng-switch-default>{{error.message}}</div></div></uib-alert>'
+  };
+}
+
 angular.module('clb-ui-file-browser')
 .directive('clbFileBrowserFolder', clbFileBrowserFolder);
 
@@ -4897,6 +4973,292 @@ angular.module('clb-ui-form')
   };
 });
 
+angular.module('clb-ui-identity')
+.directive('clbUserAvatar', clbUserAvatar);
+
+/**
+ * Display an square icon for a user.
+ *
+ * Attributes
+ * ----------
+ *
+ * ==================  ====================================
+ * Name                Description
+ * ==================  ====================================
+ * clb-user            The ClbUser instance to display
+ * ==================  ====================================
+ *
+ * @namespace clbUserAvatar
+ * @memberof module:clb-ui-identity
+ * @return {Object} Directive Descriptor
+ * @example <caption>Display user avatar</caption>
+ * <clb-user-avatar clb-user="vm.currentUser"></clb-user-avatar>
+ */
+function clbUserAvatar() {
+  'use strict';
+  return {
+    restrict: 'EA',
+    scope: {
+      user: '=clbUser'
+    },
+    template:'<img class=clb-user-avatar-img ng-if=user.picture ng-src={{user.picture}}><svg class=clb-user-avatar-icon viewBox="0 0 40 40" preserveAspectRatio="xMidYMid meet" ng-cloak ng-if=!user.picture ng-class="\'clb-user-avatar-icon-hue-\' + hueNumber"><rect x=0 y=0 width=40 height=40 class=clb-user-avatar-icon-fill></rect><text x=50% y=58% font-size=26px class=clb-user-avatar-icon-text alignment-baseline=middle text-anchor=middle>{{char}}</text></svg>',
+    link: function(scope, elt) {
+      elt.addClass('clb-user-avatar');
+      scope.$watch('user', function() {
+        if (!scope.user) {
+          return;
+        }
+
+        if (scope.user.displayName) {
+          scope.char = scope.user.displayName[0].toUpperCase();
+        }
+        // Define a hue index to generate a custom class
+        var words = scope.user.displayName.split(/\s+/, 2);
+        var initials = (String(words[0][0]) +
+          (words[1] ? words[1][0] : words[0][1]))
+          .toUpperCase();
+        scope.hueNumber = (13 * initials.charCodeAt(0) * 23 *
+          initials.charCodeAt(1)) % 7 + 1;
+      });
+    }
+  };
+}
+
+
+clbUsercard.$inject = ['lodash'];
+clbUsercardCacheTemplate.$inject = ['$templateCache'];angular.module('clb-ui-identity')
+.directive('clbUsercard', clbUsercard)
+.run(clbUsercardCacheTemplate);
+
+/**
+ * Display general user informations.
+ *
+ * Attributes
+ * ----------
+ *
+ * ==================  ====================================
+ * Name                Description
+ * ==================  ====================================
+ * clb-user            The ClbUser instance to display
+ * clb-template        URL of a custom template to use
+ * ==================  ====================================
+ *
+ *
+ * @param  {object} lodash Angular DI
+ * @memberof module:clb-ui-identity
+ * @return {object}        Directive Descriptor
+ * @example <caption>Display user informations</caption>
+ * <clb-usercard clb-user="vm.currentUser"></clb-usercard>
+ * @example <caption>Using a different templates</caption>
+ * <clb-usercard clb-user="vm.currentUser" clb-template="custom/simple-user.html">
+ * </clb-usercard>
+ */
+function clbUsercard(lodash) {
+  'use strict';
+  return {
+    restrict: 'EA',
+    scope: {
+      user: '=clbUser'
+    },
+    templateUrl: function(tElement, tAttrs) {
+      return tAttrs.clbTemplate || 'usercard.directive.html';
+    },
+    link: {
+      pre: function(scope) {
+        scope.$watch('user', function(newValue) {
+          scope.institution = newValue &&
+            lodash.find(newValue.institutions, 'primary');
+          scope.email = newValue &&
+            lodash(newValue.emails).filter('primary').map('value').first();
+          scope.phone = newValue &&
+            lodash(newValue.phones).filter('primary').map('value').first();
+          scope.ims = newValue && newValue.ims;
+        });
+      }
+    }
+  };
+}
+
+/**
+ * During the build, templateUrl will be replaced by the inline template.
+ * We need to inject it in template cache as it is used for displaying
+ * the tooltip. Does it smell like a hack? sure, it is a hack!
+ * @param  {object} $templateCache Angular DI
+ * @private
+ */
+function clbUsercardCacheTemplate($templateCache) {
+  //
+  var injector = {
+    template:'<div ng-if=user class="clb-usercard clb-card clb-card-default"><h3 class=clb-usercard-header><span class=clb-usercard-name>{{user.displayName}}</span> <span class="text-muted clb-usercard-username">@{{user.username}}</span></h3><div class=clb-usercard-pix><img ng-src={{user.picture}} ng-if=user.picture><clb-generated-icon clb-text=user.displayName ng-if=!user.picture></clb-generated-icon></div><div class=clb-usercard-institution ng-if=institution><span class=clb-usercard-institution-title>{{institution.title}}</span>, <span class=clb-usercard-institution-name>{{institution.name}}</span>, <span class=clb-usercard-institution-dept>{{institution.department}}</span></div><div class=clb-usercard-contact><a class="clb-usercard-contact-item clb-usercard-email" target=_top href=mailto:{{email}} ng-if=email><span class="glyphicon glyphicon-envelope"></span> {{email}}</a> <span class="clb-usercard-contact-item clb-usercard-phone" ng-if=phone><span class="glyphicon glyphicon-phone"></span> {{phone}}</span> <span class="clb-usercard-contact-item clb-usercard-im-list" ng-if=ims.length><span class="glyphicon glyphicon-bullhorn"></span> <span class=clb-usercard-im ng-repeat="im in ims">{{im.value}}({{im.type}})</span></span></div></div>'
+  };
+  // If defined, it means that the template has been inlined during build.
+  if (injector.template) {
+    $templateCache.put('usercard.directive.html', injector.template);
+  }
+}
+
+angular.module('clb-ui-loading')
+.directive('clbLoading', clbLoading);
+
+/**
+ * The directive clbLoading displays a simple loading message. If a promise
+ * is given, the loading indicator will disappear once it is resolved.
+ *
+ * Attributes
+ * ----------
+ *
+ * =======================  ===================================================
+ * Name                     Description
+ * =======================  ===================================================
+ * {Promise} [clb-promise]  Hide the loading message upon fulfilment.
+ * {string} [clb-message]   Displayed loading string (default=``'loading...'``)
+ *
+ * @memberof module:clb-ui-loading
+ * @return {object} Angular directive descriptor
+ * @example <caption>Directive Usage Example</caption>
+ * <hbp-loading hbp-promise="myAsyncFunc()" hbp-message="'Loading My Async Func'">
+ * </hbp-loading>
+ */
+function clbLoading() {
+  return {
+    restrict: 'E',
+    scope: {
+      promise: '=?clbPromise',
+      message: '=?clbMessage'
+    },
+    template:'<div class=clb-loading ng-if=loading><span class="glyphicon glyphicon-refresh clb-spinning"></span> {{message}}</div>',
+    link: function(scope) {
+      scope.loading = true;
+      scope.message = scope.message || 'Loading...';
+      if (scope.promise) {
+        var complete = function() {
+          scope.loading = false;
+        };
+        scope.promise.then(complete, complete);
+      }
+    }
+  };
+}
+
+
+ActivityController.$inject = ['$log', 'clbResourceLocator'];angular.module('clb-ui-stream')
+.directive('clbActivity', clbActivity);
+
+/**
+ * @name clbActivity
+ * @desc
+ * ``clb-activity`` directive is displays an activity retrieved by
+ * the HBP Stream service in a common way.
+ *
+ * It try to look up for a detailled description of the event and fallback
+ * to the summary if he cannot.
+ *
+ * @memberof module:clb-ui-stream
+ * @return {object} the directive
+ */
+function clbActivity() {
+  return {
+    restrict: 'A',
+    scope: {
+      activity: '=clbActivity'
+    },
+    controller: ActivityController,
+    controllerAs: 'vm',
+    bindToController: true,
+    template:'<span class=clb-activity-time am-time-ago=vm.activity.time></span><div class=clearfix></div><a class=clb-activity-summary ng-href={{vm.primaryLink}}>{{vm.activity.summary}}</a>',
+    link: {
+      post: function(scope, elt, attr, ctrl) {
+        elt.addClass('clb-activity').addClass(ctrl.verbClass);
+        scope.$watch('vm.activity.verb', function(newVal) {
+          if (newVal) {
+            elt.addClass('clb-activity-' + newVal.toLowerCase());
+          }
+        });
+      }
+    }
+  };
+}
+
+/**
+ * ViewModel of an activity used to render the clb-activity directive
+ * @param {object} $log angular injection
+ * @param {object} clbResourceLocator angular injection
+ */
+function ActivityController($log, clbResourceLocator) {
+  var vm = this;
+
+  activate();
+
+  /* ------------- */
+  /**
+   * init controller
+   */
+  function activate() {
+    clbResourceLocator.urlFor(vm.activity.object)
+    .then(function(url) {
+      vm.primaryLink = url;
+    })
+    .catch(function(err) {
+      $log.error(err);
+    });
+  }
+}
+
+
+FeedController.$inject = ['$log', 'clbStream'];angular.module('clb-ui-stream')
+.directive('clbFeed', clbFeed);
+
+/**
+ * @name clbFeed
+ * @desc
+ * ``clb-feed`` directive displays a feed of activity retrieved by
+ * the HBP Stream service. It handles scrolling and loading of activities.
+ * Each activity is rendered using the ``clb-activity`` directive.
+ *
+ * @memberof module:clb-ui-stream
+ * @return {object} the directive
+ */
+function clbFeed() {
+  return {
+    restrict: 'E',
+    scope: {
+      feedType: '=clbFeedType',
+      feedId: '=clbFeedId'
+    },
+    controller: FeedController,
+    controllerAs: 'vm',
+    bindToController: true,
+    template:'<ul class="feed list-unstyled" ng-class="{\'feed-empty\': vm.activities.results.length === 0}"><li ng-if=vm.error><div class="alert alert-warning"><strong>Load Error:</strong> {{vm.error}}</div></li><li ng-if="!vm.activities && !vm.error"><hbp-loading></hbp-loading></li><li ng-if="vm.activities.results.length === 0"><div class="alert alert-info">Nothing new</div></li><li ng-repeat="a in vm.activities.results" clb-activity=a class=clb-activity-item></li><li ng-if=vm.activities.hasNext><a href=# class="btn btn-default">More</a></li></ul>',
+    link: function(scope, elt) {
+      elt.addClass('clb-feed');
+    }
+  };
+}
+
+/**
+ * ViewModel of an activity used to render the clb-activity directive
+ * @param {object} $log angular injection
+ * @param {object} clbStream angular injection
+ */
+function FeedController($log, clbStream) {
+  var vm = this;
+
+  activate();
+
+  /* ------------- */
+  /**
+   * init controller
+   */
+  function activate() {
+    clbStream.getStream(vm.feedType, vm.feedId).then(function(rs) {
+      vm.activities = rs;
+    })
+    .catch(function(err) {
+      vm.error = err.message;
+    });
+  }
+}
+
 /* global document */
 
 clbError.$inject = ['$q'];
@@ -5064,237 +5426,6 @@ function clbError($q) {
     }
     return error;
   }
-}
-
-
-clbErrorDialog.$inject = ['$uibModal', 'clbError'];angular.module('clb-ui-error')
-.factory('clbErrorDialog', clbErrorDialog);
-
-/**
- * The factory ``clbUiError`` instantiates modal error dialogs.
- * Notify the user about the given error.
- * @name clbError
- * @memberof module:clb-ui-error
- * @param  {object} $uibModal Angular DI
- * @param  {object} clbError  Angular DI
- * @return {object}           Angular Factory
- */
-function clbErrorDialog($uibModal, clbError) {
-  return {
-    open: open
-  };
-
-  /**
-   * Open an error modal dialog
-   * @param  {HBPError} error The error do displays
-   * @param  {object} options Any options will be passed to $uibModal.open
-   * @return {Promse}         The result of $uibModal.open
-   */
-  function open(error, options) {
-    options = angular.extend({
-      template:'<div class="error-dialog panel panel-danger"><div class=panel-heading><h4>{{vm.error.type}}</h4></div><div class=panel-body><p>{{vm.error.message}}</p></div><div class=panel-footer><div><button type=button ng-click=$close(true) class="btn btn-primary"><span class="glyphicon glyphicon-remove"></span> Close</button> <button type=button class="btn btn-default pull-right" ng-click="isErrorSourceDisplayed = !isErrorSourceDisplayed">{{isErrorSourceDisplayed ? \'Hide\' : \'Show\'}} scary details <span class=caret></span></button></div><div uib-collapse=!isErrorSourceDisplayed><h5>Error Type</h5><pre>{{vm.error.type}}</pre><h6>Error Code</h6><pre>{{vm.error.code}}</pre><h6>Message</h6><pre>{{vm.error.message}}</pre><div ng-if=vm.error.data><h6>Data</h6><pre>{{vm.error.data}}</pre></div><div><h6>Stack Trace</h6><pre>{{vm.error.stack}}</pre></div></div></div></div>',
-      class: 'error-dialog',
-      controller: function() {
-        var vm = this;
-        vm.error = clbError.error(error);
-      },
-      controllerAs: 'vm',
-      bindToController: true
-    }, options);
-    return $uibModal.open(options);
-  }
-}
-
-angular.module('clb-ui-error')
-.directive('clbErrorMessage', clbErrorMessage);
-
-/**
- * The ``clb-error-message`` directive displays an error.
- *
- *
- * clb-error is a HbpError instance, built by the HbpErrorService
- *
- * @namespace clbErrorMessage
- * @memberof module:clb-ui-error
- * @example <caption>Retrieve the current context object</caption>
- * <div ng-controller='SomeController'>
- *   Validation error:
- *   <clb-error-message clb-error='error'></clb-error-message>
- *   Permission denied error:
- *   <clb-error-message clb-error='errorPermissions'></clb-error-message>
- * </div>
- * @return {object} The directive
- **/
-function clbErrorMessage() {
-  return {
-    restrict: 'E',
-    scope: {
-      error: '=?clbError'
-    },
-    template:'<uib-alert type=danger ng-if=error><div ng-switch on=error.type><div ng-switch-when=Validation>Validation errors<span ng-show=error.data>:</span><ul><li ng-repeat="(attr, errors) in error.data">{{attr}}: {{errors.join(\', \')}}</li></ul></div><div ng-switch-default>{{error.message}}</div></div></uib-alert>'
-  };
-}
-
-
-ActivityController.$inject = ['$log', 'clbResourceLocator'];angular.module('clb-ui-stream')
-.directive('clbActivity', clbActivity);
-
-/**
- * @name clbActivity
- * @desc
- * ``clb-activity`` directive is displays an activity retrieved by
- * the HBP Stream service in a common way.
- *
- * It try to look up for a detailled description of the event and fallback
- * to the summary if he cannot.
- *
- * @memberof module:clb-ui-stream
- * @return {object} the directive
- */
-function clbActivity() {
-  return {
-    restrict: 'A',
-    scope: {
-      activity: '=clbActivity'
-    },
-    controller: ActivityController,
-    controllerAs: 'vm',
-    bindToController: true,
-    template:'<span class=clb-activity-time am-time-ago=vm.activity.time></span><div class=clearfix></div><a class=clb-activity-summary ng-href={{vm.primaryLink}}>{{vm.activity.summary}}</a>',
-    link: {
-      post: function(scope, elt, attr, ctrl) {
-        elt.addClass('clb-activity').addClass(ctrl.verbClass);
-        scope.$watch('vm.activity.verb', function(newVal) {
-          if (newVal) {
-            elt.addClass('clb-activity-' + newVal.toLowerCase());
-          }
-        });
-      }
-    }
-  };
-}
-
-/**
- * ViewModel of an activity used to render the clb-activity directive
- * @param {object} $log angular injection
- * @param {object} clbResourceLocator angular injection
- */
-function ActivityController($log, clbResourceLocator) {
-  var vm = this;
-
-  activate();
-
-  /* ------------- */
-  /**
-   * init controller
-   */
-  function activate() {
-    clbResourceLocator.urlFor(vm.activity.object)
-    .then(function(url) {
-      vm.primaryLink = url;
-    })
-    .catch(function(err) {
-      $log.error(err);
-    });
-  }
-}
-
-
-FeedController.$inject = ['$log', 'clbStream'];angular.module('clb-ui-stream')
-.directive('clbFeed', clbFeed);
-
-/**
- * @name clbFeed
- * @desc
- * ``clb-feed`` directive displays a feed of activity retrieved by
- * the HBP Stream service. It handles scrolling and loading of activities.
- * Each activity is rendered using the ``clb-activity`` directive.
- *
- * @memberof module:clb-ui-stream
- * @return {object} the directive
- */
-function clbFeed() {
-  return {
-    restrict: 'E',
-    scope: {
-      feedType: '=clbFeedType',
-      feedId: '=clbFeedId'
-    },
-    controller: FeedController,
-    controllerAs: 'vm',
-    bindToController: true,
-    template:'<ul class="feed list-unstyled" ng-class="{\'feed-empty\': vm.activities.results.length === 0}"><li ng-if=vm.error><div class="alert alert-warning"><strong>Load Error:</strong> {{vm.error}}</div></li><li ng-if="!vm.activities && !vm.error"><hbp-loading></hbp-loading></li><li ng-if="vm.activities.results.length === 0"><div class="alert alert-info">Nothing new</div></li><li ng-repeat="a in vm.activities.results" clb-activity=a class=clb-activity-item></li><li ng-if=vm.activities.hasNext><a href=# class="btn btn-default">More</a></li></ul>',
-    link: function(scope, elt) {
-      elt.addClass('clb-feed');
-    }
-  };
-}
-
-/**
- * ViewModel of an activity used to render the clb-activity directive
- * @param {object} $log angular injection
- * @param {object} clbStream angular injection
- */
-function FeedController($log, clbStream) {
-  var vm = this;
-
-  activate();
-
-  /* ------------- */
-  /**
-   * init controller
-   */
-  function activate() {
-    clbStream.getStream(vm.feedType, vm.feedId).then(function(rs) {
-      vm.activities = rs;
-    })
-    .catch(function(err) {
-      vm.error = err.message;
-    });
-  }
-}
-
-angular.module('clb-ui-loading')
-.directive('clbLoading', clbLoading);
-
-/**
- * The directive clbLoading displays a simple loading message. If a promise
- * is given, the loading indicator will disappear once it is resolved.
- *
- * Attributes
- * ----------
- *
- * =======================  ===================================================
- * Name                     Description
- * =======================  ===================================================
- * {Promise} [clb-promise]  Hide the loading message upon fulfilment.
- * {string} [clb-message]   Displayed loading string (default=``'loading...'``)
- *
- * @memberof module:clb-ui-loading
- * @return {object} Angular directive descriptor
- * @example <caption>Directive Usage Example</caption>
- * <hbp-loading hbp-promise="myAsyncFunc()" hbp-message="'Loading My Async Func'">
- * </hbp-loading>
- */
-function clbLoading() {
-  return {
-    restrict: 'E',
-    scope: {
-      promise: '=?clbPromise',
-      message: '=?clbMessage'
-    },
-    template:'<div class=clb-loading ng-if=loading><span class="glyphicon glyphicon-refresh clb-spinning"></span> {{message}}</div>',
-    link: function(scope) {
-      scope.loading = true;
-      scope.message = scope.message || 'Loading...';
-      if (scope.promise) {
-        var complete = function() {
-          scope.loading = false;
-        };
-        scope.promise.then(complete, complete);
-      }
-    }
-  };
 }
 })();
 //# sourceMappingURL=maps/angular-hbp-collaboratory.js.map

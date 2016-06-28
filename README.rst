@@ -188,6 +188,7 @@ Please be sure to check the change in the directive attributes prefix as well.::
 
    hbp-file-browser -> clb-file-browser (root -> clb-root, entity -> clb-entity)
    hbp-error-message -> clb-error-message (hbp-promise -> clb-promise, hbp-message -> clb-message)
+   hbp-usercard -> clb-usercard (hbp-user -> clb-user, hbp-template -> clb-template)
 
 ``hbpDialogFactory`` has been removed, with the exception of ``hbpDialogFactory.error`` which
 is now ``clbErrorDialog.open (module clb-ui-error)``. Those two refactore will have you covered::
@@ -195,9 +196,15 @@ is now ``clbErrorDialog.open (module clb-ui-error)``. Those two refactore will h
    hbpDialogFactory -> clbErrorDialog
    clbErrorDialog.error -> clbErrorDialog.open
 
-If you were using othe methods from clbDialogFactory (e.g.: ``.alert()`` or ``.confirm``),
+If you were using other methods from clbDialogFactory (e.g.: ``.alert()`` or ``.confirm``),
 you need to rewrite them using angular-bootstrap ``$uibModal`` (read the
 _`documentation <https://angular-ui.github.io/bootstrap/#/modal>`)
+
+Since usage of ``hbp-generated-icon`` has been deprecated for anything but users
+without avatars, it has been replaced by a new directive called ``clb-user-avatar``
+available in the module clb-ui-identity.
+It displays either a generated icon or the user profile picture. This new
+component is also easier to customize using pure css.
 
 At the end of the process, your application should only load ``angular-hbp-collaboratory``
 

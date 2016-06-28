@@ -3,6 +3,11 @@ angular.module('customCollabApp', [
   'clb-ui-error',
   'hbpCollaboratory'
 ])
+.controller('UiIdentityController', function($scope, clbUser) {
+  clbUser.getCurrentUser().then(function(me) {
+    $scope.user = me;
+  });
+})
 .controller('CollabConfigurationController', function(
   $log,
   $filter,
@@ -14,7 +19,6 @@ angular.module('customCollabApp', [
   vm.handleSubmit = handleSubmit;
 
   return activate();
-
   /**
    * Create the collab given form content.
    * @param  {Event} event DOM Event

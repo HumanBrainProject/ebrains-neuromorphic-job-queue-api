@@ -1,0 +1,58 @@
+// Display as an inline-block of 40x40
+.clb-user-avatar {
+  display: inline-block;
+  height: 32px;
+  vertical-align: middle;
+  width: 32px;
+}
+
+// The displayed item can be either the profile picture...
+.clb-user-avatar-img {
+  height: auto;
+  width: 100%;
+}
+
+// Or an SVG icon
+.clb-user-avatar-icon {
+  height: auto;
+  width: 100%;
+}
+
+// Text Property of the SVG icon
+.clb-user-avatar-icon-text {
+  fill: #ffffff;
+}
+
+// A selection of 8 hue that are assigned to the icon
+// depending the user displayName.
+.clb-user-avatar-icon-hue-1 .clb-user-avatar-icon-fill {
+  fill: #ee936d;
+}
+
+.clb-user-avatar-icon-hue-2 .clb-user-avatar-icon-fill {
+  fill: #ea6153;
+}
+
+.clb-user-avatar-icon-hue-3 .clb-user-avatar-icon-fill {
+  fill: #f8bd93;
+}
+
+.clb-user-avatar-icon-hue-4 .clb-user-avatar-icon-fill {
+  fill: #308298;
+}
+
+.clb-user-avatar-icon-hue-5 .clb-user-avatar-icon-fill {
+  fill: #e54639;
+}
+
+.clb-user-avatar-icon-hue-6 .clb-user-avatar-icon-fill {
+  fill: #4b8f9e;
+}
+
+.clb-user-avatar-icon-hue-7 .clb-user-avatar-icon-fill {
+  fill: #457493;
+}
+
+.clb-user-avatar-icon-hue-8 .clb-user-avatar-icon-fill {
+  fill: #456e91;
+}
