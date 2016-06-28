@@ -45,7 +45,6 @@ function clbUser(
     list: list,
     search: search,
     isGroupMember: isGroupMember,
-    isHbpMember: isHbpMember,
     adminGroups: adminGroups,
     memberGroups: groups
   };
@@ -543,20 +542,5 @@ function clbUser(
     return clbResultSet.get($http.get(url, {
       params: params
     }), paginationOptions('users', options.factory));
-  }
-
-  /**
-   * @name isHbpMember
-   * @desc
-   * Return a promise that will resolve to true if the current user is a
-   * HBP member.
-   *
-   * @memberof module:clb-identity.clbUser
-   * @function
-   * @return {Promise} Resolve to a boolean
-   */
-  function isHbpMember() {
-    return this.isGroupMember(
-      clbEnv.get('collab.groups.hbpMember', 'hbp-member'));
   }
 }
