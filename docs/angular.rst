@@ -19,27 +19,32 @@ Description
 
 
 
-.. _angular.clbEnv:
+.. _angular.clbBootstrap:
 
 
-Function: ``clbEnv``
-====================
+Function: ``clbBootstrap``
+==========================
 
-Get environement information using dotted notation with the `clbEnv` provider
-or service.
+Bootstrap AngularJS application with the HBP environment loaded.
 
-Before being used, clbEnv must be initialized with the context values. You
-can do so by setting up a global bbpConfig variable or using
-:ref:`angular.clbBootstrap <angular.clbBootstrap>`.
+It is very important to load the HBP environement *before* starting
+the application. This method let you do that synchronously or asynchronously.
+Whichever method you choose, the values in your environment should look
+very similar to the one in _`https://collab.humanbrainproject.eu/config.json`,
+customized with your own values.
 
-.. js:function:: clbEnv($injector)
+At least ``auth.clientId`` should be edited in the config.json file.
+
+.. js:function:: clbBootstrap(module, options, options.env)
 
     
-    :param object $injector: AngularJS injection
-    :return object: provider
+    :param string module: the name of the Angular application module to load.
+    :param object options: pass those options to deferredBootstrap
+    :param object options.env: HBP environment JSON (https://collab.humanbrainproject.eu/config.json)
+    :return Promise: return once the environment has been bootstrapped
     
 
-.. _undefined.clbBootstrap:
+.. _angular.clbBootstrap:
 
 Member: ``clbBootstrap``: 
 
