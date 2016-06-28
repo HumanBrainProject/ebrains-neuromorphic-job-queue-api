@@ -25,6 +25,7 @@ Contents
    module-clb-ui-loading
    module-clb-ui-storage
    module-clb-ui-stream
+   angular
    
 README
 ======

@@ -13,6 +13,7 @@ angular.module('clb-ui-loading')
  * =======================  ===================================================
  * {Promise} [clb-promise]  Hide the loading message upon fulfilment.
  * {string} [clb-message]   Displayed loading string (default=``'loading...'``)
+ * =======================  ===================================================
  *
  * @memberof module:clb-ui-loading
  * @return {object} Angular directive descriptor

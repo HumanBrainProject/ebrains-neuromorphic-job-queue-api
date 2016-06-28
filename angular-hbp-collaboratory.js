@@ -391,10 +391,31 @@ function clbApp(
 angular.clbBootstrap = clbBootstrap;
 
 /**
- * Bootstrap AngularJS application with the environment configuration loaded.
+ * Bootstrap AngularJS application with the HBP environment loaded.
+ *
+ * It is very important to load the HBP environement *before* starting
+ * the application. This method let you do that synchronously or asynchronously.
+ * Whichever method you choose, the values in your environment should look
+ * very similar to the one in _`https://collab.humanbrainproject.eu/config.json`,
+ * customized with your own values.
+ *
+ * At least ``auth.clientId`` should be edited in the config.json file.
+ *
  * @param {string} module the name of the Angular application module to load.
- * @param {objects} options pass those options to deferredBootstrap
+ * @param {object} options pass those options to deferredBootstrap
+ * @param {object} options.env HBP environment JSON (https://collab.humanbrainproject.eu/config.json)
  * @return {Promise} return once the environment has been bootstrapped
+ * @example <caption>Bootstrap the environment synchronously</caption>
+ * angular.clbBootstrap('myApp', {
+ *   env: { } // content from https://collab.humanbrainproject.eu/config.json
+ * })
+ * @example <caption>Bootstrap the environment asynchronously</caption>
+ * angular.clbBootstrap('myApp', {
+ *   env: 'https://my-project-website/config.json'
+ * })
+ * @example <caption>Using backward compatibility</caption>
+ * window.bbpConfig = { } // content from https://collab.humanbrainproject.eu/config.json
+ * angular.clbBoostrap('myApp')
  */
 function clbBootstrap(module, options) {
   if (window.bbpConfig) {
@@ -2121,10 +2142,37 @@ angular.module('clb-env')
 .provider('clbEnv', clbEnv);
 
 /**
- * Get environement information using dotted notation.
- * @memberof module:clb-env
+ * @namespace angular
+ */
+
+/**
+ * Get environement information using dotted notation with the `clbEnv` provider
+ * or service.
+ *
+ * Before being used, clbEnv must be initialized with the context values. You
+ * can do so by setting up a global bbpConfig variable or using
+ * :ref:`angular.clbBootstrap <angular.clbBootstrap>`.
+ *
+ * @function clbEnv
+ * @memberof angular
  * @param {object} $injector AngularJS injection
  * @return {object} provider
+ * @example <caption>Basic usage of clbEnv</caption>
+ * angular.module('myApp', ['clbEnv', 'rest'])
+ * .service('myService', function(clbEnv, clbResultSet) {
+ *   return {
+ *     listCollab: function() {
+ *       // return a paginated list of all collabs
+ *       return clbResultSet.get($http.get(clbEnv.get('api.collab.v0') + '/'));
+ *     }
+ *   };
+ * });
+ * @example <caption>Use clbEnv in your configuration</caption>
+ * angular.module('myApp', ['clbEnv', 'rest'])
+ * .config(function(clbEnvProvider, myAppServiceProvider) {
+ *   // also demonstrate how we accept a custom variable.
+ *   myAppServiceProvider.setMaxFileUpload(clbEnvProvider.get('myapp.maxFileUpload', '1m'))
+ * });
  */
 function clbEnv($injector) {
   return {
@@ -4555,6 +4603,7 @@ angular.module('clb-ui-loading')
  * =======================  ===================================================
  * {Promise} [clb-promise]  Hide the loading message upon fulfilment.
  * {string} [clb-message]   Displayed loading string (default=``'loading...'``)
+ * =======================  ===================================================
  *
  * @memberof module:clb-ui-loading
  * @return {object} Angular directive descriptor
@@ -5256,9 +5305,9 @@ function clbFileChooser($q) {
  * The directive accepts the following attributes:
  *
  * - on-drop: a function to call when one or more files are dropped or selected
- * the callback will receive an array of File instance.
+ *   the callback will receive an array of File instance.
  * - on-error: a function to call when an error occurs. It receives an HbpError
- * instance in parameter.
+ *   instance in parameter.
  *
  * @example
  * <clb-file-upload on-drop="handleFileUpload(files)"

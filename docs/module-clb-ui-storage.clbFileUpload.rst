@@ -27,9 +27,9 @@ but rather triggers the onDrop callback.
 The directive accepts the following attributes:
 
 - on-drop: a function to call when one or more files are dropped or selected
-the callback will receive an array of File instance.
+  the callback will receive an array of File instance.
 - on-error: a function to call when an error occurs. It receives an HbpError
-instance in parameter.
+  instance in parameter.
 
 
 

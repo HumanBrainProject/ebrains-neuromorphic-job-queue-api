@@ -36,6 +36,7 @@ Name                     Description
 =======================  ===================================================
 {Promise} [clb-promise]  Hide the loading message upon fulfilment.
 {string} [clb-message]   Displayed loading string (default=``'loading...'``)
+=======================  ===================================================
 
 .. js:function:: clbLoading()
 
