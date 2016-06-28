@@ -595,32 +595,6 @@ describe('clbUser', function() {
     });
   });
 
-  describe('isHbpMember', function() {
-    it('should be true when user is part of hbp-member group', function() {
-      var result;
-      spyOn(userDirectory, 'getCurrentUser').and.returnValue($q.when({
-        groups: [{name: 'hbp-member'}]
-      }));
-      userDirectory.isHbpMember().then(function(value) {
-        result = value;
-      });
-      $scope.$digest();
-      expect(result).toBe(true);
-    });
-
-    it('should be false when user is not part of hbp-member group', function() {
-      var result;
-      spyOn(userDirectory, 'getCurrentUser').and.returnValue($q.when({
-        groups: [{name: 'NOPE'}]
-      }));
-      userDirectory.isHbpMember().then(function(value) {
-        result = value;
-      });
-      $scope.$digest();
-      expect(result).toBe(false);
-    });
-  });
-
   describe('memberGroups', function() {
     it('calls the member-groups endpoint for the given user id', function() {
       $httpBackend.expectGET(userApiUrl +

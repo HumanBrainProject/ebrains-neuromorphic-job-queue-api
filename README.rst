@@ -84,7 +84,7 @@ to depends on the ``hbpCollaboratoryCore`` module.
 If you use bower to install, it will ask you to resolve a conflict about the
 angular-bootstrap version. Stick to the angular-hbp-common declaration at
 this point. At this point, your code should still work, that will let you
-progressively refactor to use the new library instead of the old one.
+progressively refactor to use the new library instead of the old one::
 
    Add dependency 'hbpCollaboratory'
    hbpUtil.ferr -> clbError.rejectHttpError (from clb-error module)
@@ -99,7 +99,7 @@ progressively refactor to use the new library instead of the old one.
    hbpEntityStore -> clbStorage             (from clb-storage module)
    hbpFileStore -> clbStorage               (from clb-storage module)
    hbpProjectStore -> clbStorage            (from clb-storage module)
-   hbp-file-browser -> clb-ui-file-browser     (from clb-ui-file-browser module)
+   hbp-file-browser -> clb-ui-file-browser  (from clb-ui-file-browser module)
 
 In fact, ``hbpCollaboratoryCore`` is a shell module that will require many
 sub-modules as an easy way to migrate and import everything.
@@ -111,6 +111,11 @@ Once the refactoring of module is done, there is the refactoring of methods::
    clbStorage.getEntityByContext(ctx) -> clbStorage.getEntity({ctx: ctx})
    clbStorage.get( -> clbStorage.getEntity(
    clbStorage.getChildren now return a ResultSet like other services
+
+clbUser.isHbpMember is no more because the accreditation multiply. You should
+instead make a call like:
+
+   clbUser.isHbpMember() -> clbUser.isGroupMember(['hbp-accred-sga1']);
 
 At this point, your javascript code should rely only on
 ``angular-hbp-collaboratory``, with the exception of the UI. Your application
