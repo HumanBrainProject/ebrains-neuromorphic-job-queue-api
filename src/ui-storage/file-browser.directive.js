@@ -102,6 +102,7 @@ function clbFileBrowser(lodash) {
     vm.doCreateFolder = doCreateFolder;
     vm.cancelCreateFolder = cancelCreateFolder;
     vm.defineThumbnailUrl = defineThumbnailUrl;
+    vm.isEmpty = isEmpty;
 
     // ---------------- //
 
@@ -442,6 +443,16 @@ function clbFileBrowser(lodash) {
         });
       });
       return lastAssignCanEditRequest;
+    }
+
+    /**
+     * @private
+     * @return {boolean} if the current folder is empty
+     */
+    function isEmpty() {
+      return !vm.isLoading &&
+        (!vm.folders || vm.folders.length === 0) &&
+        (!vm.files || vm.files.length === 0);
     }
   }
 }

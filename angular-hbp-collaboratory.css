@@ -2,7 +2,8 @@ li.clb-activity-item {
   padding-bottom: 5px; }
 
 .clb-file-browser {
-  overflow-y: auto; }
+  overflow-y: auto;
+  min-height: 200px; }
   .clb-file-browser .clb-file-browser-heading, .clb-file-browser .clb-file-browser-content {
     padding-left: 12px;
     padding-right: 12px; }

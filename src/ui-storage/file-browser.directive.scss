@@ -5,7 +5,8 @@ $bundle-bar-shadow:  0 2px 5px 0 rgba(0, 0, 0, 0.26) !default;
 
 .clb-file-browser {
     overflow-y: auto;
-
+    min-height: 200px;
+    
     .clb-file-browser-heading, .clb-file-browser-content {
         padding-left: $padding-base-horizontal;
         padding-right: $padding-base-horizontal;
