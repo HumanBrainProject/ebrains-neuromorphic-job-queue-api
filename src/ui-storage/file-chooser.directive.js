@@ -43,6 +43,9 @@ function clbFileChooser($q) {
      * @return {Boolean}       true if the value can be chosen
      */
     function isValid(value) {
+      if (!value) {
+        return;
+      }
       if (angular.isString(scope.validate)) {
         return scope.validate === value._contentType;
       }

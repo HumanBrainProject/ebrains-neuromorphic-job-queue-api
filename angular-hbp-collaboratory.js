@@ -99,21 +99,6 @@ angular.module('hbpCollaboratory', [
 angular.module('clb-app', ['clb-env', 'clb-error']);
 
 /**
- * @module clb-collab
- * @desc
- * Contain services to interact with collabs (e.g.: retriving collab informations or
- * team members).
- */
-angular.module('clb-collab', [
-  'ngLodash',
-  'clb-env',
-  'clb-error',
-  'clb-identity',
-  'clb-rest',
-  'uuid4'
-]);
-
-/**
  * @module clb-automator
  * @desc
  * `clb-automator` module provides an automation library for the Collaboratory
@@ -132,6 +117,21 @@ angular.module('clb-automator', [
 ]);
 
 /**
+ * @module clb-collab
+ * @desc
+ * Contain services to interact with collabs (e.g.: retriving collab informations or
+ * team members).
+ */
+angular.module('clb-collab', [
+  'ngLodash',
+  'clb-env',
+  'clb-error',
+  'clb-identity',
+  'clb-rest',
+  'uuid4'
+]);
+
+/**
  * Provides a key value store where keys are context UUID
  * and values are string.
  *
@@ -147,6 +147,8 @@ angular.module('clb-ctx-data', ['uuid4', 'clb-env', 'clb-error']);
 
 angular.module('clb-env', []);
 
+angular.module('clb-error', []);
+
 angular.module('clb-identity', [
   'ngLodash',
   'clb-env',
@@ -154,28 +156,12 @@ angular.module('clb-identity', [
   'clb-rest'
 ]);
 
-angular.module('clb-error', []);
-
 /**
  * @module clb-rest
  * @desc
  * ``clb-rest`` module contains util for simplifying access to Rest service.
  */
 angular.module('clb-rest', ['clb-error']);
-
-/**
- * @module clb-stream
- * @desc
- * The `clb-stream` module contains a service and a few directives to retrieve
- * and display the HBP Collaboratory stream provided
- * by the various applications.
- */
-
-angular.module('clb-stream', [
-  'clb-env',
-  'clb-error',
-  'clb-rest'
-]);
 
 /**
  * @module clb-storage
@@ -193,11 +179,18 @@ angular.module('clb-storage', [
 ]);
 
 /**
- * @module clb-ui-form
+ * @module clb-stream
  * @desc
- * clb-ui-form provides directive to ease creation of forms.
+ * The `clb-stream` module contains a service and a few directives to retrieve
+ * and display the HBP Collaboratory stream provided
+ * by the various applications.
  */
-angular.module('clb-ui-form', []);
+
+angular.module('clb-stream', [
+  'clb-env',
+  'clb-error',
+  'clb-rest'
+]);
 
 /**
  * @module clb-ui-error
@@ -207,6 +200,13 @@ angular.module('clb-ui-error', [
   'ui.bootstrap.alert',
   'uib/template/alert/alert.html'
 ]);
+
+/**
+ * @module clb-ui-form
+ * @desc
+ * clb-ui-form provides directive to ease creation of forms.
+ */
+angular.module('clb-ui-form', []);
 
 /**
  * Provides UI widgets around user and groups.
@@ -477,6 +477,604 @@ function clbBootstrap(module, options) {
   }];
   return deferredBootstrapper.bootstrap(options);
 }
+
+
+clbAutomator.$inject = ['$q', '$log', 'clbError'];angular.module('clb-automator')
+.factory('clbAutomator', clbAutomator);
+
+/**
+ * @namespace Tasks
+ * @memberof module:clb-automator
+ * @desc
+ * Document a list of available tasks.
+ */
+
+/**
+ * @namespace clbAutomator
+ * @memberof module:clb-automator
+ * @desc
+ * clbAutomator is an AngularJS factory that
+ * provide task automation to accomplish a sequence of
+ * common operation in Collaboratory.
+ *
+ * How to add new tasks
+ * --------------------
+ *
+ * New tasks can be added by calling ``clbAutomator.registerHandler``.
+ *
+ * You can see a few example of tasks in the `tasks` folder.
+ *
+ * Evaluate the automator
+ * ----------------------
+ *
+ * From the root of this project, you can start a server that will let
+ * you write a descriptor and run it.
+ *
+ * .. code-block:: bash
+ *
+ *    gulp example
+ *
+ * @example <caption>Create a Collab with a few navigation items</caption>
+ * // Create a Collab with a few navigation items.
+ * angular.module('MyModule', ['clb-automator'])
+ * .run(function(clbAutomator, $log) {
+ *   var config = {
+ *     title: 'My Custom Collab',
+ *     content: 'My Collab Content',
+ *     private: false
+ *   };
+ *   clbAutomator.task(config).run().then(function(collab) {
+ *   	 $log.info('Created Collab', collab);
+ *   });
+ * })
+ * @example <caption>Create a Collab with entities and navigation items</caption>
+ * clbAutomator.run({
+ *   "collab": {
+ *     "title": "Test Collab Creation",
+ *     "content": "My Collab Description",
+ *     "private": true,
+ *     "after": [
+ *       {
+ *         "storage": {
+ *           "entities": {
+ *             // Use one of your file UUID here.
+ *             "sample.ipynb": "155c1bcc-ee9c-43e2-8190-50c66befa1fa"
+ *           },
+ *           "after": [{
+ *             "nav": {
+ *               "name": "Example Code",
+ *               "app": "Jupyter Notebook",
+ *               "entity": "sample.ipynb"
+ *             }
+ *           }]
+ *         }
+ *       },
+ *       {
+ *         "nav": {
+ *           "name": "Empty Notebook",
+ *           "app": "Jupyter Notebook"
+ *         }
+ *       },
+ *       {
+ *         "nav": {
+ *           "name": "Introduction",
+ *           "app": "Rich Text Editor"
+ *         }
+ *       }
+ *     ]
+ *   }
+ * }).then(function(collab) {
+ *   $log.info('Created Collab', collab);
+ * });
+ *
+ * @example <caption>Create a Collab with a pre-filled overview</caption>
+ * clbAutomator.run({
+ *   "collab": {
+ *     "title": "Test Collab With Pre Filled Overview",
+ *     "content": "Test collab creation with  a pre filled overview",
+ *     "private": true,
+ *     "after": [{
+ *       "overview": {
+ *         // Use one of your HTML file UUID here.
+ *         "entity": "155c1bcc-ee9c-43e2-8190-50c66befa1fa"
+ *       }
+ *     }]
+ *   }
+ * }).then(function(collab) {
+ *   $log.info('Created Collab', collab);
+ * });
+ * @param {object} $q injected service
+ * @param {object} $log injected service
+ * @param {object} clbError injected service
+ * @return {object} the clbAutomator Angular service singleton
+ */
+function clbAutomator(
+  $q,
+  $log,
+  clbError
+) {
+  var handlers = {};
+
+  /**
+   * Register a handler function for the given task name.
+   * @memberof module:clb-automator.clb-automator
+   * @param  {string}   name handle actions with the specified name
+   * @param  {Function} fn a function that accept the current context in
+   *                       parameter.
+   */
+  function registerHandler(name, fn) {
+    handlers[name] = fn;
+  }
+
+  /**
+   * Instantiate a new Task intance that will run the code describe for
+   * a handlers with the give ``name``.
+   *
+   * The descriptor is passed to the task and parametrize it.
+   * The task context is computed at the time the task is ran. A default context
+   * can be given at load time and it will be fed with the result of each parent
+   * (but not sibling) tasks as well.
+   *
+   * @memberof module:clb-automator.clbAutomator
+   * @param {string} name the name of the task to instantiate
+   * @param {object} [descriptor] a configuration object that will determine
+   *                            which task to run and in which order
+   * @param {object} [descriptor.after] an array of task to run after this one
+   * @param {object} [context] a default context to run the task with
+   *
+   * @return {Task} - the new task instance
+   */
+  function task(name, descriptor, context) {
+    try {
+      return new Task(name, descriptor, context);
+    } catch (ex) {
+      $log.error('EXCEPTION', ex);
+      throw clbError.error({
+        type: 'InvalidTask',
+        message: 'Invalid task ' + name + ': ' + ex,
+        data: {
+          cause: ex,
+          name: name,
+          descriptor: descriptor,
+          context: context
+        }
+      });
+    }
+  }
+
+  /**
+   * Directly generate tasks from given description and run them.
+   *
+   * @memberof module:clb-automator.clbAutomator
+   * @param  {object} descriptor description of the tasks to run
+   * @param  {object} [context]  the initial context
+   * @return {Promise} promise of the top level task result
+   */
+  function run(descriptor, context) {
+    for (var name in descriptor) {
+      if (descriptor.hasOwnProperty(name)) {
+        return task(name, descriptor[name], context).run();
+      }
+    }
+    return $q.reject(clbError.error({
+      type: 'NoTaskFound',
+      message: 'No task found in descriptor',
+      data: descriptor
+    }));
+  }
+
+  /**
+   * Create an array of tasks given an array containing object where
+   * the key is the task name to run and the value is the descriptor
+   * parameter.
+   *
+   * @memberof module:clb-automator.clbAutomator
+   * @param  {object} after the content of ``descriptor.after``
+   * @return {Array/Task} array of subtasks
+   * @private
+   */
+  function createSubtasks(after) {
+    var subtasks = [];
+    if (!after || !after.length) {
+      return subtasks;
+    }
+    for (var i = 0; i < after.length; i++) {
+      var taskDef = after[i];
+      for (var name in taskDef) {
+        if (taskDef.hasOwnProperty(name)) {
+          subtasks.push(task(name, taskDef[name]));
+        }
+      }
+    }
+    return subtasks;
+  }
+
+  /**
+   * @class Task
+   * @memberof module:clb-automator.clbAutomator
+   * @desc
+   * Instantiate a task given the given `config`.
+   * The task can then be run using the `run()` instance method.
+   * @param {string} name the name of the task to instantiate
+   * @param {object} [descriptor] a configuration object that will determine
+   *                            which task to run and in which order
+   * @param {object} [descriptor.after] an array of task to run after this one
+   * @param {object} [context] a default context to run the task with
+   * @see module:clb-automator.task
+   *
+   */
+  function Task(name, descriptor, context) {
+    if (!handlers[name]) {
+      throw new Error('TaskNotFound');
+    }
+    descriptor = descriptor || {};
+    context = context || {};
+    this.state = 'idle';
+    this.name = name;
+    this.descriptor = descriptor;
+    this.defaultContext = context;
+    this.state = 'idle';
+    this.promise = null;
+    this.error = null;
+    this.subtasks = createSubtasks(descriptor.after);
+  }
+
+  Task.prototype = {
+    /**
+     * Launch the task.
+     *
+     * @memberof module:clb-automator.clbAutomator.Task
+     * @param {object} context current context will be merged into the default
+     *                         one.
+     * @return {Promise} promise to return the result of the task
+     */
+    run: function(context) {
+      var self = this;
+      // run an intance of task only once.
+      if (self.state !== 'idle') {
+        return self.promise;
+      }
+      context = angular.extend({}, this.defaultContext, context);
+      var onSuccess = function(result) {
+        var subContext = angular.copy(context);
+        subContext[self.name] = result;
+        return self.runSubtasks(subContext)
+        .then(function() {
+          self.state = 'success';
+          return result;
+        });
+      };
+      var onError = function(err) {
+        self.state = 'error';
+        // noop operation if is already one
+        return $q.reject(clbError.error(err));
+      };
+      self.state = 'progress';
+      self.promise = $q.when(handlers[self.name](self.descriptor, context))
+        .then(onSuccess)
+        .catch(onError);
+      return self.promise;
+    },
+
+    /**
+     * Run all subtasks of the this tasks.
+     *
+     * @memberof module:clb-automator.clbAutomator.Task
+     * @param  {object} context the current context
+     * @return {Array}          all the results in an array
+     */
+    runSubtasks: function(context) {
+      var promises = [];
+      angular.forEach(this.subtasks, function(task) {
+        promises.push(task.run(context));
+      });
+      return $q.all(promises);
+    }
+  };
+
+  /**
+   * Return a HbpError when a parameter is missing.
+   * @memberof module:clb-automator.clbAutomator
+   * @param  {string} key    name of the key
+   * @param  {object} config the invalid configuration object
+   * @return {HbpError}      a HbpError instance
+   * @private
+   */
+  function missingDataError(key, config) {
+    return clbError({
+      type: 'KeyError',
+      message: 'Missing `' + key + '` key in config',
+      data: {
+        config: config
+      }
+    });
+  }
+
+  /**
+   * Ensure that all parameters listed after config are presents.
+   * @memberof module:clb-automator.clbAutomator
+   * @param  {object} config task descriptor
+   * @return {object} created entities
+   */
+  function ensureParameters(config) {
+    var parameters = Array.prototype.splice(1);
+    for (var p in parameters) {
+      if (angular.isUndefined(parameters[p])) {
+        return $q.reject(missingDataError(p, config));
+      }
+    }
+    return $q.when(config);
+  }
+
+  /**
+   * Return an object that only contains attributes
+   * from the `attrs` list.
+   *
+   * @memberof module:clb-automator.clbAutomator
+   * @param  {object} config key-value store
+   * @param  {Array} attrs   a list of keys to extract from `config`
+   * @return {object}        key-value store containing only keys from attrs
+   *                         found in `config`
+   */
+  function extractAttributes(config, attrs) {
+    var r = {};
+    angular.forEach(attrs, function(a) {
+      if (angular.isDefined(config[a])) {
+        r[a] = config[a];
+      }
+    });
+    return r;
+  }
+
+  return {
+    run: run,
+    task: task,
+    handlers: handlers,
+    registerHandler: registerHandler,
+    extractAttributes: extractAttributes,
+    ensureParameters: ensureParameters
+  };
+}
+
+angular.module('clb-automator')
+.run(['$log', '$q', 'clbCollab', 'clbAutomator', function createCollab(
+  $log,
+  $q,
+  clbCollab,
+  clbAutomator
+) {
+  clbAutomator.registerHandler('collab', createCollab);
+
+  /**
+   * @function createCollab
+   * @memberof module:clb-automator.Tasks
+   * @desc
+   *  Create a collab defined by the given options.
+   * @param {object} descriptor - Parameters to create the collab
+   * @param {string} descriptor.name - Name of the collab
+   * @param {string} descriptor.description - Description in less than 140 characters
+   *                                       of the collab
+   * @param {string} [descriptor.privacy] - 'private' or 'public'. Notes that only
+   *                                   HBP Members can create private collab
+   * @param {Array} [after] - descriptor of subtasks
+   * @return {Promise} - promise of a collab
+   */
+  function createCollab(descriptor) {
+    var attr = clbAutomator.extractAttributes(
+      descriptor,
+      ['title', 'content', 'private']
+    );
+    $log.debug('Create collab', descriptor);
+    return clbCollab.create(attr);
+  }
+}]);
+
+angular.module('clb-automator')
+.run(['$log', 'clbCollabApp', 'clbCollabNav', 'clbAutomator', 'clbStorage', function createNavItem(
+  $log,
+  clbCollabApp,
+  clbCollabNav,
+  clbAutomator,
+  clbStorage
+) {
+  clbAutomator.registerHandler('nav', createNavItem);
+
+  /**
+   * Create a new nav item.
+   * @memberof module:clb-automator.Tasks
+   * @param {object} descriptor a descriptor description
+   * @param {string} descriptor.name name of the nav item
+   * @param {Collab} descriptor.collabId collab in which to add the item in.
+   * @param {string} descriptor.app app name linked to the nav item
+   * @param {object} [context] the current run context
+   * @param {object} [context.collab] a collab instance created previously
+   * @return {Promise} promise of a NavItem instance
+   */
+  function createNavItem(descriptor, context) {
+    var collabId = function() {
+      return (descriptor && descriptor.collab) ||
+        (context && context.collab.id);
+    };
+    var findApp = function(app) {
+      return clbCollabApp.findOne({title: app});
+    };
+    var createNav = function(app) {
+      return clbCollabNav.getRoot(collabId())
+      .then(function(parentItem) {
+        return clbCollabNav.addNode(collabId(),
+          new clbCollabNav.NavItem({
+            collab: collabId(),
+            name: descriptor.name,
+            appId: app.id,
+            parentId: parentItem.id
+          })
+        );
+      });
+    };
+    var linkToStorage = function(nav) {
+      if (!descriptor.entity) {
+        return nav;
+      }
+      var setLink = function(entity) {
+        return clbStorage.setContextMetadata(entity, nav.context)
+        .then(function() {
+          return nav;
+        });
+      };
+      // It might be the name used in a previous storage task.
+      if (context && context.storage && context.storage[descriptor.entity]) {
+        return setLink(context.storage[descriptor.entity]);
+      }
+      return clbStorage.getEntity(descriptor.entity).then(setLink);
+    };
+
+    $log.debug('Create nav item', descriptor, context);
+
+    return clbAutomator.ensureParameters(descriptor, 'app', 'name')
+    .then(function() {
+      return findApp(descriptor.app)
+      .then(createNav)
+      .then(linkToStorage);
+    });
+  }
+}]);
+
+angular.module('clb-automator')
+.run(['$log', '$q', '$http', 'clbEnv', 'clbStorage', 'clbError', 'clbAutomator', 'clbCollabNav', 'clbCollabApp', function createOverview(
+  $log, $q, $http, clbEnv, clbStorage, clbError,
+  clbAutomator, clbCollabNav, clbCollabApp
+) {
+  clbAutomator.registerHandler('overview', overview);
+
+  /**
+   * Set the content of the overview page.
+   * If an 'entity' is specified, it will use the content of that storage file
+   * If an 'app' name is specified, it will use that app for the overview page
+   *
+   * The collab is indicated either by an id in `descriptor.collab` or a
+   * collab object in `context.collab`.
+   *
+   * @memberof module:clb-automator.Tasks
+   * @param {object} descriptor the task configuration
+   * @param {object} [descriptor.collab] id of the collab
+   * @param {string} [descriptor.entity] either a label that can be found in
+   *                 ``context.entities`` or a FileEntity UUID
+   * @param {string} [descriptor.app] the name of an application
+   * @param {object} context the current task context
+   * @param {object} [context.collab] the collab in which entities will be copied
+   * @param {object} [context.entities] a list of entities to lookup in for
+   *                   descriptor.entiry value
+   * @return {object} created entities where keys are the same as provided in
+   *                  config.storage
+   */
+  function overview(descriptor, context) {
+    $log.debug("Set the content of the overview page");
+    var collabId = descriptor.collab || context.collab.id;
+    var createContentFile = function(overview, descriptor, context) {
+      $log.debug("Fill overview page with content from entity");
+
+      return fetchSourceContent(descriptor, context)
+        .then(function(source) {
+          return $http.post(clbEnv.get('api.richtext.v0') + '/richtext/', {
+            ctx: overview.context,
+            raw: source
+          });
+        });
+    };
+
+    var updateAppId = function(overview, descriptor) {
+      $log.debug("Replace the overview page application id");
+
+      return clbCollabApp.findOne({title: descriptor.app})
+        .then(function(app) {
+          overview.update({appId: app.id});
+          return clbCollabNav.saveNode(collabId, overview);
+        });
+    };
+
+    return clbCollabNav
+      .getRoot(collabId)
+      .then(function(rootNav) {
+        var overview = rootNav.children[0];
+
+        var updateOverview = descriptor.app ?
+          updateAppId(overview, descriptor) :
+          createContentFile(overview, descriptor, context);
+
+        return updateOverview.then(function() {
+          return overview;
+        });
+      });
+  }
+
+  /**
+   * Download file entity content.
+   *
+   * @param {object} descriptor the task configuration
+   * @param {string} descriptor.entity either the label to find in
+   *                 ``context.entities`` or a the entity UUID.
+   * @param {object} context the current task context
+   * @param {object} context.entities optional entities in which to lookup for one
+   * @return {Promise} the promise of the entity content string
+   * @private
+   */
+  function fetchSourceContent(descriptor, context) {
+    var uuid;
+    if (context && context.entities && context.entities[descriptor.entity]) {
+      uuid = context.entities[descriptor.entity]._uuid;
+    } else {
+      uuid = descriptor.entity;
+    }
+    return clbStorage.getContent(uuid);
+  }
+}]);
+
+angular.module('clb-automator')
+.run(['$log', '$q', 'clbError', 'clbAutomator', 'clbStorage', function createStorage(
+  $log,
+  $q,
+  clbError,
+  clbAutomator,
+  clbStorage
+) {
+  clbAutomator.registerHandler('storage', storage);
+
+  /**
+   * Copy files and folders to the destination collab storage.
+   *
+   * @memberof module:clb-automator.Tasks
+   * @param {object} descriptor the task configuration
+   * @param {object} descriptor.storage a object where keys are the file path in the
+   *                                new collab and value are the UUID of the
+   *                                entity to copy at this path.
+   * @param {object} [descriptor.collab] id of the collab
+   * @param {object} context the current task context
+   * @param {object} [context.collab] the collab in which entities will be copied
+   * @return {object} created entities where keys are the same as provided in
+   *                  config.storage
+   */
+  function storage(descriptor, context) {
+    return clbAutomator.ensureParameters(
+      descriptor, 'entities'
+    ).then(function() {
+      return clbStorage
+        .getEntity({collab: descriptor.collab || context.collab.id})
+        .then(function(projectEntity) {
+          var promises = {};
+          angular.forEach(descriptor.entities, function(value, name) {
+            if (angular.isString(value)) {
+              $log.debug("Copy entity with UUID", value);
+              promises[name] = (
+                clbStorage.copy(value, projectEntity._uuid));
+            } else {
+              $log.warn('Invalid configuration for storage task', descriptor);
+            }
+          });
+          return $q.all(promises);
+        });
+    });
+  }
+}]);
 
 /* eslint camelcase: 0 */
 
@@ -1553,604 +2151,6 @@ function clbContext($http, $q, clbError, clbEnv, ClbContextModel) {
 }
 
 
-clbAutomator.$inject = ['$q', '$log', 'clbError'];angular.module('clb-automator')
-.factory('clbAutomator', clbAutomator);
-
-/**
- * @namespace Tasks
- * @memberof module:clb-automator
- * @desc
- * Document a list of available tasks.
- */
-
-/**
- * @namespace clbAutomator
- * @memberof module:clb-automator
- * @desc
- * clbAutomator is an AngularJS factory that
- * provide task automation to accomplish a sequence of
- * common operation in Collaboratory.
- *
- * How to add new tasks
- * --------------------
- *
- * New tasks can be added by calling ``clbAutomator.registerHandler``.
- *
- * You can see a few example of tasks in the `tasks` folder.
- *
- * Evaluate the automator
- * ----------------------
- *
- * From the root of this project, you can start a server that will let
- * you write a descriptor and run it.
- *
- * .. code-block:: bash
- *
- *    gulp example
- *
- * @example <caption>Create a Collab with a few navigation items</caption>
- * // Create a Collab with a few navigation items.
- * angular.module('MyModule', ['clb-automator'])
- * .run(function(clbAutomator, $log) {
- *   var config = {
- *     title: 'My Custom Collab',
- *     content: 'My Collab Content',
- *     private: false
- *   };
- *   clbAutomator.task(config).run().then(function(collab) {
- *   	 $log.info('Created Collab', collab);
- *   });
- * })
- * @example <caption>Create a Collab with entities and navigation items</caption>
- * clbAutomator.run({
- *   "collab": {
- *     "title": "Test Collab Creation",
- *     "content": "My Collab Description",
- *     "private": true,
- *     "after": [
- *       {
- *         "storage": {
- *           "entities": {
- *             // Use one of your file UUID here.
- *             "sample.ipynb": "155c1bcc-ee9c-43e2-8190-50c66befa1fa"
- *           },
- *           "after": [{
- *             "nav": {
- *               "name": "Example Code",
- *               "app": "Jupyter Notebook",
- *               "entity": "sample.ipynb"
- *             }
- *           }]
- *         }
- *       },
- *       {
- *         "nav": {
- *           "name": "Empty Notebook",
- *           "app": "Jupyter Notebook"
- *         }
- *       },
- *       {
- *         "nav": {
- *           "name": "Introduction",
- *           "app": "Rich Text Editor"
- *         }
- *       }
- *     ]
- *   }
- * }).then(function(collab) {
- *   $log.info('Created Collab', collab);
- * });
- *
- * @example <caption>Create a Collab with a pre-filled overview</caption>
- * clbAutomator.run({
- *   "collab": {
- *     "title": "Test Collab With Pre Filled Overview",
- *     "content": "Test collab creation with  a pre filled overview",
- *     "private": true,
- *     "after": [{
- *       "overview": {
- *         // Use one of your HTML file UUID here.
- *         "entity": "155c1bcc-ee9c-43e2-8190-50c66befa1fa"
- *       }
- *     }]
- *   }
- * }).then(function(collab) {
- *   $log.info('Created Collab', collab);
- * });
- * @param {object} $q injected service
- * @param {object} $log injected service
- * @param {object} clbError injected service
- * @return {object} the clbAutomator Angular service singleton
- */
-function clbAutomator(
-  $q,
-  $log,
-  clbError
-) {
-  var handlers = {};
-
-  /**
-   * Register a handler function for the given task name.
-   * @memberof module:clb-automator.clb-automator
-   * @param  {string}   name handle actions with the specified name
-   * @param  {Function} fn a function that accept the current context in
-   *                       parameter.
-   */
-  function registerHandler(name, fn) {
-    handlers[name] = fn;
-  }
-
-  /**
-   * Instantiate a new Task intance that will run the code describe for
-   * a handlers with the give ``name``.
-   *
-   * The descriptor is passed to the task and parametrize it.
-   * The task context is computed at the time the task is ran. A default context
-   * can be given at load time and it will be fed with the result of each parent
-   * (but not sibling) tasks as well.
-   *
-   * @memberof module:clb-automator.clbAutomator
-   * @param {string} name the name of the task to instantiate
-   * @param {object} [descriptor] a configuration object that will determine
-   *                            which task to run and in which order
-   * @param {object} [descriptor.after] an array of task to run after this one
-   * @param {object} [context] a default context to run the task with
-   *
-   * @return {Task} - the new task instance
-   */
-  function task(name, descriptor, context) {
-    try {
-      return new Task(name, descriptor, context);
-    } catch (ex) {
-      $log.error('EXCEPTION', ex);
-      throw clbError.error({
-        type: 'InvalidTask',
-        message: 'Invalid task ' + name + ': ' + ex,
-        data: {
-          cause: ex,
-          name: name,
-          descriptor: descriptor,
-          context: context
-        }
-      });
-    }
-  }
-
-  /**
-   * Directly generate tasks from given description and run them.
-   *
-   * @memberof module:clb-automator.clbAutomator
-   * @param  {object} descriptor description of the tasks to run
-   * @param  {object} [context]  the initial context
-   * @return {Promise} promise of the top level task result
-   */
-  function run(descriptor, context) {
-    for (var name in descriptor) {
-      if (descriptor.hasOwnProperty(name)) {
-        return task(name, descriptor[name], context).run();
-      }
-    }
-    return $q.reject(clbError.error({
-      type: 'NoTaskFound',
-      message: 'No task found in descriptor',
-      data: descriptor
-    }));
-  }
-
-  /**
-   * Create an array of tasks given an array containing object where
-   * the key is the task name to run and the value is the descriptor
-   * parameter.
-   *
-   * @memberof module:clb-automator.clbAutomator
-   * @param  {object} after the content of ``descriptor.after``
-   * @return {Array/Task} array of subtasks
-   * @private
-   */
-  function createSubtasks(after) {
-    var subtasks = [];
-    if (!after || !after.length) {
-      return subtasks;
-    }
-    for (var i = 0; i < after.length; i++) {
-      var taskDef = after[i];
-      for (var name in taskDef) {
-        if (taskDef.hasOwnProperty(name)) {
-          subtasks.push(task(name, taskDef[name]));
-        }
-      }
-    }
-    return subtasks;
-  }
-
-  /**
-   * @class Task
-   * @memberof module:clb-automator.clbAutomator
-   * @desc
-   * Instantiate a task given the given `config`.
-   * The task can then be run using the `run()` instance method.
-   * @param {string} name the name of the task to instantiate
-   * @param {object} [descriptor] a configuration object that will determine
-   *                            which task to run and in which order
-   * @param {object} [descriptor.after] an array of task to run after this one
-   * @param {object} [context] a default context to run the task with
-   * @see module:clb-automator.task
-   *
-   */
-  function Task(name, descriptor, context) {
-    if (!handlers[name]) {
-      throw new Error('TaskNotFound');
-    }
-    descriptor = descriptor || {};
-    context = context || {};
-    this.state = 'idle';
-    this.name = name;
-    this.descriptor = descriptor;
-    this.defaultContext = context;
-    this.state = 'idle';
-    this.promise = null;
-    this.error = null;
-    this.subtasks = createSubtasks(descriptor.after);
-  }
-
-  Task.prototype = {
-    /**
-     * Launch the task.
-     *
-     * @memberof module:clb-automator.clbAutomator.Task
-     * @param {object} context current context will be merged into the default
-     *                         one.
-     * @return {Promise} promise to return the result of the task
-     */
-    run: function(context) {
-      var self = this;
-      // run an intance of task only once.
-      if (self.state !== 'idle') {
-        return self.promise;
-      }
-      context = angular.extend({}, this.defaultContext, context);
-      var onSuccess = function(result) {
-        var subContext = angular.copy(context);
-        subContext[self.name] = result;
-        return self.runSubtasks(subContext)
-        .then(function() {
-          self.state = 'success';
-          return result;
-        });
-      };
-      var onError = function(err) {
-        self.state = 'error';
-        // noop operation if is already one
-        return $q.reject(clbError.error(err));
-      };
-      self.state = 'progress';
-      self.promise = $q.when(handlers[self.name](self.descriptor, context))
-        .then(onSuccess)
-        .catch(onError);
-      return self.promise;
-    },
-
-    /**
-     * Run all subtasks of the this tasks.
-     *
-     * @memberof module:clb-automator.clbAutomator.Task
-     * @param  {object} context the current context
-     * @return {Array}          all the results in an array
-     */
-    runSubtasks: function(context) {
-      var promises = [];
-      angular.forEach(this.subtasks, function(task) {
-        promises.push(task.run(context));
-      });
-      return $q.all(promises);
-    }
-  };
-
-  /**
-   * Return a HbpError when a parameter is missing.
-   * @memberof module:clb-automator.clbAutomator
-   * @param  {string} key    name of the key
-   * @param  {object} config the invalid configuration object
-   * @return {HbpError}      a HbpError instance
-   * @private
-   */
-  function missingDataError(key, config) {
-    return clbError({
-      type: 'KeyError',
-      message: 'Missing `' + key + '` key in config',
-      data: {
-        config: config
-      }
-    });
-  }
-
-  /**
-   * Ensure that all parameters listed after config are presents.
-   * @memberof module:clb-automator.clbAutomator
-   * @param  {object} config task descriptor
-   * @return {object} created entities
-   */
-  function ensureParameters(config) {
-    var parameters = Array.prototype.splice(1);
-    for (var p in parameters) {
-      if (angular.isUndefined(parameters[p])) {
-        return $q.reject(missingDataError(p, config));
-      }
-    }
-    return $q.when(config);
-  }
-
-  /**
-   * Return an object that only contains attributes
-   * from the `attrs` list.
-   *
-   * @memberof module:clb-automator.clbAutomator
-   * @param  {object} config key-value store
-   * @param  {Array} attrs   a list of keys to extract from `config`
-   * @return {object}        key-value store containing only keys from attrs
-   *                         found in `config`
-   */
-  function extractAttributes(config, attrs) {
-    var r = {};
-    angular.forEach(attrs, function(a) {
-      if (angular.isDefined(config[a])) {
-        r[a] = config[a];
-      }
-    });
-    return r;
-  }
-
-  return {
-    run: run,
-    task: task,
-    handlers: handlers,
-    registerHandler: registerHandler,
-    extractAttributes: extractAttributes,
-    ensureParameters: ensureParameters
-  };
-}
-
-angular.module('clb-automator')
-.run(['$log', '$q', 'clbCollab', 'clbAutomator', function createCollab(
-  $log,
-  $q,
-  clbCollab,
-  clbAutomator
-) {
-  clbAutomator.registerHandler('collab', createCollab);
-
-  /**
-   * @function createCollab
-   * @memberof module:clb-automator.Tasks
-   * @desc
-   *  Create a collab defined by the given options.
-   * @param {object} descriptor - Parameters to create the collab
-   * @param {string} descriptor.name - Name of the collab
-   * @param {string} descriptor.description - Description in less than 140 characters
-   *                                       of the collab
-   * @param {string} [descriptor.privacy] - 'private' or 'public'. Notes that only
-   *                                   HBP Members can create private collab
-   * @param {Array} [after] - descriptor of subtasks
-   * @return {Promise} - promise of a collab
-   */
-  function createCollab(descriptor) {
-    var attr = clbAutomator.extractAttributes(
-      descriptor,
-      ['title', 'content', 'private']
-    );
-    $log.debug('Create collab', descriptor);
-    return clbCollab.create(attr);
-  }
-}]);
-
-angular.module('clb-automator')
-.run(['$log', 'clbCollabApp', 'clbCollabNav', 'clbAutomator', 'clbStorage', function createNavItem(
-  $log,
-  clbCollabApp,
-  clbCollabNav,
-  clbAutomator,
-  clbStorage
-) {
-  clbAutomator.registerHandler('nav', createNavItem);
-
-  /**
-   * Create a new nav item.
-   * @memberof module:clb-automator.Tasks
-   * @param {object} descriptor a descriptor description
-   * @param {string} descriptor.name name of the nav item
-   * @param {Collab} descriptor.collabId collab in which to add the item in.
-   * @param {string} descriptor.app app name linked to the nav item
-   * @param {object} [context] the current run context
-   * @param {object} [context.collab] a collab instance created previously
-   * @return {Promise} promise of a NavItem instance
-   */
-  function createNavItem(descriptor, context) {
-    var collabId = function() {
-      return (descriptor && descriptor.collab) ||
-        (context && context.collab.id);
-    };
-    var findApp = function(app) {
-      return clbCollabApp.findOne({title: app});
-    };
-    var createNav = function(app) {
-      return clbCollabNav.getRoot(collabId())
-      .then(function(parentItem) {
-        return clbCollabNav.addNode(collabId(),
-          new clbCollabNav.NavItem({
-            collab: collabId(),
-            name: descriptor.name,
-            appId: app.id,
-            parentId: parentItem.id
-          })
-        );
-      });
-    };
-    var linkToStorage = function(nav) {
-      if (!descriptor.entity) {
-        return nav;
-      }
-      var setLink = function(entity) {
-        return clbStorage.setContextMetadata(entity, nav.context)
-        .then(function() {
-          return nav;
-        });
-      };
-      // It might be the name used in a previous storage task.
-      if (context && context.storage && context.storage[descriptor.entity]) {
-        return setLink(context.storage[descriptor.entity]);
-      }
-      return clbStorage.getEntity(descriptor.entity).then(setLink);
-    };
-
-    $log.debug('Create nav item', descriptor, context);
-
-    return clbAutomator.ensureParameters(descriptor, 'app', 'name')
-    .then(function() {
-      return findApp(descriptor.app)
-      .then(createNav)
-      .then(linkToStorage);
-    });
-  }
-}]);
-
-angular.module('clb-automator')
-.run(['$log', '$q', '$http', 'clbEnv', 'clbStorage', 'clbError', 'clbAutomator', 'clbCollabNav', 'clbCollabApp', function createOverview(
-  $log, $q, $http, clbEnv, clbStorage, clbError,
-  clbAutomator, clbCollabNav, clbCollabApp
-) {
-  clbAutomator.registerHandler('overview', overview);
-
-  /**
-   * Set the content of the overview page.
-   * If an 'entity' is specified, it will use the content of that storage file
-   * If an 'app' name is specified, it will use that app for the overview page
-   *
-   * The collab is indicated either by an id in `descriptor.collab` or a
-   * collab object in `context.collab`.
-   *
-   * @memberof module:clb-automator.Tasks
-   * @param {object} descriptor the task configuration
-   * @param {object} [descriptor.collab] id of the collab
-   * @param {string} [descriptor.entity] either a label that can be found in
-   *                 ``context.entities`` or a FileEntity UUID
-   * @param {string} [descriptor.app] the name of an application
-   * @param {object} context the current task context
-   * @param {object} [context.collab] the collab in which entities will be copied
-   * @param {object} [context.entities] a list of entities to lookup in for
-   *                   descriptor.entiry value
-   * @return {object} created entities where keys are the same as provided in
-   *                  config.storage
-   */
-  function overview(descriptor, context) {
-    $log.debug("Set the content of the overview page");
-    var collabId = descriptor.collab || context.collab.id;
-    var createContentFile = function(overview, descriptor, context) {
-      $log.debug("Fill overview page with content from entity");
-
-      return fetchSourceContent(descriptor, context)
-        .then(function(source) {
-          return $http.post(clbEnv.get('api.richtext.v0') + '/richtext/', {
-            ctx: overview.context,
-            raw: source
-          });
-        });
-    };
-
-    var updateAppId = function(overview, descriptor) {
-      $log.debug("Replace the overview page application id");
-
-      return clbCollabApp.findOne({title: descriptor.app})
-        .then(function(app) {
-          overview.update({appId: app.id});
-          return clbCollabNav.saveNode(collabId, overview);
-        });
-    };
-
-    return clbCollabNav
-      .getRoot(collabId)
-      .then(function(rootNav) {
-        var overview = rootNav.children[0];
-
-        var updateOverview = descriptor.app ?
-          updateAppId(overview, descriptor) :
-          createContentFile(overview, descriptor, context);
-
-        return updateOverview.then(function() {
-          return overview;
-        });
-      });
-  }
-
-  /**
-   * Download file entity content.
-   *
-   * @param {object} descriptor the task configuration
-   * @param {string} descriptor.entity either the label to find in
-   *                 ``context.entities`` or a the entity UUID.
-   * @param {object} context the current task context
-   * @param {object} context.entities optional entities in which to lookup for one
-   * @return {Promise} the promise of the entity content string
-   * @private
-   */
-  function fetchSourceContent(descriptor, context) {
-    var uuid;
-    if (context && context.entities && context.entities[descriptor.entity]) {
-      uuid = context.entities[descriptor.entity]._uuid;
-    } else {
-      uuid = descriptor.entity;
-    }
-    return clbStorage.getContent(uuid);
-  }
-}]);
-
-angular.module('clb-automator')
-.run(['$log', '$q', 'clbError', 'clbAutomator', 'clbStorage', function createStorage(
-  $log,
-  $q,
-  clbError,
-  clbAutomator,
-  clbStorage
-) {
-  clbAutomator.registerHandler('storage', storage);
-
-  /**
-   * Copy files and folders to the destination collab storage.
-   *
-   * @memberof module:clb-automator.Tasks
-   * @param {object} descriptor the task configuration
-   * @param {object} descriptor.storage a object where keys are the file path in the
-   *                                new collab and value are the UUID of the
-   *                                entity to copy at this path.
-   * @param {object} [descriptor.collab] id of the collab
-   * @param {object} context the current task context
-   * @param {object} [context.collab] the collab in which entities will be copied
-   * @return {object} created entities where keys are the same as provided in
-   *                  config.storage
-   */
-  function storage(descriptor, context) {
-    return clbAutomator.ensureParameters(
-      descriptor, 'entities'
-    ).then(function() {
-      return clbStorage
-        .getEntity({collab: descriptor.collab || context.collab.id})
-        .then(function(projectEntity) {
-          var promises = {};
-          angular.forEach(descriptor.entities, function(value, name) {
-            if (angular.isString(value)) {
-              $log.debug("Copy entity with UUID", value);
-              promises[name] = (
-                clbStorage.copy(value, projectEntity._uuid));
-            } else {
-              $log.warn('Invalid configuration for storage task', descriptor);
-            }
-          });
-          return $q.all(promises);
-        });
-    });
-  }
-}]);
-
-
 clbCtxData.$inject = ['$http', '$q', 'uuid4', 'clbEnv', 'clbError'];angular.module('clb-ctx-data')
 .factory('clbCtxData', clbCtxData);
 
@@ -2337,6 +2337,175 @@ function clbEnv($injector) {
       cursor = cursor[parts[i]];
     }
     return cursor;
+  }
+}
+
+/* global document */
+
+clbError.$inject = ['$q'];
+angular.module('clb-error')
+.factory('clbError', clbError);
+
+/**
+ * @class ClbError
+ * @memberof module:clb-error
+ * @desc
+ * ``ClbError`` describes a standard error object used
+ * to display error message or intropect the situation.
+ *
+ * A ``ClbError`` instance provides the following properties:
+ *
+ * * ``type`` a camel case name of the error type.
+ * * `message` a human readable message of the error that should
+ * be displayed to the end user.
+ * * ``data`` any important data that might help the software to
+ * inspect the issue and take a recovering action.
+ * * ``code`` an error numerical code.
+ *
+ * The ClbError extends the native Javascript Error instance so it also provides:
+ * * ``name`` which is equal to the type
+ * * ``stack`` the stack trace of the error (when available)
+ *
+ * Only ``type``, ``message``, and ``code`` should be considered to be present.
+ * They receive default values when not specified by the situation.
+ *
+ * @param {object} [options] the parameters to use to build the error
+ * @param {string} [options.type] the error type (default to ``'UnknownError'``)
+ * @param {string} [options.message] the error message (default to ``'An unknown error occurred'``)
+ * @param {int} [options.code] the error code (default to ``-1``)
+ * @param {object} [options.data] any data that can be useful to deal with the error
+ */
+function ClbError(options) {
+  options = angular.extend({
+    type: 'UnknownError',
+    message: 'An unknown error occurred.',
+    code: -1
+  }, options);
+  this.type = options.type;
+  this.name = this.type; // Conform to Error class
+  this.message = options.message;
+  this.data = options.data;
+  this.code = options.code;
+  this.stack = (new Error()).stack;
+}
+// Extend the Error prototype
+ClbError.prototype = Object.create(Error.prototype);
+ClbError.prototype.toString = function() {
+  return String(this.type) + ':' + this.message;
+};
+
+/**
+ * @namespace clbError
+ * @memberof module:clb-error
+ * @desc
+ * ``clbError`` provides helper functions that all return an
+ * ``ClbError`` instance given a context object.
+ * @param {object} $q AngularJS injection
+ * @return {object} the service singleton
+ */
+function clbError($q) {
+  return {
+    rejectHttpError: function(err) {
+      return $q.reject(httpError(err));
+    },
+    httpError: httpError,
+
+    /**
+     * Build a ``ClbError`` instance from the provided options.
+     *
+     * - param  {Object} options argument passed to ``ClbError`` constructor
+     * - return {ClbError} the resulting error
+     * @memberof module:clb-error.clbError
+     * @param  {object} options [description]
+     * @return {object}         [description]
+     */
+    error: function(options) {
+      if (options && options instanceof ClbError) {
+        return options;
+      }
+      return new ClbError(options);
+    }
+  };
+
+  /**
+   * @desc
+   * return a `ClbError` instance built from a HTTP response.
+   *
+   * In an ideal case, the response contains json data with an error object.
+   * It also fallback to a reason field and fill default error message for
+   * standard HTTP status error.
+   * @memberof module:clb-error.clbError
+   * @param  {HttpResponse} response Angular $http Response object
+   * @return {ClbError} a valid ClbError
+   */
+  function httpError(response) {
+    // return argument if it is already an
+    // instance of ClbError
+    if (response && response instanceof ClbError) {
+      return response;
+    }
+
+    if (response.status === undefined) {
+      return new ClbError({
+        message: 'Cannot parse error, invalid format.'
+      });
+    }
+    var error = new ClbError({code: response.status});
+
+    if (error.code === 0) {
+      error.type = 'ClientError';
+      error.message = 'The client cannot run the request.';
+      return error;
+    }
+    if (error.code === 404) {
+      error.type = 'NotFound';
+      error.message = 'Resource not found';
+      return error;
+    }
+    if (error.code === 403) {
+      error.type = 'Forbidden';
+      error.message = 'Permission denied: you are not allowed to display ' +
+                      'the page or perform the operation';
+      return error;
+    }
+    if (error.code === 502) {
+      error.type = 'BadGateway';
+      error.message = '502 Bad Gateway Error';
+      if (response.headers('content-type') === 'text/html') {
+        var doc = document.createElement('div');
+        doc.innerHTML = response.data;
+        var titleNode = doc.getElementsByTagName('title')[0];
+        if (titleNode) {
+          error.message = titleNode.innerHTML;
+        }
+      }
+      return error;
+    }
+    if (response.data) {
+      var errorSource = response.data;
+      if (errorSource.error) {
+        errorSource = errorSource.error;
+      }
+      if (errorSource.type) {
+        error.type = errorSource.type;
+      }
+      if (errorSource.data) {
+        error.data = errorSource.data;
+      }
+      if (errorSource.message) {
+        error.message = errorSource.message;
+      } else if (errorSource.reason) {
+        error.type = 'Error';
+        error.message = errorSource.reason;
+      }
+
+      if (!errorSource.type && !errorSource.data &&
+        !errorSource.message && !errorSource.reason) {
+        // unkown format, return raw data
+        error.data = errorSource;
+      }
+    }
+    return error;
   }
 }
 
@@ -2951,175 +3120,6 @@ function clbIdentityUtil($log, lodash) {
   }
 }
 
-/* global document */
-
-clbError.$inject = ['$q'];
-angular.module('clb-error')
-.factory('clbError', clbError);
-
-/**
- * @class ClbError
- * @memberof module:clb-error
- * @desc
- * ``ClbError`` describes a standard error object used
- * to display error message or intropect the situation.
- *
- * A ``ClbError`` instance provides the following properties:
- *
- * * ``type`` a camel case name of the error type.
- * * `message` a human readable message of the error that should
- * be displayed to the end user.
- * * ``data`` any important data that might help the software to
- * inspect the issue and take a recovering action.
- * * ``code`` an error numerical code.
- *
- * The ClbError extends the native Javascript Error instance so it also provides:
- * * ``name`` which is equal to the type
- * * ``stack`` the stack trace of the error (when available)
- *
- * Only ``type``, ``message``, and ``code`` should be considered to be present.
- * They receive default values when not specified by the situation.
- *
- * @param {object} [options] the parameters to use to build the error
- * @param {string} [options.type] the error type (default to ``'UnknownError'``)
- * @param {string} [options.message] the error message (default to ``'An unknown error occurred'``)
- * @param {int} [options.code] the error code (default to ``-1``)
- * @param {object} [options.data] any data that can be useful to deal with the error
- */
-function ClbError(options) {
-  options = angular.extend({
-    type: 'UnknownError',
-    message: 'An unknown error occurred.',
-    code: -1
-  }, options);
-  this.type = options.type;
-  this.name = this.type; // Conform to Error class
-  this.message = options.message;
-  this.data = options.data;
-  this.code = options.code;
-  this.stack = (new Error()).stack;
-}
-// Extend the Error prototype
-ClbError.prototype = Object.create(Error.prototype);
-ClbError.prototype.toString = function() {
-  return String(this.type) + ':' + this.message;
-};
-
-/**
- * @namespace clbError
- * @memberof module:clb-error
- * @desc
- * ``clbError`` provides helper functions that all return an
- * ``ClbError`` instance given a context object.
- * @param {object} $q AngularJS injection
- * @return {object} the service singleton
- */
-function clbError($q) {
-  return {
-    rejectHttpError: function(err) {
-      return $q.reject(httpError(err));
-    },
-    httpError: httpError,
-
-    /**
-     * Build a ``ClbError`` instance from the provided options.
-     *
-     * - param  {Object} options argument passed to ``ClbError`` constructor
-     * - return {ClbError} the resulting error
-     * @memberof module:clb-error.clbError
-     * @param  {object} options [description]
-     * @return {object}         [description]
-     */
-    error: function(options) {
-      if (options && options instanceof ClbError) {
-        return options;
-      }
-      return new ClbError(options);
-    }
-  };
-
-  /**
-   * @desc
-   * return a `ClbError` instance built from a HTTP response.
-   *
-   * In an ideal case, the response contains json data with an error object.
-   * It also fallback to a reason field and fill default error message for
-   * standard HTTP status error.
-   * @memberof module:clb-error.clbError
-   * @param  {HttpResponse} response Angular $http Response object
-   * @return {ClbError} a valid ClbError
-   */
-  function httpError(response) {
-    // return argument if it is already an
-    // instance of ClbError
-    if (response && response instanceof ClbError) {
-      return response;
-    }
-
-    if (response.status === undefined) {
-      return new ClbError({
-        message: 'Cannot parse error, invalid format.'
-      });
-    }
-    var error = new ClbError({code: response.status});
-
-    if (error.code === 0) {
-      error.type = 'ClientError';
-      error.message = 'The client cannot run the request.';
-      return error;
-    }
-    if (error.code === 404) {
-      error.type = 'NotFound';
-      error.message = 'Resource not found';
-      return error;
-    }
-    if (error.code === 403) {
-      error.type = 'Forbidden';
-      error.message = 'Permission denied: you are not allowed to display ' +
-                      'the page or perform the operation';
-      return error;
-    }
-    if (error.code === 502) {
-      error.type = 'BadGateway';
-      error.message = '502 Bad Gateway Error';
-      if (response.headers('content-type') === 'text/html') {
-        var doc = document.createElement('div');
-        doc.innerHTML = response.data;
-        var titleNode = doc.getElementsByTagName('title')[0];
-        if (titleNode) {
-          error.message = titleNode.innerHTML;
-        }
-      }
-      return error;
-    }
-    if (response.data) {
-      var errorSource = response.data;
-      if (errorSource.error) {
-        errorSource = errorSource.error;
-      }
-      if (errorSource.type) {
-        error.type = errorSource.type;
-      }
-      if (errorSource.data) {
-        error.data = errorSource.data;
-      }
-      if (errorSource.message) {
-        error.message = errorSource.message;
-      } else if (errorSource.reason) {
-        error.type = 'Error';
-        error.message = errorSource.reason;
-      }
-
-      if (!errorSource.type && !errorSource.data &&
-        !errorSource.message && !errorSource.reason) {
-        // unkown format, return raw data
-        error.data = errorSource;
-      }
-    }
-    return error;
-  }
-}
-
 
 clbResultSet.$inject = ['$http', '$q', 'clbError'];angular.module('clb-rest')
 .factory('clbResultSet', clbResultSet);
@@ -3489,188 +3489,6 @@ function clbResultSet($http, $q, clbError) {
         return self;
       });
     }
-  }
-}
-
-
-clbResourceLocator.$inject = ['$q', '$log', 'clbError'];angular.module('clb-stream')
-.provider('clbResourceLocator', clbResourceLocatorProvider);
-
-var urlHandlers = [];
-
-/**
- * Configure the clbResourceLocator service.
- * @return {object} An AngularJS provider instance
- */
-function clbResourceLocatorProvider() {
-  var provider = {
-    $get: clbResourceLocator,
-    registerUrlHandler: registerUrlHandler,
-    urlHandlers: urlHandlers
-  };
-
-  /**
-   * Add a function that can generate URL for some types of object reference.
-   *
-   * The function should return a string representing the URL.
-   * Any other response means that the handler is not able to generate a proper
-   * URL for this type of object.
-   *
-   * The function signature is ``function(objectReference) { return 'url' // or nothing}``
-   * @memberof module:clb-stream
-   * @param  {function} handler a function that can generate URL string for some objects
-   * @return {provider} The provider, for chaining.
-   */
-  function registerUrlHandler(handler) {
-    if (angular.isFunction(handler)) {
-      urlHandlers.push(handler);
-    }
-    return provider;
-  }
-
-  return provider;
-}
-
-/**
- * @name clbResourceLocator
- * @desc
- * resourceLocator service
- * @memberof module:clb-stream
- * @param {object} $q AngularJS injection
- * @param {object} $log AngularJS injection
- * @param {object} clbError AngularJS injection
- * @return {object} the service singleton
- */
-function clbResourceLocator($q, $log, clbError) {
-  return {
-    urlFor: urlFor
-  };
-
-  /**
-   * @desc
-   * Asynchronous resolution of an object reference to an URL that access
-   * this resource.
-   *
-   * The URL is generated using the registered URL handlers. If no URL
-   * can be generated, a HbpError is thrown with ``type==='ObjectTypeException'``.
-   * If the object reference is not valid, a HbpError is throw with
-   * ``type==='AttributeError'``. In both case ``data.ref will be set with
-   * reference for which there is an issue.
-   *
-   * @memberof module:clb-stream.clbResourceLocator
-   * @param  {object} ref object reference
-   * @return {string} a atring representing the URL for this object reference
-   */
-  function urlFor(ref) {
-    if (!validRef(ref)) {
-      return $q.reject(invalidReferenceException(ref));
-    }
-    var next = function(i) {
-      if (i < urlHandlers.length) {
-        return $q.when(urlHandlers[i](ref)).then(function(url) {
-          if (angular.isString(url)) {
-            $log.debug('generated URL', url);
-            return url;
-          }
-          if (angular.isDefined(url)) {
-            $log.warn('unexpected result from URL handler', url);
-          }
-          return next(i + 1);
-        });
-      }
-      return $q.reject(objectTypeException(ref));
-    };
-    return next(0);
-  }
-
-  /**
-   * build an objectTypeException.
-   * @private
-   * @param  {object} ref ClbObjectReference
-   * @return {HbpError}   error to be sent
-   */
-  function objectTypeException(ref) {
-    return clbError.error({
-      type: 'ObjectTypeException',
-      message: 'Unkown object type <' + (ref && ref.type) + '>',
-      data: {ref: ref}
-    });
-  }
-
-  /**
-   * build an objectTypeException.
-   * @private
-   * @param  {object} ref ClbObjectReference
-   * @return {HbpError}   error to be sent
-   */
-  function invalidReferenceException(ref) {
-    return clbError.error({
-      type: 'AttributeError',
-      message: 'Invalid object reference <' + ref + '>',
-      data: {ref: ref}
-    });
-  }
-
-  /**
-   * Return wheter the object reference is valid or not.
-   *
-   * To be valid an ObjectReference must have a defined ``id`` and ``type``
-   * @param  {any} ref the potential object reference
-   * @return {boolean} whether it is or not an object reference
-   */
-  function validRef(ref) {
-    return Boolean(ref && ref.id && ref.type);
-  }
-}
-
-
-clbStream.$inject = ['$http', '$log', 'clbEnv', 'clbError', 'clbResultSet'];angular.module('clb-stream')
-.factory('clbStream', clbStream);
-
-/**
- * ``clbStream`` service is used to retrieve feed of activities
- * given a user, a collab or a specific context.
- *
- * @memberof module:clb-stream
- * @namespace clbStream
- * @param {function} $http angular dependency injection
- * @param {function} $log angular dependency injection
- * @param {function} clbEnv angular dependency injection
- * @param {function} clbError angular dependency injection
- * @param {function} clbResultSet angular dependency injection
- * @return {object} the clbActivityStream service
- */
-function clbStream($http, $log, clbEnv, clbError, clbResultSet) {
-  return {
-    getStream: getStream
-  };
-
-  /* -------------------- */
-
-  /**
-   * Get a feed of activities regarding an item type and id.
-   * @memberof module:clb-stream.clbStream
-   * @param  {string} type The type of object to get the feed for
-   * @param  {string|int} id   The id of the object to get the feed for
-   * @return {Promise}         resolve to the feed of activities
-   */
-  function getStream(type, id) {
-    var url = clbEnv.get('api.stream.v0') + '/stream/' +
-                         type + ':' + id + '/';
-    return clbResultSet.get($http.get(url), {
-      resultsFactory: function(results) {
-        if (!(results && results.length)) {
-          return;
-        }
-        for (var i = 0; i < results.length; i++) {
-          var activity = results[i];
-          if (activity.time) {
-            activity.time = new Date(Date.parse(activity.time));
-          }
-        }
-      }
-    })
-    .catch(clbError.rejectHttpError);
   }
 }
 
@@ -4454,67 +4272,187 @@ function clbStorage(
   }
 }
 
-/**
- * @namespace clbFormControlFocus
- * @memberof module:clb-ui-form
- * @desc
- * The ``clbFormControlFocus`` Directive mark a form element as the one that
- * should receive the focus first.
- * @example <caption>Give the focus to the search field</caption>
- * angular.module('exampleApp', ['clb-ui-form']);
- *
- * // HTML snippet:
- * // <form ng-app="exampleApp"><input type="search" clb-ui-form-control-focus></form>
- */
-angular.module('clb-ui-form')
-.directive('clbFormControlFocus', ['$timeout', function clbFormControlFocus($timeout) {
-  return {
-    type: 'A',
-    link: function formControlFocusLink(scope, elt) {
-      $timeout(function() {
-        elt[0].focus();
-      }, 0, false);
-    }
-  };
-}]);
+
+clbResourceLocator.$inject = ['$q', '$log', 'clbError'];angular.module('clb-stream')
+.provider('clbResourceLocator', clbResourceLocatorProvider);
+
+var urlHandlers = [];
 
 /**
- * @namespace clbFormGroupState
- * @memberof module:clb-ui-form
- * @desc
- * ``clbFormGroupState`` directive flag the current form group with
- * the class has-error or has-success depending on its form field
- * current state.
- *
- * @example
- * <caption>Track a field validity at the ``.form-group`` level</caption>
- * angular.module('exampleApp', ['hbpCollaboratory']);
+ * Configure the clbResourceLocator service.
+ * @return {object} An AngularJS provider instance
  */
-angular.module('clb-ui-form')
-.directive('clbFormGroupState', function formGroupState() {
-  return {
-    type: 'A',
-    scope: {
-      model: '=clbFormGroupState'
-    },
-    link: function formGroupStateLink(scope, elt) {
-      scope.$watchGroup(['model.$touched', 'model.$valid'], function() {
-        if (!scope.model) {
-          return;
-        }
-        elt.removeClass('has-error', 'has-success');
-        if (!scope.model.$touched) {
-          return;
-        }
-        if (scope.model.$valid) {
-          elt.addClass('has-success');
-        } else {
-          elt.addClass('has-error');
-        }
-      }, true);
-    }
+function clbResourceLocatorProvider() {
+  var provider = {
+    $get: clbResourceLocator,
+    registerUrlHandler: registerUrlHandler,
+    urlHandlers: urlHandlers
   };
-});
+
+  /**
+   * Add a function that can generate URL for some types of object reference.
+   *
+   * The function should return a string representing the URL.
+   * Any other response means that the handler is not able to generate a proper
+   * URL for this type of object.
+   *
+   * The function signature is ``function(objectReference) { return 'url' // or nothing}``
+   * @memberof module:clb-stream
+   * @param  {function} handler a function that can generate URL string for some objects
+   * @return {provider} The provider, for chaining.
+   */
+  function registerUrlHandler(handler) {
+    if (angular.isFunction(handler)) {
+      urlHandlers.push(handler);
+    }
+    return provider;
+  }
+
+  return provider;
+}
+
+/**
+ * @name clbResourceLocator
+ * @desc
+ * resourceLocator service
+ * @memberof module:clb-stream
+ * @param {object} $q AngularJS injection
+ * @param {object} $log AngularJS injection
+ * @param {object} clbError AngularJS injection
+ * @return {object} the service singleton
+ */
+function clbResourceLocator($q, $log, clbError) {
+  return {
+    urlFor: urlFor
+  };
+
+  /**
+   * @desc
+   * Asynchronous resolution of an object reference to an URL that access
+   * this resource.
+   *
+   * The URL is generated using the registered URL handlers. If no URL
+   * can be generated, a HbpError is thrown with ``type==='ObjectTypeException'``.
+   * If the object reference is not valid, a HbpError is throw with
+   * ``type==='AttributeError'``. In both case ``data.ref will be set with
+   * reference for which there is an issue.
+   *
+   * @memberof module:clb-stream.clbResourceLocator
+   * @param  {object} ref object reference
+   * @return {string} a atring representing the URL for this object reference
+   */
+  function urlFor(ref) {
+    if (!validRef(ref)) {
+      return $q.reject(invalidReferenceException(ref));
+    }
+    var next = function(i) {
+      if (i < urlHandlers.length) {
+        return $q.when(urlHandlers[i](ref)).then(function(url) {
+          if (angular.isString(url)) {
+            $log.debug('generated URL', url);
+            return url;
+          }
+          if (angular.isDefined(url)) {
+            $log.warn('unexpected result from URL handler', url);
+          }
+          return next(i + 1);
+        });
+      }
+      return $q.reject(objectTypeException(ref));
+    };
+    return next(0);
+  }
+
+  /**
+   * build an objectTypeException.
+   * @private
+   * @param  {object} ref ClbObjectReference
+   * @return {HbpError}   error to be sent
+   */
+  function objectTypeException(ref) {
+    return clbError.error({
+      type: 'ObjectTypeException',
+      message: 'Unkown object type <' + (ref && ref.type) + '>',
+      data: {ref: ref}
+    });
+  }
+
+  /**
+   * build an objectTypeException.
+   * @private
+   * @param  {object} ref ClbObjectReference
+   * @return {HbpError}   error to be sent
+   */
+  function invalidReferenceException(ref) {
+    return clbError.error({
+      type: 'AttributeError',
+      message: 'Invalid object reference <' + ref + '>',
+      data: {ref: ref}
+    });
+  }
+
+  /**
+   * Return wheter the object reference is valid or not.
+   *
+   * To be valid an ObjectReference must have a defined ``id`` and ``type``
+   * @param  {any} ref the potential object reference
+   * @return {boolean} whether it is or not an object reference
+   */
+  function validRef(ref) {
+    return Boolean(ref && ref.id && ref.type);
+  }
+}
+
+
+clbStream.$inject = ['$http', '$log', 'clbEnv', 'clbError', 'clbResultSet'];angular.module('clb-stream')
+.factory('clbStream', clbStream);
+
+/**
+ * ``clbStream`` service is used to retrieve feed of activities
+ * given a user, a collab or a specific context.
+ *
+ * @memberof module:clb-stream
+ * @namespace clbStream
+ * @param {function} $http angular dependency injection
+ * @param {function} $log angular dependency injection
+ * @param {function} clbEnv angular dependency injection
+ * @param {function} clbError angular dependency injection
+ * @param {function} clbResultSet angular dependency injection
+ * @return {object} the clbActivityStream service
+ */
+function clbStream($http, $log, clbEnv, clbError, clbResultSet) {
+  return {
+    getStream: getStream
+  };
+
+  /* -------------------- */
+
+  /**
+   * Get a feed of activities regarding an item type and id.
+   * @memberof module:clb-stream.clbStream
+   * @param  {string} type The type of object to get the feed for
+   * @param  {string|int} id   The id of the object to get the feed for
+   * @return {Promise}         resolve to the feed of activities
+   */
+  function getStream(type, id) {
+    var url = clbEnv.get('api.stream.v0') + '/stream/' +
+                         type + ':' + id + '/';
+    return clbResultSet.get($http.get(url), {
+      resultsFactory: function(results) {
+        if (!(results && results.length)) {
+          return;
+        }
+        for (var i = 0; i < results.length; i++) {
+          var activity = results[i];
+          if (activity.time) {
+            activity.time = new Date(Date.parse(activity.time));
+          }
+        }
+      }
+    })
+    .catch(clbError.rejectHttpError);
+  }
+}
 
 
 clbErrorDialog.$inject = ['$uibModal', 'clbError'];angular.module('clb-ui-error')
@@ -4584,6 +4522,68 @@ function clbErrorMessage() {
     template:'<uib-alert type=danger ng-if=error><div ng-switch on=error.type><div ng-switch-when=Validation>Validation errors<span ng-show=error.data>:</span><ul><li ng-repeat="(attr, errors) in error.data">{{attr}}: {{errors.join(\', \')}}</li></ul></div><div ng-switch-default>{{error.message}}</div></div></uib-alert>'
   };
 }
+
+/**
+ * @namespace clbFormControlFocus
+ * @memberof module:clb-ui-form
+ * @desc
+ * The ``clbFormControlFocus`` Directive mark a form element as the one that
+ * should receive the focus first.
+ * @example <caption>Give the focus to the search field</caption>
+ * angular.module('exampleApp', ['clb-ui-form']);
+ *
+ * // HTML snippet:
+ * // <form ng-app="exampleApp"><input type="search" clb-ui-form-control-focus></form>
+ */
+angular.module('clb-ui-form')
+.directive('clbFormControlFocus', ['$timeout', function clbFormControlFocus($timeout) {
+  return {
+    type: 'A',
+    link: function formControlFocusLink(scope, elt) {
+      $timeout(function() {
+        elt[0].focus();
+      }, 0, false);
+    }
+  };
+}]);
+
+/**
+ * @namespace clbFormGroupState
+ * @memberof module:clb-ui-form
+ * @desc
+ * ``clbFormGroupState`` directive flag the current form group with
+ * the class has-error or has-success depending on its form field
+ * current state.
+ *
+ * @example
+ * <caption>Track a field validity at the ``.form-group`` level</caption>
+ * angular.module('exampleApp', ['hbpCollaboratory']);
+ */
+angular.module('clb-ui-form')
+.directive('clbFormGroupState', function formGroupState() {
+  return {
+    type: 'A',
+    scope: {
+      model: '=clbFormGroupState'
+    },
+    link: function formGroupStateLink(scope, elt) {
+      scope.$watchGroup(['model.$touched', 'model.$valid'], function() {
+        if (!scope.model) {
+          return;
+        }
+        elt.removeClass('has-error', 'has-success');
+        if (!scope.model.$touched) {
+          return;
+        }
+        if (scope.model.$valid) {
+          elt.addClass('has-success');
+        } else {
+          elt.addClass('has-error');
+        }
+      }, true);
+    }
+  };
+});
 
 angular.module('clb-ui-identity')
 .directive('clbUserAvatar', clbUserAvatar);
@@ -5339,7 +5339,7 @@ clbFileChooser.$inject = ['$q'];angular.module('clb-ui-storage')
 .directive('clbFileChooser', clbFileChooser);
 
 /**
- * File chooser directive.
+ * The ``clbFileChooser`` directive let you browse the storage to pick a file.
  *
  * ====================  ===========================================================
  * Name                  Description
@@ -5348,6 +5348,8 @@ clbFileChooser.$inject = ['$q'];angular.module('clb-ui-storage')
  * [ng-model]            The ngModel to bind to the chosen value
  * [clb-validate]        a string, array of string, regex or function (can be async)
  * ====================  ===========================================================
+ *
+ * @namespace clbFileChooser
  * @memberof module:clb-ui-storage
  * @param {object} $q Angular DI
  * @return {object} Entity Descriptor
@@ -5378,6 +5380,9 @@ function clbFileChooser($q) {
      * @return {Boolean}       true if the value can be chosen
      */
     function isValid(value) {
+      if (!value) {
+        return;
+      }
       if (angular.isString(scope.validate)) {
         return scope.validate === value._contentType;
       }
@@ -5406,6 +5411,7 @@ function clbFileChooser($q) {
     scope.doChooseEntity = function() {
       if (scope.currentSelection) {
         scope.ngModel = scope.currentSelection;
+        scope.$emit('clbFileBrowser:fileSelected', scope.currentSelection);
       }
     };
     scope.initialValue = scope.ngModel;
