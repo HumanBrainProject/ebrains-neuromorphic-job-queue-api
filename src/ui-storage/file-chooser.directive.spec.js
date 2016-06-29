@@ -172,6 +172,20 @@ describe('clb-file-chooser', function() {
     expect(scope.someVM.entity).toBe(entities.file);
   });
 
+  it('should emit clbFileBrowser:fileSelected event', function() {
+    var actual;
+    scope.$on('clbFileBrowser:fileSelected', function(evt, value) {
+      actual = value;
+    });
+    compile();
+    element.find('clb-file-browser').isolateScope()
+      .browserView.handleFocus(entities.file2);
+    scope.$digest();
+    element.isolateScope().doChooseEntity();
+    scope.$digest();
+    expect(actual).toBe(entities.file2);
+  });
+
   describe('clb-validate', function() {
     var checkRule;
     beforeEach(function() {

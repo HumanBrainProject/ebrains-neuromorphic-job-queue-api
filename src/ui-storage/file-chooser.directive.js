@@ -2,7 +2,7 @@ angular.module('clb-ui-storage')
 .directive('clbFileChooser', clbFileChooser);
 
 /**
- * File chooser directive.
+ * The ``clbFileChooser`` directive let you browse the storage to pick a file.
  *
  * ====================  ===========================================================
  * Name                  Description
@@ -11,6 +11,8 @@ angular.module('clb-ui-storage')
  * [ng-model]            The ngModel to bind to the chosen value
  * [clb-validate]        a string, array of string, regex or function (can be async)
  * ====================  ===========================================================
+ *
+ * @namespace clbFileChooser
  * @memberof module:clb-ui-storage
  * @param {object} $q Angular DI
  * @return {object} Entity Descriptor
@@ -69,6 +71,7 @@ function clbFileChooser($q) {
     scope.doChooseEntity = function() {
       if (scope.currentSelection) {
         scope.ngModel = scope.currentSelection;
+        scope.$emit('clbFileBrowser:fileSelected', scope.currentSelection);
       }
     };
     scope.initialValue = scope.ngModel;
