@@ -26,6 +26,11 @@
       </button>
       <clb-file-upload on-drop="browserView.onFileChanged(files)" on-error="browserView.setError(error)"></clb-file-upload>
     </div>
+
+    <div ng-if="browserView.isRoot && browserView.isEmpty()" class="alert alert-info" role="alert">
+      The collab storage is still empty, use the '+' button to upload some content.
+    </div>
+
     <ul>
       <!-- navigate up one level -->
       <li ng-if="!browserView.isRoot" clb-file-browser-folder="browserView.parent" clb-file-browser-folder-label=".." clb-file-browser-folder-icon="fa-level-up"></li>
