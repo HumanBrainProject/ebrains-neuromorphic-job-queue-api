@@ -13,6 +13,7 @@ Children
    :maxdepth: 1
    
    module-clb-ui-storage.clbFileBrowser
+   module-clb-ui-storage.clbFileChooser
    module-clb-ui-storage.clbFileUpload
    
 Description
@@ -30,28 +31,6 @@ Featured Component
   create folder and act as file selector.
 
 
-.. _undefined.clbFileChooser:
-
-
-Function: ``clbFileChooser``
-============================
-
-File chooser directive.
-
-====================  ===========================================================
-Name                  Description
-====================  ===========================================================
-[clb-root]            Cannot go beyond this ancestor in the browser
-[ng-model]            The ngModel to bind to the chosen value
-[clb-validate]        a string, array of string, regex or function (can be async)
-====================  ===========================================================
-
-.. js:function:: clbFileChooser($q)
-
-    
-    :param object $q: Angular DI
-    :return object: Entity Descriptor
-    
 
 
 

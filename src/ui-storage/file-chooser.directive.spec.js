@@ -172,9 +172,9 @@ describe('clb-file-chooser', function() {
     expect(scope.someVM.entity).toBe(entities.file);
   });
 
-  it('should emit clbFileBrowser:fileSelected event', function() {
+  it('should emit clbFileChooser:fileSelected event', function() {
     var actual;
-    scope.$on('clbFileBrowser:fileSelected', function(evt, value) {
+    scope.$on('clbFileChooser:fileSelected', function(evt, value) {
       actual = value;
     });
     compile();
@@ -184,6 +184,20 @@ describe('clb-file-chooser', function() {
     element.isolateScope().doChooseEntity();
     scope.$digest();
     expect(actual).toBe(entities.file2);
+  });
+
+  it('should emit clbFileChooser:cancelSelection event', function() {
+    var actual;
+    scope.$on('clbFileChooser:cancelSelection', function(evt, value) {
+      actual = value;
+    });
+    compile();
+    element.find('clb-file-browser').isolateScope()
+      .browserView.handleFocus(entities.file2);
+    scope.$digest();
+    element.isolateScope().doCancel();
+    scope.$digest();
+    expect(actual).toBe(entities.file);
   });
 
   describe('clb-validate', function() {
