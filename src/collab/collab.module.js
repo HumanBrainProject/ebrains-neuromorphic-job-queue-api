@@ -5,7 +5,7 @@
  * team members).
  */
 angular.module('clb-collab', [
-  'ngLodash',
+  'lodash',
   'clb-env',
   'clb-error',
   'clb-identity',

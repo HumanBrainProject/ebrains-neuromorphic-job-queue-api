@@ -1,10 +1,7 @@
-.. _module-hbpCommonCompat.hbpCollaboratoryCore:
-
 ================================
 Module: ``hbpCollaboratoryCore``
 ================================
 
-Member Of :doc:`module-hbpCommonCompat`
 
 .. contents:: Local Navigation
    :local:

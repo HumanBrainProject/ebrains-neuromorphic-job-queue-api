@@ -13,7 +13,7 @@ describe('clbResultSet', function() {
   };
 
   beforeEach(module('clb-rest'));
-  beforeEach(module('ngLodash'));
+  beforeEach(module('lodash'));
   beforeEach(inject(function(
     $rootScope,
     $httpBackend,

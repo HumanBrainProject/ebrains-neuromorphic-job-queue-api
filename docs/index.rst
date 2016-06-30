@@ -16,7 +16,8 @@ Contents
    module-clb-collab
    module-clb-context-data
    module-clb-env
-   module-hbpCommonCompat
+   module-lodash
+   module-hbpCollaboratoryCore
    module-clb-rest
    module-clb-storage
    module-clb-stream

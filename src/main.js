@@ -1,19 +1,4 @@
 /**
- * Fix some compatibility issues with previous angular-hbp-common.
- * @module hbpCommonCompat
- * @private
- */
-angular.module('hbpCommonCompat', ['ngLodash']).run(function(lodash) {
-  // keep lodash compatibility with older versions
-  if (!lodash.indexBy) {
-    lodash.indexBy = lodash.keyBy;
-  }
-  if (!lodash.keyBy) {
-    lodash.keyBy = lodash.indexBy;
-  }
-});
-
-/**
  * Module to load all the core modules. Try to use the sub-modules instead.
  * @module hbpCollaboratoryCore
  */
@@ -27,8 +12,7 @@ angular.module('hbpCollaboratoryCore', [
   'clb-identity',
   'clb-rest',
   'clb-storage',
-  'clb-stream',
-  'hbpCommonCompat'
+  'clb-stream'
 ]);
 
 /**
@@ -43,8 +27,7 @@ angular.module('hbpCollaboratoryUI', [
   'clb-ui-identity',
   'clb-ui-loading',
   'clb-ui-storage',
-  'clb-ui-stream',
-  'hbpCommonCompat'
+  'clb-ui-stream'
 ]);
 
 /**

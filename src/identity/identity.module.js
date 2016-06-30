@@ -1,5 +1,5 @@
 angular.module('clb-identity', [
-  'ngLodash',
+  'lodash',
   'clb-env',
   'clb-error',
   'clb-rest'

@@ -1,7 +1,7 @@
 {
   "name": "angular-hbp-collaboratory",
   "description": "An AngularJS tool to develop web application based on the HBP Collaboratory",
-  "version": "0.2.4",
+  "version": "0.3.0",
   "main": [
     "angular-hbp-collaboratory.js",
     "src/main.scss",
@@ -30,9 +30,9 @@
     "angular-uuid4": "^0.3.1",
     "angular-deferred-bootstrap": "^0.1.9",
     "angular-moment": "^0.10.3",
-    "ng-lodash": "^0.5.0",
     "hbp-collaboratory-theme": "^0.1.0",
-    "angular-bootstrap": "^1.3.3"
+    "angular-bootstrap": "^1.3.3",
+    "lodash": "^4.13.1"
   },
   "resolutions": {
     "angular": "^1.5.6"
