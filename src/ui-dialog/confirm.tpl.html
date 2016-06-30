@@ -1,0 +1,20 @@
+<div class="modal-header"  >
+    <button type="button" ng-show="closable" class="close" ng-click="$dismiss('cancel')" aria-hidden="true">&times;</button>
+    <h4 class="modal-title">{{title}}</h4>
+</div>
+<div class="modal-body">
+    <alert ng-if="error" type="danger">{{error.reason}}</alert>
+    <div class="alert alert-warning" ng-show="securityQuestion">Unexpected bad things will happen if you don’t read this!</div>
+
+    <ng-include ng-if="confirmationContentUrl" src="confirmationContentUrl"></ng-include>
+    <p ng-if="!confirmationContentUrl">{{confirmationContent}}</p>
+
+    <fieldset class="form-group" ng-show="securityQuestion">
+        <label for="securityAnswer">{{securityQuestion}}</label>
+        <input type="text" class="form-control" name="securityAnswer" ng-model="answer">
+    </fieldset>
+</div>
+<div class="modal-footer">
+    <button class="btn btn-default" ng-click="$dismiss('cancel')">{{cancelLabel}}</button>
+    <button class="btn btn-danger" ng-disabled="securityAnswer && answer !== securityAnswer" ng-click="$close()">{{confirmLabel}}</button>
+</div>

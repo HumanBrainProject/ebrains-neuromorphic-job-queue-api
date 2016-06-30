@@ -20,6 +20,7 @@ Contents
    module-clb-rest
    module-clb-storage
    module-clb-stream
+   module-clb-ui-dialog
    module-clb-ui-error
    module-clb-ui-form
    module-clb-ui-identity

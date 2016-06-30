@@ -21,13 +21,13 @@ angular.module('hbpCollaboratoryCore', [
   'clb-app',
   'clb-automator',
   'clb-collab',
+  'clb-ctx-data',
   'clb-env',
   'clb-error',
   'clb-identity',
   'clb-rest',
   'clb-storage',
   'clb-stream',
-  'clb-ctx-data',
   'hbpCommonCompat'
 ]);
 
@@ -37,11 +37,12 @@ angular.module('hbpCollaboratoryCore', [
  * @module hbpCollaboratoryUI
  */
 angular.module('hbpCollaboratoryUI', [
+  'clb-ui-dialog',
   'clb-ui-error',
-  'clb-ui-storage',
   'clb-ui-form',
   'clb-ui-identity',
   'clb-ui-loading',
+  'clb-ui-storage',
   'clb-ui-stream',
   'hbpCommonCompat'
 ]);
