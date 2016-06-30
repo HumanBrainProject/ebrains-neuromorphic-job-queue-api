@@ -5384,7 +5384,7 @@ function clbFileChooser($q, $log) {
       ngModel: '=',
       validate: '=?clbValidate'
     },
-    template:'<div class=clb-file-chooser><clb-file-browser clb-entity=initialValue clb-root=root></clb-file-browser><div class="navbar navbar-form"><button type=button ng-click=doChooseEntity class="btn btn-primary" ng-disabled=!canChooseCurrentEntity>Choose</button> <button type=button ng-click=doChooseEntity class="btn btn-default" ng-disabled=!canChooseCurrentEntity>Cancel</button></div></div>',
+    template:'<div class=clb-file-chooser><clb-file-browser clb-entity=initialValue clb-root=root></clb-file-browser><div class="navbar navbar-form"><button type=button ng-click=doChooseEntity() class="btn btn-primary" ng-disabled=!canChooseCurrentEntity>Choose</button> <button type=button ng-click=doCancel() class="btn btn-default">Cancel</button></div></div>',
     link: clbFileChooserLink
   };
 
