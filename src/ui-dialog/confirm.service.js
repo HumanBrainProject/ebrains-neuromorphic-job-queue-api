@@ -7,7 +7,7 @@ angular.module('clb-ui-dialog')
  * @namespace clbDialog
  * @memberof module:clb-ui-dialog
  * @param  {object} $rootScope Angular DI
- * @param  {object} $modal     Angular DI
+ * @param  {object} $uibModal     Angular DI
  * @return {object}            Service Descriptor
  */
 function clbConfirm($rootScope, $uibModal) {
