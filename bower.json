@@ -1,7 +1,7 @@
 {
   "name": "angular-hbp-collaboratory",
   "description": "An AngularJS tool to develop web application based on the HBP Collaboratory",
-  "version": "0.2.1",
+  "version": "0.2.2",
   "main": [
     "angular-hbp-collaboratory.js",
     "src/main.scss",
