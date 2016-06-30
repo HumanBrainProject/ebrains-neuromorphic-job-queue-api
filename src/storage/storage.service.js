@@ -45,7 +45,7 @@ function clbStorage(
   var baseUrl = clbEnv.get('api.document.v0');
   var maxFileSize = clbEnv.get('hbpFileStore.maxFileUploadSize', 41943040);
   var entityUrl = baseUrl + '/entity';
-  var fileUrl = baseUrl + '/file/';
+  var fileUrl = baseUrl + '/file';
   var promises = {};
   return {
     getEntity: getEntity,
@@ -401,7 +401,7 @@ function clbStorage(
   function getContent(id) {
     return $http({
       method: 'GET',
-      url: fileUrl(id + '/content'),
+      url: fileUrl + '/' + id + '/content',
       transformResponse: function(data) {
         return data;
       }
