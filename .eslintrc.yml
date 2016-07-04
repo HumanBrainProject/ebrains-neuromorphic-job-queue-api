@@ -14,3 +14,5 @@ globals:
   inject: false
   expect: false
   fail: false
+rules:
+  max-params: 0

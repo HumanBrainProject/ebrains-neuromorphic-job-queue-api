@@ -54,7 +54,7 @@
       </li>
       <li class="clb-file-browser-item"
           ng-if="browserView.hasMoreFolders">
-        <a href class="clb-file-browser-label btn" hbp-perform-action="browserView.loadMoreFolders()">
+        <a href class="clb-file-browser-label btn" clb-perform-action="browserView.loadMoreFolders()">
           <span class="fa fa-refresh"></span>
           Load More Folders
         </a>
@@ -93,7 +93,7 @@
         <!-- load more files -->
       <li class="clb-file-browser-item"
           ng-if="browserView.hasMoreFiles">
-        <a href class="clb-file-browser-label btn" hbp-perform-action="browserView.loadMoreFiles()">
+        <a href class="clb-file-browser-label btn" clb-perform-action="browserView.loadMoreFiles()">
           <span class="fa fa-refresh"></span>
           Load more files
         </a>
