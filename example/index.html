@@ -14,6 +14,21 @@
     <div class="container">
       <div class="panel panel-default">
         <div class="panel-heading">
+          <h4>Login</h4>
+        </div>
+        <div class="panel-body" ng-controller="UiAuthController as vm">
+          <button type="button" class="btn btn-primary"
+                  ng-click="vm.login()">Login</button>
+          <button type="button" class="btn btn-default"
+                  ng-click="vm.forceLogin()">Force Login</button>
+          <button type="button" class="btn btn-danger"
+                  ng-click="vm.logout()">Logout</button>
+          <pre ng-cloak>{{vm.authInfo|json}}</pre>
+        </div>
+      </div>
+
+      <div class="panel panel-default">
+        <div class="panel-heading">
           <h4>User Avatar</h4>
         </div>
         <div class="panel-body" ng-controller="UiIdentityController as vm">
@@ -91,11 +106,13 @@
     <script src="../bower_components/angular-moment/angular-moment.js"></script>
     <script src="../bower_components/angular-bootstrap/ui-bootstrap-tpls.js"></script>
     <script src="../bower_components/lodash/lodash.js"></script>
+    <script src="../bower_components/hello/dist/hello.all.min.js"></script>
     <script src="../angular-hbp-collaboratory.js"></script>
     <!-- endbower -->
 
     <script type="text/javascript" src="../bower_components/codemirror/lib/codemirror.js"></script>
     <script type="text/javascript" src="../bower_components/angular-ui-codemirror/ui-codemirror.js"></script>
+    <script type="text/javascript" src="../bower_components/hello/dist/hello.all.js"></script>
     <script src="./app.js"></script>
   </body>
 </html>

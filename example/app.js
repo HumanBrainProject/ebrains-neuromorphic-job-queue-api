@@ -1,8 +1,42 @@
+/* eslint camelcase: 0 */
 angular.module('customCollabApp', [
   'ui.codemirror',
   'clb-ui-error',
+  'clb-env',
+  'clb-app',
   'hbpCollaboratory'
 ])
+.controller('UiAuthController', function($scope, clbAuth) {
+  var vm = this;
+  vm.authInfo = clbAuth.getAuthInfo();
+  var unbind = $scope.$on('clbAuth.changed', function(event, authInfo) {
+    console.log('New AuthInfo', authInfo);
+    vm.authInfo = authInfo;
+  });
+  $scope.$on('$destroy', unbind);
+  vm.login = function() {
+    clbAuth.login().then(function(info) {
+      console.log('after login',
+        info.authResponse, info.network, info.unchanged);
+    }, function(err) {
+      console.log('error while login', err);
+    });
+  };
+
+  vm.forceLogin = function() {
+    clbAuth.login({force: true}).then(function(info) {
+      console.log('after force login', info.authResponse);
+    }, function(err) {
+      console.log('error while login', err);
+    });
+  };
+
+  vm.logout = function() {
+    clbAuth.logout().then(function(info) {
+      console.log('logged out', info);
+    });
+  };
+})
 .controller('UiIdentityController', function($scope, clbUser) {
   clbUser.getCurrentUser().then(function(me) {
     $scope.user = me;
@@ -78,7 +112,7 @@ angular.module('customCollabApp', [
 
 angular.clbBootstrap('customCollabApp', {env: {
   auth: {
-    clientId: 'portal-client',
+    clientId: '2cb12cf8-abc5-4d07-9c67-b5f8b3efe12f',
     url: 'https://services.humanbrainproject.eu/oidc'
   },
   api: {
