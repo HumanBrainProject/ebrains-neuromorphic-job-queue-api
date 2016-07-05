@@ -26,6 +26,13 @@ function clbActivity() {
     link: {
       post: function(scope, elt, attr, ctrl) {
         elt.addClass('clb-activity').addClass(ctrl.verbClass);
+        scope.$watch('vm.primaryLink', function(val) {
+          if (val) {
+            elt.addClass('clb-activity-activable');
+          } else {
+            elt.removeClass('clb-activity-activable');
+          }
+        });
         scope.$watch('vm.activity.verb', function(newVal) {
           if (newVal) {
             elt.addClass('clb-activity-' + newVal.toLowerCase());
@@ -38,15 +45,21 @@ function clbActivity() {
 
 /**
  * ViewModel of an activity used to render the clb-activity directive
- * @param {object} $log angular injection
- * @param {object} clbResourceLocator angular injection
+ * @param {object} $sce      DI
+ * @param {object} $log      DI
+ * @param {object} $location DI
+ * @param {object} clbResourceLocator DI
  */
-function ActivityController($log, clbResourceLocator) {
+function ActivityController($sce, $log, $location, clbResourceLocator) {
   var vm = this;
+  vm.navigate = function() {
+    $location.url(vm.primaryLink);
+  };
 
   activate();
 
   /* ------------- */
+
   /**
    * init controller
    */

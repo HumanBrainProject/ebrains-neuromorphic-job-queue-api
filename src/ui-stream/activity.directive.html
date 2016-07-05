@@ -1,6 +1,8 @@
-<span class="clb-activity-time" am-time-ago="vm.activity.time"></span>
-<clb-user-avatar clb-user="vm.activity.actor.data"></clb-user-avatar>
-<a class="clb-activity-summary" ng-href="{{vm.primaryLink}}">{{vm.activity.summary}}</a>
-<pre>
-  {{vm.activity.actor|json}}
-</pre>
+<div class="clb-activity-metadata" ng-click="vm.navigate()">
+  <div class="clb-activity-time" am-time-ago="vm.activity.time"></div>
+  <clb-user-avatar class="clb-activity-avatar"
+                   clb-user="vm.activity.actor.data"
+                   ng-if="vm.activity.actor.data"></clb-user-avatar>
+</div>
+<div class="clb-activity-summary" ng-href="" ng-click="vm.navigate()"
+>{{vm.activity.summary}}</div>
