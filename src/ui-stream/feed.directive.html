@@ -1,15 +1,19 @@
-<ul class="feed list-unstyled" ng-class="{'feed-empty': vm.activities.results.length === 0}">
-  <li ng-if="vm.error">
+<ul class="feed list-group" ng-class="{'feed-empty': vm.activities.results.length === 0}">
+  <li ng-if="vm.error" class="list-group-item">
     <div class="alert alert-warning">
       <strong>Load Error:</strong> {{vm.error}}
     </div>
   </li>
-  <li ng-if="!vm.activities && !vm.error"><hbp-loading></hbp-loading></li>
-  <li ng-if="vm.activities.results.length === 0">
+  <li class="list-group-item"
+      ng-if="!vm.activities && !vm.error"><hbp-loading></hbp-loading></li>
+  <li class="list-group-item"
+      ng-if="vm.activities.results.length === 0">
     <div class="alert alert-info">Nothing new</div>
   </li>
-  <li ng-repeat="a in vm.activities.results" clb-activity="a" class="clb-activity-item"></li>
-  <li ng-if="vm.activities.hasNext">
+  <li class="list-group-item"
+      ng-repeat="a in vm.activities.results" clb-activity="a" class="clb-activity-item"></li>
+  <li class="list-group-item"
+      ng-if="vm.activities.hasNext">
     <a href="#" class="btn btn-default">More</a>
   </li>
 </ul>
