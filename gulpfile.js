@@ -137,4 +137,6 @@ gulp.task('test', ['karma', 'lint']);
 
 gulp.task('watch', ['tdd'], function() {
   gulp.watch(['src/**/*.js'], ['lint', 'js']);
+  gulp.watch(['src/**/*.scss'], ['styles']);
+  gulp.watch(['src/**/*.html'], ['js']);
 });
