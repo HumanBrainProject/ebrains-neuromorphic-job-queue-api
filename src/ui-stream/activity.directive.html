@@ -1,3 +1,6 @@
 <span class="clb-activity-time" am-time-ago="vm.activity.time"></span>
-<div class="clearfix"></div>
+<clb-user-avatar clb-user="vm.activity.actor.data"></clb-user-avatar>
 <a class="clb-activity-summary" ng-href="{{vm.primaryLink}}">{{vm.activity.summary}}</a>
+<pre>
+  {{vm.activity.actor|json}}
+</pre>

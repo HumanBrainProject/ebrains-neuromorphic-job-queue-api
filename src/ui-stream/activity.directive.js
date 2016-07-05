@@ -51,7 +51,7 @@ function ActivityController($log, clbResourceLocator) {
    * init controller
    */
   function activate() {
-    clbResourceLocator.urlFor(vm.activity.object)
+    clbResourceLocator.urlFor(vm.activity.object, vm.activity)
     .then(function(url) {
       vm.primaryLink = url;
     })

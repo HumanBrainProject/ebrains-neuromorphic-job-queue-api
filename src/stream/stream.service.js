@@ -21,29 +21,40 @@ function clbStream($http, $log, clbEnv, clbError, clbResultSet) {
 
   /* -------------------- */
 
+  // Build activities
+  function activityListFactoryFunc(next) { // eslint-disable-line require-jsdoc
+    return function(results) {
+      if (!(results && results.length)) {
+        return;
+      }
+      for (var i = 0; i < results.length; i++) {
+        var activity = results[i];
+        if (activity.time) {
+          activity.time = new Date(Date.parse(activity.time));
+        }
+      }
+      if (next) {
+        return next(results);
+      }
+      return results;
+    };
+  }
+
   /**
    * Get a feed of activities regarding an item type and id.
    * @memberof module:clb-stream.clbStream
    * @param  {string} type The type of object to get the feed for
    * @param  {string|int} id   The id of the object to get the feed for
+   * @param  {object} options  Parameters to pass to the query
    * @return {Promise}         resolve to the feed of activities
    */
-  function getStream(type, id) {
+  function getStream(type, id, options) {
+    options = angular.extend({}, options);
+    options.resultsFactory = activityListFactoryFunc(
+        options.resultsFactory);
     var url = clbEnv.get('api.stream.v0') + '/stream/' +
                          type + ':' + id + '/';
-    return clbResultSet.get($http.get(url), {
-      resultsFactory: function(results) {
-        if (!(results && results.length)) {
-          return;
-        }
-        for (var i = 0; i < results.length; i++) {
-          var activity = results[i];
-          if (activity.time) {
-            activity.time = new Date(Date.parse(activity.time));
-          }
-        }
-      }
-    })
+    return clbResultSet.get($http.get(url), options)
     .catch(clbError.rejectHttpError);
   }
 }
