@@ -30,7 +30,7 @@ function clbUserAvatar() {
     link: function(scope, elt) {
       elt.addClass('clb-user-avatar');
       scope.$watch('user', function() {
-        if (!scope.user) {
+        if (!scope.user || !scope.user.displayName) {
           return;
         }
 
