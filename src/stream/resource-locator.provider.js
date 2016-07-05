@@ -30,6 +30,9 @@ function clbResourceLocatorProvider() {
     if (angular.isFunction(handler)) {
       urlHandlers.push(handler);
     }
+    if (angular.isString(handler)) {
+      urlHandlers.push(handler);
+    }
     return provider;
   }
 
@@ -41,12 +44,13 @@ function clbResourceLocatorProvider() {
  * @desc
  * resourceLocator service
  * @memberof module:clb-stream
- * @param {object} $q AngularJS injection
- * @param {object} $log AngularJS injection
- * @param {object} clbError AngularJS injection
+ * @param {object} $q        DI
+ * @param {object} $log      DI
+ * @param {object} $injector DI
+ * @param {object} clbError  DI
  * @return {object} the service singleton
  */
-function clbResourceLocator($q, $log, clbError) {
+function clbResourceLocator($q, $log, $injector, clbError) {
   return {
     urlFor: urlFor
   };
@@ -64,15 +68,20 @@ function clbResourceLocator($q, $log, clbError) {
    *
    * @memberof module:clb-stream.clbResourceLocator
    * @param  {object} ref object reference
+   * @param  {object} activity the associated activity
    * @return {string} a atring representing the URL for this object reference
    */
-  function urlFor(ref) {
+  function urlFor(ref, activity) {
     if (!validRef(ref)) {
       return $q.reject(invalidReferenceException(ref));
     }
     var next = function(i) {
       if (i < urlHandlers.length) {
-        return $q.when(urlHandlers[i](ref)).then(function(url) {
+        var fn = urlHandlers[i];
+        if (angular.isString(fn)) {
+          fn = $injector.get(fn);
+        }
+        return $q.when(fn(ref, activity)).then(function(url) {
           if (angular.isString(url)) {
             $log.debug('generated URL', url);
             return url;
