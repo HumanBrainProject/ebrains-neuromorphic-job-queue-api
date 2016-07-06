@@ -1,3 +1,5 @@
+/* eslint max-lines: 0 */
+
 angular.module('clb-identity')
 .factory('clbUser', clbUser);
 
@@ -116,7 +118,7 @@ function clbUser(
    * provided list of IDs.
    * @function get
    * @memberof module:clb-identity.clbUser
-   * @param  {array} ids Array of ID
+   * @param  {array|string} ids One or more ID
    * @return {Promise}   Resolve to a map of ID/UserInfo
    * @private
    */
@@ -126,6 +128,16 @@ function clbUser(
     var uncachedUser = [];
     var response = {};
     var urls = [];
+    var single = false; // flag to support single user call
+
+    if (!ids) {
+      ids = [];
+    }
+
+    if (!angular.isArray(ids)) {
+      ids = [ids];
+      single = true;
+    }
 
     var rejectDeferred = function() {
       deferred.reject.apply(deferred, ids);
@@ -142,14 +154,14 @@ function clbUser(
       } else if (data.data.content) {
         items = data.data.content;
       } else {
-        $log.error("Unable to find a resultset in data", data);
+        $log.error('Unable to find a resultset in data', data);
       }
       addToCache(items, response);
       if (urls && urls.length > 0) {
         return $http.get(urls.shift())
         .then(processResponseAndCarryOn, rejectDeferred);
       }
-      deferred.resolve(response);
+      deferred.resolve(single ? response[ids[0]] : response);
     };
 
     angular.forEach(ids, function(id) {
@@ -163,7 +175,7 @@ function clbUser(
 
     if (uncachedUser.length === 0) {
       // All ids are already available -> we resolve the promise
-      deferred.resolve(response);
+      deferred.resolve(single ? response[ids[0]] : response);
     } else {
       // Get the list of URLs to call
       var userBaseUrl = '/search?id=';
@@ -281,7 +293,7 @@ function clbUser(
       };
     };
     for (var k in filter) {
-      if (filter.hasOwnProperty(k)) {
+      if (Object.prototype.hasOwnProperty.call(filter, k)) {
         if (supportedFilters.indexOf(k) === -1) {
           throw clbError.error({
             type: 'FilterNotSupportedError',

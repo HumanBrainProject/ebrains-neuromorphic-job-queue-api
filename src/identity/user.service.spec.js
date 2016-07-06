@@ -168,6 +168,42 @@ describe('clbUser', function() {
     expect(result.Sbar.displayName).toBe('Sbar-name');
   });
 
+  it('should support single id call', function() {
+    var result;
+    $httpBackend.expectGET(userApiUrl + 'user/search?id=foo')
+    .respond(200, {
+      _embedded: {
+        users: [{
+          id: 'foo',
+          displayName: 'foo-name'
+        }]
+      }
+    });
+    userDirectory.get('foo').then(function(users) {
+      result = users;
+    });
+    $httpBackend.flush(1);
+    expect(result.displayName).toBe('foo-name');
+  });
+
+  it('should support single array id call', function() {
+    var result;
+    $httpBackend.expectGET(userApiUrl + 'user/search?id=foo')
+    .respond(200, {
+      _embedded: {
+        users: [{
+          id: 'foo',
+          displayName: 'foo-name'
+        }]
+      }
+    });
+    userDirectory.get(['foo']).then(function(users) {
+      result = users;
+    });
+    $httpBackend.flush(1);
+    expect(result.foo.displayName).toBe('foo-name');
+  });
+
   it('should split the call in URL no longer than 2000 chars', function() {
     var result;
     $httpBackend.expectGET(userApiUrl + 'user/search?id=' + veryLongId1);
