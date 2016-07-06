@@ -49,8 +49,29 @@ describe('clbActivity directive', function() {
     var summary = angular.element(
       element[0].querySelector('.clb-activity-summary'));
     expect(summary.length).toBe(1, element.html());
-    expect(summary.text())
-      .toBe(scope.activity.summary);
+    scope.$digest();
+    expect(summary.text()).toMatch(scope.activity.summary);
+  });
+
+  describe('activity can provide references', function() {
+    it('should generate links', inject(function($q) {
+      scope.activity.references = {
+        actor: {
+          indices: [0, 4]
+        }
+      };
+      spyOn(resourceLocator, 'urlFor').and.returnValue($q.when('/software/1'));
+      var element = compile(
+        '<div clb-activity="activity"></div>')(scope);
+      scope.$digest();
+      var vm = element.isolateScope().vm;
+      expect(vm.parts[0]).toEqual({
+        tag: 'actor',
+        ref: jasmine.any(Object),
+        text: 'John',
+        $$hashKey: jasmine.any(String)
+      });
+    }));
   });
 
   describe('activity are clickable', function() {
@@ -62,7 +83,7 @@ describe('clbActivity directive', function() {
       var vm = element.isolateScope().vm;
       expect(vm.navigate).toBeDefined();
       spyOn($location, 'url');
-      vm.navigate();
+      element.find('div').triggerHandler('click');
       scope.$digest();
       expect($location.url).toHaveBeenCalledWith('/software/1');
     }));
