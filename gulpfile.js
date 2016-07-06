@@ -15,7 +15,6 @@ var child_process = require('child_process');
 var embedTemplates = require('gulp-angular-embed-templates');
 var sass = require('gulp-sass');
 var ghPages = require('gulp-gh-pages');
-var hf = require('gulp-headerfooter');
 
 gulp.task('example:build', ['js'], function() {
   gulp.src('./example/index.html')
@@ -66,27 +65,22 @@ gulp.task('karma:dist', ['js'], function(done) {
   }, done).start();
 });
 
-gulp.task('tdd', function() {
-  new KarmaServer({
-    configFile: path.join(__dirname, 'karma.conf.js')
-  }).start();
-});
-
 gulp.task('js', function() {
   return gulp.src([
+    'LICENSE',
+    'src/header.txt',
     'src/main.js',
     'src/**/*.module.js',
     'src/**/*.js',
     '!src/**/*.spec.js',
-    'src/main.js'
+    'src/main.js',
+    'src/footer.txt'
   ], {base: 'src'})
   .pipe(plumber())
   .pipe(sourcemaps.init())
-    .pipe(ngAnnotate({single_quotes: true}))
     .pipe(embedTemplates())
     .pipe(concat('angular-hbp-collaboratory.js'))
-    .pipe(hf('(function() {\n"use strict";\n', '})();'))
-    .pipe(hf.header('./LICENSE'))
+    .pipe(ngAnnotate({single_quotes: true}))
   .pipe(sourcemaps.write('./maps'))
   .pipe(gulp.dest('.'));
 });
@@ -135,8 +129,11 @@ gulp.task('default', [
 
 gulp.task('test', ['karma', 'lint']);
 
-gulp.task('watch', ['tdd'], function() {
+gulp.task('watch', function() {
   gulp.watch(['src/**/*.js'], ['lint', 'js']);
   gulp.watch(['src/**/*.scss'], ['styles']);
   gulp.watch(['src/**/*.html'], ['js']);
+  new KarmaServer({
+    configFile: path.join(__dirname, 'karma.conf.js')
+  }).start();
 });
