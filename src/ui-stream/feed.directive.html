@@ -14,6 +14,6 @@
       ng-repeat="a in vm.activities.results" clb-activity="a" class="clb-activity-item"></li>
   <li class="list-group-item"
       ng-if="vm.activities.hasNext">
-    <a href="#" class="btn btn-default">More</a>
+    <a href clb-perform-action="vm.activities.next()" class="btn btn-default">More</a>
   </li>
 </ul>
