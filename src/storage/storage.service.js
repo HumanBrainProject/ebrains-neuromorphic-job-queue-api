@@ -1,4 +1,4 @@
-/* eslint camelcase: 0 */
+/* eslint max-lines:0 camelcase:0 */
 
 angular.module('clb-storage')
 .factory('clbStorage', clbStorage);
@@ -338,7 +338,7 @@ function clbStorage(
       baseUrl + '/' + type.split(':')[0],
       angular.extend({
         _name: name,
-        _parent: parent && parent._uuid || parent
+        _parent: (parent && parent._uuid) || parent
       }, options)
     )
     .then(function(res) {
@@ -396,16 +396,21 @@ function clbStorage(
    * @function
    * @memberof module:clb-storage.clbStorage
    * @param  {string} id FileEntity UUID
+   * @param  {object} [customConfig] contains extra configuration
    * @return {Promise}   The raw content
    */
-  function getContent(id) {
-    return $http({
+  function getContent(id, customConfig) {
+    var config = {
       method: 'GET',
       url: fileUrl + '/' + id + '/content',
       transformResponse: function(data) {
         return data;
       }
-    }).then(function(data) {
+    };
+    if (angular.isDefined(customConfig)) {
+      angular.extend(config, customConfig);
+    }
+    return $http(config).then(function(data) {
       return data.data;
     }).catch(clbError.rejectHttpError);
   }
@@ -444,7 +449,7 @@ function clbStorage(
       };
 
       for (var id in acls) {
-        if (acls.hasOwnProperty(id)) {
+        if (Object.prototype.hasOwnProperty.call(acls, id)) {
           var acl = acls[id];
           if (id === user.id || user.groups.indexOf(id) >= 0) {
             access.canRead = access.canRead ||
