@@ -52,6 +52,7 @@ function clbActivity() {
  * @param {object} $q        DI
  * @param {object} $compile  DI
  * @param {object} clbResourceLocator DI
+ * @param {object} clbErrorDialog DI
  */
 function ActivityController(
   $scope,
@@ -60,14 +61,48 @@ function ActivityController(
   $location,
   $q,
   $compile,
-  clbResourceLocator
+  clbResourceLocator,
+  clbErrorDialog
 ) {
   var vm = this;
-  vm.navigate = function(event, ref) {
+  vm.navigate = function(event, data) {
     event.preventDefault();
     event.stopPropagation();
-    if (!angular.isDefined(ref)) {
+    if (!angular.isDefined(data)) {
+      $scope.$emit('clbActivity.interaction', {
+        action: 'usePrimaryNavigation',
+        tag: 'object'
+      });
       $location.url(vm.primaryLink);
+    } else if (data.ref && data.ref.type && data.ref.id) {
+      $scope.$emit('clbActivity.interaction', {
+        action: 'useSecondaryNavigation',
+        tag: data.tag
+      });
+      clbResourceLocator.urlFor(data.ref)
+      .then(function(url) {
+        $location.url(url);
+      })
+      .catch(function(err) {
+        $scope.$emit('clbActivity.interaction', {
+          action: 'secondaryNavigationFailed',
+          tag: data.tag
+        });
+        clbErrorDialog.open({
+          type: 'Not Found',
+          message: 'The system cannot generate a valid URL ' +
+                   'to display this object.',
+          code: 400,
+          data: {
+            error: err
+          }
+        });
+      });
+    } else {
+      $scope.$emit('clbActivity.interaction', {
+        action: 'openUserDetails',
+        tag: 'actor'
+      });
     }
   };
 
@@ -180,7 +215,7 @@ function ActivityController(
       vm.primaryLink = url;
     })
     .catch(function(err) {
-      $log.error(err);
+      $log.warn('unclickable activity', err);
     });
 
     vm.parts = resolveReferences();
