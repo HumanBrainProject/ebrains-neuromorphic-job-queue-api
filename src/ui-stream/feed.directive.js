@@ -24,6 +24,14 @@ function clbFeed() {
     templateUrl: 'feed.directive.html',
     link: function(scope, elt) {
       elt.addClass('clb-feed');
+      var unbind = scope.$on(
+        'clbActivity.interaction',
+        function($event, data) {
+          data.feedType = scope.feedType;
+          scope.$emit('clbFeed.interaction', data);
+        }
+      );
+      scope.$on('$destroy', unbind);
     }
   };
 }

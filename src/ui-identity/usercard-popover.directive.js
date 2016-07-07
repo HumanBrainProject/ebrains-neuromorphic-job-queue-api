@@ -62,7 +62,6 @@ function clbUsercardPopoverDirective(
       scope.$on('$destroy', unbind);
 
       scope.togglePopover = function($event, action) {
-        $log.debug('Toggle', $event);
         if ($event.isDefaultPrevented()) {
           return;
         }
