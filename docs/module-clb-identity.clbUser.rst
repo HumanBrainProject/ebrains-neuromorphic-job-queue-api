@@ -38,7 +38,7 @@ provided list of IDs.
 .. js:function:: get(ids)
 
     
-    :param array ids: Array of ID
+    :param array|string ids: One or more ID
     :return Promise: Resolve to a map of ID/UserInfo
     
 .. _module-clb-identity.clbUser.isGroupMember:

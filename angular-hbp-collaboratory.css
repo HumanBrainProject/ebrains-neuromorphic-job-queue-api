@@ -1,3 +1,27 @@
+.clb-activity {
+  display: flex; }
+  .clb-activity .clb-activity-metadata {
+    display: flex;
+    width: 112px; }
+  .clb-activity .clb-activity-time {
+    flex: 1;
+    max-width: 72px;
+    padding-right: 12px;
+    text-align: right; }
+  .clb-activity .clb-activity-avatar {
+    padding-right: 12px;
+    width: 40px; }
+
+.clb-activity-summary {
+  flex: 1; }
+
+.clb-activity-activable {
+  color: rgba(0, 0, 0, 0.55);
+  cursor: pointer; }
+
+.clb-activity-activable:hover {
+  color: rgba(0, 0, 0, 0.85); }
+
 li.clb-activity-item {
   padding-bottom: 5px; }
 
@@ -144,9 +168,7 @@ li.clb-activity-item {
     overflow: hidden;
     position: absolute;
     top: 0; }
-    .clb-usercard .clb-usercard-pix .clb-generated-icon {
-      display: inline-block;
-      height: 80px;
+    .clb-usercard .clb-usercard-pix > .clb-user-avatar {
       width: 80px; }
     .clb-usercard .clb-usercard-pix > img {
       border: 0;
@@ -156,11 +178,12 @@ li.clb-activity-item {
   .clb-usercard .clb-usercard-header {
     margin-bottom: 8px;
     margin-top: 12px; }
-  .clb-usercard .clb-usercard-name,
+  .clb-usercard .clb-usercard-header,
   .clb-usercard .clb-usercard-institution,
   .clb-usercard .clb-usercard-contact {
     margin-left: 92px; }
   .clb-usercard .clb-usercard-contact-item {
+    display: inline-block;
     padding-right: 12px; }
 
 .clb-user-avatar {

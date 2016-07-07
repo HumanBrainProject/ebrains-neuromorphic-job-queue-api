@@ -13,6 +13,8 @@ Children
    :maxdepth: 1
    
    module-clb-ui-identity.clbUserAvatar
+   module-clb-ui-identity.clbUsercardPopoverDirective
+   module-clb-ui-identity.clbUserCardPopoverService
    
 Description
 ===========
