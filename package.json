@@ -6,8 +6,8 @@
   "license": "MIT",
   "devDependencies": {
     "eslint": "^2.2.0",
-    "eslint-config-google": "^0.4.0",
-    "eslint-config-xo": "^0.11.0",
+    "eslint-config-google": "~0.4.0",
+    "eslint-config-xo": "~0.11.0",
     "eslint-plugin-jasmine": "^1.6.0",
     "gulp": "^3.9.1",
     "gulp-angular-embed-templates": "^2.2.0",
