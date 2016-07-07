@@ -396,16 +396,21 @@ function clbStorage(
    * @function
    * @memberof module:clb-storage.clbStorage
    * @param  {string} id FileEntity UUID
+   * @param  {object} [OPTIONAL] contains extra configuration
    * @return {Promise}   The raw content
    */
-  function getContent(id) {
-    return $http({
+  function getContent(id, customConfig) {
+    var config = {
       method: 'GET',
       url: fileUrl + '/' + id + '/content',
       transformResponse: function(data) {
         return data;
       }
-    }).then(function(data) {
+    }
+    if (angular.isDefined(customConfig)){
+      angular.extend(config, customConfig);
+    }
+    return $http(config).then(function(data) {
       return data.data;
     }).catch(clbError.rejectHttpError);
   }
