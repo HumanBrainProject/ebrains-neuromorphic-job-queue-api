@@ -8,6 +8,16 @@ describe('clbResourceLocator service', function() {
     actual = result;
   };
 
+  beforeEach(function() {
+    angular.module('locService', [])
+    .factory('myLocService', function() {
+      return function() {
+        return 'http://handler-service.com/';
+      };
+    });
+    angular.mock.module('locService');
+  });
+
   beforeEach(module('clb-stream', function(clbResourceLocatorProvider) {
     provider = clbResourceLocatorProvider;
   }));
@@ -24,9 +34,20 @@ describe('clbResourceLocator service', function() {
     $httpBackend.verifyNoOutstandingExpectation();
     $httpBackend.verifyNoOutstandingRequest();
     actual = undefined;
+    provider.urlHandlers.length = 0;
   }));
 
-  describe('urlFor(ref)', function() {
+  describe('urlFor(ref, activity)', function() {
+    it('get the reference and the activity', function() {
+      var ref = {type: 't', id: 'i'};
+      var activity = {};
+      var handler = jasmine.createSpy('urlFor');
+      provider.registerUrlHandler(handler);
+      service.urlFor(ref, activity);
+      scope.$digest();
+      expect(handler).toHaveBeenCalledWith(ref, activity);
+    });
+
     it('reject the promise if there is no handler', function() {
       service.urlFor({type: 'unknow', id: 1}).catch(assign);
       scope.$digest();
@@ -63,6 +84,7 @@ describe('clbResourceLocator service', function() {
     beforeEach(function() {
       provider.urlHandlers.length = 0;
     });
+
     it('can register a new handler function', function() {
       var handler = function() {
         return 'http://verystatichandler.com/';
@@ -70,6 +92,26 @@ describe('clbResourceLocator service', function() {
 
       provider.registerUrlHandler(handler);
       expect(provider.urlHandlers).toEqual([handler]);
+    });
+
+    describe('using angular service', function() {
+      beforeEach(function() {
+        provider.registerUrlHandler('myLocService');
+      });
+
+      it('can register a new handler service', function() {
+        expect(provider.urlHandlers).toEqual(['myLocService']);
+      });
+
+      it('should resolve service', function() {
+        service.urlFor({type: 'HBPType', id: '1'})
+        .then(assign)
+        .catch(function(err) {
+          fail('Raised an error ' + err);
+        });
+        scope.$digest();
+        expect(actual).toBe('http://handler-service.com/');
+      });
     });
   });
 });

@@ -24,6 +24,14 @@ function clbFeed() {
     templateUrl: 'feed.directive.html',
     link: function(scope, elt) {
       elt.addClass('clb-feed');
+      var unbind = scope.$on(
+        'clbActivity.interaction',
+        function($event, data) {
+          data.feedType = scope.feedType;
+          scope.$emit('clbFeed.interaction', data);
+        }
+      );
+      scope.$on('$destroy', unbind);
     }
   };
 }
@@ -31,19 +39,45 @@ function clbFeed() {
 /**
  * ViewModel of an activity used to render the clb-activity directive
  * @param {object} $log angular injection
- * @param {object} clbStream angular injection
+ * @param {object} clbStream DI
+ * @param {object} clbUser DI
  */
-function FeedController($log, clbStream) {
+function FeedController($log, clbStream, clbUser) {
   var vm = this;
 
   activate();
 
   /* ------------- */
+
+  function hydrateActors(activities) {  // eslint-disable-line require-jsdoc
+    if (!activities || activities.length === 0) {
+      return;
+    }
+    var acc = [];
+    for (var i = 0; i < activities.length; i++) {
+      if (activities[i].actor.type === 'HBPUser') {
+        acc.push(activities[i].actor.id);
+      }
+    }
+    return clbUser.get(acc)
+    .then(function(users) {
+      for (var i = 0; i < activities.length; i++) {
+        var actor = activities[i].actor;
+        if (actor.type === 'HBPUser' && users[actor.id]) {
+          actor.data = users[actor.id];
+        }
+      }
+    });
+  }
+
   /**
    * init controller
    */
   function activate() {
-    clbStream.getStream(vm.feedType, vm.feedId).then(function(rs) {
+    clbStream.getStream(vm.feedType, vm.feedId, {
+      resultsFactory: hydrateActors
+    })
+    .then(function(rs) {
       vm.activities = rs;
     })
     .catch(function(err) {

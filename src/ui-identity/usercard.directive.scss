@@ -11,9 +11,7 @@ $usercard-padding: $grid-gutter-width/2 !default;
     position: absolute;
     top: 0;
 
-    .clb-generated-icon {
-      display: inline-block;
-      height: 80px;
+    > .clb-user-avatar {
       width: 80px;
     }
 
@@ -30,13 +28,14 @@ $usercard-padding: $grid-gutter-width/2 !default;
     margin-top: $usercard-padding;
   }
 
-  .clb-usercard-name,
+  .clb-usercard-header,
   .clb-usercard-institution,
   .clb-usercard-contact {
     margin-left: 80 + $usercard-padding;
   }
 
   .clb-usercard-contact-item {
+    display: inline-block; // try to keep item on one line
     padding-right: $usercard-padding;
   }
 }

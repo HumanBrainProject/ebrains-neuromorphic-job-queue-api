@@ -32,6 +32,9 @@ function clbErrorDialog($uibModal, clbError) {
       controllerAs: 'vm',
       bindToController: true
     }, options);
-    return $uibModal.open(options);
+    return $uibModal.open(options).result.catch(function() {
+      // resolve anytime.
+      return true;
+    });
   }
 }

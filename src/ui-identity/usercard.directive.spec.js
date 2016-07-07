@@ -50,6 +50,9 @@ describe('Directive: clbUsercard', function() {
     jasmine.cacheTemplate($templateCache,
       'usercard.directive.html',
       'src/ui-identity/');
+    jasmine.cacheTemplate($templateCache,
+      'user-avatar.directive.html',
+      'src/ui-identity/');
   }));
 
   var itDisplayUserCardFor = function(who) {

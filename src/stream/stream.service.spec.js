@@ -54,6 +54,20 @@ describe('clbStream service', function() {
       expect(result).toBeHbpError();
     });
 
+    it('support resultsFactory in options', function() {
+      backend.expectGET('http://stream/v0/stream/HBPUser:johndoe/').respond(200, {
+        results: [{}]
+      });
+      stream.getStream('HBPUser', 'johndoe', {
+        resultsFactory: function(results) {
+          results[0].text = 'Tadaaaa';
+        }
+      }).then(function(activities) {
+        expect(activities.results[0].text).toBe('Tadaaaa');
+      });
+      backend.flush();
+    });
+
     it('return activity instances', function() {
       backend.expectGET('http://stream/v0/stream/HBPUser:johndoe/').respond(200, {
         results: [
@@ -61,9 +75,9 @@ describe('clbStream service', function() {
             actor: {id: 'johndoe', type: 'HBPUser', state: null},
             object: {id: 'softwarecat', type: 'HBPSoftware', state: null},
             summary: 'activity summary string',
-            target: {id: "general", type: "HBPSoftwareCatalog", state: null},
+            target: {id: 'general', type: 'HBPSoftwareCatalog', state: null},
             verb: 'REGISTER',
-            time: "2016-05-24T15:30:18.122882Z"
+            time: '2016-05-24T15:30:18.122882Z'
           }
         ]
       });
