@@ -2,10 +2,10 @@
   display: flex; }
   .clb-activity .clb-activity-metadata {
     display: flex;
-    width: 112px; }
+    width: 132px; }
   .clb-activity .clb-activity-time {
     flex: 1;
-    max-width: 72px;
+    max-width: 92px;
     padding-right: 12px;
     text-align: right; }
   .clb-activity .clb-activity-avatar {
