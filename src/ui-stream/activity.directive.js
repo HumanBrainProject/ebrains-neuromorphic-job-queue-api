@@ -48,7 +48,7 @@ function clbActivity() {
  * @param {object} $scope    DI
  * @param {object} $sce      DI
  * @param {object} $log      DI
- * @param {object} $location DI
+ * @param {object} $window   DI
  * @param {object} $q        DI
  * @param {object} $compile  DI
  * @param {object} clbResourceLocator DI
@@ -58,7 +58,7 @@ function ActivityController(
   $scope,
   $sce,
   $log,
-  $location,
+  $window,
   $q,
   $compile,
   clbResourceLocator,
@@ -73,7 +73,7 @@ function ActivityController(
         action: 'usePrimaryNavigation',
         tag: 'object'
       });
-      $location.url(vm.primaryLink);
+      $window.location = vm.primaryLink;
     } else if (data.ref && data.ref.type && data.ref.id) {
       $scope.$emit('clbActivity.interaction', {
         action: 'useSecondaryNavigation',
@@ -81,7 +81,7 @@ function ActivityController(
       });
       clbResourceLocator.urlFor(data.ref)
       .then(function(url) {
-        $location.url(url);
+        $window.location = url;
       })
       .catch(function(err) {
         $scope.$emit('clbActivity.interaction', {
