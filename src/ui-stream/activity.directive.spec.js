@@ -2,8 +2,20 @@ describe('clbActivity directive', function() {
   var compile;
   var scope;
   var resourceLocator;
+  var $window;
 
   beforeEach(module('clb-ui-stream'));
+
+  beforeEach(function() {
+    $window = {
+      location: null, // used in tests
+      setTimeout: jasmine.createSpy('setTimeout')
+    };
+    module(function($provide) {
+      $provide.value('$window', $window);
+    });
+  });
+
   beforeEach(inject(function(
     $compile,
     $rootScope,
@@ -80,17 +92,27 @@ describe('clbActivity directive', function() {
   });
 
   describe('activity are clickable', function() {
-    it('should generate the primaryLink', inject(function($q, $location) {
+    it('should generate the primaryLink', inject(function($q, $window) {
       spyOn(resourceLocator, 'urlFor').and.returnValue($q.when('/software/1'));
       var element = compile(
         '<div clb-activity="activity"></div>')(scope);
       scope.$digest();
-      var vm = element.isolateScope().vm;
-      expect(vm.navigate).toBeDefined();
-      spyOn($location, 'url');
+      var dScope = element.isolateScope();
+      var vm = dScope.vm;
+      spyOn(vm, 'navigate').and.callThrough();
+      spyOn(dScope, '$emit');
       element.find('div').triggerHandler('click');
+      expect(vm.navigate).toHaveBeenCalledWith(jasmine.any(Object));
+      expect(resourceLocator.urlFor).toHaveBeenCalledWith(
+        {id: 'softwarecat', type: 'HBPSoftware', state: null},
+        jasmine.any(Object)
+      );
+      expect(dScope.$emit).toHaveBeenCalledWith('clbActivity.interaction', {
+        action: 'usePrimaryNavigation',
+        tag: 'object'
+      });
       scope.$digest();
-      expect($location.url).toHaveBeenCalledWith('/software/1');
+      expect($window.location).toBe(vm.primaryLink);
     }));
 
     it('should have .clb-activity-activable when a primary link exists',
