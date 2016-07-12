@@ -146,7 +146,7 @@ function ActivityController(
           }
           for (var i = 0; i < refs.length; i++) {
             var ref = refs[i];
-            processRef(root, tag, ref.indices, true);
+            processRef(root, tag, ref.indices);
           }
         }
       }
@@ -172,13 +172,24 @@ function ActivityController(
    * @param  {array}  indices      [startIndex, endIndex]
    */
   function processRef(root, tag, indices) {
+    // previous -> head -> next
+
     var previous = root;
     var head = root.next;
-    while (head.next && indices[0] >= head.indices[0]) {
+    // Find the last node which has an end index greater
+    // than the node to insert. We do not handle the case
+    // where the new node is crossing multiple existing nodes as this would
+    // be invalid data.
+    while (head.next && (
+      indices[0] >= head.indices[1] // cannot be inverted
+                                    // the head indices[1] is +1 after the
+                                    // last char
+    )) {
       previous = head;
       head = head.next;
     }
 
+    // previous -> node|head -> next
     var node = {
       next: null,
       indices: indices,
@@ -189,20 +200,27 @@ function ActivityController(
     };
 
     if (head.indices[0] < indices[0]) {
+      // previous -> head:before -> node
+      // head -> next
       var before = angular.copy(head);
       before.indices[1] = indices[0]; // stop where the new part begin
       before.next = node;
-      if (previous) {
-        previous.next = before;
-      }
+      previous.next = before;
+      previous = before;
     } else if (previous) {
+      // previous -> node
+      // head -> next
       previous.next = node;
     }
 
+    // previous -> node
+    // head -> next
     if (head.indices[1] > indices[1]) {
+      // previous -> node -> head -> next
       head.indices[0] = indices[1];
       node.next = head;
     } else {
+      // previous -> node -> next
       node.next = head.next;
     }
   }

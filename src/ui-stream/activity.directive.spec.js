@@ -180,6 +180,50 @@ describe('clbActivity directive', function() {
       expect(dScope.vm.parts[3].text).toBe('y');
     });
 
+    it('should split for two inverted following references', function() {
+      init('summary', {
+        actor: {
+          indices: [5, 6]
+        },
+        object: {
+          indices: [3, 5]
+        }
+      });
+      expect(dScope.vm.parts.length).toBe(4);
+      expect(dScope.vm.parts[0].text).toBe('sum');
+      expect(dScope.vm.parts[1].text).toBe('ma');
+      expect(dScope.vm.parts[2].text).toBe('r');
+      expect(dScope.vm.parts[3].text).toBe('y');
+    });
+
+    it('should split for beginning and end references', function() {
+      init('summary', {
+        actor: {
+          indices: [0, 5]
+        },
+        object: {
+          indices: [5, 7]
+        }
+      });
+      expect(dScope.vm.parts.length).toBe(2);
+      expect(dScope.vm.parts[0].text).toBe('summa');
+      expect(dScope.vm.parts[1].text).toBe('ry');
+    });
+
+    it('should split for end and beginning references', function() {
+      init('summary', {
+        actor: {
+          indices: [5, 7]
+        },
+        object: {
+          indices: [0, 5]
+        }
+      });
+      expect(dScope.vm.parts.length).toBe(2);
+      expect(dScope.vm.parts[0].text).toBe('summa');
+      expect(dScope.vm.parts[1].text).toBe('ry');
+    });
+
     it('should split for two unlinked references', function() {
       init('summary', {
         actor: {
