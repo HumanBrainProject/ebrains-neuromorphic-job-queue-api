@@ -33,6 +33,11 @@ describe('clbActivity directive', function() {
     };
   });
 
+  afterEach(inject(function($httpBackend) {
+    $httpBackend.verifyNoOutstandingExpectation();
+    $httpBackend.verifyNoOutstandingRequest();
+  }));
+
   it('should define activity classes', function() {
     var element = compile(
       '<div clb-activity="activity"></div>')(scope);
@@ -105,5 +110,91 @@ describe('clbActivity directive', function() {
       scope.$digest();
       expect(element.hasClass('clb-activity-activable')).toBe(false);
     }));
+  });
+
+  describe('references are clickable', function() {
+    var dScope;
+    var init;
+
+    beforeEach(function() {
+      init = function(summary, references) {
+        var s = scope.$new();
+        s.activity = {
+          summary: summary,
+          references: references
+        };
+        var element = compile(
+          '<div clb-activity="activity"></div>')(s);
+        scope.$digest();
+        dScope = element.isolateScope();
+      };
+    });
+
+    it('should split for a reference at the beginning', function() {
+      init('summary', {
+        actor: {
+          indices: [0, 3]
+        }
+      });
+      expect(dScope.vm.parts.length).toBe(2);
+      expect(dScope.vm.parts[0].text).toBe('sum');
+      expect(dScope.vm.parts[1].text).toBe('mary');
+    });
+
+    it('should split for a reference at the end', function() {
+      init('summary', {
+        actor: {
+          indices: [3, 7]
+        }
+      });
+      expect(dScope.vm.parts.length).toBe(2);
+      expect(dScope.vm.parts[0].text).toBe('sum');
+      expect(dScope.vm.parts[1].text).toBe('mary');
+    });
+
+    it('should split for a reference in the middle', function() {
+      init('summary', {
+        actor: {
+          indices: [3, 5]
+        }
+      });
+      expect(dScope.vm.parts.length).toBe(3);
+      expect(dScope.vm.parts[0].text).toBe('sum');
+      expect(dScope.vm.parts[1].text).toBe('ma');
+      expect(dScope.vm.parts[2].text).toBe('ry');
+    });
+
+    it('should split for two following references', function() {
+      init('summary', {
+        actor: {
+          indices: [3, 5]
+        },
+        object: {
+          indices: [5, 6]
+        }
+      });
+      expect(dScope.vm.parts.length).toBe(4);
+      expect(dScope.vm.parts[0].text).toBe('sum');
+      expect(dScope.vm.parts[1].text).toBe('ma');
+      expect(dScope.vm.parts[2].text).toBe('r');
+      expect(dScope.vm.parts[3].text).toBe('y');
+    });
+
+    it('should split for two unlinked references', function() {
+      init('summary', {
+        actor: {
+          indices: [3, 4]
+        },
+        object: {
+          indices: [5, 6]
+        }
+      });
+      expect(dScope.vm.parts.length).toBe(5);
+      expect(dScope.vm.parts[0].text).toBe('sum');
+      expect(dScope.vm.parts[1].text).toBe('m');
+      expect(dScope.vm.parts[2].text).toBe('a');
+      expect(dScope.vm.parts[3].text).toBe('r');
+      expect(dScope.vm.parts[4].text).toBe('y');
+    });
   });
 });

@@ -146,10 +146,11 @@ function ActivityController(
           }
           for (var i = 0; i < refs.length; i++) {
             var ref = refs[i];
-            processRef(root, tag, ref.indices);
+            processRef(root, tag, ref.indices, true);
           }
         }
       }
+      $log.debug('references', root);
     }
 
     var head = root.next;
@@ -173,9 +174,9 @@ function ActivityController(
   function processRef(root, tag, indices) {
     var previous = root;
     var head = root.next;
-    while (indices[0] < head.indices[0]) {
+    while (head.next && indices[0] >= head.indices[0]) {
       previous = head;
-      head = root.next;
+      head = head.next;
     }
 
     var node = {
