@@ -198,13 +198,15 @@ Please be sure to check the change in the directive attributes prefix as well.::
    hbp-error-message -> clb-error-message (hbp-promise -> clb-promise, hbp-message -> clb-message)
    hbp-usercard -> clb-usercard (hbp-user -> clb-user, hbp-template -> clb-template)
 
-``hbpDialogFactory`` has been removed, with the exception of ``hbpDialogFactory.error`` which
-is now ``clbErrorDialog.open (module clb-ui-error)``. Those two refactore will have you covered::
+``hbpDialogFactory`` has been removed, with the exception of ``hbpDialogFactory.error`` and ``hbpDialogFactory.confirm`` which
+are now respectively ``clbErrorDialog.open`` (module ``clb-ui-error``) and ``clbConfirm.open`` (module ``clb-ui-dialog``).
+These two refactoring will have you covered::
 
-   hbpDialogFactory -> clbErrorDialog
-   clbErrorDialog.error -> clbErrorDialog.open
+   hbpDialogFactory -> clbErrorDialog and/or clbConfirm
+   hbpDialogFactory.error -> clbErrorDialog.open
+   hbpDialogFactory.confirm -> clbConfirm.open
 
-If you were using other methods from clbDialogFactory (e.g.: ``.alert()`` or ``.confirm``),
+If you were using other methods from hbpDialogFactory (e.g.: ``.alert()``),
 you need to rewrite them using angular-bootstrap ``$uibModal`` (read the
 _`documentation <https://angular-ui.github.io/bootstrap/#/modal>`)
 
