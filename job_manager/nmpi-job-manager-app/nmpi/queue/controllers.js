@@ -16,7 +16,6 @@ angular.module('nmpi')
         $scope.curPage = 0;
         $scope.pageSize = 20;
         $rootScope.with_ctx = true;
-        //$location.search('ctx');
 
         $scope.changePage = function( page )
         {
@@ -62,7 +61,6 @@ angular.module('nmpi')
 
 
         // depending on whether there is a context...
-        //$location.search('ctx');
         if( $location.search().ctx ){
             // Inside-collab
             $rootScope.ctx = $location.search().ctx;
