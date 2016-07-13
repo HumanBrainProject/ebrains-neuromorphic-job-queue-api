@@ -38,12 +38,16 @@ function ClbError(options) {
     message: 'An unknown error occurred.',
     code: -1
   }, options);
-  this.type = options.type;
+  this.type = options.type || options.name;
   this.name = this.type; // Conform to Error class
   this.message = options.message;
   this.data = options.data;
   this.code = options.code;
   this.stack = (new Error()).stack;
+  if (options instanceof Error) {
+    // in case this is a javascript exception, keep the raw cause in data.cause
+    this.data = angular.extend({cause: options}, this.data);
+  }
 }
 // Extend the Error prototype
 ClbError.prototype = Object.create(Error.prototype);
