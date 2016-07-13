@@ -40,9 +40,9 @@ clbUser.$inject = ['$rootScope', '$q', '$http', '$cacheFactory', '$log', 'lodash
 clbIdentityUtil.$inject = ['$log', 'lodash'];
 clbResultSet.$inject = ['$http', '$q', 'clbError'];
 clbStorage.$inject = ['$http', '$q', '$log', 'uuid4', 'clbEnv', 'clbError', 'clbUser', 'clbResultSet'];
+clbConfirm.$inject = ['$rootScope', '$uibModal'];
 clbResourceLocator.$inject = ['$q', '$log', '$injector', 'clbError'];
 clbStream.$inject = ['$http', '$log', 'clbEnv', 'clbError', 'clbResultSet'];
-clbConfirm.$inject = ['$rootScope', '$uibModal'];
 clbErrorDialog.$inject = ['$uibModal', 'clbError'];
 clbUsercardPopoverDirective.$inject = ['$log', '$q', 'clbUser', 'clbUsercardPopover'];
 clbUserCardPopoverService.$inject = ['$rootScope'];
@@ -212,6 +212,11 @@ angular.module('clb-storage', [
 ]);
 
 /**
+ * @module clb-ui-dialog
+ */
+angular.module('clb-ui-dialog', ['ui.bootstrap.modal']);
+
+/**
  * @module clb-stream
  * @desc
  * The `clb-stream` module contains a service and a few directives to retrieve
@@ -225,11 +230,6 @@ angular.module('clb-stream', [
   'clb-rest',
   'clb-identity'
 ]);
-
-/**
- * @module clb-ui-dialog
- */
-angular.module('clb-ui-dialog', ['ui.bootstrap.modal']);
 
 /**
  * @module clb-ui-error
@@ -255,12 +255,6 @@ angular.module('clb-ui-form', []);
 angular.module('clb-ui-identity', ['lodash', 'clb-identity']);
 
 /**
- * Provides a simple loading directive.
- * @module clb-ui-loading
- */
-angular.module('clb-ui-loading', []);
-
-/**
  * The ``clb-ui-storage`` module provides Angular directive to work
  * with the HBP Collaboratory storage.
  *
@@ -278,6 +272,12 @@ angular.module('clb-ui-storage', [
   'clb-ui-error',
   'clb-storage'
 ]);
+
+/**
+ * Provides a simple loading directive.
+ * @module clb-ui-loading
+ */
+angular.module('clb-ui-loading', []);
 
 /**
  * @module clb-ui-stream
@@ -2254,8 +2254,10 @@ function clbCtxData($http, $q, uuid4, clbEnv, clbError) {
       if (!uuid4.validate(ctx)) {
         return $q.reject(invalidUuidError(ctx));
       }
-      return $http.put(configUrl + ctx + '/', angular.toJson(data))
-      .then(function() {
+      return $http.put(configUrl + ctx + '/', {
+        context: ctx,
+        content: angular.toJson(data)
+      }).then(function() {
         return data;
       })
       .catch(clbError.rejectHttpError);
@@ -4320,6 +4322,59 @@ function clbStorage(
   }
 }
 
+angular.module('clb-ui-dialog')
+.factory('clbConfirm', clbConfirm);
+
+/**
+ * Service to trigger modal dialog.
+ *
+ * @namespace clbDialog
+ * @memberof module:clb-ui-dialog
+ * @param  {object} $rootScope Angular DI
+ * @param  {object} $uibModal     Angular DI
+ * @return {object}            Service Descriptor
+ */
+function clbConfirm($rootScope, $uibModal) {
+  return {
+    open: open
+  };
+
+  /**
+   * Confirmation dialog
+   * @param  {object} options Parameters
+   * @return {Promise}        Resolve if the confirmation happens, reject otherwise
+   */
+  function open(options) {
+    options = angular.extend({
+      scope: $rootScope,
+      title: 'Confirm',
+      confirmLabel: 'Yes',
+      cancelLabel: 'No',
+      template: 'Are you sure?',
+      closable: true
+    }, options);
+
+    var modalScope = options.scope.$new();
+    modalScope.title = options.title;
+    modalScope.confirmLabel = options.confirmLabel;
+    modalScope.cancelLabel = options.cancelLabel;
+    modalScope.confirmationContent = options.template;
+    modalScope.confirmationContentUrl = options.templateUrl;
+    modalScope.closable = options.closable;
+    modalScope.securityQuestion = options.securityQuestion;
+    modalScope.securityAnswer = options.securityAnswer;
+
+    var instance = $uibModal.open({
+      template:'<div class=modal-header><button type=button ng-show=closable class=close ng-click="$dismiss(\'cancel\')" aria-hidden=true>&times;</button><h4 class=modal-title>{{title}}</h4></div><div class=modal-body><alert ng-if=error type=danger>{{error.reason}}</alert><div class="alert alert-warning" ng-show=securityQuestion>Unexpected bad things will happen if you don’t read this!</div><ng-include ng-if=confirmationContentUrl src=confirmationContentUrl></ng-include><p ng-if=!confirmationContentUrl>{{confirmationContent}}</p><fieldset class=form-group ng-show=securityQuestion><label for=securityAnswer>{{securityQuestion}}</label> <input type=text class=form-control name=securityAnswer ng-model=answer></fieldset></div><div class=modal-footer><button class="btn btn-default" ng-click="$dismiss(\'cancel\')">{{cancelLabel}}</button> <button class="btn btn-danger" ng-disabled="securityAnswer && answer !== securityAnswer" ng-click=$close()>{{confirmLabel}}</button></div>',
+      show: true,
+      backdrop: 'static',
+      scope: modalScope,
+      keyboard: options.keyboard || options.closable
+    });
+    return instance.result;
+  }
+}
+
 angular.module('clb-stream')
 .provider('clbResourceLocator', clbResourceLocatorProvider);
 
@@ -4517,59 +4572,6 @@ function clbStream($http, $log, clbEnv, clbError, clbResultSet) {
                          type + ':' + id + '/';
     return clbResultSet.get($http.get(url), options)
     .catch(clbError.rejectHttpError);
-  }
-}
-
-angular.module('clb-ui-dialog')
-.factory('clbConfirm', clbConfirm);
-
-/**
- * Service to trigger modal dialog.
- *
- * @namespace clbDialog
- * @memberof module:clb-ui-dialog
- * @param  {object} $rootScope Angular DI
- * @param  {object} $uibModal     Angular DI
- * @return {object}            Service Descriptor
- */
-function clbConfirm($rootScope, $uibModal) {
-  return {
-    open: open
-  };
-
-  /**
-   * Confirmation dialog
-   * @param  {object} options Parameters
-   * @return {Promise}        Resolve if the confirmation happens, reject otherwise
-   */
-  function open(options) {
-    options = angular.extend({
-      scope: $rootScope,
-      title: 'Confirm',
-      confirmLabel: 'Yes',
-      cancelLabel: 'No',
-      template: 'Are you sure?',
-      closable: true
-    }, options);
-
-    var modalScope = options.scope.$new();
-    modalScope.title = options.title;
-    modalScope.confirmLabel = options.confirmLabel;
-    modalScope.cancelLabel = options.cancelLabel;
-    modalScope.confirmationContent = options.template;
-    modalScope.confirmationContentUrl = options.templateUrl;
-    modalScope.closable = options.closable;
-    modalScope.securityQuestion = options.securityQuestion;
-    modalScope.securityAnswer = options.securityAnswer;
-
-    var instance = $uibModal.open({
-      template:'<div class=modal-header><button type=button ng-show=closable class=close ng-click="$dismiss(\'cancel\')" aria-hidden=true>&times;</button><h4 class=modal-title>{{title}}</h4></div><div class=modal-body><alert ng-if=error type=danger>{{error.reason}}</alert><div class="alert alert-warning" ng-show=securityQuestion>Unexpected bad things will happen if you don’t read this!</div><ng-include ng-if=confirmationContentUrl src=confirmationContentUrl></ng-include><p ng-if=!confirmationContentUrl>{{confirmationContent}}</p><fieldset class=form-group ng-show=securityQuestion><label for=securityAnswer>{{securityQuestion}}</label> <input type=text class=form-control name=securityAnswer ng-model=answer></fieldset></div><div class=modal-footer><button class="btn btn-default" ng-click="$dismiss(\'cancel\')">{{cancelLabel}}</button> <button class="btn btn-danger" ng-disabled="securityAnswer && answer !== securityAnswer" ng-click=$close()>{{confirmLabel}}</button></div>',
-      show: true,
-      backdrop: 'static',
-      scope: modalScope,
-      keyboard: options.keyboard || options.closable
-    });
-    return instance.result;
   }
 }
 
@@ -4936,98 +4938,6 @@ function clbUsercardCacheTemplate($templateCache) {
   if (injector.template) {
     $templateCache.put('usercard.directive.html', injector.template);
   }
-}
-
-angular.module('clb-ui-loading')
-.directive('clbLoading', clbLoading);
-
-/**
- * The directive clbLoading displays a simple loading message. If a promise
- * is given, the loading indicator will disappear once it is resolved.
- *
- * Attributes
- * ----------
- *
- * =======================  ===================================================
- * Name                     Description
- * =======================  ===================================================
- * {Promise} [clb-promise]  Hide the loading message upon fulfilment.
- * {string} [clb-message]   Displayed loading string (default=``'loading...'``)
- * =======================  ===================================================
- *
- * @memberof module:clb-ui-loading
- * @return {object} Angular directive descriptor
- * @example <caption>Directive Usage Example</caption>
- * <hbp-loading hbp-promise="myAsyncFunc()" hbp-message="'Loading My Async Func'">
- * </hbp-loading>
- */
-function clbLoading() {
-  return {
-    restrict: 'E',
-    scope: {
-      promise: '=?clbPromise',
-      message: '=?clbMessage'
-    },
-    template:'<div class=clb-loading ng-if=loading><span class="glyphicon glyphicon-refresh clb-spinning"></span> {{message}}</div>',
-    link: function(scope) {
-      scope.loading = true;
-      scope.message = scope.message || 'Loading...';
-      if (scope.promise) {
-        var complete = function() {
-          scope.loading = false;
-        };
-        scope.promise.then(complete, complete);
-      }
-    }
-  };
-}
-
-angular.module('clb-ui-loading')
-.directive('clbPerformAction', clbPerformAction);
-
-/**
- * @namespace clbPerformAction
- * @memberof module:clb-ui-loading
- *
- * @desc
- * clbPerformAction directive run an action when the given control is clicked.
- * it can be added as an attribute. While the action is running, the control
- * is disabled.
- *
- * @param {function} clbPerformAction  the code to run when the button is clicked.
- *                     this function must return a promise.
- * @param {string}   clbLoadingMessage text replacement for the element content.
- * @return {object}                      Directive Descriptor
- * @example <caption>use perform action to disable a button while code is running</caption>
- * <div ng-controller="myController">
- *  <input class="btn btn-primary" type="submit" clb-perform-action="doSomething()">
- * </div>
- */
-function clbPerformAction() {
-  return {
-    restrict: 'A',
-    scope: {
-      action: '&clbPerformAction'
-    },
-    link: function(scope, element, attrs) {
-      var onComplete = function() {
-        element.html(scope.text);
-        element.attr('disabled', false);
-        element.removeClass('loading');
-      };
-      var run = function() {
-        if (scope.loadingMessage) {
-          element.html(scope.loadingMessage);
-        }
-        element.addClass('loading');
-        element.attr('disabled', true);
-        scope.action().then(onComplete, onComplete);
-      };
-      scope.loadingMessage = attrs.clbLoadingMessage;
-      scope.text = scope.text || element.html();
-      element.on('click', run);
-    }
-  };
 }
 
 angular.module('clb-ui-storage')
@@ -5852,6 +5762,98 @@ angular.module('clb-ui-storage')
     }
   };
 });
+
+angular.module('clb-ui-loading')
+.directive('clbLoading', clbLoading);
+
+/**
+ * The directive clbLoading displays a simple loading message. If a promise
+ * is given, the loading indicator will disappear once it is resolved.
+ *
+ * Attributes
+ * ----------
+ *
+ * =======================  ===================================================
+ * Name                     Description
+ * =======================  ===================================================
+ * {Promise} [clb-promise]  Hide the loading message upon fulfilment.
+ * {string} [clb-message]   Displayed loading string (default=``'loading...'``)
+ * =======================  ===================================================
+ *
+ * @memberof module:clb-ui-loading
+ * @return {object} Angular directive descriptor
+ * @example <caption>Directive Usage Example</caption>
+ * <hbp-loading hbp-promise="myAsyncFunc()" hbp-message="'Loading My Async Func'">
+ * </hbp-loading>
+ */
+function clbLoading() {
+  return {
+    restrict: 'E',
+    scope: {
+      promise: '=?clbPromise',
+      message: '=?clbMessage'
+    },
+    template:'<div class=clb-loading ng-if=loading><span class="glyphicon glyphicon-refresh clb-spinning"></span> {{message}}</div>',
+    link: function(scope) {
+      scope.loading = true;
+      scope.message = scope.message || 'Loading...';
+      if (scope.promise) {
+        var complete = function() {
+          scope.loading = false;
+        };
+        scope.promise.then(complete, complete);
+      }
+    }
+  };
+}
+
+angular.module('clb-ui-loading')
+.directive('clbPerformAction', clbPerformAction);
+
+/**
+ * @namespace clbPerformAction
+ * @memberof module:clb-ui-loading
+ *
+ * @desc
+ * clbPerformAction directive run an action when the given control is clicked.
+ * it can be added as an attribute. While the action is running, the control
+ * is disabled.
+ *
+ * @param {function} clbPerformAction  the code to run when the button is clicked.
+ *                     this function must return a promise.
+ * @param {string}   clbLoadingMessage text replacement for the element content.
+ * @return {object}                      Directive Descriptor
+ * @example <caption>use perform action to disable a button while code is running</caption>
+ * <div ng-controller="myController">
+ *  <input class="btn btn-primary" type="submit" clb-perform-action="doSomething()">
+ * </div>
+ */
+function clbPerformAction() {
+  return {
+    restrict: 'A',
+    scope: {
+      action: '&clbPerformAction'
+    },
+    link: function(scope, element, attrs) {
+      var onComplete = function() {
+        element.html(scope.text);
+        element.attr('disabled', false);
+        element.removeClass('loading');
+      };
+      var run = function() {
+        if (scope.loadingMessage) {
+          element.html(scope.loadingMessage);
+        }
+        element.addClass('loading');
+        element.attr('disabled', true);
+        scope.action().then(onComplete, onComplete);
+      };
+      scope.loadingMessage = attrs.clbLoadingMessage;
+      scope.text = scope.text || element.html();
+      element.on('click', run);
+    }
+  };
+}
 
 angular.module('clb-ui-stream')
 .directive('clbActivity', clbActivity);
