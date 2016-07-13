@@ -16,8 +16,9 @@ angular.module('nmpi')
         $scope.curPage = 0;
         $scope.pageSize = 20;
         $rootScope.with_ctx = true;
+        //$location.search('ctx');
 
-        $scope.changePage = function( page ) 
+        $scope.changePage = function( page )
         {
             $scope.msg = {text:"", css:"", show:false};
             $scope.curPage = page;
@@ -59,7 +60,9 @@ angular.module('nmpi')
             $scope.results.objects = new Array(); // init before the resource is answered by the server
         };
 
+
         // depending on whether there is a context...
+        //$location.search('ctx');
         if( $location.search().ctx ){
             // Inside-collab
             $rootScope.ctx = $location.search().ctx;
@@ -123,6 +126,19 @@ angular.module('nmpi')
         $scope.msg = {text: "", css: "", show: false};
         $scope.hpcSite = null;
         $scope.showHPCsites = false;
+        
+        $scope.del_job = function(id){
+            $scope.queue = Queue.get({id:id.eId}, function(data){
+                data.status = "removed";
+                Queue.del({id:id.eId}, function(data){
+                    if($rootScope.with_ctx){
+                        window.location.href = "app/#/queue?ctx="+$rootScope.ctx;
+                    } else {
+                        window.location.href = "app/#/queue";
+                    }
+                });
+            });
+        };
 
         Results.get(
             {id: $stateParams.eId},

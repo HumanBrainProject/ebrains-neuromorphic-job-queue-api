@@ -29,7 +29,9 @@
                 </thead>
 
                 <tr ng-if="curPage == 0" ng-repeat="job in queue.objects | filter:query | orderBy:orderProp">
-                    <td style="width: 18px"><a class="glyphicon glyphicon-search" ui-sref="job_detail({eId:job.id})"></a></td>
+                    <td style="width: 18px">
+                        <a class="glyphicon glyphicon-search" ui-sref="job_detail({eId:job.id})"></a>
+                    </td>
                     <td>{{job.id}}</td>
                     <td><span ng-class="{'label label-info':job.status=='submitted', 'label label-primary':job.status=='running'}">{{job.status}}</span></td>
                     <td>{{job.hardware_platform}}</td>
