@@ -126,15 +126,12 @@ angular.module('nmpi')
         $scope.showHPCsites = false;
         
         $scope.del_job = function(id){
-            $scope.queue = Queue.get({id:id.eId}, function(data){
-                data.status = "removed";
-                Queue.del({id:id.eId}, function(data){
-                    if($rootScope.with_ctx){
-                        window.location.href = "app/#/queue?ctx="+$rootScope.ctx;
-                    } else {
-                        window.location.href = "app/#/queue";
-                    }
-                });
+            Queue.del({id:id.eId}, function(data){
+                if($rootScope.with_ctx){
+                    window.location.href = "app/#/queue?ctx="+$rootScope.ctx;
+                } else {
+                    window.location.href = "app/#/queue";
+                }
             });
         };
 
