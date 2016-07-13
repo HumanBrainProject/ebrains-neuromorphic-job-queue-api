@@ -198,6 +198,16 @@ Please be sure to check the change in the directive attributes prefix as well.::
    hbp-error-message -> clb-error-message (hbp-promise -> clb-promise, hbp-message -> clb-message)
    hbp-usercard -> clb-usercard (hbp-user -> clb-user, hbp-template -> clb-template)
 
+If you wrote a usercard custom template (using ``hbp-template`` attribute), you should probably update the following css classes::
+
+   hbp-usercard -> clb-usercard
+   hbp-usercard-pix -> clb-usercard-pix
+   hbp-user-avatar -> clb-user-avatar
+   hbp-usercard-header -> clb-usercard-header
+   hbp-usercard-institution -> clb-usercard-institution
+   hbp-usercard-contact -> clb-usercard-contact
+   hbp-usercard-contact-item -> clb-usercard-contact-item
+
 ``hbpDialogFactory`` has been removed, with the exception of ``hbpDialogFactory.error`` and ``hbpDialogFactory.confirm`` which
 are now respectively ``clbErrorDialog.open`` (module ``clb-ui-error``) and ``clbConfirm.open`` (module ``clb-ui-dialog``).
 These two refactoring will have you covered::
