@@ -79,7 +79,7 @@ function ActivityController(
         action: 'useSecondaryNavigation',
         tag: data.tag
       });
-      clbResourceLocator.urlFor(data.ref)
+      clbResourceLocator.urlFor(data.ref, vm.activity)
       .then(function(url) {
         $window.location = url;
       })
