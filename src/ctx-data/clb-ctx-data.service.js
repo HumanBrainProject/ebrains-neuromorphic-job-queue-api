@@ -64,8 +64,10 @@ function clbCtxData($http, $q, uuid4, clbEnv, clbError) {
       if (!uuid4.validate(ctx)) {
         return $q.reject(invalidUuidError(ctx));
       }
-      return $http.put(configUrl + ctx + '/', angular.toJson(data))
-      .then(function() {
+      return $http.put(configUrl + ctx + '/', {
+        context: ctx,
+        content: angular.toJson(data)
+      }).then(function() {
         return data;
       })
       .catch(clbError.rejectHttpError);

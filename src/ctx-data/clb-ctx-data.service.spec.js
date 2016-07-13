@@ -84,8 +84,10 @@ describe('clbCtxData', function() {
 
   it('should update a config', function() {
     clbCtxData.save(ctx, newData).then(assignActual);
-    $httpBackend.expectPUT(host + '/config/' + ctx + '/')
-      .respond(200, {ctx: ctx, data: angular.toJson(newData)});
+    $httpBackend.expectPUT(host + '/config/' + ctx + '/', {
+      context: ctx,
+      content: '"Goal!"'
+    }).respond(200, {ctx: ctx, data: angular.toJson(newData)});
     $httpBackend.flush();
     expect(actual).toEqual(newData);
   });
