@@ -9,7 +9,9 @@
   </a>
 </div>
 <div class="clb-activity-summary" ng-href="" ng-click="vm.navigate($event)">
-  <span ng-repeat="p in vm.parts">
+  <span class="clb-activity-link"
+        ng-repeat="p in vm.parts"
+        ng-class="'clb-activity-link-' + p.tag">
     <a href
        clb-usercard-popover="p.ref.id"
        ng-click="vm.navigate($event, false)"
