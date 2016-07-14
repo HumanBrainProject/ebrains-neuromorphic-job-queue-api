@@ -136,6 +136,19 @@ describe('clbStorage', function() {
     });
   });
 
+  describe('getAbsolutePath', function() {
+    it('should generate the entity absolute path', function() {
+      backend.expectGET(baseUrl('entity_path/' + entity._uuid))
+      .respond(200, {
+        _uuid: entity._uuid,
+        _path: '/A/B/C.txt'
+      });
+      service.getAbsolutePath(entity).then(assign);
+      backend.flush();
+      expect(actual).toBe('/A/B/C.txt');
+    });
+  });
+
   describe('getChildren', function() {
     describe('root projects', function() {
       var projectEntity;

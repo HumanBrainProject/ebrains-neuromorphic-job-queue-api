@@ -49,6 +49,7 @@ function clbStorage(
   var promises = {};
   return {
     getEntity: getEntity,
+    getAbsolutePath: getAbsolutePath,
     upload: upload,
     query: query,
     getContent: getContent,
@@ -116,6 +117,25 @@ function clbStorage(
         locator: locator
       }
     }));
+  }
+
+  /**
+   * Return the absolute path of the entity
+   * @function
+   * @memberof module:clb-storage.clbStorage
+   * @param  {object|UUID}   entity UUID or descriptor
+   * @return {Promise}       return a path string when fulfilled.
+   */
+  function getAbsolutePath(entity) {
+    if (!entity) {
+      return $q.when(null);
+    }
+    var uuid = entity._uuid || entity;
+    return $http.get(baseUrl + '/entity_path/' + uuid)
+    .then(function(res) {
+      return res.data._path;
+    })
+    .catch(clbError.rejectHttpError);
   }
 
   /**
