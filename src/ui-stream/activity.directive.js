@@ -150,7 +150,6 @@ function ActivityController(
           }
         }
       }
-      $log.debug('references', root);
     }
 
     var head = root.next;

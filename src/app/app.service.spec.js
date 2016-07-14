@@ -68,6 +68,22 @@ describe('clbApp', function() {
     }));
   });
 
+  describe('.open', function() {
+    it('call postMessage', function() {
+      var ref = {type: 'HBPCollab', id: 1};
+      spyOn(w.parent, 'postMessage');
+      tk.open(ref);
+      expect(w.parent.postMessage).toHaveBeenCalledWith({
+        apiVersion: 1,
+        ticket: jasmine.any(Number),
+        eventName: 'resourceLocator.open',
+        data: {
+          ref: ref
+        }
+      }, '*');
+    });
+  });
+
   describe('.context', function() {
     var result;
     var scope;

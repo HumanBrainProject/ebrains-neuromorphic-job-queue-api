@@ -83,7 +83,6 @@ function clbResourceLocator($q, $log, $injector, clbError) {
         }
         return $q.when(fn(ref, activity)).then(function(url) {
           if (angular.isString(url)) {
-            $log.debug('generated URL', url);
             return url;
           }
           if (angular.isDefined(url)) {
