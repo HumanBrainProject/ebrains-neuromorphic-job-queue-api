@@ -49,6 +49,7 @@ function clbStorage(
   var promises = {};
   return {
     getEntity: getEntity,
+    getAbsolutePath: getAbsolutePath,
     upload: upload,
     query: query,
     getContent: getContent,
@@ -116,6 +117,30 @@ function clbStorage(
         locator: locator
       }
     }));
+  }
+
+  /**
+   * Return the absolute path of the entity
+   * @function
+   * @memberof module:clb-storage.clbStorage
+   * @param  {object} entity Entity Descriptor
+   * @return {Promise}       return a path string when fulfilled.
+   */
+  function getAbsolutePath(entity) {
+    var parts = [];
+    var recurse = function(entity) {
+      parts.push(entity._name);
+      if (entity._parent) {
+        return getEntity(entity._parent).then(recurse);
+      }
+    };
+    return $q.when(recurse(entity)).then(function() {
+      var path = '';
+      for (var i = parts.length - 1; i >= 0; i--) {
+        path += '/' + parts[i];
+      }
+      return path;
+    });
   }
 
   /**
