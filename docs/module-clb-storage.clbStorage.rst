@@ -45,6 +45,20 @@ only accepted locator at this time is the entity UUID.
     :return Promise: Return a :doc:`module-clb-storage.EntityDescriptor` when fulfilled
                                     or reject a :doc:`module-clb-error.ClbError`
     
+.. _module-clb-storage.clbStorage.getAbsolutePath:
+
+
+Function: ``getAbsolutePath``
+=============================
+
+Return the absolute path of the entity
+
+.. js:function:: getAbsolutePath(entity)
+
+    
+    :param object|UUID entity: UUID or descriptor
+    :return Promise: return a path string when fulfilled.
+    
 .. _module-clb-storage.clbStorage.runOnce:
 
 
