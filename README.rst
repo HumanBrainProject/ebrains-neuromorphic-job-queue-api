@@ -184,6 +184,12 @@ by choosing the version in ``angular-hbp-collaboratory``.
 
 If your code is using directives from this library, please refer to the angular-bootstrap
 _`Migration Guide <https://github.com/angular-ui/bootstrap/wiki/Migration-guide-for-prefixes>`.
+To find if and where your code is using such directives, you can run the following command
+in your source code folder:
+
+.. code-block:: bash
+
+  grep -ro '<accordion\|<accordion-group\|<accordion-heading\|<accordionConfig\|<alert\|<btn-checkbox\|<btn-radio\|<buttonConfig\|<carousel\|<slide\|<collapse\|<dateParser\|<datepicker\|<datepicker-popup\|<daypicker\|<monthpicker\|<yearpicker\|<datepickerConfig\|<datepickerPopupConfig\|<dropdown\|<dropdown-toggle\|<dropdown-menu\|<keyboard-nav\|<dropdownService\|<$modal\|<$modalInstance\|<$modalStack\|<modal-transclude\|<pagination\|<pager\|<pagerConfig\|<paginationConfig\|<popover\|<popover-template\|<popover-html\|<$position\|<progressbar\|<bar\|<progress\|<progressConfig\|<rating\|<ratingConfig\|<tabset\|<tab\|<tab-heading\|<timepicker\|<timepickerConfig\|<tooltip\|<tooltip-template\|<tooltip-html\|<$tooltip\|<typeahead\|<typeahead-highlight\|<typeahead-match\|<typeaheadHighlightFilter\|<typeaheadParser' .
 
 You can also use the directives provided by this package.
 Please be sure to check the change in the directive attributes prefix as well.::
@@ -191,14 +197,28 @@ Please be sure to check the change in the directive attributes prefix as well.::
    hbp-file-browser -> clb-ui-storage (root -> clb-root, entity -> clb-entity)
    hbp-error-message -> clb-error-message (hbp-promise -> clb-promise, hbp-message -> clb-message)
    hbp-usercard -> clb-usercard (hbp-user -> clb-user, hbp-template -> clb-template)
+   hbp-loading -> clb-loading (hbp-promise -> clb-promise, hbp-message -> clb-message)
 
-``hbpDialogFactory`` has been removed, with the exception of ``hbpDialogFactory.error`` which
-is now ``clbErrorDialog.open (module clb-ui-error)``. Those two refactore will have you covered::
+If you wrote a usercard custom template (using ``hbp-template`` attribute), you should update the following css classes
+and probably update the template to conform to the new html structure::
 
-   hbpDialogFactory -> clbErrorDialog
-   clbErrorDialog.error -> clbErrorDialog.open
+   hbp-usercard -> clb-usercard
+   hbp-usercard-pix -> clb-usercard-pix
+   hbp-user-avatar -> clb-user-avatar
+   hbp-usercard-header -> clb-usercard-header
+   hbp-usercard-institution -> clb-usercard-institution
+   hbp-usercard-contact -> clb-usercard-contact
+   hbp-usercard-contact-item -> clb-usercard-contact-item
 
-If you were using other methods from clbDialogFactory (e.g.: ``.alert()`` or ``.confirm``),
+``hbpDialogFactory`` has been removed, with the exception of ``hbpDialogFactory.error`` and ``hbpDialogFactory.confirm`` which
+are now respectively ``clbErrorDialog.open`` (module ``clb-ui-error``) and ``clbConfirm.open`` (module ``clb-ui-dialog``).
+These two refactoring will have you covered::
+
+   hbpDialogFactory -> clbErrorDialog and/or clbConfirm
+   hbpDialogFactory.error -> clbErrorDialog.open
+   hbpDialogFactory.confirm -> clbConfirm.open
+
+If you were using other methods from hbpDialogFactory (e.g.: ``.alert()``),
 you need to rewrite them using angular-bootstrap ``$uibModal`` (read the
 _`documentation <https://angular-ui.github.io/bootstrap/#/modal>`)
 
