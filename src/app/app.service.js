@@ -34,6 +34,7 @@ angular.module('clb-app')
  *   // Cannot set the state
  * });
  *
+ * @param  {object} $log AngularJS service injection
  * @param  {object} $q AngularJS service injection
  * @param  {object} $rootScope AngularJS service injection
  * @param  {object} $timeout AngularJS service injection
@@ -42,6 +43,7 @@ angular.module('clb-app')
  * @return {object}         the service singleton
  */
 function clbApp(
+  $log,
   $q,
   $rootScope,
   $timeout,
@@ -57,7 +59,8 @@ function clbApp(
   function AppToolkit() { }
   AppToolkit.prototype = {
     emit: emit,
-    context: context
+    context: context,
+    open: open
   };
 
   $window.addEventListener('message', function(event) {
@@ -147,4 +150,20 @@ function clbApp(
     return d.promise;
   }
   return new AppToolkit();
+
+  /**
+   * @desc
+   * Open a resource described by the given ObjectReference.
+   *
+   * The promise will fulfill only if the navigation is possible. Otherwise,
+   * an error will be returned.
+   * @function open
+   * @memberof module:clb-app.clbApp
+   * @param {ObjectReference} ref  The object reference to navigate to
+   * @return {Promise}  The promise retrieved by the call to emit
+   */
+  function open(ref) {
+    $log.debug('Ask the frontend to navigate to:', ref);
+    return emit('resourceLocator.open', {ref: ref});
+  }
 }
