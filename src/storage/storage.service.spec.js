@@ -138,24 +138,12 @@ describe('clbStorage', function() {
 
   describe('getAbsolutePath', function() {
     it('should generate the entity absolute path', function() {
-      var entities = [{
+      backend.expectGET(baseUrl('entity_path/' + entity._uuid))
+      .respond(200, {
         _uuid: entity._uuid,
-        _parent: '7CA9072A-0DD9-497C-B870-AE8C0334878B',
-        _name: 'C.txt'
-      }, {
-        _uuid: '7CA9072A-0DD9-497C-B870-AE8C0334878B',
-        _parent: '5E5EF2D3-2287-492D-8035-D5225E04ED21',
-        _name: 'B'
-      }, {
-        _uuid: '5E5EF2D3-2287-492D-8035-D5225E04ED21',
-        _name: 'A'
-      }];
-      entity._parent = '7CA9072A-0DD9-497C-B870-AE8C0334878B';
-      backend.expectGET(entityUrl(entities[0]._parent))
-      .respond(200, entities[1]);
-      backend.expectGET(entityUrl(entities[1]._parent))
-      .respond(200, entities[2]);
-      service.getAbsolutePath(entities[0]).then(assign);
+        _path: '/A/B/C.txt'
+      });
+      service.getAbsolutePath(entity).then(assign);
       backend.flush();
       expect(actual).toBe('/A/B/C.txt');
     });

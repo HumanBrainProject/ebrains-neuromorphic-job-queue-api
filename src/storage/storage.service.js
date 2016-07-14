@@ -123,24 +123,16 @@ function clbStorage(
    * Return the absolute path of the entity
    * @function
    * @memberof module:clb-storage.clbStorage
-   * @param  {object} entity Entity Descriptor
+   * @param  {object|UUID}   entity UUID or descriptor
    * @return {Promise}       return a path string when fulfilled.
    */
   function getAbsolutePath(entity) {
-    var parts = [];
-    var recurse = function(entity) {
-      parts.push(entity._name);
-      if (entity._parent) {
-        return getEntity(entity._parent).then(recurse);
-      }
-    };
-    return $q.when(recurse(entity)).then(function() {
-      var path = '';
-      for (var i = parts.length - 1; i >= 0; i--) {
-        path += '/' + parts[i];
-      }
-      return path;
-    });
+    var uuid = entity._uuid || entity;
+    return $http.get(baseUrl + '/entity_path/' + uuid)
+    .then(function(res) {
+      return res.data._path;
+    })
+    .catch(clbError.rejectHttpError);
   }
 
   /**
