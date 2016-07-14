@@ -61,6 +61,23 @@ the mode, the ctx UUID and the application state if any.
     :param object data: new values to send to HBP Collaboratory frontend
     :return Promise: resolve to the context
     
+.. _module-clb-app.clbApp.open:
+
+
+Function: ``open``
+==================
+
+Open a resource described by the given ObjectReference.
+
+The promise will fulfill only if the navigation is possible. Otherwise,
+an error will be returned.
+
+.. js:function:: open(ref)
+
+    
+    :param ObjectReference ref: The object reference to navigate to
+    :return Promise: The promise retrieved by the call to emit
+    
 
 
 
