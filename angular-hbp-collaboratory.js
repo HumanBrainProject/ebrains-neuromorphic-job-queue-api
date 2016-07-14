@@ -27,7 +27,7 @@
  * Module to load all the core modules. Try to use the sub-modules instead.
  * @module hbpCollaboratoryCore
  */
-clbApp.$inject = ['$q', '$rootScope', '$timeout', '$window', 'clbError'];
+clbApp.$inject = ['$log', '$q', '$rootScope', '$timeout', '$window', 'clbError'];
 clbAutomator.$inject = ['$q', '$log', 'clbError'];
 clbCollabTeamRole.$inject = ['$http', '$log', '$q', 'clbEnv', 'clbError'];
 clbCollabTeam.$inject = ['$http', '$log', '$q', 'lodash', 'clbEnv', 'clbError', 'clbCollabTeamRole', 'clbUser'];
@@ -324,6 +324,7 @@ angular.module('clb-app')
  *   // Cannot set the state
  * });
  *
+ * @param  {object} $log AngularJS service injection
  * @param  {object} $q AngularJS service injection
  * @param  {object} $rootScope AngularJS service injection
  * @param  {object} $timeout AngularJS service injection
@@ -332,6 +333,7 @@ angular.module('clb-app')
  * @return {object}         the service singleton
  */
 function clbApp(
+  $log,
   $q,
   $rootScope,
   $timeout,
@@ -347,7 +349,8 @@ function clbApp(
   function AppToolkit() { }
   AppToolkit.prototype = {
     emit: emit,
-    context: context
+    context: context,
+    open: open
   };
 
   $window.addEventListener('message', function(event) {
@@ -437,6 +440,22 @@ function clbApp(
     return d.promise;
   }
   return new AppToolkit();
+
+  /**
+   * @desc
+   * Open a resource described by the given ObjectReference.
+   *
+   * The promise will fulfill only if the navigation is possible. Otherwise,
+   * an error will be returned.
+   * @function open
+   * @memberof module:clb-app.clbApp
+   * @param {ObjectReference} ref  The object reference to navigate to
+   * @return {Promise}  The promise retrieved by the call to emit
+   */
+  function open(ref) {
+    $log.debug('Ask the frontend to navigate to:', ref);
+    return emit('resourceLocator.open', {ref: ref});
+  }
 }
 
 /* global deferredBootstrapper, window, document */
@@ -1681,6 +1700,7 @@ angular.module('clb-collab')
 /**
  * Angular client to access Collab Team REST endpoint.
  *
+ * @namespace clbCollabTeam
  * @memberof module:clb-collab
  * @param  {object} $http             Angular DI
  * @param  {object} $log              Angular DI
@@ -2418,12 +2438,16 @@ function ClbError(options) {
     message: 'An unknown error occurred.',
     code: -1
   }, options);
-  this.type = options.type;
+  this.type = options.type || options.name;
   this.name = this.type; // Conform to Error class
   this.message = options.message;
   this.data = options.data;
   this.code = options.code;
   this.stack = (new Error()).stack;
+  if (options instanceof Error) {
+    // in case this is a javascript exception, keep the raw cause in data.cause
+    this.data = angular.extend({cause: options}, this.data);
+  }
 }
 // Extend the Error prototype
 ClbError.prototype = Object.create(Error.prototype);
@@ -4407,7 +4431,6 @@ function clbResourceLocator($q, $log, $injector, clbError) {
         }
         return $q.when(fn(ref, activity)).then(function(url) {
           if (angular.isString(url)) {
-            $log.debug('generated URL', url);
             return url;
           }
           if (angular.isDefined(url)) {
@@ -6007,7 +6030,6 @@ function ActivityController(
           }
         }
       }
-      $log.debug('references', root);
     }
 
     var head = root.next;
