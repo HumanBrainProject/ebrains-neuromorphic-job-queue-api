@@ -4,6 +4,7 @@ angular.module('clb-collab')
 /**
  * Angular client to access Collab Team REST endpoint.
  *
+ * @namespace clbCollabTeam
  * @memberof module:clb-collab
  * @param  {object} $http             Angular DI
  * @param  {object} $log              Angular DI
