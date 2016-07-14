@@ -127,6 +127,9 @@ function clbStorage(
    * @return {Promise}       return a path string when fulfilled.
    */
   function getAbsolutePath(entity) {
+    if (!entity) {
+      return $q.when(null);
+    }
     var uuid = entity._uuid || entity;
     return $http.get(baseUrl + '/entity_path/' + uuid)
     .then(function(res) {
