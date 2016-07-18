@@ -51,7 +51,7 @@ function clbGroup(
   lodash.each(['members', 'admins', 'member-groups', 'admin-groups'],
     function(rel) {
       var batchQuery = function(groupName, relIds, method) {
-        relIds = lodash.toArray(relIds);
+        relIds = lodash.isArray(relIds) ? relIds : [relIds];
         return $q.all(lodash.map(relIds, function(relId) {
           var url = [groupUrl, groupName, rel, relId].join('/');
           return $http({
