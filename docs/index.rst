@@ -124,18 +124,17 @@ this point. At this point, your code should still work, that will let you
 progressively refactor to use the new library instead of the old one::
 
    Add dependency 'hbpCollaboratory'
-   hbpUtil.ferr -> clbError.rejectHttpError (from clb-error module)
-   hbpErrorService -> clbError              (from clb-error module)
+   hbpErrorService -> clbError                    (from clb-error module)
+   hbpUtil.ferr -> clbError.rejectHttpError       (from clb-error module)
    hbpUtil.paginatedResultSet -> clbResultSet.get (from clb-rest module)
-   hbpIdentityUserDirectory -> clbUser      (from clb-identity module)
-   hbpCollabStore -> clbCollab              (from clb-collab module)
-   hbpCollabStore.context -> clbContext     (from clb-collab module)
-   hbpCollaboratoryNavStore -> clbCollabNav (from clb-collab module)
-   hbpCollaboratoryAppStore -> clbCollabApp (from clb-collab module)
-   clbCollabApp -> clbCollabApp             (from clb-collab module)
-   hbpEntityStore -> clbStorage             (from clb-storage module)
-   hbpFileStore -> clbStorage               (from clb-storage module)
-   hbpProjectStore -> clbStorage            (from clb-storage module)
+   hbpIdentityUserDirectory -> clbUser            (from clb-identity module)
+   hbpCollabStore -> clbCollab                    (from clb-collab module)
+   hbpCollabStore.context -> clbContext           (from clb-collab module)
+   hbpCollaboratoryNavStore -> clbCollabNav       (from clb-collab module)
+   hbpCollaboratoryAppStore -> clbCollabApp       (from clb-collab module)
+   hbpEntityStore -> clbStorage                   (from clb-storage module)
+   hbpFileStore -> clbStorage                     (from clb-storage module)
+   hbpProjectStore -> clbStorage                  (from clb-storage module)
    hbpConfigStore -> Manually refactor to clbCtxData (from clb-ctx-data)
      The service now use JSON as data format and the method signature
      changed from method(config) to method(ctx, data)
@@ -226,7 +225,7 @@ in your source code folder:
 
 .. code-block:: bash
 
-  grep -ro '<accordion\|<accordion-group\|<accordion-heading\|<accordionConfig\|<alert\|<btn-checkbox\|<btn-radio\|<buttonConfig\|<carousel\|<slide\|<collapse\|<dateParser\|<datepicker\|<datepicker-popup\|<daypicker\|<monthpicker\|<yearpicker\|<datepickerConfig\|<datepickerPopupConfig\|<dropdown\|<dropdown-toggle\|<dropdown-menu\|<keyboard-nav\|<dropdownService\|<$modal\|<$modalInstance\|<$modalStack\|<modal-transclude\|<pagination\|<pager\|<pagerConfig\|<paginationConfig\|<popover\|<popover-template\|<popover-html\|<$position\|<progressbar\|<bar\|<progress\|<progressConfig\|<rating\|<ratingConfig\|<tabset\|<tab\|<tab-heading\|<timepicker\|<timepickerConfig\|<tooltip\|<tooltip-template\|<tooltip-html\|<$tooltip\|<typeahead\|<typeahead-highlight\|<typeahead-match\|<typeaheadHighlightFilter\|<typeaheadParser' .
+  grep -ro '<accordion\|<accordion-group\|<accordion-heading\|<accordionConfig\|<alert\|<btn-checkbox\|<btn-radio\|<buttonConfig\|<carousel\|<slide\|<collapse\|<dateParser\|<datepicker\|<datepicker-popup\|<daypicker\|<monthpicker\|<yearpicker\|<datepickerConfig\|<datepickerPopupConfig\|dropdown=\|dropdown-toggle=\|dropdown-menu=\|<keyboard-nav\|<dropdownService\|<$modal\|<$modalInstance\|<$modalStack\|<modal-transclude\|<pagination\|<pager\|<pagerConfig\|<paginationConfig\|popover=\|popover-template=\|popover-html=\|$position\|<progressbar\|<bar\|<progress\|<progressConfig\|<rating\|<ratingConfig\|<tabset\|<tab\|<tab-heading\|timepicker\|timepickerConfig\|tooltip=\|tooltip-template=\|tooltip-html=\|$tooltip\|typeahead\|typeahead-match\|typeaheadHighlightFilter\|typeaheadParser' .
 
 You can also use the directives provided by this package.
 Please be sure to check the change in the directive attributes prefix as well.::
