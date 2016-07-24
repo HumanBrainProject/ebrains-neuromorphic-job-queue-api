@@ -29,11 +29,11 @@
  */
 clbApp.$inject = ['$log', '$q', '$rootScope', '$timeout', '$window', 'clbError'];
 clbAutomator.$inject = ['$q', '$log', 'clbError'];
+clbCtxData.$inject = ['$http', '$q', 'uuid4', 'clbEnv', 'clbError'];
 clbCollabTeamRole.$inject = ['$http', '$log', '$q', 'clbEnv', 'clbError'];
 clbCollabTeam.$inject = ['$http', '$log', '$q', 'lodash', 'clbEnv', 'clbError', 'clbCollabTeamRole', 'clbUser'];
 clbCollab.$inject = ['$log', '$q', '$cacheFactory', '$http', 'lodash', 'clbContext', 'clbEnv', 'clbError', 'clbResultSet', 'clbUser', 'ClbCollabModel', 'ClbContextModel'];
 clbContext.$inject = ['$http', '$q', 'clbError', 'clbEnv', 'ClbContextModel'];
-clbCtxData.$inject = ['$http', '$q', 'uuid4', 'clbEnv', 'clbError'];
 clbEnv.$inject = ['$injector'];
 clbError.$inject = ['$q'];
 clbGroup.$inject = ['$rootScope', '$q', '$http', '$cacheFactory', 'lodash', 'clbEnv', 'clbError', 'clbResultSet', 'clbIdentityUtil'];
@@ -42,7 +42,7 @@ clbIdentityUtil.$inject = ['$log', 'lodash'];
 clbResultSet.$inject = ['$http', '$q', 'clbError'];
 clbStorage.$inject = ['$http', '$q', '$log', 'uuid4', 'clbEnv', 'clbError', 'clbUser', 'clbResultSet'];
 clbResourceLocator.$inject = ['$q', '$log', '$injector', 'clbError'];
-clbStream.$inject = ['$http', '$log', 'clbEnv', 'clbError', 'clbResultSet'];
+clbStream.$inject = ['$http', 'clbEnv', 'clbError', 'clbResultSet'];
 clbConfirm.$inject = ['$rootScope', '$uibModal'];
 clbErrorDialog.$inject = ['$uibModal', 'clbError'];
 clbUsercardPopoverDirective.$inject = ['$log', '$q', 'clbUser', 'clbUsercardPopover'];
@@ -53,7 +53,7 @@ clbFileBrowserPath.$inject = ['clbStorage'];
 clbFileBrowser.$inject = ['lodash'];
 clbFileChooser.$inject = ['$q', '$log'];
 ActivityController.$inject = ['$scope', '$sce', '$log', '$window', '$q', '$compile', 'clbResourceLocator', 'clbErrorDialog'];
-FeedController.$inject = ['$log', 'clbStream', 'clbUser'];
+FeedController.$inject = ['$rootScope', 'clbStream', 'clbUser'];
 angular.module('hbpCollaboratoryCore', [
   'clb-app',
   'clb-automator',
@@ -130,6 +130,14 @@ angular.module('clb-automator', [
 ]);
 
 /**
+ * Provides a key value store where keys are context UUID
+ * and values are string.
+ *
+ * @module clb-context-data
+ */
+angular.module('clb-ctx-data', ['uuid4', 'clb-env', 'clb-error']);
+
+/**
  * @module clb-collab
  * @desc
  * Contain services to interact with collabs (e.g.: retriving collab informations or
@@ -145,14 +153,6 @@ angular.module('clb-collab', [
 ]);
 
 /**
- * Provides a key value store where keys are context UUID
- * and values are string.
- *
- * @module clb-context-data
- */
-angular.module('clb-ctx-data', ['uuid4', 'clb-env', 'clb-error']);
-
-/**
  * @module clb-env
  * @desc
  * ``clb-env`` module provides a way to information from the global environment.
@@ -161,6 +161,13 @@ angular.module('clb-ctx-data', ['uuid4', 'clb-env', 'clb-error']);
 angular.module('clb-env', []);
 
 angular.module('clb-error', []);
+
+angular.module('clb-identity', [
+  'lodash',
+  'clb-env',
+  'clb-error',
+  'clb-rest'
+]);
 
 /* global _ */
 /**
@@ -182,13 +189,6 @@ angular.module('lodash', [])
     lodash.keyBy = lodash.indexBy;
   }
 }]);
-
-angular.module('clb-identity', [
-  'lodash',
-  'clb-env',
-  'clb-error',
-  'clb-rest'
-]);
 
 /**
  * @module clb-rest
@@ -1137,6 +1137,117 @@ angular.module('clb-automator')
     });
   }
 }]);
+
+angular.module('clb-ctx-data')
+.factory('clbCtxData', clbCtxData);
+
+/**
+ * A service to retrieve data for a given ctx. This is a convenient
+ * way to store JSON data for a given context. Do not use it for
+ * Sensitive data. There is no data migration functionality available, so if
+ * the expected data format change, you are responsible to handle the old
+ * format on the client side.
+ *
+ * @namespace clbCtxData
+ * @memberof clb-ctx-data
+ * @param  {object} $http    Angular DI
+ * @param  {object} $q       Angular DI
+ * @param  {object} uuid4     Angular DI
+ * @param  {object} clbEnv   Angular DI
+ * @param  {object} clbError Angular DI
+ * @return {object}          Angular Service Descriptor
+ */
+function clbCtxData($http, $q, uuid4, clbEnv, clbError) {
+  var configUrl = clbEnv.get('api.collab.v0') + '/config/';
+  return {
+    /**
+     * Return an Array or an Object containing the data or
+     * ``undefined`` if there is no data stored.
+     * @memberof module:clb-ctx-data.clbCtxData
+     * @param  {UUID} ctx   the current context UUID
+     * @return {Promise}    fullfil to {undefined|object|array}
+     */
+    get: function(ctx) {
+      if (!uuid4.validate(ctx)) {
+        return $q.reject(invalidUuidError(ctx));
+      }
+      return $http.get(configUrl + ctx + '/')
+      .then(function(res) {
+        try {
+          return angular.fromJson(res.data.content);
+        } catch (ex) {
+          return $q.reject(clbError.error({
+            type: 'InvalidData',
+            message: 'Cannot parse JSON string: ' + res.data.content,
+            code: -2,
+            data: {
+              cause: ex
+            }
+          }));
+        }
+      })
+      .catch(function(err) {
+        if (err.code === 404) {
+          return;
+        }
+        return clbError.rejectHttpError(err);
+      });
+    },
+
+    /**
+     * @memberof module:clb-ctx-data.clbCtxData
+     * @param  {UUID} ctx The context UUID
+     * @param  {array|object|string|number} data JSON serializable data
+     * @return {Promise} Return the data when fulfilled
+     */
+    save: function(ctx, data) {
+      if (!uuid4.validate(ctx)) {
+        return $q.reject(invalidUuidError(ctx));
+      }
+      return $http.put(configUrl + ctx + '/', {
+        context: ctx,
+        content: angular.toJson(data)
+      }).then(function() {
+        return data;
+      })
+      .catch(clbError.rejectHttpError);
+    },
+
+    /**
+     * @memberof module:clb-ctx-data.clbCtxData
+     * @param  {UUID} ctx The context UUID
+     * @return {Promise}  fulfilled once deleted
+     */
+    delete: function(ctx) {
+      if (!uuid4.validate(ctx)) {
+        return $q.reject(invalidUuidError(ctx));
+      }
+      return $http.delete(configUrl + ctx + '/')
+      .then(function() {
+        return true;
+      })
+      .catch(clbError.rejectHttpError);
+    }
+  };
+
+  /**
+   * Generate the appropriate error when context is invalid.
+   * @param  {any} badCtx  the wrong ctx
+   * @return {HbpError}    The Error
+   */
+  function invalidUuidError(badCtx) {
+    return clbError.error({
+      type: 'InvalidArgument',
+      message: 'Provided ctx must be a valid UUID4 but is: ' + badCtx,
+      data: {
+        argName: 'ctx',
+        argPosition: 0,
+        argValue: badCtx
+      },
+      code: -3
+    });
+  }
+}
 
 /* eslint camelcase: 0 */
 
@@ -2206,117 +2317,6 @@ function clbContext($http, $q, clbError, clbEnv, ClbContextModel) {
       return clbError.rejectHttpError(res);
     });
     return ongoingContextRequests[uuid];
-  }
-}
-
-angular.module('clb-ctx-data')
-.factory('clbCtxData', clbCtxData);
-
-/**
- * A service to retrieve data for a given ctx. This is a convenient
- * way to store JSON data for a given context. Do not use it for
- * Sensitive data. There is no data migration functionality available, so if
- * the expected data format change, you are responsible to handle the old
- * format on the client side.
- *
- * @namespace clbCtxData
- * @memberof clb-ctx-data
- * @param  {object} $http    Angular DI
- * @param  {object} $q       Angular DI
- * @param  {object} uuid4     Angular DI
- * @param  {object} clbEnv   Angular DI
- * @param  {object} clbError Angular DI
- * @return {object}          Angular Service Descriptor
- */
-function clbCtxData($http, $q, uuid4, clbEnv, clbError) {
-  var configUrl = clbEnv.get('api.collab.v0') + '/config/';
-  return {
-    /**
-     * Return an Array or an Object containing the data or
-     * ``undefined`` if there is no data stored.
-     * @memberof module:clb-ctx-data.clbCtxData
-     * @param  {UUID} ctx   the current context UUID
-     * @return {Promise}    fullfil to {undefined|object|array}
-     */
-    get: function(ctx) {
-      if (!uuid4.validate(ctx)) {
-        return $q.reject(invalidUuidError(ctx));
-      }
-      return $http.get(configUrl + ctx + '/')
-      .then(function(res) {
-        try {
-          return angular.fromJson(res.data.content);
-        } catch (ex) {
-          return $q.reject(clbError.error({
-            type: 'InvalidData',
-            message: 'Cannot parse JSON string: ' + res.data.content,
-            code: -2,
-            data: {
-              cause: ex
-            }
-          }));
-        }
-      })
-      .catch(function(err) {
-        if (err.code === 404) {
-          return;
-        }
-        return clbError.rejectHttpError(err);
-      });
-    },
-
-    /**
-     * @memberof module:clb-ctx-data.clbCtxData
-     * @param  {UUID} ctx The context UUID
-     * @param  {array|object|string|number} data JSON serializable data
-     * @return {Promise} Return the data when fulfilled
-     */
-    save: function(ctx, data) {
-      if (!uuid4.validate(ctx)) {
-        return $q.reject(invalidUuidError(ctx));
-      }
-      return $http.put(configUrl + ctx + '/', {
-        context: ctx,
-        content: angular.toJson(data)
-      }).then(function() {
-        return data;
-      })
-      .catch(clbError.rejectHttpError);
-    },
-
-    /**
-     * @memberof module:clb-ctx-data.clbCtxData
-     * @param  {UUID} ctx The context UUID
-     * @return {Promise}  fulfilled once deleted
-     */
-    delete: function(ctx) {
-      if (!uuid4.validate(ctx)) {
-        return $q.reject(invalidUuidError(ctx));
-      }
-      return $http.delete(configUrl + ctx + '/')
-      .then(function() {
-        return true;
-      })
-      .catch(clbError.rejectHttpError);
-    }
-  };
-
-  /**
-   * Generate the appropriate error when context is invalid.
-   * @param  {any} badCtx  the wrong ctx
-   * @return {HbpError}    The Error
-   */
-  function invalidUuidError(badCtx) {
-    return clbError.error({
-      type: 'InvalidArgument',
-      message: 'Provided ctx must be a valid UUID4 but is: ' + badCtx,
-      data: {
-        argName: 'ctx',
-        argPosition: 0,
-        argValue: badCtx
-      },
-      code: -3
-    });
   }
 }
 
@@ -4957,6 +4957,8 @@ function clbResourceLocator($q, $log, $injector, clbError) {
   }
 }
 
+/* global moment */
+
 angular.module('clb-stream')
 .factory('clbStream', clbStream);
 
@@ -4967,20 +4969,26 @@ angular.module('clb-stream')
  * @memberof module:clb-stream
  * @namespace clbStream
  * @param {function} $http angular dependency injection
- * @param {function} $log angular dependency injection
  * @param {function} clbEnv angular dependency injection
  * @param {function} clbError angular dependency injection
  * @param {function} clbResultSet angular dependency injection
  * @return {object} the clbActivityStream service
  */
-function clbStream($http, $log, clbEnv, clbError, clbResultSet) {
+function clbStream($http, clbEnv, clbError, clbResultSet) {
   return {
-    getStream: getStream
+    getStream: getStream,
+    getHeatmapStream: getHeatmapStream
   };
 
-  /* -------------------- */
-
-  // Build activities
+  /**
+   * @name activityListFactoryFunc
+   * @desc
+   * Return activities
+   *
+   * @memberof module:clb-stream.clbStream
+   * @param {boolean} next indicates if there is next page
+   * @return {object} Activities
+   */
   function activityListFactoryFunc(next) { // eslint-disable-line require-jsdoc
     return function(results) {
       if (!(results && results.length)) {
@@ -5000,6 +5008,37 @@ function clbStream($http, $log, clbEnv, clbError, clbResultSet) {
   }
 
   /**
+   * Builds the URL options such as the from and to date
+   * as well as the page_size
+   * @memberof module:clb-stream.clbStream
+   * @param {string} url original url
+   * @param {object} options  pageSize:15, date:'2016-07-20'
+   * @return {string} Built URL
+   */
+  function buildURLOptions(url, options) {
+    // Addition of stream options e.g. date and page_size
+    var paramToken = url.indexOf("?") === -1 ? "?" : "&";
+
+    if (options.date) {
+      var _targetDate = moment(options.date);
+      var format = 'YYYY-MM-DD';
+      url += paramToken + "from=" + _targetDate.format(format);
+      url += "&to=" + _targetDate.add(1, 'day').format(format);
+      paramToken = "&";
+    }
+
+    if (options.days) {
+      url += paramToken + "days=" + options.days;
+    }
+
+    if (options.pageSize) {
+      url += paramToken + "page_size=" + options.pageSize;
+    }
+
+    return url;
+  }
+
+  /**
    * Get a feed of activities regarding an item type and id.
    * @memberof module:clb-stream.clbStream
    * @param  {string} type The type of object to get the feed for
@@ -5013,8 +5052,31 @@ function clbStream($http, $log, clbEnv, clbError, clbResultSet) {
         options.resultsFactory);
     var url = clbEnv.get('api.stream.v0') + '/stream/' +
                          type + ':' + id + '/';
+
+    url = buildURLOptions(url, options);
     return clbResultSet.get($http.get(url), options)
     .catch(clbError.rejectHttpError);
+  }
+
+  /**
+   * Returns a heatmap stream of the number of activities per
+   * day for a HBPUser or HBPCollab
+   * @param  {string} type The type of object to get the feed for
+   * @param  {string|int} id   The id of the object to get the feed for
+   * @param  {object} options  Parameters to pass to the query
+   * @return {Promise}         resolve to the feed of activities
+   */
+  function getHeatmapStream(type, id, options) {
+    options = angular.extend({resultKey: 'details'}, options);
+    options.resultsFactory = activityListFactoryFunc(options.resultsFactory);
+
+    var url = clbEnv.get('api.stream.v0') + '/heatmap/' +
+        type + ':' + id + '/';
+
+    url = buildURLOptions(url, options);
+
+    return clbResultSet.get($http.get(url), options)
+        .catch(clbError.rejectHttpError);
   }
 }
 
@@ -6375,10 +6437,17 @@ function clbActivity() {
     controller: ActivityController,
     controllerAs: 'vm',
     bindToController: true,
-    template:'<div class=clb-activity-metadata><div class=clb-activity-time am-time-ago=vm.activity.time></div><a clb-usercard-popover=vm.activity.actor.data ng-click="vm.navigate($event, false)"><clb-user-avatar class=clb-activity-avatar clb-user=vm.activity.actor.data ng-if=vm.activity.actor.data></clb-user-avatar></a></div><div class=clb-activity-summary><span class=clb-activity-link ng-repeat="p in vm.parts" ng-class="\'clb-activity-link-\' + p.tag"><a ng-if="p.tag && p.ref.type === \'HBPUser\'" clb-usercard-popover=p.ref.id ng-click="vm.navigate($event, false)">{{p.text}}</a> <a ng-if="p.tag && p.ref.type !== \'HBPUser\'" ng-init=vm.resolveUrl(p) ng-href={{p.url}}>{{p.text}}</a> <span ng-if=!p.tag>{{p.text}}</span></span></div>',
+    template:'<div class=clb-activity-metadata ng-click=vm.navigate($event)><div class=clb-activity-time am-time-ago=vm.activity.time></div><a clb-usercard-popover=vm.activity.actor.data ng-click="vm.navigate($event, false)"><clb-user-avatar class=clb-activity-avatar clb-user=vm.activity.actor.data ng-if=vm.activity.actor.data></clb-user-avatar></a></div><div class=clb-activity-summary ng-href ng-click=vm.navigate($event)><span class=clb-activity-link ng-repeat="p in vm.parts" ng-class="\'clb-activity-link-\' + p.tag"><a clb-usercard-popover=p.ref.id ng-click="vm.navigate($event, false)" ng-if="p.tag && p.ref.type === \'HBPUser\'">{{p.text}}</a> <a ng-if="p.tag && p.ref.type !== \'HBPUser\'" ng-click="vm.navigate($event, p)">{{p.text}}</a> <span ng-if=!p.tag>{{p.text}}</span></span></div>',
     link: {
       post: function(scope, elt, attr, ctrl) {
         elt.addClass('clb-activity').addClass(ctrl.verbClass);
+        scope.$watch('vm.primaryLink', function(val) {
+          if (val) {
+            elt.addClass('clb-activity-activable');
+          } else {
+            elt.removeClass('clb-activity-activable');
+          }
+        });
         scope.$watch('vm.activity.verb', function(newVal) {
           if (newVal) {
             elt.addClass('clb-activity-' + newVal.toLowerCase());
@@ -6452,13 +6521,6 @@ function ActivityController(
     }
   };
 
-  vm.resolveUrl = function(data) {
-    clbResourceLocator.urlFor(data.ref, vm.activity)
-    .then(function(url) {
-      data.url = url;
-    });
-  };
-
   activate();
 
   /* ------------- */
@@ -6510,11 +6572,6 @@ function ActivityController(
     while (head) {
       head.data.text = String.prototype.substring.apply(
         vm.activity.summary, head.indices);
-      // disable object link for 'delete' verb
-      if (vm.activity.verb === 'DELETE' &&
-          head.data.tag === 'object') {
-        head.data.tag = null;
-      }
       parts.push(head.data);
       head = head.next;
     }
@@ -6615,13 +6672,14 @@ function clbFeed() {
   return {
     restrict: 'E',
     scope: {
-      feedType: '=clbFeedType',
+      feedType: '=c' +
+      'lbFeedType',
       feedId: '=clbFeedId'
     },
     controller: FeedController,
     controllerAs: 'vm',
     bindToController: true,
-    template:'<ul class="feed list-group" ng-class="{\'feed-empty\': vm.activities.results.length === 0}"><li ng-if=vm.error class=list-group-item><div class="alert alert-warning"><strong>Load Error:</strong> {{vm.error}}</div></li><li class=list-group-item ng-if="!vm.activities && !vm.error"><hbp-loading></hbp-loading></li><li class=list-group-item ng-if="vm.activities.results.length === 0"><div class="alert alert-info">Nothing new</div></li><li class=list-group-item ng-repeat="a in vm.activities.results" clb-activity=a></li><li class=list-group-item ng-if=vm.activities.hasNext><a clb-perform-action=vm.activities.next() class="btn btn-default">More</a></li></ul>',
+    template:'<div ng-if=vm.loadingFeed class="alert alert-info"><div ng-switch on=vm.feedDate><div ng-switch-when=null>Loading all activities...</div><div class=animate-switch ng-switch-default>Loading Feed for {{vm.feedDate}}...</div></div></div><p ng-if="vm.feedDate != null">Selected date: {{vm.feedDate}}</p><ul class="feed list-group" ng-if=!vm.loadingFeed ng-class="{\'feed-empty\': vm.activities.results.length === 0}"><li ng-if=vm.error class=list-group-item><div class="alert alert-error"><strong>Load Error:</strong> {{vm.error}}</div></li><li class=list-group-item ng-if="!vm.activities && !vm.error"><hbp-loading></hbp-loading></li><li class=list-group-item ng-if="vm.activities.results.length === 0 && vm.feedDate"><div class="alert alert-info">No activities on {{vm.feedDate}}</div></li><li class=list-group-item ng-if="vm.activities.results.length === 0 && !vm.feedDate"><div class="alert alert-info">No activities to show</div></li><li class=list-group-item ng-repeat="a in vm.activities.results track by $index" clb-activity=a></li><li class=list-group-item ng-if=vm.activities.hasNext><a clb-perform-action=vm.activities.next() class="btn btn-default">Show More</a></li></ul>',
     link: function(scope, elt) {
       elt.addClass('clb-feed');
       var unbind = scope.$on(
@@ -6638,21 +6696,32 @@ function clbFeed() {
 
 /**
  * ViewModel of an activity used to render the clb-activity directive
- * @param {object} $log angular injection
+ * @param {object} $rootScope angular injection
  * @param {object} clbStream DI
  * @param {object} clbUser DI
  */
-function FeedController($log, clbStream, clbUser) {
+function FeedController($rootScope, clbStream, clbUser) {
   var vm = this;
+
+  if (vm.feedType === 'HBPCollab') {
+    vm.pageSize = 15;
+  }
+
+  vm.feedDate = null;
 
   activate();
 
+  $rootScope.$on('feedDate.changed', function(event, data) {
+    vm.feedDate = data;
+    activate();
+  });
   /* ------------- */
 
   function hydrateActors(activities) {  // eslint-disable-line require-jsdoc
     if (!activities || activities.length === 0) {
       return;
     }
+
     var acc = [];
     for (var i = 0; i < activities.length; i++) {
       if (activities[i].actor.type === 'HBPUser') {
@@ -6674,14 +6743,19 @@ function FeedController($log, clbStream, clbUser) {
    * init controller
    */
   function activate() {
+    vm.loadingFeed = true;
     clbStream.getStream(vm.feedType, vm.feedId, {
-      resultsFactory: hydrateActors
+      resultsFactory: hydrateActors,
+      date: vm.feedDate,
+      pageSize: vm.pageSize
     })
     .then(function(rs) {
       vm.activities = rs;
     })
     .catch(function(err) {
       vm.error = err.message;
+    }).finally(function() {
+      vm.loadingFeed = false;
     });
   }
 }
