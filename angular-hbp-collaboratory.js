@@ -29,20 +29,20 @@
  */
 clbApp.$inject = ['$log', '$q', '$rootScope', '$timeout', '$window', 'clbError'];
 clbAutomator.$inject = ['$q', '$log', 'clbError'];
-clbCtxData.$inject = ['$http', '$q', 'uuid4', 'clbEnv', 'clbError'];
 clbCollabTeamRole.$inject = ['$http', '$log', '$q', 'clbEnv', 'clbError'];
 clbCollabTeam.$inject = ['$http', '$log', '$q', 'lodash', 'clbEnv', 'clbError', 'clbCollabTeamRole', 'clbUser'];
 clbCollab.$inject = ['$log', '$q', '$cacheFactory', '$http', 'lodash', 'clbContext', 'clbEnv', 'clbError', 'clbResultSet', 'clbUser', 'ClbCollabModel', 'ClbContextModel'];
 clbContext.$inject = ['$http', '$q', 'clbError', 'clbEnv', 'ClbContextModel'];
+clbCtxData.$inject = ['$http', '$q', 'uuid4', 'clbEnv', 'clbError'];
 clbEnv.$inject = ['$injector'];
 clbError.$inject = ['$q'];
 clbGroup.$inject = ['$rootScope', '$q', '$http', '$cacheFactory', 'lodash', 'clbEnv', 'clbError', 'clbResultSet', 'clbIdentityUtil'];
 clbUser.$inject = ['$rootScope', '$q', '$http', '$cacheFactory', '$log', 'lodash', 'clbEnv', 'clbError', 'clbResultSet', 'clbIdentityUtil'];
 clbIdentityUtil.$inject = ['$log', 'lodash'];
 clbResultSet.$inject = ['$http', '$q', 'clbError'];
-clbStorage.$inject = ['$http', '$q', '$log', 'uuid4', 'clbEnv', 'clbError', 'clbUser', 'clbResultSet'];
 clbResourceLocator.$inject = ['$q', '$log', '$injector', 'clbError'];
 clbStream.$inject = ['$http', 'clbEnv', 'clbError', 'clbResultSet'];
+clbStorage.$inject = ['$http', '$q', '$log', 'uuid4', 'clbEnv', 'clbError', 'clbUser', 'clbResultSet'];
 clbConfirm.$inject = ['$rootScope', '$uibModal'];
 clbErrorDialog.$inject = ['$uibModal', 'clbError'];
 clbUsercardPopoverDirective.$inject = ['$log', '$q', 'clbUser', 'clbUsercardPopover'];
@@ -130,14 +130,6 @@ angular.module('clb-automator', [
 ]);
 
 /**
- * Provides a key value store where keys are context UUID
- * and values are string.
- *
- * @module clb-context-data
- */
-angular.module('clb-ctx-data', ['uuid4', 'clb-env', 'clb-error']);
-
-/**
  * @module clb-collab
  * @desc
  * Contain services to interact with collabs (e.g.: retriving collab informations or
@@ -153,21 +145,20 @@ angular.module('clb-collab', [
 ]);
 
 /**
+ * Provides a key value store where keys are context UUID
+ * and values are string.
+ *
+ * @module clb-context-data
+ */
+angular.module('clb-ctx-data', ['uuid4', 'clb-env', 'clb-error']);
+
+/**
  * @module clb-env
  * @desc
  * ``clb-env`` module provides a way to information from the global environment.
  */
 
 angular.module('clb-env', []);
-
-angular.module('clb-error', []);
-
-angular.module('clb-identity', [
-  'lodash',
-  'clb-env',
-  'clb-error',
-  'clb-rest'
-]);
 
 /* global _ */
 /**
@@ -190,27 +181,21 @@ angular.module('lodash', [])
   }
 }]);
 
+angular.module('clb-error', []);
+
+angular.module('clb-identity', [
+  'lodash',
+  'clb-env',
+  'clb-error',
+  'clb-rest'
+]);
+
 /**
  * @module clb-rest
  * @desc
  * ``clb-rest`` module contains util for simplifying access to Rest service.
  */
 angular.module('clb-rest', ['clb-error']);
-
-/**
- * @module clb-storage
- * @desc
- * The ``clb-storage`` module contains tools needed to access and work with the
- * HBP Document Service. It is targeted to integrate easily with the HBP
- * Collaboratory, even if the service is more generic.
- */
-angular.module('clb-storage', [
-  'uuid4',
-  'clb-error',
-  'clb-env',
-  'clb-rest',
-  'clb-identity'
-]);
 
 /**
  * @module clb-stream
@@ -223,6 +208,21 @@ angular.module('clb-storage', [
 angular.module('clb-stream', [
   'clb-env',
   'clb-error',
+  'clb-rest',
+  'clb-identity'
+]);
+
+/**
+ * @module clb-storage
+ * @desc
+ * The ``clb-storage`` module contains tools needed to access and work with the
+ * HBP Document Service. It is targeted to integrate easily with the HBP
+ * Collaboratory, even if the service is more generic.
+ */
+angular.module('clb-storage', [
+  'uuid4',
+  'clb-error',
+  'clb-env',
   'clb-rest',
   'clb-identity'
 ]);
@@ -1137,117 +1137,6 @@ angular.module('clb-automator')
     });
   }
 }]);
-
-angular.module('clb-ctx-data')
-.factory('clbCtxData', clbCtxData);
-
-/**
- * A service to retrieve data for a given ctx. This is a convenient
- * way to store JSON data for a given context. Do not use it for
- * Sensitive data. There is no data migration functionality available, so if
- * the expected data format change, you are responsible to handle the old
- * format on the client side.
- *
- * @namespace clbCtxData
- * @memberof clb-ctx-data
- * @param  {object} $http    Angular DI
- * @param  {object} $q       Angular DI
- * @param  {object} uuid4     Angular DI
- * @param  {object} clbEnv   Angular DI
- * @param  {object} clbError Angular DI
- * @return {object}          Angular Service Descriptor
- */
-function clbCtxData($http, $q, uuid4, clbEnv, clbError) {
-  var configUrl = clbEnv.get('api.collab.v0') + '/config/';
-  return {
-    /**
-     * Return an Array or an Object containing the data or
-     * ``undefined`` if there is no data stored.
-     * @memberof module:clb-ctx-data.clbCtxData
-     * @param  {UUID} ctx   the current context UUID
-     * @return {Promise}    fullfil to {undefined|object|array}
-     */
-    get: function(ctx) {
-      if (!uuid4.validate(ctx)) {
-        return $q.reject(invalidUuidError(ctx));
-      }
-      return $http.get(configUrl + ctx + '/')
-      .then(function(res) {
-        try {
-          return angular.fromJson(res.data.content);
-        } catch (ex) {
-          return $q.reject(clbError.error({
-            type: 'InvalidData',
-            message: 'Cannot parse JSON string: ' + res.data.content,
-            code: -2,
-            data: {
-              cause: ex
-            }
-          }));
-        }
-      })
-      .catch(function(err) {
-        if (err.code === 404) {
-          return;
-        }
-        return clbError.rejectHttpError(err);
-      });
-    },
-
-    /**
-     * @memberof module:clb-ctx-data.clbCtxData
-     * @param  {UUID} ctx The context UUID
-     * @param  {array|object|string|number} data JSON serializable data
-     * @return {Promise} Return the data when fulfilled
-     */
-    save: function(ctx, data) {
-      if (!uuid4.validate(ctx)) {
-        return $q.reject(invalidUuidError(ctx));
-      }
-      return $http.put(configUrl + ctx + '/', {
-        context: ctx,
-        content: angular.toJson(data)
-      }).then(function() {
-        return data;
-      })
-      .catch(clbError.rejectHttpError);
-    },
-
-    /**
-     * @memberof module:clb-ctx-data.clbCtxData
-     * @param  {UUID} ctx The context UUID
-     * @return {Promise}  fulfilled once deleted
-     */
-    delete: function(ctx) {
-      if (!uuid4.validate(ctx)) {
-        return $q.reject(invalidUuidError(ctx));
-      }
-      return $http.delete(configUrl + ctx + '/')
-      .then(function() {
-        return true;
-      })
-      .catch(clbError.rejectHttpError);
-    }
-  };
-
-  /**
-   * Generate the appropriate error when context is invalid.
-   * @param  {any} badCtx  the wrong ctx
-   * @return {HbpError}    The Error
-   */
-  function invalidUuidError(badCtx) {
-    return clbError.error({
-      type: 'InvalidArgument',
-      message: 'Provided ctx must be a valid UUID4 but is: ' + badCtx,
-      data: {
-        argName: 'ctx',
-        argPosition: 0,
-        argValue: badCtx
-      },
-      code: -3
-    });
-  }
-}
 
 /* eslint camelcase: 0 */
 
@@ -2317,6 +2206,117 @@ function clbContext($http, $q, clbError, clbEnv, ClbContextModel) {
       return clbError.rejectHttpError(res);
     });
     return ongoingContextRequests[uuid];
+  }
+}
+
+angular.module('clb-ctx-data')
+.factory('clbCtxData', clbCtxData);
+
+/**
+ * A service to retrieve data for a given ctx. This is a convenient
+ * way to store JSON data for a given context. Do not use it for
+ * Sensitive data. There is no data migration functionality available, so if
+ * the expected data format change, you are responsible to handle the old
+ * format on the client side.
+ *
+ * @namespace clbCtxData
+ * @memberof clb-ctx-data
+ * @param  {object} $http    Angular DI
+ * @param  {object} $q       Angular DI
+ * @param  {object} uuid4     Angular DI
+ * @param  {object} clbEnv   Angular DI
+ * @param  {object} clbError Angular DI
+ * @return {object}          Angular Service Descriptor
+ */
+function clbCtxData($http, $q, uuid4, clbEnv, clbError) {
+  var configUrl = clbEnv.get('api.collab.v0') + '/config/';
+  return {
+    /**
+     * Return an Array or an Object containing the data or
+     * ``undefined`` if there is no data stored.
+     * @memberof module:clb-ctx-data.clbCtxData
+     * @param  {UUID} ctx   the current context UUID
+     * @return {Promise}    fullfil to {undefined|object|array}
+     */
+    get: function(ctx) {
+      if (!uuid4.validate(ctx)) {
+        return $q.reject(invalidUuidError(ctx));
+      }
+      return $http.get(configUrl + ctx + '/')
+      .then(function(res) {
+        try {
+          return angular.fromJson(res.data.content);
+        } catch (ex) {
+          return $q.reject(clbError.error({
+            type: 'InvalidData',
+            message: 'Cannot parse JSON string: ' + res.data.content,
+            code: -2,
+            data: {
+              cause: ex
+            }
+          }));
+        }
+      })
+      .catch(function(err) {
+        if (err.code === 404) {
+          return;
+        }
+        return clbError.rejectHttpError(err);
+      });
+    },
+
+    /**
+     * @memberof module:clb-ctx-data.clbCtxData
+     * @param  {UUID} ctx The context UUID
+     * @param  {array|object|string|number} data JSON serializable data
+     * @return {Promise} Return the data when fulfilled
+     */
+    save: function(ctx, data) {
+      if (!uuid4.validate(ctx)) {
+        return $q.reject(invalidUuidError(ctx));
+      }
+      return $http.put(configUrl + ctx + '/', {
+        context: ctx,
+        content: angular.toJson(data)
+      }).then(function() {
+        return data;
+      })
+      .catch(clbError.rejectHttpError);
+    },
+
+    /**
+     * @memberof module:clb-ctx-data.clbCtxData
+     * @param  {UUID} ctx The context UUID
+     * @return {Promise}  fulfilled once deleted
+     */
+    delete: function(ctx) {
+      if (!uuid4.validate(ctx)) {
+        return $q.reject(invalidUuidError(ctx));
+      }
+      return $http.delete(configUrl + ctx + '/')
+      .then(function() {
+        return true;
+      })
+      .catch(clbError.rejectHttpError);
+    }
+  };
+
+  /**
+   * Generate the appropriate error when context is invalid.
+   * @param  {any} badCtx  the wrong ctx
+   * @return {HbpError}    The Error
+   */
+  function invalidUuidError(badCtx) {
+    return clbError.error({
+      type: 'InvalidArgument',
+      message: 'Provided ctx must be a valid UUID4 but is: ' + badCtx,
+      data: {
+        argName: 'ctx',
+        argPosition: 0,
+        argValue: badCtx
+      },
+      code: -3
+    });
   }
 }
 
@@ -4015,6 +4015,265 @@ function clbResultSet($http, $q, clbError) {
   }
 }
 
+angular.module('clb-stream')
+.provider('clbResourceLocator', clbResourceLocatorProvider);
+
+var urlHandlers = [];
+
+/**
+ * Configure the clbResourceLocator service.
+ * @return {object} An AngularJS provider instance
+ */
+function clbResourceLocatorProvider() {
+  var provider = {
+    $get: clbResourceLocator,
+    registerUrlHandler: registerUrlHandler,
+    urlHandlers: urlHandlers
+  };
+
+  /**
+   * Add a function that can generate URL for some types of object reference.
+   *
+   * The function should return a string representing the URL.
+   * Any other response means that the handler is not able to generate a proper
+   * URL for this type of object.
+   *
+   * The function signature is ``function(objectReference) { return 'url' // or nothing}``
+   * @memberof module:clb-stream
+   * @param  {function} handler a function that can generate URL string for some objects
+   * @return {provider} The provider, for chaining.
+   */
+  function registerUrlHandler(handler) {
+    if (angular.isFunction(handler)) {
+      urlHandlers.push(handler);
+    }
+    if (angular.isString(handler)) {
+      urlHandlers.push(handler);
+    }
+    return provider;
+  }
+
+  return provider;
+}
+
+/**
+ * @name clbResourceLocator
+ * @desc
+ * resourceLocator service
+ * @memberof module:clb-stream
+ * @param {object} $q        DI
+ * @param {object} $log      DI
+ * @param {object} $injector DI
+ * @param {object} clbError  DI
+ * @return {object} the service singleton
+ */
+function clbResourceLocator($q, $log, $injector, clbError) {
+  return {
+    urlFor: urlFor
+  };
+
+  /**
+   * @desc
+   * Asynchronous resolution of an object reference to an URL that access
+   * this resource.
+   *
+   * The URL is generated using the registered URL handlers. If no URL
+   * can be generated, a HbpError is thrown with ``type==='ObjectTypeException'``.
+   * If the object reference is not valid, a HbpError is throw with
+   * ``type==='AttributeError'``. In both case ``data.ref will be set with
+   * reference for which there is an issue.
+   *
+   * @memberof module:clb-stream.clbResourceLocator
+   * @param  {object} ref object reference
+   * @param  {object} activity the associated activity
+   * @return {string} a atring representing the URL for this object reference
+   */
+  function urlFor(ref, activity) {
+    if (!validRef(ref)) {
+      return $q.reject(invalidReferenceException(ref));
+    }
+    var next = function(i) {
+      if (i < urlHandlers.length) {
+        var fn = urlHandlers[i];
+        if (angular.isString(fn)) {
+          fn = $injector.get(fn);
+        }
+        return $q.when(fn(ref, activity)).then(function(url) {
+          if (angular.isString(url)) {
+            return url;
+          }
+          if (angular.isDefined(url)) {
+            $log.warn('unexpected result from URL handler', url);
+          }
+          return next(i + 1);
+        });
+      }
+      return $q.reject(objectTypeException(ref));
+    };
+    return next(0);
+  }
+
+  /**
+   * build an objectTypeException.
+   * @private
+   * @param  {object} ref ClbObjectReference
+   * @return {HbpError}   error to be sent
+   */
+  function objectTypeException(ref) {
+    return clbError.error({
+      type: 'ObjectTypeException',
+      message: 'Unkown object type <' + (ref && ref.type) + '>',
+      data: {ref: ref}
+    });
+  }
+
+  /**
+   * build an objectTypeException.
+   * @private
+   * @param  {object} ref ClbObjectReference
+   * @return {HbpError}   error to be sent
+   */
+  function invalidReferenceException(ref) {
+    return clbError.error({
+      type: 'AttributeError',
+      message: 'Invalid object reference <' + ref + '>',
+      data: {ref: ref}
+    });
+  }
+
+  /**
+   * Return wheter the object reference is valid or not.
+   *
+   * To be valid an ObjectReference must have a defined ``id`` and ``type``
+   * @param  {any} ref the potential object reference
+   * @return {boolean} whether it is or not an object reference
+   */
+  function validRef(ref) {
+    return Boolean(ref && ref.id && ref.type);
+  }
+}
+
+/* global moment */
+
+angular.module('clb-stream')
+.factory('clbStream', clbStream);
+
+/**
+ * ``clbStream`` service is used to retrieve feed of activities
+ * given a user, a collab or a specific context.
+ *
+ * @memberof module:clb-stream
+ * @namespace clbStream
+ * @param {function} $http angular dependency injection
+ * @param {function} clbEnv angular dependency injection
+ * @param {function} clbError angular dependency injection
+ * @param {function} clbResultSet angular dependency injection
+ * @return {object} the clbActivityStream service
+ */
+function clbStream($http, clbEnv, clbError, clbResultSet) {
+  return {
+    getStream: getStream,
+    getHeatmapStream: getHeatmapStream
+  };
+
+  /**
+   * @name activityListFactoryFunc
+   * @desc
+   * Return activities
+   *
+   * @memberof module:clb-stream.clbStream
+   * @param {boolean} next indicates if there is next page
+   * @return {object} Activities
+   */
+  function activityListFactoryFunc(next) { // eslint-disable-line require-jsdoc
+    return function(results) {
+      if (!(results && results.length)) {
+        return;
+      }
+      for (var i = 0; i < results.length; i++) {
+        var activity = results[i];
+        if (activity.time) {
+          activity.time = new Date(Date.parse(activity.time));
+        }
+      }
+      if (next) {
+        return next(results);
+      }
+      return results;
+    };
+  }
+
+  /**
+   * Builds the URL options such as the from and to date
+   * as well as the page_size
+   * @memberof module:clb-stream.clbStream
+   * @param {string} url original url
+   * @param {object} options  pageSize:15, date:'2016-07-20'
+   * @return {string} Built URL
+   */
+  function buildURLOptions(url, options) {
+    // Addition of stream options e.g. date and page_size
+    var paramToken = url.indexOf("?") === -1 ? "?" : "&";
+
+    if (options.date) {
+      var _targetDate = moment(options.date);
+      var format = 'YYYY-MM-DD';
+      url += paramToken + "from=" + _targetDate.format(format);
+      url += "&to=" + _targetDate.add(1, 'day').format(format);
+      paramToken = "&";
+    }
+
+    if (options.days) {
+      url += paramToken + "days=" + options.days;
+    } else if (options.pageSize) {
+      url += paramToken + "page_size=" + options.pageSize;
+    }
+
+    return url;
+  }
+
+  /**
+   * Get a feed of activities regarding an item type and id.
+   * @memberof module:clb-stream.clbStream
+   * @param  {string} type The type of object to get the feed for
+   * @param  {string|int} id   The id of the object to get the feed for
+   * @param  {object} options  Parameters to pass to the query
+   * @return {Promise}         resolve to the feed of activities
+   */
+  function getStream(type, id, options) {
+    options = angular.extend({}, options);
+    options.resultsFactory = activityListFactoryFunc(
+        options.resultsFactory);
+    var url = clbEnv.get('api.stream.v0') + '/stream/' +
+                         type + ':' + id + '/';
+
+    url = buildURLOptions(url, options);
+    return clbResultSet.get($http.get(url), options)
+    .catch(clbError.rejectHttpError);
+  }
+
+  /**
+   * Returns a heatmap stream of the number of activities per
+   * day for a HBPUser or HBPCollab
+   * @param  {string} type The type of object to get the feed for
+   * @param  {string|int} id   The id of the object to get the feed for
+   * @param  {object} options  Parameters to pass to the query
+   * @return {Promise}         resolve to the feed of activities
+   */
+  function getHeatmapStream(type, id, options) {
+    options = angular.extend({resultKey: 'details'}, options);
+    options.resultsFactory = activityListFactoryFunc(options.resultsFactory);
+
+    var url = clbEnv.get('api.stream.v0') + '/heatmap/' +
+        type + ':' + id + '/';
+
+    url = buildURLOptions(url, options);
+
+    return clbResultSet.get($http.get(url), options)
+        .catch(clbError.rejectHttpError);
+  }
+}
+
 /* eslint max-lines:0 camelcase:0 */
 
 angular.module('clb-storage')
@@ -4816,267 +5075,6 @@ function clbStorage(
     .then(function(response) {
       return baseUrl + response.data.signed_url;
     }).catch(clbError.rejectHttpError);
-  }
-}
-
-angular.module('clb-stream')
-.provider('clbResourceLocator', clbResourceLocatorProvider);
-
-var urlHandlers = [];
-
-/**
- * Configure the clbResourceLocator service.
- * @return {object} An AngularJS provider instance
- */
-function clbResourceLocatorProvider() {
-  var provider = {
-    $get: clbResourceLocator,
-    registerUrlHandler: registerUrlHandler,
-    urlHandlers: urlHandlers
-  };
-
-  /**
-   * Add a function that can generate URL for some types of object reference.
-   *
-   * The function should return a string representing the URL.
-   * Any other response means that the handler is not able to generate a proper
-   * URL for this type of object.
-   *
-   * The function signature is ``function(objectReference) { return 'url' // or nothing}``
-   * @memberof module:clb-stream
-   * @param  {function} handler a function that can generate URL string for some objects
-   * @return {provider} The provider, for chaining.
-   */
-  function registerUrlHandler(handler) {
-    if (angular.isFunction(handler)) {
-      urlHandlers.push(handler);
-    }
-    if (angular.isString(handler)) {
-      urlHandlers.push(handler);
-    }
-    return provider;
-  }
-
-  return provider;
-}
-
-/**
- * @name clbResourceLocator
- * @desc
- * resourceLocator service
- * @memberof module:clb-stream
- * @param {object} $q        DI
- * @param {object} $log      DI
- * @param {object} $injector DI
- * @param {object} clbError  DI
- * @return {object} the service singleton
- */
-function clbResourceLocator($q, $log, $injector, clbError) {
-  return {
-    urlFor: urlFor
-  };
-
-  /**
-   * @desc
-   * Asynchronous resolution of an object reference to an URL that access
-   * this resource.
-   *
-   * The URL is generated using the registered URL handlers. If no URL
-   * can be generated, a HbpError is thrown with ``type==='ObjectTypeException'``.
-   * If the object reference is not valid, a HbpError is throw with
-   * ``type==='AttributeError'``. In both case ``data.ref will be set with
-   * reference for which there is an issue.
-   *
-   * @memberof module:clb-stream.clbResourceLocator
-   * @param  {object} ref object reference
-   * @param  {object} activity the associated activity
-   * @return {string} a atring representing the URL for this object reference
-   */
-  function urlFor(ref, activity) {
-    if (!validRef(ref)) {
-      return $q.reject(invalidReferenceException(ref));
-    }
-    var next = function(i) {
-      if (i < urlHandlers.length) {
-        var fn = urlHandlers[i];
-        if (angular.isString(fn)) {
-          fn = $injector.get(fn);
-        }
-        return $q.when(fn(ref, activity)).then(function(url) {
-          if (angular.isString(url)) {
-            return url;
-          }
-          if (angular.isDefined(url)) {
-            $log.warn('unexpected result from URL handler', url);
-          }
-          return next(i + 1);
-        });
-      }
-      return $q.reject(objectTypeException(ref));
-    };
-    return next(0);
-  }
-
-  /**
-   * build an objectTypeException.
-   * @private
-   * @param  {object} ref ClbObjectReference
-   * @return {HbpError}   error to be sent
-   */
-  function objectTypeException(ref) {
-    return clbError.error({
-      type: 'ObjectTypeException',
-      message: 'Unkown object type <' + (ref && ref.type) + '>',
-      data: {ref: ref}
-    });
-  }
-
-  /**
-   * build an objectTypeException.
-   * @private
-   * @param  {object} ref ClbObjectReference
-   * @return {HbpError}   error to be sent
-   */
-  function invalidReferenceException(ref) {
-    return clbError.error({
-      type: 'AttributeError',
-      message: 'Invalid object reference <' + ref + '>',
-      data: {ref: ref}
-    });
-  }
-
-  /**
-   * Return wheter the object reference is valid or not.
-   *
-   * To be valid an ObjectReference must have a defined ``id`` and ``type``
-   * @param  {any} ref the potential object reference
-   * @return {boolean} whether it is or not an object reference
-   */
-  function validRef(ref) {
-    return Boolean(ref && ref.id && ref.type);
-  }
-}
-
-/* global moment */
-
-angular.module('clb-stream')
-.factory('clbStream', clbStream);
-
-/**
- * ``clbStream`` service is used to retrieve feed of activities
- * given a user, a collab or a specific context.
- *
- * @memberof module:clb-stream
- * @namespace clbStream
- * @param {function} $http angular dependency injection
- * @param {function} clbEnv angular dependency injection
- * @param {function} clbError angular dependency injection
- * @param {function} clbResultSet angular dependency injection
- * @return {object} the clbActivityStream service
- */
-function clbStream($http, clbEnv, clbError, clbResultSet) {
-  return {
-    getStream: getStream,
-    getHeatmapStream: getHeatmapStream
-  };
-
-  /**
-   * @name activityListFactoryFunc
-   * @desc
-   * Return activities
-   *
-   * @memberof module:clb-stream.clbStream
-   * @param {boolean} next indicates if there is next page
-   * @return {object} Activities
-   */
-  function activityListFactoryFunc(next) { // eslint-disable-line require-jsdoc
-    return function(results) {
-      if (!(results && results.length)) {
-        return;
-      }
-      for (var i = 0; i < results.length; i++) {
-        var activity = results[i];
-        if (activity.time) {
-          activity.time = new Date(Date.parse(activity.time));
-        }
-      }
-      if (next) {
-        return next(results);
-      }
-      return results;
-    };
-  }
-
-  /**
-   * Builds the URL options such as the from and to date
-   * as well as the page_size
-   * @memberof module:clb-stream.clbStream
-   * @param {string} url original url
-   * @param {object} options  pageSize:15, date:'2016-07-20'
-   * @return {string} Built URL
-   */
-  function buildURLOptions(url, options) {
-    // Addition of stream options e.g. date and page_size
-    var paramToken = url.indexOf("?") === -1 ? "?" : "&";
-
-    if (options.date) {
-      var _targetDate = moment(options.date);
-      var format = 'YYYY-MM-DD';
-      url += paramToken + "from=" + _targetDate.format(format);
-      url += "&to=" + _targetDate.add(1, 'day').format(format);
-      paramToken = "&";
-    }
-
-    if (options.days) {
-      url += paramToken + "days=" + options.days;
-    }
-
-    if (options.pageSize) {
-      url += paramToken + "page_size=" + options.pageSize;
-    }
-
-    return url;
-  }
-
-  /**
-   * Get a feed of activities regarding an item type and id.
-   * @memberof module:clb-stream.clbStream
-   * @param  {string} type The type of object to get the feed for
-   * @param  {string|int} id   The id of the object to get the feed for
-   * @param  {object} options  Parameters to pass to the query
-   * @return {Promise}         resolve to the feed of activities
-   */
-  function getStream(type, id, options) {
-    options = angular.extend({}, options);
-    options.resultsFactory = activityListFactoryFunc(
-        options.resultsFactory);
-    var url = clbEnv.get('api.stream.v0') + '/stream/' +
-                         type + ':' + id + '/';
-
-    url = buildURLOptions(url, options);
-    return clbResultSet.get($http.get(url), options)
-    .catch(clbError.rejectHttpError);
-  }
-
-  /**
-   * Returns a heatmap stream of the number of activities per
-   * day for a HBPUser or HBPCollab
-   * @param  {string} type The type of object to get the feed for
-   * @param  {string|int} id   The id of the object to get the feed for
-   * @param  {object} options  Parameters to pass to the query
-   * @return {Promise}         resolve to the feed of activities
-   */
-  function getHeatmapStream(type, id, options) {
-    options = angular.extend({resultKey: 'details'}, options);
-    options.resultsFactory = activityListFactoryFunc(options.resultsFactory);
-
-    var url = clbEnv.get('api.stream.v0') + '/heatmap/' +
-        type + ':' + id + '/';
-
-    url = buildURLOptions(url, options);
-
-    return clbResultSet.get($http.get(url), options)
-        .catch(clbError.rejectHttpError);
   }
 }
 

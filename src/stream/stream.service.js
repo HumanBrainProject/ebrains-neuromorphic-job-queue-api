@@ -70,9 +70,7 @@ function clbStream($http, clbEnv, clbError, clbResultSet) {
 
     if (options.days) {
       url += paramToken + "days=" + options.days;
-    }
-
-    if (options.pageSize) {
+    } else if (options.pageSize) {
       url += paramToken + "page_size=" + options.pageSize;
     }
 
