@@ -11,6 +11,8 @@
   .clb-activity .clb-activity-avatar {
     padding-right: 12px;
     width: 40px; }
+  .clb-activity a {
+    cursor: pointer; }
 
 .clb-activity-link-object {
   font-weight: bold; }
@@ -19,8 +21,7 @@
   flex: 1; }
 
 .clb-activity-activable {
-  color: rgba(0, 0, 0, 0.55);
-  cursor: pointer; }
+  color: rgba(0, 0, 0, 0.55); }
 
 .clb-activity-activable:hover {
   color: rgba(0, 0, 0, 0.85); }

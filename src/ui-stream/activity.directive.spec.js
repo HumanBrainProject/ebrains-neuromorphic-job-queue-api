@@ -91,49 +91,6 @@ describe('clbActivity directive', function() {
     }));
   });
 
-  describe('activity are clickable', function() {
-    it('should generate the primaryLink', inject(function($q, $window) {
-      spyOn(resourceLocator, 'urlFor').and.returnValue($q.when('/software/1'));
-      var element = compile(
-        '<div clb-activity="activity"></div>')(scope);
-      scope.$digest();
-      var dScope = element.isolateScope();
-      var vm = dScope.vm;
-      spyOn(vm, 'navigate').and.callThrough();
-      spyOn(dScope, '$emit');
-      element.find('div').triggerHandler('click');
-      expect(vm.navigate).toHaveBeenCalledWith(jasmine.any(Object));
-      expect(resourceLocator.urlFor).toHaveBeenCalledWith(
-        {id: 'softwarecat', type: 'HBPSoftware', state: null},
-        jasmine.any(Object)
-      );
-      expect(dScope.$emit).toHaveBeenCalledWith('clbActivity.interaction', {
-        action: 'usePrimaryNavigation',
-        tag: 'object'
-      });
-      scope.$digest();
-      expect($window.location).toBe(vm.primaryLink);
-    }));
-
-    it('should have .clb-activity-activable when a primary link exists',
-    inject(function($q) {
-      spyOn(resourceLocator, 'urlFor').and.returnValue($q.when('/software/1'));
-      var element = compile(
-        '<div clb-activity="activity"></div>')(scope);
-      scope.$digest();
-      expect(element.hasClass('clb-activity-activable')).toBe(true);
-    }));
-
-    it('should not have .clb-activity-activable when no primary link exists',
-    inject(function($q) {
-      spyOn(resourceLocator, 'urlFor').and.returnValue($q.when(null));
-      var element = compile(
-        '<div clb-activity="activity"></div>')(scope);
-      scope.$digest();
-      expect(element.hasClass('clb-activity-activable')).toBe(false);
-    }));
-  });
-
   describe('references are clickable', function() {
     var dScope;
     var init;

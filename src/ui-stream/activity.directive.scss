@@ -17,6 +17,10 @@
     padding-right: $padding-base-horizontal;
     width: 40px;
   }
+
+  a {
+    cursor: pointer;
+  }
 }
 
 .clb-activity-link-object {
@@ -29,7 +33,6 @@
 
 .clb-activity-activable {
   color: rgba(0, 0, 0, .55);
-  cursor: pointer;
 }
 
 .clb-activity-activable:hover {
