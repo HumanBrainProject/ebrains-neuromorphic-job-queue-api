@@ -15,7 +15,7 @@
        clb-usercard-popover="p.ref.id"
        ng-click="vm.navigate($event, false)">{{p.text}}</a>
     <a ng-if="p.tag && p.ref.type !== 'HBPUser'"
-       ng-click="vm.navigate($event, p)">{{p.text}}</a>
+       ng-init="vm.resolveUrl(p)" ng-href="{{p.url}}">{{p.text}}</a>
     <span ng-if="!p.tag">{{p.text}}</span>
   </span>
 </div>
