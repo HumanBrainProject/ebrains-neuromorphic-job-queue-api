@@ -99,6 +99,13 @@ function ActivityController(
     }
   };
 
+  vm.resolveUrl = function(data) {
+    clbResourceLocator.urlFor(data.ref, vm.activity)
+    .then(function(url) {
+      data.url = url;
+    });
+  };
+
   activate();
 
   /* ------------- */
