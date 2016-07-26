@@ -150,6 +150,11 @@ function ActivityController(
     while (head) {
       head.data.text = String.prototype.substring.apply(
         vm.activity.summary, head.indices);
+      // disable object link for 'delete' verb
+      if (vm.activity.verb === 'DELETE' &&
+          head.data.tag === 'object') {
+        head.data.tag = null;
+      }
       parts.push(head.data);
       head = head.next;
     }
