@@ -1,23 +1,20 @@
-<div class="clb-activity-metadata" ng-click="vm.navigate($event)">
+<div class="clb-activity-metadata">
   <div class="clb-activity-time" am-time-ago="vm.activity.time"></div>
-  <a href
-     clb-usercard-popover="vm.activity.actor.data"
+  <a clb-usercard-popover="vm.activity.actor.data"
      ng-click="vm.navigate($event, false)">
   <clb-user-avatar class="clb-activity-avatar"
                    clb-user="vm.activity.actor.data"
                    ng-if="vm.activity.actor.data"></clb-user-avatar>
   </a>
 </div>
-<div class="clb-activity-summary" ng-href="" ng-click="vm.navigate($event)">
+<div class="clb-activity-summary">
   <span class="clb-activity-link"
         ng-repeat="p in vm.parts"
         ng-class="'clb-activity-link-' + p.tag">
-    <a href
+    <a ng-if="p.tag && p.ref.type === 'HBPUser'"
        clb-usercard-popover="p.ref.id"
-       ng-click="vm.navigate($event, false)"
-       ng-if="p.tag && p.ref.type === 'HBPUser' ">{{p.text}}</a>
-    <a href
-       ng-if="p.tag && p.ref.type !== 'HBPUser'"
+       ng-click="vm.navigate($event, false)">{{p.text}}</a>
+    <a ng-if="p.tag && p.ref.type !== 'HBPUser'"
        ng-click="vm.navigate($event, p)">{{p.text}}</a>
     <span ng-if="!p.tag">{{p.text}}</span>
   </span>

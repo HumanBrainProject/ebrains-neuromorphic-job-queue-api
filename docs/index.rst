@@ -234,6 +234,7 @@ Please be sure to check the change in the directive attributes prefix as well.::
    hbp-error-message -> clb-error-message (hbp-promise -> clb-promise, hbp-message -> clb-message)
    hbp-usercard -> clb-usercard (hbp-user -> clb-user, hbp-template -> clb-template)
    hbp-loading -> clb-loading (hbp-promise -> clb-promise, hbp-message -> clb-message)
+   hbp-perform-action -> clb-perform-action
 
 If you wrote a usercard custom template (using ``hbp-template`` attribute), you should update the following css classes
 and probably update the template to conform to the new html structure::

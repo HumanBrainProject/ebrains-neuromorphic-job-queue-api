@@ -26,13 +26,6 @@ function clbActivity() {
     link: {
       post: function(scope, elt, attr, ctrl) {
         elt.addClass('clb-activity').addClass(ctrl.verbClass);
-        scope.$watch('vm.primaryLink', function(val) {
-          if (val) {
-            elt.addClass('clb-activity-activable');
-          } else {
-            elt.removeClass('clb-activity-activable');
-          }
-        });
         scope.$watch('vm.activity.verb', function(newVal) {
           if (newVal) {
             elt.addClass('clb-activity-' + newVal.toLowerCase());
