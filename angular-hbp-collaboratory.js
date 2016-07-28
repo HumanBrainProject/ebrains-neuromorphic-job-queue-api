@@ -29,22 +29,22 @@
  */
 clbApp.$inject = ['$log', '$q', '$rootScope', '$timeout', '$window', 'clbError'];
 clbAutomator.$inject = ['$q', '$log', 'clbError'];
+clbEnv.$inject = ['$injector'];
+clbCtxData.$inject = ['$http', '$q', 'uuid4', 'clbEnv', 'clbError'];
+clbError.$inject = ['$q'];
 clbCollabTeamRole.$inject = ['$http', '$log', '$q', 'clbEnv', 'clbError'];
 clbCollabTeam.$inject = ['$http', '$log', '$q', 'lodash', 'clbEnv', 'clbError', 'clbCollabTeamRole', 'clbUser'];
 clbCollab.$inject = ['$log', '$q', '$cacheFactory', '$http', 'lodash', 'clbContext', 'clbEnv', 'clbError', 'clbResultSet', 'clbUser', 'ClbCollabModel', 'ClbContextModel'];
 clbContext.$inject = ['$http', '$q', 'clbError', 'clbEnv', 'ClbContextModel'];
-clbCtxData.$inject = ['$http', '$q', 'uuid4', 'clbEnv', 'clbError'];
-clbEnv.$inject = ['$injector'];
-clbError.$inject = ['$q'];
 clbGroup.$inject = ['$rootScope', '$q', '$http', '$cacheFactory', 'lodash', 'clbEnv', 'clbError', 'clbResultSet', 'clbIdentityUtil'];
 clbUser.$inject = ['$rootScope', '$q', '$http', '$cacheFactory', '$log', 'lodash', 'clbEnv', 'clbError', 'clbResultSet', 'clbIdentityUtil'];
 clbIdentityUtil.$inject = ['$log', 'lodash'];
-clbResultSet.$inject = ['$http', '$q', 'clbError'];
 clbResourceLocator.$inject = ['$q', '$log', '$injector', 'clbError'];
-clbStream.$inject = ['$http', 'clbEnv', 'clbError', 'clbResultSet'];
+clbStream.$inject = ['$http', 'clbEnv', 'clbError', 'clbResultSet', 'moment'];
 clbStorage.$inject = ['$http', '$q', '$log', 'uuid4', 'clbEnv', 'clbError', 'clbUser', 'clbResultSet'];
-clbConfirm.$inject = ['$rootScope', '$uibModal'];
+clbResultSet.$inject = ['$http', '$q', 'clbError'];
 clbErrorDialog.$inject = ['$uibModal', 'clbError'];
+clbConfirm.$inject = ['$rootScope', '$uibModal'];
 clbUsercardPopoverDirective.$inject = ['$log', '$q', 'clbUser', 'clbUsercardPopover'];
 clbUserCardPopoverService.$inject = ['$rootScope'];
 clbUsercard.$inject = ['lodash'];
@@ -130,6 +130,24 @@ angular.module('clb-automator', [
 ]);
 
 /**
+ * @module clb-env
+ * @desc
+ * ``clb-env`` module provides a way to information from the global environment.
+ */
+
+angular.module('clb-env', []);
+
+/**
+ * Provides a key value store where keys are context UUID
+ * and values are string.
+ *
+ * @module clb-context-data
+ */
+angular.module('clb-ctx-data', ['uuid4', 'clb-env', 'clb-error']);
+
+angular.module('clb-error', []);
+
+/**
  * @module clb-collab
  * @desc
  * Contain services to interact with collabs (e.g.: retriving collab informations or
@@ -143,22 +161,6 @@ angular.module('clb-collab', [
   'clb-rest',
   'uuid4'
 ]);
-
-/**
- * Provides a key value store where keys are context UUID
- * and values are string.
- *
- * @module clb-context-data
- */
-angular.module('clb-ctx-data', ['uuid4', 'clb-env', 'clb-error']);
-
-/**
- * @module clb-env
- * @desc
- * ``clb-env`` module provides a way to information from the global environment.
- */
-
-angular.module('clb-env', []);
 
 /* global _ */
 /**
@@ -181,21 +183,12 @@ angular.module('lodash', [])
   }
 }]);
 
-angular.module('clb-error', []);
-
 angular.module('clb-identity', [
   'lodash',
   'clb-env',
   'clb-error',
   'clb-rest'
 ]);
-
-/**
- * @module clb-rest
- * @desc
- * ``clb-rest`` module contains util for simplifying access to Rest service.
- */
-angular.module('clb-rest', ['clb-error']);
 
 /**
  * @module clb-stream
@@ -209,7 +202,8 @@ angular.module('clb-stream', [
   'clb-env',
   'clb-error',
   'clb-rest',
-  'clb-identity'
+  'clb-identity',
+  'angularMoment'
 ]);
 
 /**
@@ -228,9 +222,18 @@ angular.module('clb-storage', [
 ]);
 
 /**
- * @module clb-ui-dialog
+ * @module clb-rest
+ * @desc
+ * ``clb-rest`` module contains util for simplifying access to Rest service.
  */
-angular.module('clb-ui-dialog', ['ui.bootstrap.modal']);
+angular.module('clb-rest', ['clb-error']);
+
+/**
+ * @module clb-ui-form
+ * @desc
+ * clb-ui-form provides directive to ease creation of forms.
+ */
+angular.module('clb-ui-form', []);
 
 /**
  * @module clb-ui-error
@@ -243,23 +246,15 @@ angular.module('clb-ui-error', [
 ]);
 
 /**
- * @module clb-ui-form
- * @desc
- * clb-ui-form provides directive to ease creation of forms.
+ * @module clb-ui-dialog
  */
-angular.module('clb-ui-form', []);
+angular.module('clb-ui-dialog', ['ui.bootstrap.modal']);
 
 /**
  * Provides UI widgets around user and groups.
  * @module clb-ui-identity
  */
 angular.module('clb-ui-identity', ['lodash', 'clb-identity']);
-
-/**
- * Provides a simple loading directive.
- * @module clb-ui-loading
- */
-angular.module('clb-ui-loading', []);
 
 /**
  * The ``clb-ui-storage`` module provides Angular directive to work
@@ -279,6 +274,12 @@ angular.module('clb-ui-storage', [
   'clb-ui-error',
   'clb-storage'
 ]);
+
+/**
+ * Provides a simple loading directive.
+ * @module clb-ui-loading
+ */
+angular.module('clb-ui-loading', []);
 
 /**
  * @module clb-ui-stream
@@ -1137,6 +1138,368 @@ angular.module('clb-automator')
     });
   }
 }]);
+
+/* global window */
+
+angular.module('clb-env')
+.provider('clbEnv', clbEnv);
+
+/**
+ * Get environement information using dotted notation with the `clbEnv` provider
+ * or service.
+ *
+ * Before being used, clbEnv must be initialized with the context values. You
+ * can do so by setting up a global bbpConfig variable or using
+ * :ref:`angular.clbBootstrap <angular.clbBootstrap>`.
+ *
+ * @function clbEnv
+ * @memberof module:clb-env
+ * @param {object} $injector AngularJS injection
+ * @return {object} provider
+ * @example <caption>Basic usage of clbEnv</caption>
+ * angular.module('myApp', ['clbEnv', 'rest'])
+ * .service('myService', function(clbEnv, clbResultSet) {
+ *   return {
+ *     listCollab: function() {
+ *       // return a paginated list of all collabs
+ *       return clbResultSet.get($http.get(clbEnv.get('api.collab.v0') + '/'));
+ *     }
+ *   };
+ * });
+ * @example <caption>Use clbEnv in your configuration</caption>
+ * angular.module('myApp', ['clbEnv', 'rest'])
+ * .config(function(clbEnvProvider, myAppServiceProvider) {
+ *   // also demonstrate how we accept a custom variable.
+ *   myAppServiceProvider.setMaxFileUpload(clbEnvProvider.get('myapp.maxFileUpload', '1m'))
+ * });
+ */
+function clbEnv($injector) {
+  return {
+    get: get,
+    $get: function() {
+      return {
+        get: get
+      };
+    }
+  };
+
+  /**
+   * ``get(key, [defaultValue])`` provides configuration value loaded at
+   * the application bootstrap.
+   *
+   * Accept a key and an optional default
+   * value. If the key cannot be found in the configurations, it will return
+   * the provided default value. If the defaultValue is undefied, it will
+   * throw an error.
+   *
+   * To ensures that those data are available when angular bootstrap the
+   * application, use angular.clbBootstrap(module, options).
+   *
+   * @memberof module:clb-env.clbEnv
+   * @param {string} key the environment variable to retrieve, using a key.
+   * @param {any} [defaultValue] an optional default value.
+   * @return {any} the value or ``defaultValue`` if the asked for configuration
+   *               is not defined.
+   */
+  function get(key, defaultValue) {
+    var parts = key.split('.');
+    var cursor = (window.bbpConfig ?
+                  window.bbpConfig : $injector.get('CLB_ENVIRONMENT'));
+    for (var i = 0; i < parts.length; i++) {
+      if (!(cursor && cursor.hasOwnProperty(parts[i]))) {
+        if (defaultValue !== undefined) {
+          return defaultValue;
+        }
+        throw new Error('UnkownConfigurationKey: <' + key + '>');
+      }
+      cursor = cursor[parts[i]];
+    }
+    return cursor;
+  }
+}
+
+angular.module('clb-ctx-data')
+.factory('clbCtxData', clbCtxData);
+
+/**
+ * A service to retrieve data for a given ctx. This is a convenient
+ * way to store JSON data for a given context. Do not use it for
+ * Sensitive data. There is no data migration functionality available, so if
+ * the expected data format change, you are responsible to handle the old
+ * format on the client side.
+ *
+ * @namespace clbCtxData
+ * @memberof clb-ctx-data
+ * @param  {object} $http    Angular DI
+ * @param  {object} $q       Angular DI
+ * @param  {object} uuid4     Angular DI
+ * @param  {object} clbEnv   Angular DI
+ * @param  {object} clbError Angular DI
+ * @return {object}          Angular Service Descriptor
+ */
+function clbCtxData($http, $q, uuid4, clbEnv, clbError) {
+  var configUrl = clbEnv.get('api.collab.v0') + '/config/';
+  return {
+    /**
+     * Return an Array or an Object containing the data or
+     * ``undefined`` if there is no data stored.
+     * @memberof module:clb-ctx-data.clbCtxData
+     * @param  {UUID} ctx   the current context UUID
+     * @return {Promise}    fullfil to {undefined|object|array}
+     */
+    get: function(ctx) {
+      if (!uuid4.validate(ctx)) {
+        return $q.reject(invalidUuidError(ctx));
+      }
+      return $http.get(configUrl + ctx + '/')
+      .then(function(res) {
+        try {
+          return angular.fromJson(res.data.content);
+        } catch (ex) {
+          return $q.reject(clbError.error({
+            type: 'InvalidData',
+            message: 'Cannot parse JSON string: ' + res.data.content,
+            code: -2,
+            data: {
+              cause: ex
+            }
+          }));
+        }
+      })
+      .catch(function(err) {
+        if (err.code === 404) {
+          return;
+        }
+        return clbError.rejectHttpError(err);
+      });
+    },
+
+    /**
+     * @memberof module:clb-ctx-data.clbCtxData
+     * @param  {UUID} ctx The context UUID
+     * @param  {array|object|string|number} data JSON serializable data
+     * @return {Promise} Return the data when fulfilled
+     */
+    save: function(ctx, data) {
+      if (!uuid4.validate(ctx)) {
+        return $q.reject(invalidUuidError(ctx));
+      }
+      return $http.put(configUrl + ctx + '/', {
+        context: ctx,
+        content: angular.toJson(data)
+      }).then(function() {
+        return data;
+      })
+      .catch(clbError.rejectHttpError);
+    },
+
+    /**
+     * @memberof module:clb-ctx-data.clbCtxData
+     * @param  {UUID} ctx The context UUID
+     * @return {Promise}  fulfilled once deleted
+     */
+    delete: function(ctx) {
+      if (!uuid4.validate(ctx)) {
+        return $q.reject(invalidUuidError(ctx));
+      }
+      return $http.delete(configUrl + ctx + '/')
+      .then(function() {
+        return true;
+      })
+      .catch(clbError.rejectHttpError);
+    }
+  };
+
+  /**
+   * Generate the appropriate error when context is invalid.
+   * @param  {any} badCtx  the wrong ctx
+   * @return {HbpError}    The Error
+   */
+  function invalidUuidError(badCtx) {
+    return clbError.error({
+      type: 'InvalidArgument',
+      message: 'Provided ctx must be a valid UUID4 but is: ' + badCtx,
+      data: {
+        argName: 'ctx',
+        argPosition: 0,
+        argValue: badCtx
+      },
+      code: -3
+    });
+  }
+}
+
+/* global document */
+
+angular.module('clb-error')
+.factory('clbError', clbError);
+
+/**
+ * @class ClbError
+ * @memberof module:clb-error
+ * @desc
+ * ``ClbError`` describes a standard error object used
+ * to display error message or intropect the situation.
+ *
+ * A ``ClbError`` instance provides the following properties:
+ *
+ * * ``type`` a camel case name of the error type.
+ * * `message` a human readable message of the error that should
+ * be displayed to the end user.
+ * * ``data`` any important data that might help the software to
+ * inspect the issue and take a recovering action.
+ * * ``code`` an error numerical code.
+ *
+ * The ClbError extends the native Javascript Error instance so it also provides:
+ * * ``name`` which is equal to the type
+ * * ``stack`` the stack trace of the error (when available)
+ *
+ * Only ``type``, ``message``, and ``code`` should be considered to be present.
+ * They receive default values when not specified by the situation.
+ *
+ * @param {object} [options] the parameters to use to build the error
+ * @param {string} [options.type] the error type (default to ``'UnknownError'``)
+ * @param {string} [options.message] the error message (default to ``'An unknown error occurred'``)
+ * @param {int} [options.code] the error code (default to ``-1``)
+ * @param {object} [options.data] any data that can be useful to deal with the error
+ */
+function ClbError(options) {
+  options = angular.extend({
+    type: 'UnknownError',
+    message: 'An unknown error occurred.',
+    code: -1
+  }, options);
+  this.type = options.type || options.name;
+  this.name = this.type; // Conform to Error class
+  this.message = options.message;
+  this.data = options.data;
+  this.code = options.code;
+  this.stack = (new Error()).stack;
+  if (options instanceof Error) {
+    // in case this is a javascript exception, keep the raw cause in data.cause
+    this.data = angular.extend({cause: options}, this.data);
+  }
+}
+// Extend the Error prototype
+ClbError.prototype = Object.create(Error.prototype);
+ClbError.prototype.toString = function() {
+  return String(this.type) + ':' + this.message;
+};
+
+/**
+ * @namespace clbError
+ * @memberof module:clb-error
+ * @desc
+ * ``clbError`` provides helper functions that all return an
+ * ``ClbError`` instance given a context object.
+ * @param {object} $q AngularJS injection
+ * @return {object} the service singleton
+ */
+function clbError($q) {
+  return {
+    rejectHttpError: function(err) {
+      return $q.reject(httpError(err));
+    },
+    httpError: httpError,
+
+    /**
+     * Build a ``ClbError`` instance from the provided options.
+     *
+     * - param  {Object} options argument passed to ``ClbError`` constructor
+     * - return {ClbError} the resulting error
+     * @memberof module:clb-error.clbError
+     * @param  {object} options [description]
+     * @return {object}         [description]
+     */
+    error: function(options) {
+      if (options && options instanceof ClbError) {
+        return options;
+      }
+      return new ClbError(options);
+    }
+  };
+
+  /**
+   * @desc
+   * return a `ClbError` instance built from a HTTP response.
+   *
+   * In an ideal case, the response contains json data with an error object.
+   * It also fallback to a reason field and fill default error message for
+   * standard HTTP status error.
+   * @memberof module:clb-error.clbError
+   * @param  {HttpResponse} response Angular $http Response object
+   * @return {ClbError} a valid ClbError
+   */
+  function httpError(response) {
+    // return argument if it is already an
+    // instance of ClbError
+    if (response && response instanceof ClbError) {
+      return response;
+    }
+
+    if (response.status === undefined) {
+      return new ClbError({
+        message: 'Cannot parse error, invalid format.'
+      });
+    }
+    var error = new ClbError({code: response.status});
+
+    if (error.code === 0) {
+      error.type = 'ClientError';
+      error.message = 'The client cannot run the request.';
+      return error;
+    }
+    if (error.code === 404) {
+      error.type = 'NotFound';
+      error.message = 'Resource not found';
+      return error;
+    }
+    if (error.code === 403) {
+      error.type = 'Forbidden';
+      error.message = 'Permission denied: you are not allowed to display ' +
+                      'the page or perform the operation';
+      return error;
+    }
+    if (error.code === 502) {
+      error.type = 'BadGateway';
+      error.message = '502 Bad Gateway Error';
+      if (response.headers('content-type') === 'text/html') {
+        var doc = document.createElement('div');
+        doc.innerHTML = response.data;
+        var titleNode = doc.getElementsByTagName('title')[0];
+        if (titleNode) {
+          error.message = titleNode.innerHTML;
+        }
+      }
+      return error;
+    }
+    if (response.data) {
+      var errorSource = response.data;
+      if (errorSource.error) {
+        errorSource = errorSource.error;
+      }
+      if (errorSource.type) {
+        error.type = errorSource.type;
+      }
+      if (errorSource.data) {
+        error.data = errorSource.data;
+      }
+      if (errorSource.message) {
+        error.message = errorSource.message;
+      } else if (errorSource.reason) {
+        error.type = 'Error';
+        error.message = errorSource.reason;
+      }
+
+      if (!errorSource.type && !errorSource.data &&
+        !errorSource.message && !errorSource.reason) {
+        // unkown format, return raw data
+        error.data = errorSource;
+      }
+    }
+    return error;
+  }
+}
 
 /* eslint camelcase: 0 */
 
@@ -2206,368 +2569,6 @@ function clbContext($http, $q, clbError, clbEnv, ClbContextModel) {
       return clbError.rejectHttpError(res);
     });
     return ongoingContextRequests[uuid];
-  }
-}
-
-angular.module('clb-ctx-data')
-.factory('clbCtxData', clbCtxData);
-
-/**
- * A service to retrieve data for a given ctx. This is a convenient
- * way to store JSON data for a given context. Do not use it for
- * Sensitive data. There is no data migration functionality available, so if
- * the expected data format change, you are responsible to handle the old
- * format on the client side.
- *
- * @namespace clbCtxData
- * @memberof clb-ctx-data
- * @param  {object} $http    Angular DI
- * @param  {object} $q       Angular DI
- * @param  {object} uuid4     Angular DI
- * @param  {object} clbEnv   Angular DI
- * @param  {object} clbError Angular DI
- * @return {object}          Angular Service Descriptor
- */
-function clbCtxData($http, $q, uuid4, clbEnv, clbError) {
-  var configUrl = clbEnv.get('api.collab.v0') + '/config/';
-  return {
-    /**
-     * Return an Array or an Object containing the data or
-     * ``undefined`` if there is no data stored.
-     * @memberof module:clb-ctx-data.clbCtxData
-     * @param  {UUID} ctx   the current context UUID
-     * @return {Promise}    fullfil to {undefined|object|array}
-     */
-    get: function(ctx) {
-      if (!uuid4.validate(ctx)) {
-        return $q.reject(invalidUuidError(ctx));
-      }
-      return $http.get(configUrl + ctx + '/')
-      .then(function(res) {
-        try {
-          return angular.fromJson(res.data.content);
-        } catch (ex) {
-          return $q.reject(clbError.error({
-            type: 'InvalidData',
-            message: 'Cannot parse JSON string: ' + res.data.content,
-            code: -2,
-            data: {
-              cause: ex
-            }
-          }));
-        }
-      })
-      .catch(function(err) {
-        if (err.code === 404) {
-          return;
-        }
-        return clbError.rejectHttpError(err);
-      });
-    },
-
-    /**
-     * @memberof module:clb-ctx-data.clbCtxData
-     * @param  {UUID} ctx The context UUID
-     * @param  {array|object|string|number} data JSON serializable data
-     * @return {Promise} Return the data when fulfilled
-     */
-    save: function(ctx, data) {
-      if (!uuid4.validate(ctx)) {
-        return $q.reject(invalidUuidError(ctx));
-      }
-      return $http.put(configUrl + ctx + '/', {
-        context: ctx,
-        content: angular.toJson(data)
-      }).then(function() {
-        return data;
-      })
-      .catch(clbError.rejectHttpError);
-    },
-
-    /**
-     * @memberof module:clb-ctx-data.clbCtxData
-     * @param  {UUID} ctx The context UUID
-     * @return {Promise}  fulfilled once deleted
-     */
-    delete: function(ctx) {
-      if (!uuid4.validate(ctx)) {
-        return $q.reject(invalidUuidError(ctx));
-      }
-      return $http.delete(configUrl + ctx + '/')
-      .then(function() {
-        return true;
-      })
-      .catch(clbError.rejectHttpError);
-    }
-  };
-
-  /**
-   * Generate the appropriate error when context is invalid.
-   * @param  {any} badCtx  the wrong ctx
-   * @return {HbpError}    The Error
-   */
-  function invalidUuidError(badCtx) {
-    return clbError.error({
-      type: 'InvalidArgument',
-      message: 'Provided ctx must be a valid UUID4 but is: ' + badCtx,
-      data: {
-        argName: 'ctx',
-        argPosition: 0,
-        argValue: badCtx
-      },
-      code: -3
-    });
-  }
-}
-
-/* global window */
-
-angular.module('clb-env')
-.provider('clbEnv', clbEnv);
-
-/**
- * Get environement information using dotted notation with the `clbEnv` provider
- * or service.
- *
- * Before being used, clbEnv must be initialized with the context values. You
- * can do so by setting up a global bbpConfig variable or using
- * :ref:`angular.clbBootstrap <angular.clbBootstrap>`.
- *
- * @function clbEnv
- * @memberof module:clb-env
- * @param {object} $injector AngularJS injection
- * @return {object} provider
- * @example <caption>Basic usage of clbEnv</caption>
- * angular.module('myApp', ['clbEnv', 'rest'])
- * .service('myService', function(clbEnv, clbResultSet) {
- *   return {
- *     listCollab: function() {
- *       // return a paginated list of all collabs
- *       return clbResultSet.get($http.get(clbEnv.get('api.collab.v0') + '/'));
- *     }
- *   };
- * });
- * @example <caption>Use clbEnv in your configuration</caption>
- * angular.module('myApp', ['clbEnv', 'rest'])
- * .config(function(clbEnvProvider, myAppServiceProvider) {
- *   // also demonstrate how we accept a custom variable.
- *   myAppServiceProvider.setMaxFileUpload(clbEnvProvider.get('myapp.maxFileUpload', '1m'))
- * });
- */
-function clbEnv($injector) {
-  return {
-    get: get,
-    $get: function() {
-      return {
-        get: get
-      };
-    }
-  };
-
-  /**
-   * ``get(key, [defaultValue])`` provides configuration value loaded at
-   * the application bootstrap.
-   *
-   * Accept a key and an optional default
-   * value. If the key cannot be found in the configurations, it will return
-   * the provided default value. If the defaultValue is undefied, it will
-   * throw an error.
-   *
-   * To ensures that those data are available when angular bootstrap the
-   * application, use angular.clbBootstrap(module, options).
-   *
-   * @memberof module:clb-env.clbEnv
-   * @param {string} key the environment variable to retrieve, using a key.
-   * @param {any} [defaultValue] an optional default value.
-   * @return {any} the value or ``defaultValue`` if the asked for configuration
-   *               is not defined.
-   */
-  function get(key, defaultValue) {
-    var parts = key.split('.');
-    var cursor = (window.bbpConfig ?
-                  window.bbpConfig : $injector.get('CLB_ENVIRONMENT'));
-    for (var i = 0; i < parts.length; i++) {
-      if (!(cursor && cursor.hasOwnProperty(parts[i]))) {
-        if (defaultValue !== undefined) {
-          return defaultValue;
-        }
-        throw new Error('UnkownConfigurationKey: <' + key + '>');
-      }
-      cursor = cursor[parts[i]];
-    }
-    return cursor;
-  }
-}
-
-/* global document */
-
-angular.module('clb-error')
-.factory('clbError', clbError);
-
-/**
- * @class ClbError
- * @memberof module:clb-error
- * @desc
- * ``ClbError`` describes a standard error object used
- * to display error message or intropect the situation.
- *
- * A ``ClbError`` instance provides the following properties:
- *
- * * ``type`` a camel case name of the error type.
- * * `message` a human readable message of the error that should
- * be displayed to the end user.
- * * ``data`` any important data that might help the software to
- * inspect the issue and take a recovering action.
- * * ``code`` an error numerical code.
- *
- * The ClbError extends the native Javascript Error instance so it also provides:
- * * ``name`` which is equal to the type
- * * ``stack`` the stack trace of the error (when available)
- *
- * Only ``type``, ``message``, and ``code`` should be considered to be present.
- * They receive default values when not specified by the situation.
- *
- * @param {object} [options] the parameters to use to build the error
- * @param {string} [options.type] the error type (default to ``'UnknownError'``)
- * @param {string} [options.message] the error message (default to ``'An unknown error occurred'``)
- * @param {int} [options.code] the error code (default to ``-1``)
- * @param {object} [options.data] any data that can be useful to deal with the error
- */
-function ClbError(options) {
-  options = angular.extend({
-    type: 'UnknownError',
-    message: 'An unknown error occurred.',
-    code: -1
-  }, options);
-  this.type = options.type || options.name;
-  this.name = this.type; // Conform to Error class
-  this.message = options.message;
-  this.data = options.data;
-  this.code = options.code;
-  this.stack = (new Error()).stack;
-  if (options instanceof Error) {
-    // in case this is a javascript exception, keep the raw cause in data.cause
-    this.data = angular.extend({cause: options}, this.data);
-  }
-}
-// Extend the Error prototype
-ClbError.prototype = Object.create(Error.prototype);
-ClbError.prototype.toString = function() {
-  return String(this.type) + ':' + this.message;
-};
-
-/**
- * @namespace clbError
- * @memberof module:clb-error
- * @desc
- * ``clbError`` provides helper functions that all return an
- * ``ClbError`` instance given a context object.
- * @param {object} $q AngularJS injection
- * @return {object} the service singleton
- */
-function clbError($q) {
-  return {
-    rejectHttpError: function(err) {
-      return $q.reject(httpError(err));
-    },
-    httpError: httpError,
-
-    /**
-     * Build a ``ClbError`` instance from the provided options.
-     *
-     * - param  {Object} options argument passed to ``ClbError`` constructor
-     * - return {ClbError} the resulting error
-     * @memberof module:clb-error.clbError
-     * @param  {object} options [description]
-     * @return {object}         [description]
-     */
-    error: function(options) {
-      if (options && options instanceof ClbError) {
-        return options;
-      }
-      return new ClbError(options);
-    }
-  };
-
-  /**
-   * @desc
-   * return a `ClbError` instance built from a HTTP response.
-   *
-   * In an ideal case, the response contains json data with an error object.
-   * It also fallback to a reason field and fill default error message for
-   * standard HTTP status error.
-   * @memberof module:clb-error.clbError
-   * @param  {HttpResponse} response Angular $http Response object
-   * @return {ClbError} a valid ClbError
-   */
-  function httpError(response) {
-    // return argument if it is already an
-    // instance of ClbError
-    if (response && response instanceof ClbError) {
-      return response;
-    }
-
-    if (response.status === undefined) {
-      return new ClbError({
-        message: 'Cannot parse error, invalid format.'
-      });
-    }
-    var error = new ClbError({code: response.status});
-
-    if (error.code === 0) {
-      error.type = 'ClientError';
-      error.message = 'The client cannot run the request.';
-      return error;
-    }
-    if (error.code === 404) {
-      error.type = 'NotFound';
-      error.message = 'Resource not found';
-      return error;
-    }
-    if (error.code === 403) {
-      error.type = 'Forbidden';
-      error.message = 'Permission denied: you are not allowed to display ' +
-                      'the page or perform the operation';
-      return error;
-    }
-    if (error.code === 502) {
-      error.type = 'BadGateway';
-      error.message = '502 Bad Gateway Error';
-      if (response.headers('content-type') === 'text/html') {
-        var doc = document.createElement('div');
-        doc.innerHTML = response.data;
-        var titleNode = doc.getElementsByTagName('title')[0];
-        if (titleNode) {
-          error.message = titleNode.innerHTML;
-        }
-      }
-      return error;
-    }
-    if (response.data) {
-      var errorSource = response.data;
-      if (errorSource.error) {
-        errorSource = errorSource.error;
-      }
-      if (errorSource.type) {
-        error.type = errorSource.type;
-      }
-      if (errorSource.data) {
-        error.data = errorSource.data;
-      }
-      if (errorSource.message) {
-        error.message = errorSource.message;
-      } else if (errorSource.reason) {
-        error.type = 'Error';
-        error.message = errorSource.reason;
-      }
-
-      if (!errorSource.type && !errorSource.data &&
-        !errorSource.message && !errorSource.reason) {
-        // unkown format, return raw data
-        error.data = errorSource;
-      }
-    }
-    return error;
   }
 }
 
@@ -3644,377 +3645,6 @@ function clbIdentityUtil($log, lodash) {
   }
 }
 
-angular.module('clb-rest')
-.factory('clbResultSet', clbResultSet);
-
-/**
- * @namespace clbResultSet
- * @memberof module:clb-rest
- * @param  {object} $http           Angular DI
- * @param  {object} $q              Angular DI
- * @param  {object} clbError Angular DI
- * @return {object}                 Angular Service
- */
-function clbResultSet($http, $q, clbError) {
-  /**
-   * @attribute ResultSetEOL
-   * @memberof module:clb-rest.clbResultSet
-   * @desc error thrown when module:clb-rest.ResultSet is crawled when at an
-   *       extremity.
-   */
-  var ResultSetEOL = clbError.error({
-    type: 'ResultSet::EOL',
-    message: 'End of list reached'
-  });
-
-  return {
-    get: getPaginatedResultSet,
-    EOL: ResultSetEOL
-  };
-
-  /**
-   * @name get
-   * @memberof module:clb-rest.clbResultSet
-   * @desc
-   * Return a promise that will resolve once the result set first page is loaded.
-   *
-   * The promise contains the `instance` of the result set as well.
-   *
-   * @param  {Object} res     a HTTPResponse or a promise which resolve to a HTTPResponse
-   * @param  {Object} [options] configuration
-   * @param  {string} [options.nextUrlKey] name of (or dot notation path to) the attribute containing the URL to fetch next results
-   * @param  {function} [options.hasNextHandler] A function that receive the JSON data as its first argument and must
-   *                                             return a boolean value that will be assigned to the ``hasNext`` property.
-   *                                             When this option is given, ``options.nextUrlHandler`` SHOULD be defined as well.
-   * @param  {function} [options.nextHandler] A function that receive the JSON data as its first argument and must return a promise
-   *                                          to the next results. This handler will be called when ``next()`` is called on the
-   *                                          RecordSet.
-   *                                          When this option is given ``options.hasNextHandler`` MUST be defined as well.
-   *                                          When this option is given ``options.nextUrlKey`` is ignored.
-   * @param  {string} [options.previousUrlKey] name of (or dot notation path to) the attribute containing the URL to fetch previous results
-   * @param  {function} [options.hasPreviousHandler] A function that receive the JSON data as its first argument and must
-   *                                                 return a boolean value that will be assigned to the ``hasPrevious`` property.
-   *                                                 When this option is given, ``options.previousUrlHandler`` SHOULD be defined as well.
-   * @param  {function} [options.previousHandler] A function that receive the JSON data as its first argument and must return a string value
-   *                                              that represent the previous URL that will be fetched by a call to ``.previous()``.
-   *                                              When this option is given ``options.hasPreviousHandler`` MUST be defined as well.
-   *                                              When this option is given ``options.previousUrlKey`` is ignored.
-   * @param  {string} [options.resultKey] name of (or dot notation path to) the attribute containing an array with all the results
-   * @param  {string} [options.countKey] name of (or dot notation path to) the attribute containing the number of results returned
-   * @param  {function} [options.resultsFactory] a function to which a new array of results is passed.
-   *                    The function can return ``undefined``, a ``Promise`` or an ``array`` as result.
-   * @return {Promise} After the promise is fulfilled, it will return a new instance of :doc:`module-clb-rest.clbResultSet.ResultSet`.
-   */
-  function getPaginatedResultSet(res, options) {
-    return new ResultSet(res, options).promise;
-  }
-
-  /**
-   * @class ResultSet
-   * @memberof module:clb-rest.clbResultSet
-   * @desc
-   * Build a result set with internal support for fetching next and previous results.
-   *
-   * @param {Object} pRes the promise of the first result page
-   * @param {Object} options various options to specify how to handle the pagination
-   * @see {module:clb-rest.clbResultSet.get}
-   */
-  function ResultSet(pRes, options) {
-    var self = this;
-    // Hold call to next and previous when using customization.
-    var wrappedNextCall;
-    var wrappedPreviousCall;
-
-    /**
-     * The array containing all fetched results. Previous pages are added
-     * to the beginning of the results, next pages at the end.
-     * @type {array}
-     */
-    self.results = [];
-    /**
-     * Define with the last ClbError instance that occured.
-     * @type {module:clb-error.ClbError}
-     */
-    self.error = null;
-    /**
-     * ``true`` if there is more results to be loaded.
-     * @type {Boolean}
-     */
-    self.hasNext = null;
-    /**
-     * ``true`` if there is previous page to be loaded.
-     * @type {Boolean}
-     */
-    self.hasPrevious = null;
-    /**
-     * The promise associated with the last operation in the queue.
-     * @type {Promise}
-     */
-    self.promise = null;
-    /**
-     * A function that handle any error during an operation.
-     * @type {Function}
-     */
-    self.errorHandler = null;
-    self.next = enqueue(next);
-    self.previous = enqueue(previous);
-    self.toArray = enqueue(toArray);
-    self.all = enqueue(all);
-    self.count = -1;
-
-    options = angular.extend({
-      resultKey: 'results',
-      nextUrlKey: 'next',
-      hasNextHandler: function(rs) {
-        // by default, has next is defined if the received data
-        // defines a next URL.
-        return Boolean(at(rs, options.nextUrlKey));
-      },
-      previousUrlKey: 'previous',
-      hasPreviousHandler: function(rs) {
-        // by default, has previous is defined if the received data
-        // defines a next URL.
-        return Boolean(at(rs, options.previousUrlKey));
-      },
-      countKey: 'count'
-    }, options);
-
-    self.promise = $q.when(pRes)
-    .then(initialize)
-    .catch(handleError);
-    self.promise.instance = self;
-
-    /**
-     * @name next
-     * @memberof module:clb-rest.ResultSet
-     * @desc
-     * Retrieve the next result page.
-     * @memberof module:clb-rest.clbResultSet.ResultSet
-     *
-     * @return {Object} a promise that will resolve when the next page is fetched.
-     */
-    function next() {
-      if (!self.hasNext) {
-        return $q.reject(ResultSetEOL);
-      }
-      var promise = (options.nextHandler ?
-        wrappedNextCall() :
-        $http.get(self.nextUrl)
-      );
-      return promise.then(handleNextResults);
-    }
-
-    /**
-     * @name previous
-     * @memberof module:clb-rest.ResultSet
-     * @desc
-     * Retrieve the previous result page
-     *
-     * @return {Object} a promise that will resolve when the previous page is fetched.
-     */
-    function previous() {
-      if (!self.hasPrevious) {
-        return $q.reject(ResultSetEOL);
-      }
-      var promise = (options.previousHandler ?
-        wrappedPreviousCall() :
-        $http.get(self.previousUrl)
-      );
-      return promise.then(handlePreviousResults);
-    }
-
-    /**
-     * @name toArray
-     * @memberof module:clb-rest.ResultSet
-     * @desc
-     * Retrieve an array containing ALL the results. Beware that this
-     * can be very long to resolve depending on your dataset.
-     *
-     * @return {Promise} a promise that will resolve to the array when
-     * all data has been fetched.
-     */
-    function toArray() {
-      return all().then(function() {
-        return self.results.slice();
-      });
-    }
-
-    /**
-     * Load all pages.
-     * @memberof module:clb-rest.ResultSet
-     * @return {Promise} Resolve once everything is loaded
-     */
-    function all() {
-      if (self.hasNext) {
-        return next().then(all);
-      }
-      return $q.when(self);
-    }
-
-    /**
-     * parse the next result set according to options.
-     * @param  {HTTPResponse} res response containing the results.
-     * @return {ResultSet} self for chaining
-     * @private
-     */
-    function handleNextResults(res) {
-      var rs = res.data;
-      var result = at(rs, options.resultKey);
-
-      var fResult;
-      if (options.resultsFactory) {
-        fResult = options.resultsFactory(result, rs);
-      }
-      return $q.when(fResult)
-      .then(function(computedResult) {
-        self.results.push.apply(self.results, (computedResult || result));
-        counting(rs);
-        bindNext(rs);
-        return self;
-      });
-    }
-
-    /**
-     * parse the previous result set according to options.
-     * @param  {HTTPResponse} res response containing the results.
-     * @return {ResultSet} self for chaining
-     * @private
-     */
-    function handlePreviousResults(res) {
-      var rs = res.data;
-      var result = at(rs, options.resultKey);
-      var fResult;
-      if (options.resultsFactory) {
-        fResult = options.resultsFactory(result, rs);
-      }
-      return $q.when(fResult)
-      .then(function(computedResult) {
-        self.results.unshift.apply(self.results, (computedResult || result));
-        counting(rs);
-        bindPrevious(rs);
-        return self;
-      });
-    }
-
-    /**
-     * @name at
-     * @desc
-     * Lodash 'at' function replacement. This is needed because the 'at' function
-     * supports Object as first arg only starting from v4.0.0.
-     * Migration to that version has big impacts.
-     *
-     * See: https://lodash.com/docs#at
-     * @param {object} obj the object to search in
-     * @param {string} desc the dotted path to the location
-     * @return {instance} the found value
-     * @private
-     */
-    function at(obj, desc) {
-      var arr = desc.split('.');
-      while (arr.length && obj) {
-        obj = obj[arr.shift()];
-      }
-      return obj;
-    }
-
-    /**
-     * Handle an error retrieved by calling
-     * ``options.errorHandler``, passing the ``ClbError`` instance in parameter
-     * if ``options.errorHandler`` is a function.
-     * Then reject the current request with the same error instance.
-     * @param  {object} res the HTTP error object
-     * @return {Promise} rejected Promise with the error.
-     * @private
-     */
-    function handleError(res) {
-      self.error = clbError.httpError(res);
-      if (angular.isFunction(options.errorHandler)) {
-        options.errorHandler(self.error);
-      }
-      return $q.reject(self.error);
-    }
-
-    /**
-     * Configure the next page state of the result set.
-     * @param  {object} rs the last page results.
-     * @private
-     */
-    function bindNext(rs) {
-      self.hasNext = options.hasNextHandler(rs);
-      if (options.nextHandler) {
-        wrappedNextCall = function() {
-          return options.nextHandler(rs);
-        };
-      } else if (self.hasNext) {
-        self.nextUrl = at(rs, options.nextUrlKey);
-      } else {
-        self.nextUrl = null;
-      }
-    }
-
-    /**
-     * Configure the previous page state of the result set.
-     * @param  {object} rs the last page results.
-     * @private
-     */
-    function bindPrevious(rs) {
-      self.hasPrevious = options.hasPreviousHandler(rs);
-      if (options.previousHandler) {
-        wrappedPreviousCall = function() {
-          return options.previousHandler(rs);
-        };
-      } else if (self.hasPrevious) {
-        self.previousUrl = at(rs, options.previousUrlKey);
-      } else {
-        self.previousUrl = null;
-      }
-    }
-
-    /**
-     * Set the current count of results.
-     * @param  {object} rs the last page results.
-     * @private
-     */
-    function counting(rs) {
-      var c = at(rs, options.countKey);
-      if (angular.isDefined(c)) {
-        self.count = c;
-      }
-    }
-
-    /**
-     * Ensure that we don't mess with query result order.
-     * @param  {Function} fn the next function to run once all pending calls
-     *                       have been resolved.
-     * @return {Promise}     the promise will resolve when this function had run.
-     * @private
-     */
-    function enqueue(fn) {
-      return function() {
-        self.promise = $q
-        .when(self.promise.then(fn))
-        .catch(handleError);
-        self.promise.instance = self;
-        return self.promise;
-      };
-    }
-
-    /**
-     * Bootstrap the pagination.
-     * @param  {HTTPResponse|Promise} res Angular HTTP Response
-     * @return {ResultSet} self for chaining
-     * @private
-     */
-    function initialize(res) {
-      return handleNextResults(res)
-      .then(function() {
-        bindPrevious(res.data);
-        return self;
-      });
-    }
-  }
-}
-
 angular.module('clb-stream')
 .provider('clbResourceLocator', clbResourceLocatorProvider);
 
@@ -4153,8 +3783,6 @@ function clbResourceLocator($q, $log, $injector, clbError) {
   }
 }
 
-/* global moment */
-
 angular.module('clb-stream')
 .factory('clbStream', clbStream);
 
@@ -4168,9 +3796,10 @@ angular.module('clb-stream')
  * @param {function} clbEnv angular dependency injection
  * @param {function} clbError angular dependency injection
  * @param {function} clbResultSet angular dependency injection
+ * @param {function} moment angular dependency injection
  * @return {object} the clbActivityStream service
  */
-function clbStream($http, clbEnv, clbError, clbResultSet) {
+function clbStream($http, clbEnv, clbError, clbResultSet, moment) {
   return {
     getStream: getStream,
     getHeatmapStream: getHeatmapStream
@@ -5078,58 +4707,438 @@ function clbStorage(
   }
 }
 
-angular.module('clb-ui-dialog')
-.factory('clbConfirm', clbConfirm);
+angular.module('clb-rest')
+.factory('clbResultSet', clbResultSet);
 
 /**
- * Service to trigger modal dialog.
- *
- * @namespace clbDialog
- * @memberof module:clb-ui-dialog
- * @param  {object} $rootScope Angular DI
- * @param  {object} $uibModal     Angular DI
- * @return {object}            Service Descriptor
+ * @namespace clbResultSet
+ * @memberof module:clb-rest
+ * @param  {object} $http           Angular DI
+ * @param  {object} $q              Angular DI
+ * @param  {object} clbError Angular DI
+ * @return {object}                 Angular Service
  */
-function clbConfirm($rootScope, $uibModal) {
+function clbResultSet($http, $q, clbError) {
+  /**
+   * @attribute ResultSetEOL
+   * @memberof module:clb-rest.clbResultSet
+   * @desc error thrown when module:clb-rest.ResultSet is crawled when at an
+   *       extremity.
+   */
+  var ResultSetEOL = clbError.error({
+    type: 'ResultSet::EOL',
+    message: 'End of list reached'
+  });
+
   return {
-    open: open
+    get: getPaginatedResultSet,
+    EOL: ResultSetEOL
   };
 
   /**
-   * Confirmation dialog
-   * @param  {object} options Parameters
-   * @return {Promise}        Resolve if the confirmation happens, reject otherwise
+   * @name get
+   * @memberof module:clb-rest.clbResultSet
+   * @desc
+   * Return a promise that will resolve once the result set first page is loaded.
+   *
+   * The promise contains the `instance` of the result set as well.
+   *
+   * @param  {Object} res     a HTTPResponse or a promise which resolve to a HTTPResponse
+   * @param  {Object} [options] configuration
+   * @param  {string} [options.nextUrlKey] name of (or dot notation path to) the attribute containing the URL to fetch next results
+   * @param  {function} [options.hasNextHandler] A function that receive the JSON data as its first argument and must
+   *                                             return a boolean value that will be assigned to the ``hasNext`` property.
+   *                                             When this option is given, ``options.nextUrlHandler`` SHOULD be defined as well.
+   * @param  {function} [options.nextHandler] A function that receive the JSON data as its first argument and must return a promise
+   *                                          to the next results. This handler will be called when ``next()`` is called on the
+   *                                          RecordSet.
+   *                                          When this option is given ``options.hasNextHandler`` MUST be defined as well.
+   *                                          When this option is given ``options.nextUrlKey`` is ignored.
+   * @param  {string} [options.previousUrlKey] name of (or dot notation path to) the attribute containing the URL to fetch previous results
+   * @param  {function} [options.hasPreviousHandler] A function that receive the JSON data as its first argument and must
+   *                                                 return a boolean value that will be assigned to the ``hasPrevious`` property.
+   *                                                 When this option is given, ``options.previousUrlHandler`` SHOULD be defined as well.
+   * @param  {function} [options.previousHandler] A function that receive the JSON data as its first argument and must return a string value
+   *                                              that represent the previous URL that will be fetched by a call to ``.previous()``.
+   *                                              When this option is given ``options.hasPreviousHandler`` MUST be defined as well.
+   *                                              When this option is given ``options.previousUrlKey`` is ignored.
+   * @param  {string} [options.resultKey] name of (or dot notation path to) the attribute containing an array with all the results
+   * @param  {string} [options.countKey] name of (or dot notation path to) the attribute containing the number of results returned
+   * @param  {function} [options.resultsFactory] a function to which a new array of results is passed.
+   *                    The function can return ``undefined``, a ``Promise`` or an ``array`` as result.
+   * @return {Promise} After the promise is fulfilled, it will return a new instance of :doc:`module-clb-rest.clbResultSet.ResultSet`.
    */
-  function open(options) {
+  function getPaginatedResultSet(res, options) {
+    return new ResultSet(res, options).promise;
+  }
+
+  /**
+   * @class ResultSet
+   * @memberof module:clb-rest.clbResultSet
+   * @desc
+   * Build a result set with internal support for fetching next and previous results.
+   *
+   * @param {Object} pRes the promise of the first result page
+   * @param {Object} options various options to specify how to handle the pagination
+   * @see {module:clb-rest.clbResultSet.get}
+   */
+  function ResultSet(pRes, options) {
+    var self = this;
+    // Hold call to next and previous when using customization.
+    var wrappedNextCall;
+    var wrappedPreviousCall;
+
+    /**
+     * The array containing all fetched results. Previous pages are added
+     * to the beginning of the results, next pages at the end.
+     * @type {array}
+     */
+    self.results = [];
+    /**
+     * Define with the last ClbError instance that occured.
+     * @type {module:clb-error.ClbError}
+     */
+    self.error = null;
+    /**
+     * ``true`` if there is more results to be loaded.
+     * @type {Boolean}
+     */
+    self.hasNext = null;
+    /**
+     * ``true`` if there is previous page to be loaded.
+     * @type {Boolean}
+     */
+    self.hasPrevious = null;
+    /**
+     * The promise associated with the last operation in the queue.
+     * @type {Promise}
+     */
+    self.promise = null;
+    /**
+     * A function that handle any error during an operation.
+     * @type {Function}
+     */
+    self.errorHandler = null;
+    self.next = enqueue(next);
+    self.previous = enqueue(previous);
+    self.toArray = enqueue(toArray);
+    self.all = enqueue(all);
+    self.count = -1;
+
     options = angular.extend({
-      scope: $rootScope,
-      title: 'Confirm',
-      confirmLabel: 'Yes',
-      cancelLabel: 'No',
-      template: 'Are you sure?',
-      closable: true
+      resultKey: 'results',
+      nextUrlKey: 'next',
+      hasNextHandler: function(rs) {
+        // by default, has next is defined if the received data
+        // defines a next URL.
+        return Boolean(at(rs, options.nextUrlKey));
+      },
+      previousUrlKey: 'previous',
+      hasPreviousHandler: function(rs) {
+        // by default, has previous is defined if the received data
+        // defines a next URL.
+        return Boolean(at(rs, options.previousUrlKey));
+      },
+      countKey: 'count'
     }, options);
 
-    var modalScope = options.scope.$new();
-    modalScope.title = options.title;
-    modalScope.confirmLabel = options.confirmLabel;
-    modalScope.cancelLabel = options.cancelLabel;
-    modalScope.confirmationContent = options.template;
-    modalScope.confirmationContentUrl = options.templateUrl;
-    modalScope.closable = options.closable;
-    modalScope.securityQuestion = options.securityQuestion;
-    modalScope.securityAnswer = options.securityAnswer;
+    self.promise = $q.when(pRes)
+    .then(initialize)
+    .catch(handleError);
+    self.promise.instance = self;
 
-    var instance = $uibModal.open({
-      template:'<div class=modal-header><button type=button ng-show=closable class=close ng-click="$dismiss(\'cancel\')" aria-hidden=true>&times;</button><h4 class=modal-title>{{title}}</h4></div><div class=modal-body><alert ng-if=error type=danger>{{error.reason}}</alert><div class="alert alert-warning" ng-show=securityQuestion>Unexpected bad things will happen if you don’t read this!</div><ng-include ng-if=confirmationContentUrl src=confirmationContentUrl></ng-include><p ng-if=!confirmationContentUrl>{{confirmationContent}}</p><fieldset class=form-group ng-show=securityQuestion><label for=securityAnswer>{{securityQuestion}}</label> <input type=text class=form-control name=securityAnswer ng-model=answer></fieldset></div><div class=modal-footer><button class="btn btn-default" ng-click="$dismiss(\'cancel\')">{{cancelLabel}}</button> <button class="btn btn-danger" ng-disabled="securityAnswer && answer !== securityAnswer" ng-click=$close()>{{confirmLabel}}</button></div>',
-      show: true,
-      backdrop: 'static',
-      scope: modalScope,
-      keyboard: options.keyboard || options.closable
-    });
-    return instance.result;
+    /**
+     * @name next
+     * @memberof module:clb-rest.ResultSet
+     * @desc
+     * Retrieve the next result page.
+     * @memberof module:clb-rest.clbResultSet.ResultSet
+     *
+     * @return {Object} a promise that will resolve when the next page is fetched.
+     */
+    function next() {
+      if (!self.hasNext) {
+        return $q.reject(ResultSetEOL);
+      }
+      var promise = (options.nextHandler ?
+        wrappedNextCall() :
+        $http.get(self.nextUrl)
+      );
+      return promise.then(handleNextResults);
+    }
+
+    /**
+     * @name previous
+     * @memberof module:clb-rest.ResultSet
+     * @desc
+     * Retrieve the previous result page
+     *
+     * @return {Object} a promise that will resolve when the previous page is fetched.
+     */
+    function previous() {
+      if (!self.hasPrevious) {
+        return $q.reject(ResultSetEOL);
+      }
+      var promise = (options.previousHandler ?
+        wrappedPreviousCall() :
+        $http.get(self.previousUrl)
+      );
+      return promise.then(handlePreviousResults);
+    }
+
+    /**
+     * @name toArray
+     * @memberof module:clb-rest.ResultSet
+     * @desc
+     * Retrieve an array containing ALL the results. Beware that this
+     * can be very long to resolve depending on your dataset.
+     *
+     * @return {Promise} a promise that will resolve to the array when
+     * all data has been fetched.
+     */
+    function toArray() {
+      return all().then(function() {
+        return self.results.slice();
+      });
+    }
+
+    /**
+     * Load all pages.
+     * @memberof module:clb-rest.ResultSet
+     * @return {Promise} Resolve once everything is loaded
+     */
+    function all() {
+      if (self.hasNext) {
+        return next().then(all);
+      }
+      return $q.when(self);
+    }
+
+    /**
+     * parse the next result set according to options.
+     * @param  {HTTPResponse} res response containing the results.
+     * @return {ResultSet} self for chaining
+     * @private
+     */
+    function handleNextResults(res) {
+      var rs = res.data;
+      var result = at(rs, options.resultKey);
+
+      var fResult;
+      if (options.resultsFactory) {
+        fResult = options.resultsFactory(result, rs);
+      }
+      return $q.when(fResult)
+      .then(function(computedResult) {
+        self.results.push.apply(self.results, (computedResult || result));
+        counting(rs);
+        bindNext(rs);
+        return self;
+      });
+    }
+
+    /**
+     * parse the previous result set according to options.
+     * @param  {HTTPResponse} res response containing the results.
+     * @return {ResultSet} self for chaining
+     * @private
+     */
+    function handlePreviousResults(res) {
+      var rs = res.data;
+      var result = at(rs, options.resultKey);
+      var fResult;
+      if (options.resultsFactory) {
+        fResult = options.resultsFactory(result, rs);
+      }
+      return $q.when(fResult)
+      .then(function(computedResult) {
+        self.results.unshift.apply(self.results, (computedResult || result));
+        counting(rs);
+        bindPrevious(rs);
+        return self;
+      });
+    }
+
+    /**
+     * @name at
+     * @desc
+     * Lodash 'at' function replacement. This is needed because the 'at' function
+     * supports Object as first arg only starting from v4.0.0.
+     * Migration to that version has big impacts.
+     *
+     * See: https://lodash.com/docs#at
+     * @param {object} obj the object to search in
+     * @param {string} desc the dotted path to the location
+     * @return {instance} the found value
+     * @private
+     */
+    function at(obj, desc) {
+      var arr = desc.split('.');
+      while (arr.length && obj) {
+        obj = obj[arr.shift()];
+      }
+      return obj;
+    }
+
+    /**
+     * Handle an error retrieved by calling
+     * ``options.errorHandler``, passing the ``ClbError`` instance in parameter
+     * if ``options.errorHandler`` is a function.
+     * Then reject the current request with the same error instance.
+     * @param  {object} res the HTTP error object
+     * @return {Promise} rejected Promise with the error.
+     * @private
+     */
+    function handleError(res) {
+      self.error = clbError.httpError(res);
+      if (angular.isFunction(options.errorHandler)) {
+        options.errorHandler(self.error);
+      }
+      return $q.reject(self.error);
+    }
+
+    /**
+     * Configure the next page state of the result set.
+     * @param  {object} rs the last page results.
+     * @private
+     */
+    function bindNext(rs) {
+      self.hasNext = options.hasNextHandler(rs);
+      if (options.nextHandler) {
+        wrappedNextCall = function() {
+          return options.nextHandler(rs);
+        };
+      } else if (self.hasNext) {
+        self.nextUrl = at(rs, options.nextUrlKey);
+      } else {
+        self.nextUrl = null;
+      }
+    }
+
+    /**
+     * Configure the previous page state of the result set.
+     * @param  {object} rs the last page results.
+     * @private
+     */
+    function bindPrevious(rs) {
+      self.hasPrevious = options.hasPreviousHandler(rs);
+      if (options.previousHandler) {
+        wrappedPreviousCall = function() {
+          return options.previousHandler(rs);
+        };
+      } else if (self.hasPrevious) {
+        self.previousUrl = at(rs, options.previousUrlKey);
+      } else {
+        self.previousUrl = null;
+      }
+    }
+
+    /**
+     * Set the current count of results.
+     * @param  {object} rs the last page results.
+     * @private
+     */
+    function counting(rs) {
+      var c = at(rs, options.countKey);
+      if (angular.isDefined(c)) {
+        self.count = c;
+      }
+    }
+
+    /**
+     * Ensure that we don't mess with query result order.
+     * @param  {Function} fn the next function to run once all pending calls
+     *                       have been resolved.
+     * @return {Promise}     the promise will resolve when this function had run.
+     * @private
+     */
+    function enqueue(fn) {
+      return function() {
+        self.promise = $q
+        .when(self.promise.then(fn))
+        .catch(handleError);
+        self.promise.instance = self;
+        return self.promise;
+      };
+    }
+
+    /**
+     * Bootstrap the pagination.
+     * @param  {HTTPResponse|Promise} res Angular HTTP Response
+     * @return {ResultSet} self for chaining
+     * @private
+     */
+    function initialize(res) {
+      return handleNextResults(res)
+      .then(function() {
+        bindPrevious(res.data);
+        return self;
+      });
+    }
   }
 }
+
+/**
+ * @namespace clbFormControlFocus
+ * @memberof module:clb-ui-form
+ * @desc
+ * The ``clbFormControlFocus`` Directive mark a form element as the one that
+ * should receive the focus first.
+ * @example <caption>Give the focus to the search field</caption>
+ * angular.module('exampleApp', ['clb-ui-form']);
+ *
+ * // HTML snippet:
+ * // <form ng-app="exampleApp"><input type="search" clb-ui-form-control-focus></form>
+ */
+angular.module('clb-ui-form')
+.directive('clbFormControlFocus', ['$timeout', function clbFormControlFocus($timeout) {
+  return {
+    type: 'A',
+    link: function formControlFocusLink(scope, elt) {
+      $timeout(function() {
+        elt[0].focus();
+      }, 0, false);
+    }
+  };
+}]);
+
+/**
+ * @namespace clbFormGroupState
+ * @memberof module:clb-ui-form
+ * @desc
+ * ``clbFormGroupState`` directive flag the current form group with
+ * the class has-error or has-success depending on its form field
+ * current state.
+ *
+ * @example
+ * <caption>Track a field validity at the ``.form-group`` level</caption>
+ * angular.module('exampleApp', ['hbpCollaboratory']);
+ */
+angular.module('clb-ui-form')
+.directive('clbFormGroupState', function formGroupState() {
+  return {
+    type: 'A',
+    scope: {
+      model: '=clbFormGroupState'
+    },
+    link: function formGroupStateLink(scope, elt) {
+      scope.$watchGroup(['model.$touched', 'model.$valid'], function() {
+        if (!scope.model) {
+          return;
+        }
+        elt.removeClass('has-error', 'has-success');
+        if (!scope.model.$touched) {
+          return;
+        }
+        if (scope.model.$valid) {
+          elt.addClass('has-success');
+        } else {
+          elt.addClass('has-error');
+        }
+      }, true);
+    }
+  };
+});
 
 angular.module('clb-ui-error')
 .factory('clbErrorDialog', clbErrorDialog);
@@ -5202,67 +5211,58 @@ function clbErrorMessage() {
   };
 }
 
-/**
- * @namespace clbFormControlFocus
- * @memberof module:clb-ui-form
- * @desc
- * The ``clbFormControlFocus`` Directive mark a form element as the one that
- * should receive the focus first.
- * @example <caption>Give the focus to the search field</caption>
- * angular.module('exampleApp', ['clb-ui-form']);
- *
- * // HTML snippet:
- * // <form ng-app="exampleApp"><input type="search" clb-ui-form-control-focus></form>
- */
-angular.module('clb-ui-form')
-.directive('clbFormControlFocus', ['$timeout', function clbFormControlFocus($timeout) {
-  return {
-    type: 'A',
-    link: function formControlFocusLink(scope, elt) {
-      $timeout(function() {
-        elt[0].focus();
-      }, 0, false);
-    }
-  };
-}]);
+angular.module('clb-ui-dialog')
+.factory('clbConfirm', clbConfirm);
 
 /**
- * @namespace clbFormGroupState
- * @memberof module:clb-ui-form
- * @desc
- * ``clbFormGroupState`` directive flag the current form group with
- * the class has-error or has-success depending on its form field
- * current state.
+ * Service to trigger modal dialog.
  *
- * @example
- * <caption>Track a field validity at the ``.form-group`` level</caption>
- * angular.module('exampleApp', ['hbpCollaboratory']);
+ * @namespace clbDialog
+ * @memberof module:clb-ui-dialog
+ * @param  {object} $rootScope Angular DI
+ * @param  {object} $uibModal     Angular DI
+ * @return {object}            Service Descriptor
  */
-angular.module('clb-ui-form')
-.directive('clbFormGroupState', function formGroupState() {
+function clbConfirm($rootScope, $uibModal) {
   return {
-    type: 'A',
-    scope: {
-      model: '=clbFormGroupState'
-    },
-    link: function formGroupStateLink(scope, elt) {
-      scope.$watchGroup(['model.$touched', 'model.$valid'], function() {
-        if (!scope.model) {
-          return;
-        }
-        elt.removeClass('has-error', 'has-success');
-        if (!scope.model.$touched) {
-          return;
-        }
-        if (scope.model.$valid) {
-          elt.addClass('has-success');
-        } else {
-          elt.addClass('has-error');
-        }
-      }, true);
-    }
+    open: open
   };
-});
+
+  /**
+   * Confirmation dialog
+   * @param  {object} options Parameters
+   * @return {Promise}        Resolve if the confirmation happens, reject otherwise
+   */
+  function open(options) {
+    options = angular.extend({
+      scope: $rootScope,
+      title: 'Confirm',
+      confirmLabel: 'Yes',
+      cancelLabel: 'No',
+      template: 'Are you sure?',
+      closable: true
+    }, options);
+
+    var modalScope = options.scope.$new();
+    modalScope.title = options.title;
+    modalScope.confirmLabel = options.confirmLabel;
+    modalScope.cancelLabel = options.cancelLabel;
+    modalScope.confirmationContent = options.template;
+    modalScope.confirmationContentUrl = options.templateUrl;
+    modalScope.closable = options.closable;
+    modalScope.securityQuestion = options.securityQuestion;
+    modalScope.securityAnswer = options.securityAnswer;
+
+    var instance = $uibModal.open({
+      template:'<div class=modal-header><button type=button ng-show=closable class=close ng-click="$dismiss(\'cancel\')" aria-hidden=true>&times;</button><h4 class=modal-title>{{title}}</h4></div><div class=modal-body><alert ng-if=error type=danger>{{error.reason}}</alert><div class="alert alert-warning" ng-show=securityQuestion>Unexpected bad things will happen if you don’t read this!</div><ng-include ng-if=confirmationContentUrl src=confirmationContentUrl></ng-include><p ng-if=!confirmationContentUrl>{{confirmationContent}}</p><fieldset class=form-group ng-show=securityQuestion><label for=securityAnswer>{{securityQuestion}}</label> <input type=text class=form-control name=securityAnswer ng-model=answer></fieldset></div><div class=modal-footer><button class="btn btn-default" ng-click="$dismiss(\'cancel\')">{{cancelLabel}}</button> <button class="btn btn-danger" ng-disabled="securityAnswer && answer !== securityAnswer" ng-click=$close()>{{confirmLabel}}</button></div>',
+      show: true,
+      backdrop: 'static',
+      scope: modalScope,
+      keyboard: options.keyboard || options.closable
+    });
+    return instance.result;
+  }
+}
 
 angular.module('clb-ui-identity')
 .directive('clbUserAvatar', clbUserAvatar);
@@ -5494,98 +5494,6 @@ function clbUsercardCacheTemplate($templateCache) {
   if (injector.template) {
     $templateCache.put('usercard.directive.html', injector.template);
   }
-}
-
-angular.module('clb-ui-loading')
-.directive('clbLoading', clbLoading);
-
-/**
- * The directive clbLoading displays a simple loading message. If a promise
- * is given, the loading indicator will disappear once it is resolved.
- *
- * Attributes
- * ----------
- *
- * =======================  ===================================================
- * Name                     Description
- * =======================  ===================================================
- * {Promise} [clb-promise]  Hide the loading message upon fulfilment.
- * {string} [clb-message]   Displayed loading string (default=``'loading...'``)
- * =======================  ===================================================
- *
- * @memberof module:clb-ui-loading
- * @return {object} Angular directive descriptor
- * @example <caption>Directive Usage Example</caption>
- * <hbp-loading hbp-promise="myAsyncFunc()" hbp-message="'Loading My Async Func'">
- * </hbp-loading>
- */
-function clbLoading() {
-  return {
-    restrict: 'E',
-    scope: {
-      promise: '=?clbPromise',
-      message: '=?clbMessage'
-    },
-    template:'<div class=clb-loading ng-if=loading><span class="glyphicon glyphicon-refresh clb-spinning"></span> {{message}}</div>',
-    link: function(scope) {
-      scope.loading = true;
-      scope.message = scope.message || 'Loading...';
-      if (scope.promise) {
-        var complete = function() {
-          scope.loading = false;
-        };
-        scope.promise.then(complete, complete);
-      }
-    }
-  };
-}
-
-angular.module('clb-ui-loading')
-.directive('clbPerformAction', clbPerformAction);
-
-/**
- * @namespace clbPerformAction
- * @memberof module:clb-ui-loading
- *
- * @desc
- * clbPerformAction directive run an action when the given control is clicked.
- * it can be added as an attribute. While the action is running, the control
- * is disabled.
- *
- * @param {function} clbPerformAction  the code to run when the button is clicked.
- *                     this function must return a promise.
- * @param {string}   clbLoadingMessage text replacement for the element content.
- * @return {object}                      Directive Descriptor
- * @example <caption>use perform action to disable a button while code is running</caption>
- * <div ng-controller="myController">
- *  <input class="btn btn-primary" type="submit" clb-perform-action="doSomething()">
- * </div>
- */
-function clbPerformAction() {
-  return {
-    restrict: 'A',
-    scope: {
-      action: '&clbPerformAction'
-    },
-    link: function(scope, element, attrs) {
-      var onComplete = function() {
-        element.html(scope.text);
-        element.attr('disabled', false);
-        element.removeClass('loading');
-      };
-      var run = function() {
-        if (scope.loadingMessage) {
-          element.html(scope.loadingMessage);
-        }
-        element.addClass('loading');
-        element.attr('disabled', true);
-        scope.action().then(onComplete, onComplete);
-      };
-      scope.loadingMessage = attrs.clbLoadingMessage;
-      scope.text = scope.text || element.html();
-      element.on('click', run);
-    }
-  };
 }
 
 angular.module('clb-ui-storage')
@@ -6411,6 +6319,98 @@ angular.module('clb-ui-storage')
   };
 });
 
+angular.module('clb-ui-loading')
+.directive('clbLoading', clbLoading);
+
+/**
+ * The directive clbLoading displays a simple loading message. If a promise
+ * is given, the loading indicator will disappear once it is resolved.
+ *
+ * Attributes
+ * ----------
+ *
+ * =======================  ===================================================
+ * Name                     Description
+ * =======================  ===================================================
+ * {Promise} [clb-promise]  Hide the loading message upon fulfilment.
+ * {string} [clb-message]   Displayed loading string (default=``'loading...'``)
+ * =======================  ===================================================
+ *
+ * @memberof module:clb-ui-loading
+ * @return {object} Angular directive descriptor
+ * @example <caption>Directive Usage Example</caption>
+ * <hbp-loading hbp-promise="myAsyncFunc()" hbp-message="'Loading My Async Func'">
+ * </hbp-loading>
+ */
+function clbLoading() {
+  return {
+    restrict: 'E',
+    scope: {
+      promise: '=?clbPromise',
+      message: '=?clbMessage'
+    },
+    template:'<div class=clb-loading ng-if=loading><span class="glyphicon glyphicon-refresh clb-spinning"></span> {{message}}</div>',
+    link: function(scope) {
+      scope.loading = true;
+      scope.message = scope.message || 'Loading...';
+      if (scope.promise) {
+        var complete = function() {
+          scope.loading = false;
+        };
+        scope.promise.then(complete, complete);
+      }
+    }
+  };
+}
+
+angular.module('clb-ui-loading')
+.directive('clbPerformAction', clbPerformAction);
+
+/**
+ * @namespace clbPerformAction
+ * @memberof module:clb-ui-loading
+ *
+ * @desc
+ * clbPerformAction directive run an action when the given control is clicked.
+ * it can be added as an attribute. While the action is running, the control
+ * is disabled.
+ *
+ * @param {function} clbPerformAction  the code to run when the button is clicked.
+ *                     this function must return a promise.
+ * @param {string}   clbLoadingMessage text replacement for the element content.
+ * @return {object}                      Directive Descriptor
+ * @example <caption>use perform action to disable a button while code is running</caption>
+ * <div ng-controller="myController">
+ *  <input class="btn btn-primary" type="submit" clb-perform-action="doSomething()">
+ * </div>
+ */
+function clbPerformAction() {
+  return {
+    restrict: 'A',
+    scope: {
+      action: '&clbPerformAction'
+    },
+    link: function(scope, element, attrs) {
+      var onComplete = function() {
+        element.html(scope.text);
+        element.attr('disabled', false);
+        element.removeClass('loading');
+      };
+      var run = function() {
+        if (scope.loadingMessage) {
+          element.html(scope.loadingMessage);
+        }
+        element.addClass('loading');
+        element.attr('disabled', true);
+        scope.action().then(onComplete, onComplete);
+      };
+      scope.loadingMessage = attrs.clbLoadingMessage;
+      scope.text = scope.text || element.html();
+      element.on('click', run);
+    }
+  };
+}
+
 angular.module('clb-ui-stream')
 .directive('clbActivity', clbActivity);
 
@@ -6670,8 +6670,7 @@ function clbFeed() {
   return {
     restrict: 'E',
     scope: {
-      feedType: '=c' +
-      'lbFeedType',
+      feedType: '=clbFeedType',
       feedId: '=clbFeedId'
     },
     controller: FeedController,

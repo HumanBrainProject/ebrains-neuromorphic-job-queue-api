@@ -15,8 +15,7 @@ function clbFeed() {
   return {
     restrict: 'E',
     scope: {
-      feedType: '=c' +
-      'lbFeedType',
+      feedType: '=clbFeedType',
       feedId: '=clbFeedId'
     },
     controller: FeedController,
