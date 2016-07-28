@@ -32,28 +32,28 @@ clbCollabTeamRole.$inject = ['$http', '$log', '$q', 'clbEnv', 'clbError'];
 clbCollabTeam.$inject = ['$http', '$log', '$q', 'lodash', 'clbEnv', 'clbError', 'clbCollabTeamRole', 'clbUser'];
 clbCollab.$inject = ['$log', '$q', '$cacheFactory', '$http', 'lodash', 'clbContext', 'clbEnv', 'clbError', 'clbResultSet', 'clbUser', 'ClbCollabModel', 'ClbContextModel'];
 clbContext.$inject = ['$http', '$q', 'clbError', 'clbEnv', 'ClbContextModel'];
+clbError.$inject = ['$q'];
 clbEnv.$inject = ['$injector'];
 clbGroup.$inject = ['$rootScope', '$q', '$http', '$cacheFactory', 'lodash', 'clbEnv', 'clbError', 'clbResultSet', 'clbIdentityUtil'];
 clbUser.$inject = ['$rootScope', '$q', '$http', '$cacheFactory', '$log', 'lodash', 'clbEnv', 'clbError', 'clbResultSet', 'clbIdentityUtil'];
 clbIdentityUtil.$inject = ['$log', 'lodash'];
-clbError.$inject = ['$q'];
+clbCtxData.$inject = ['$http', '$q', 'uuid4', 'clbEnv', 'clbError'];
 clbResultSet.$inject = ['$http', '$q', 'clbError'];
 clbStorage.$inject = ['$http', '$q', '$log', 'uuid4', 'clbEnv', 'clbError', 'clbUser', 'clbResultSet'];
 clbResourceLocator.$inject = ['$q', '$log', '$injector', 'clbError'];
-clbStream.$inject = ['$http', 'clbEnv', 'clbError', 'clbResultSet', 'moment'];
-clbConfirm.$inject = ['$rootScope', '$uibModal'];
+clbStream.$inject = ['$http', 'clbEnv', 'clbError', 'clbResultSet'];
 clbErrorDialog.$inject = ['$uibModal', 'clbError'];
-clbUsercardPopoverDirective.$inject = ['$log', '$q', 'clbUser', 'clbUsercardPopover'];
-clbUserCardPopoverService.$inject = ['$rootScope'];
-clbUsercard.$inject = ['lodash'];
-clbUsercardCacheTemplate.$inject = ['$templateCache'];
+clbConfirm.$inject = ['$rootScope', '$uibModal'];
 clbFileBrowserPath.$inject = ['clbStorage'];
 clbFileBrowser.$inject = ['lodash'];
 clbFileChooser.$inject = ['$q', '$log'];
 ActivityController.$inject = ['$scope', '$sce', '$log', '$window', '$q', '$compile', 'clbResourceLocator', 'clbErrorDialog'];
 FeedController.$inject = ['$rootScope', 'clbStream', 'clbUser'];
 clbApp.$inject = ['$log', '$q', '$rootScope', '$timeout', '$window', 'clbError'];
-clbCtxData.$inject = ['$http', '$q', 'uuid4', 'clbEnv', 'clbError'];
+clbUsercardPopoverDirective.$inject = ['$log', '$q', 'clbUser', 'clbUsercardPopover'];
+clbUserCardPopoverService.$inject = ['$rootScope'];
+clbUsercard.$inject = ['lodash'];
+clbUsercardCacheTemplate.$inject = ['$templateCache'];
 angular.module('hbpCollaboratoryCore', [
   'clb-app',
   'clb-automator',
@@ -131,6 +131,8 @@ angular.module('clb-collab', [
   'uuid4'
 ]);
 
+angular.module('clb-error', []);
+
 /**
  * @module clb-env
  * @desc
@@ -145,15 +147,6 @@ angular.module('clb-identity', [
   'clb-error',
   'clb-rest'
 ]);
-
-angular.module('clb-error', []);
-
-/**
- * @module clb-rest
- * @desc
- * ``clb-rest`` module contains util for simplifying access to Rest service.
- */
-angular.module('clb-rest', ['clb-error']);
 
 /* global _ */
 /**
@@ -175,6 +168,21 @@ angular.module('lodash', [])
     lodash.keyBy = lodash.indexBy;
   }
 }]);
+
+/**
+ * Provides a key value store where keys are context UUID
+ * and values are string.
+ *
+ * @module clb-context-data
+ */
+angular.module('clb-ctx-data', ['uuid4', 'clb-env', 'clb-error']);
+
+/**
+ * @module clb-rest
+ * @desc
+ * ``clb-rest`` module contains util for simplifying access to Rest service.
+ */
+angular.module('clb-rest', ['clb-error']);
 
 /**
  * @module clb-storage
@@ -203,14 +211,8 @@ angular.module('clb-stream', [
   'clb-env',
   'clb-error',
   'clb-rest',
-  'clb-identity',
-  'angularMoment'
+  'clb-identity'
 ]);
-
-/**
- * @module clb-ui-dialog
- */
-angular.module('clb-ui-dialog', ['ui.bootstrap.modal']);
 
 /**
  * @module clb-ui-error
@@ -223,17 +225,9 @@ angular.module('clb-ui-error', [
 ]);
 
 /**
- * Provides UI widgets around user and groups.
- * @module clb-ui-identity
+ * @module clb-ui-dialog
  */
-angular.module('clb-ui-identity', ['lodash', 'clb-identity']);
-
-/**
- * @module clb-ui-form
- * @desc
- * clb-ui-form provides directive to ease creation of forms.
- */
-angular.module('clb-ui-form', []);
+angular.module('clb-ui-dialog', ['ui.bootstrap.modal']);
 
 /**
  * Provides a simple loading directive.
@@ -283,12 +277,17 @@ angular.module('clb-ui-stream', [
 angular.module('clb-app', ['clb-env', 'clb-error']);
 
 /**
- * Provides a key value store where keys are context UUID
- * and values are string.
- *
- * @module clb-context-data
+ * Provides UI widgets around user and groups.
+ * @module clb-ui-identity
  */
-angular.module('clb-ctx-data', ['uuid4', 'clb-env', 'clb-error']);
+angular.module('clb-ui-identity', ['lodash', 'clb-identity']);
+
+/**
+ * @module clb-ui-form
+ * @desc
+ * clb-ui-form provides directive to ease creation of forms.
+ */
+angular.module('clb-ui-form', []);
 
 angular.module('clb-automator')
 .factory('clbAutomator', clbAutomator);
@@ -1958,6 +1957,178 @@ function clbContext($http, $q, clbError, clbEnv, ClbContextModel) {
   }
 }
 
+/* global document */
+
+angular.module('clb-error')
+.factory('clbError', clbError);
+
+/**
+ * @class ClbError
+ * @memberof module:clb-error
+ * @desc
+ * ``ClbError`` describes a standard error object used
+ * to display error message or intropect the situation.
+ *
+ * A ``ClbError`` instance provides the following properties:
+ *
+ * * ``type`` a camel case name of the error type.
+ * * `message` a human readable message of the error that should
+ * be displayed to the end user.
+ * * ``data`` any important data that might help the software to
+ * inspect the issue and take a recovering action.
+ * * ``code`` an error numerical code.
+ *
+ * The ClbError extends the native Javascript Error instance so it also provides:
+ * * ``name`` which is equal to the type
+ * * ``stack`` the stack trace of the error (when available)
+ *
+ * Only ``type``, ``message``, and ``code`` should be considered to be present.
+ * They receive default values when not specified by the situation.
+ *
+ * @param {object} [options] the parameters to use to build the error
+ * @param {string} [options.type] the error type (default to ``'UnknownError'``)
+ * @param {string} [options.message] the error message (default to ``'An unknown error occurred'``)
+ * @param {int} [options.code] the error code (default to ``-1``)
+ * @param {object} [options.data] any data that can be useful to deal with the error
+ */
+function ClbError(options) {
+  options = angular.extend({
+    type: 'UnknownError',
+    message: 'An unknown error occurred.',
+    code: -1
+  }, options);
+  this.type = options.type || options.name;
+  this.name = this.type; // Conform to Error class
+  this.message = options.message;
+  this.data = options.data;
+  this.code = options.code;
+  this.stack = (new Error()).stack;
+  if (options instanceof Error) {
+    // in case this is a javascript exception, keep the raw cause in data.cause
+    this.data = angular.extend({cause: options}, this.data);
+  }
+}
+// Extend the Error prototype
+ClbError.prototype = Object.create(Error.prototype);
+ClbError.prototype.toString = function() {
+  return String(this.type) + ':' + this.message;
+};
+
+/**
+ * @namespace clbError
+ * @memberof module:clb-error
+ * @desc
+ * ``clbError`` provides helper functions that all return an
+ * ``ClbError`` instance given a context object.
+ * @param {object} $q AngularJS injection
+ * @return {object} the service singleton
+ */
+function clbError($q) {
+  return {
+    rejectHttpError: function(err) {
+      return $q.reject(httpError(err));
+    },
+    httpError: httpError,
+
+    /**
+     * Build a ``ClbError`` instance from the provided options.
+     *
+     * - param  {Object} options argument passed to ``ClbError`` constructor
+     * - return {ClbError} the resulting error
+     * @memberof module:clb-error.clbError
+     * @param  {object} options [description]
+     * @return {object}         [description]
+     */
+    error: function(options) {
+      if (options && options instanceof ClbError) {
+        return options;
+      }
+      return new ClbError(options);
+    }
+  };
+
+  /**
+   * @desc
+   * return a `ClbError` instance built from a HTTP response.
+   *
+   * In an ideal case, the response contains json data with an error object.
+   * It also fallback to a reason field and fill default error message for
+   * standard HTTP status error.
+   * @memberof module:clb-error.clbError
+   * @param  {HttpResponse} response Angular $http Response object
+   * @return {ClbError} a valid ClbError
+   */
+  function httpError(response) {
+    // return argument if it is already an
+    // instance of ClbError
+    if (response && response instanceof ClbError) {
+      return response;
+    }
+
+    if (response.status === undefined) {
+      return new ClbError({
+        message: 'Cannot parse error, invalid format.'
+      });
+    }
+    var error = new ClbError({code: response.status});
+
+    if (error.code === 0) {
+      error.type = 'ClientError';
+      error.message = 'The client cannot run the request.';
+      return error;
+    }
+    if (error.code === 404) {
+      error.type = 'NotFound';
+      error.message = 'Resource not found';
+      return error;
+    }
+    if (error.code === 403) {
+      error.type = 'Forbidden';
+      error.message = 'Permission denied: you are not allowed to display ' +
+                      'the page or perform the operation';
+      return error;
+    }
+    if (error.code === 502) {
+      error.type = 'BadGateway';
+      error.message = '502 Bad Gateway Error';
+      if (response.headers('content-type') === 'text/html') {
+        var doc = document.createElement('div');
+        doc.innerHTML = response.data;
+        var titleNode = doc.getElementsByTagName('title')[0];
+        if (titleNode) {
+          error.message = titleNode.innerHTML;
+        }
+      }
+      return error;
+    }
+    if (response.data) {
+      var errorSource = response.data;
+      if (errorSource.error) {
+        errorSource = errorSource.error;
+      }
+      if (errorSource.type) {
+        error.type = errorSource.type;
+      }
+      if (errorSource.data) {
+        error.data = errorSource.data;
+      }
+      if (errorSource.message) {
+        error.message = errorSource.message;
+      } else if (errorSource.reason) {
+        error.type = 'Error';
+        error.message = errorSource.reason;
+      }
+
+      if (!errorSource.type && !errorSource.data &&
+        !errorSource.message && !errorSource.reason) {
+        // unkown format, return raw data
+        error.data = errorSource;
+      }
+    }
+    return error;
+  }
+}
+
 /* global window */
 
 angular.module('clb-env')
@@ -3110,175 +3281,114 @@ function clbIdentityUtil($log, lodash) {
   }
 }
 
-/* global document */
-
-angular.module('clb-error')
-.factory('clbError', clbError);
+angular.module('clb-ctx-data')
+.factory('clbCtxData', clbCtxData);
 
 /**
- * @class ClbError
- * @memberof module:clb-error
- * @desc
- * ``ClbError`` describes a standard error object used
- * to display error message or intropect the situation.
+ * A service to retrieve data for a given ctx. This is a convenient
+ * way to store JSON data for a given context. Do not use it for
+ * Sensitive data. There is no data migration functionality available, so if
+ * the expected data format change, you are responsible to handle the old
+ * format on the client side.
  *
- * A ``ClbError`` instance provides the following properties:
- *
- * * ``type`` a camel case name of the error type.
- * * `message` a human readable message of the error that should
- * be displayed to the end user.
- * * ``data`` any important data that might help the software to
- * inspect the issue and take a recovering action.
- * * ``code`` an error numerical code.
- *
- * The ClbError extends the native Javascript Error instance so it also provides:
- * * ``name`` which is equal to the type
- * * ``stack`` the stack trace of the error (when available)
- *
- * Only ``type``, ``message``, and ``code`` should be considered to be present.
- * They receive default values when not specified by the situation.
- *
- * @param {object} [options] the parameters to use to build the error
- * @param {string} [options.type] the error type (default to ``'UnknownError'``)
- * @param {string} [options.message] the error message (default to ``'An unknown error occurred'``)
- * @param {int} [options.code] the error code (default to ``-1``)
- * @param {object} [options.data] any data that can be useful to deal with the error
+ * @namespace clbCtxData
+ * @memberof clb-ctx-data
+ * @param  {object} $http    Angular DI
+ * @param  {object} $q       Angular DI
+ * @param  {object} uuid4     Angular DI
+ * @param  {object} clbEnv   Angular DI
+ * @param  {object} clbError Angular DI
+ * @return {object}          Angular Service Descriptor
  */
-function ClbError(options) {
-  options = angular.extend({
-    type: 'UnknownError',
-    message: 'An unknown error occurred.',
-    code: -1
-  }, options);
-  this.type = options.type || options.name;
-  this.name = this.type; // Conform to Error class
-  this.message = options.message;
-  this.data = options.data;
-  this.code = options.code;
-  this.stack = (new Error()).stack;
-  if (options instanceof Error) {
-    // in case this is a javascript exception, keep the raw cause in data.cause
-    this.data = angular.extend({cause: options}, this.data);
-  }
-}
-// Extend the Error prototype
-ClbError.prototype = Object.create(Error.prototype);
-ClbError.prototype.toString = function() {
-  return String(this.type) + ':' + this.message;
-};
-
-/**
- * @namespace clbError
- * @memberof module:clb-error
- * @desc
- * ``clbError`` provides helper functions that all return an
- * ``ClbError`` instance given a context object.
- * @param {object} $q AngularJS injection
- * @return {object} the service singleton
- */
-function clbError($q) {
+function clbCtxData($http, $q, uuid4, clbEnv, clbError) {
+  var configUrl = clbEnv.get('api.collab.v0') + '/config/';
   return {
-    rejectHttpError: function(err) {
-      return $q.reject(httpError(err));
+    /**
+     * Return an Array or an Object containing the data or
+     * ``undefined`` if there is no data stored.
+     * @memberof module:clb-ctx-data.clbCtxData
+     * @param  {UUID} ctx   the current context UUID
+     * @return {Promise}    fullfil to {undefined|object|array}
+     */
+    get: function(ctx) {
+      if (!uuid4.validate(ctx)) {
+        return $q.reject(invalidUuidError(ctx));
+      }
+      return $http.get(configUrl + ctx + '/')
+      .then(function(res) {
+        try {
+          return angular.fromJson(res.data.content);
+        } catch (ex) {
+          return $q.reject(clbError.error({
+            type: 'InvalidData',
+            message: 'Cannot parse JSON string: ' + res.data.content,
+            code: -2,
+            data: {
+              cause: ex
+            }
+          }));
+        }
+      })
+      .catch(function(err) {
+        if (err.code === 404) {
+          return;
+        }
+        return clbError.rejectHttpError(err);
+      });
     },
-    httpError: httpError,
 
     /**
-     * Build a ``ClbError`` instance from the provided options.
-     *
-     * - param  {Object} options argument passed to ``ClbError`` constructor
-     * - return {ClbError} the resulting error
-     * @memberof module:clb-error.clbError
-     * @param  {object} options [description]
-     * @return {object}         [description]
+     * @memberof module:clb-ctx-data.clbCtxData
+     * @param  {UUID} ctx The context UUID
+     * @param  {array|object|string|number} data JSON serializable data
+     * @return {Promise} Return the data when fulfilled
      */
-    error: function(options) {
-      if (options && options instanceof ClbError) {
-        return options;
+    save: function(ctx, data) {
+      if (!uuid4.validate(ctx)) {
+        return $q.reject(invalidUuidError(ctx));
       }
-      return new ClbError(options);
+      return $http.put(configUrl + ctx + '/', {
+        context: ctx,
+        content: angular.toJson(data)
+      }).then(function() {
+        return data;
+      })
+      .catch(clbError.rejectHttpError);
+    },
+
+    /**
+     * @memberof module:clb-ctx-data.clbCtxData
+     * @param  {UUID} ctx The context UUID
+     * @return {Promise}  fulfilled once deleted
+     */
+    delete: function(ctx) {
+      if (!uuid4.validate(ctx)) {
+        return $q.reject(invalidUuidError(ctx));
+      }
+      return $http.delete(configUrl + ctx + '/')
+      .then(function() {
+        return true;
+      })
+      .catch(clbError.rejectHttpError);
     }
   };
 
   /**
-   * @desc
-   * return a `ClbError` instance built from a HTTP response.
-   *
-   * In an ideal case, the response contains json data with an error object.
-   * It also fallback to a reason field and fill default error message for
-   * standard HTTP status error.
-   * @memberof module:clb-error.clbError
-   * @param  {HttpResponse} response Angular $http Response object
-   * @return {ClbError} a valid ClbError
+   * Generate the appropriate error when context is invalid.
+   * @param  {any} badCtx  the wrong ctx
+   * @return {HbpError}    The Error
    */
-  function httpError(response) {
-    // return argument if it is already an
-    // instance of ClbError
-    if (response && response instanceof ClbError) {
-      return response;
-    }
-
-    if (response.status === undefined) {
-      return new ClbError({
-        message: 'Cannot parse error, invalid format.'
-      });
-    }
-    var error = new ClbError({code: response.status});
-
-    if (error.code === 0) {
-      error.type = 'ClientError';
-      error.message = 'The client cannot run the request.';
-      return error;
-    }
-    if (error.code === 404) {
-      error.type = 'NotFound';
-      error.message = 'Resource not found';
-      return error;
-    }
-    if (error.code === 403) {
-      error.type = 'Forbidden';
-      error.message = 'Permission denied: you are not allowed to display ' +
-                      'the page or perform the operation';
-      return error;
-    }
-    if (error.code === 502) {
-      error.type = 'BadGateway';
-      error.message = '502 Bad Gateway Error';
-      if (response.headers('content-type') === 'text/html') {
-        var doc = document.createElement('div');
-        doc.innerHTML = response.data;
-        var titleNode = doc.getElementsByTagName('title')[0];
-        if (titleNode) {
-          error.message = titleNode.innerHTML;
-        }
-      }
-      return error;
-    }
-    if (response.data) {
-      var errorSource = response.data;
-      if (errorSource.error) {
-        errorSource = errorSource.error;
-      }
-      if (errorSource.type) {
-        error.type = errorSource.type;
-      }
-      if (errorSource.data) {
-        error.data = errorSource.data;
-      }
-      if (errorSource.message) {
-        error.message = errorSource.message;
-      } else if (errorSource.reason) {
-        error.type = 'Error';
-        error.message = errorSource.reason;
-      }
-
-      if (!errorSource.type && !errorSource.data &&
-        !errorSource.message && !errorSource.reason) {
-        // unkown format, return raw data
-        error.data = errorSource;
-      }
-    }
-    return error;
+  function invalidUuidError(badCtx) {
+    return clbError.error({
+      type: 'InvalidArgument',
+      message: 'Provided ctx must be a valid UUID4 but is: ' + badCtx,
+      data: {
+        argName: 'ctx',
+        argPosition: 0,
+        argValue: badCtx
+      },
+      code: -3
+    });
   }
 }
 
@@ -4595,6 +4705,8 @@ function clbResourceLocator($q, $log, $injector, clbError) {
   }
 }
 
+/* global moment */
+
 angular.module('clb-stream')
 .factory('clbStream', clbStream);
 
@@ -4608,10 +4720,9 @@ angular.module('clb-stream')
  * @param {function} clbEnv angular dependency injection
  * @param {function} clbError angular dependency injection
  * @param {function} clbResultSet angular dependency injection
- * @param {function} moment angular dependency injection
  * @return {object} the clbActivityStream service
  */
-function clbStream($http, clbEnv, clbError, clbResultSet, moment) {
+function clbStream($http, clbEnv, clbError, clbResultSet) {
   return {
     getStream: getStream,
     getHeatmapStream: getHeatmapStream
@@ -4715,59 +4826,6 @@ function clbStream($http, clbEnv, clbError, clbResultSet, moment) {
   }
 }
 
-angular.module('clb-ui-dialog')
-.factory('clbConfirm', clbConfirm);
-
-/**
- * Service to trigger modal dialog.
- *
- * @namespace clbDialog
- * @memberof module:clb-ui-dialog
- * @param  {object} $rootScope Angular DI
- * @param  {object} $uibModal     Angular DI
- * @return {object}            Service Descriptor
- */
-function clbConfirm($rootScope, $uibModal) {
-  return {
-    open: open
-  };
-
-  /**
-   * Confirmation dialog
-   * @param  {object} options Parameters
-   * @return {Promise}        Resolve if the confirmation happens, reject otherwise
-   */
-  function open(options) {
-    options = angular.extend({
-      scope: $rootScope,
-      title: 'Confirm',
-      confirmLabel: 'Yes',
-      cancelLabel: 'No',
-      template: 'Are you sure?',
-      closable: true
-    }, options);
-
-    var modalScope = options.scope.$new();
-    modalScope.title = options.title;
-    modalScope.confirmLabel = options.confirmLabel;
-    modalScope.cancelLabel = options.cancelLabel;
-    modalScope.confirmationContent = options.template;
-    modalScope.confirmationContentUrl = options.templateUrl;
-    modalScope.closable = options.closable;
-    modalScope.securityQuestion = options.securityQuestion;
-    modalScope.securityAnswer = options.securityAnswer;
-
-    var instance = $uibModal.open({
-      template:'<div class=modal-header><button type=button ng-show=closable class=close ng-click="$dismiss(\'cancel\')" aria-hidden=true>&times;</button><h4 class=modal-title>{{title}}</h4></div><div class=modal-body><alert ng-if=error type=danger>{{error.reason}}</alert><div class="alert alert-warning" ng-show=securityQuestion>Unexpected bad things will happen if you don’t read this!</div><ng-include ng-if=confirmationContentUrl src=confirmationContentUrl></ng-include><p ng-if=!confirmationContentUrl>{{confirmationContent}}</p><fieldset class=form-group ng-show=securityQuestion><label for=securityAnswer>{{securityQuestion}}</label> <input type=text class=form-control name=securityAnswer ng-model=answer></fieldset></div><div class=modal-footer><button class="btn btn-default" ng-click="$dismiss(\'cancel\')">{{cancelLabel}}</button> <button class="btn btn-danger" ng-disabled="securityAnswer && answer !== securityAnswer" ng-click=$close()>{{confirmLabel}}</button></div>',
-      show: true,
-      backdrop: 'static',
-      scope: modalScope,
-      keyboard: options.keyboard || options.closable
-    });
-    return instance.result;
-  }
-}
-
 angular.module('clb-ui-error')
 .factory('clbErrorDialog', clbErrorDialog);
 
@@ -4839,299 +4897,58 @@ function clbErrorMessage() {
   };
 }
 
-angular.module('clb-ui-identity')
-.directive('clbUserAvatar', clbUserAvatar);
+angular.module('clb-ui-dialog')
+.factory('clbConfirm', clbConfirm);
 
 /**
- * Display an square icon for a user.
+ * Service to trigger modal dialog.
  *
- * Attributes
- * ----------
- *
- * ==================  ====================================
- * Name                Description
- * ==================  ====================================
- * clb-user            The ClbUser instance to display
- * ==================  ====================================
- *
- * @namespace clbUserAvatar
- * @memberof module:clb-ui-identity
- * @return {Object} Directive Descriptor
- * @example <caption>Display user avatar</caption>
- * <clb-user-avatar clb-user="vm.currentUser"></clb-user-avatar>
+ * @namespace clbDialog
+ * @memberof module:clb-ui-dialog
+ * @param  {object} $rootScope Angular DI
+ * @param  {object} $uibModal     Angular DI
+ * @return {object}            Service Descriptor
  */
-function clbUserAvatar() {
-  'use strict';
+function clbConfirm($rootScope, $uibModal) {
   return {
-    restrict: 'EA',
-    scope: {
-      user: '=clbUser'
-    },
-    template:'<img class=clb-user-avatar-img ng-if=user.picture ng-src={{user.picture}}><svg class=clb-user-avatar-icon viewBox="0 0 40 40" preserveAspectRatio="xMidYMid meet" ng-cloak ng-if=!user.picture ng-class="\'clb-user-avatar-icon-hue-\' + hueNumber"><rect x=0 y=0 width=40 height=40 class=clb-user-avatar-icon-fill></rect><text x=50% y=58% font-size=26px class=clb-user-avatar-icon-text dominant-baseline=middle text-anchor=middle>{{char}}</text></svg>',
-    link: function(scope, elt) {
-      elt.addClass('clb-user-avatar');
-      scope.$watch('user', function() {
-        if (!scope.user || !scope.user.displayName) {
-          return;
-        }
-
-        if (scope.user.displayName) {
-          scope.char = scope.user.displayName[0].toUpperCase();
-        }
-        // Define a hue index to generate a custom class
-        var words = scope.user.displayName.split(/\s+/, 2);
-        var initials = (String(words[0][0]) +
-          (words[1] ? words[1][0] : words[0][1]))
-          .toUpperCase();
-        scope.hueNumber = (13 * initials.charCodeAt(0) * 23 *
-          initials.charCodeAt(1)) % 7 + 1;
-      });
-    }
+    open: open
   };
-}
 
-angular.module('clb-ui-identity')
-.directive('clbUsercardPopover', clbUsercardPopoverDirective);
+  /**
+   * Confirmation dialog
+   * @param  {object} options Parameters
+   * @return {Promise}        Resolve if the confirmation happens, reject otherwise
+   */
+  function open(options) {
+    options = angular.extend({
+      scope: $rootScope,
+      title: 'Confirm',
+      confirmLabel: 'Yes',
+      cancelLabel: 'No',
+      template: 'Are you sure?',
+      closable: true
+    }, options);
 
-/**
- * Display the user summary in a popover element.
- *
- * Only one of those can be open at any time.
- *
- * =======================================  =========================================
- * Name                  Description
- * =======================================  =========================================
- * {string|HBPUser} clb-usercard-popover    The ClbUser instance to display or its ID
- * =======================================  =========================================
- *
- * @namespace clbUsercardPopoverDirective
- * @memberof module:clb-ui-identity
- * @param  {object} $log               DI
- * @param  {object} $q                 DI
- * @param  {object} clbUser            DI
- * @param  {object} clbUsercardPopover DI
- * @return {object}                    Directive Descriptor
- */
-function clbUsercardPopoverDirective(
-  $log,
-  $q,
-  clbUser,
-  clbUsercardPopover
-) {
-  return {
-    restrict: 'A',
-    scope: {
-      user: '=clbUsercardPopover'
-    },
-    transclude: true,
-    template:'<span class=clb-usercard-popover popover-append-to-body=vm.popover.appendToBody popover-is-open=vm.popover.isOpen popover-trigger=outsideClick ng-click=togglePopover($event) uib-popover-template="\'usercard-popover.tpl.html\'" ng-transclude></span>',
-    controller: function() {
-      var vm = this;
-      vm.popover = {
-        isOpen: false,
-        user: null,
-        appendToBody: true
-      };
+    var modalScope = options.scope.$new();
+    modalScope.title = options.title;
+    modalScope.confirmLabel = options.confirmLabel;
+    modalScope.cancelLabel = options.cancelLabel;
+    modalScope.confirmationContent = options.template;
+    modalScope.confirmationContentUrl = options.templateUrl;
+    modalScope.closable = options.closable;
+    modalScope.securityQuestion = options.securityQuestion;
+    modalScope.securityAnswer = options.securityAnswer;
 
-      if (vm.user && vm.user.displayName) {
-        vm.popover.user = vm.user;
-      } else {
-        clbUser.get(vm.user).then(function(user) {
-          vm.popover.user = user;
-        }).catch(function(err) {
-          $log.error('Unable to get user with id', vm.user, err);
-        });
-      }
-    },
-    controllerAs: 'vm',
-    bindToController: true,
-    link: function(scope, elt, attrs, vm) {
-      var unbind = scope.$on('clbUsercardPopover.open',
-        function(event, element) {
-          vm.popover.isOpen = (element === elt);
-        });
-
-      scope.$on('$destroy', unbind);
-
-      scope.togglePopover = function($event, action) {
-        if ($event.isDefaultPrevented()) {
-          return;
-        }
-        $event.preventDefault();
-        if (action === 'close') {
-          return clbUsercardPopover.open(null);
-        }
-        clbUsercardPopover.open(vm.popover.isOpen ? null : elt);
-      };
-    }
-  };
-}
-
-angular.module('clb-ui-identity')
-.factory('clbUsercardPopover', clbUserCardPopoverService);
-
-/**
- * A singleton to manage clb-usercard-popover instances
- * @namespace clbUserCardPopoverService
- * @memberof module:clb-ui-identity
- * @private
- * @param {object} $rootScope DI
- * @return {object} factory descriptor
- */
-function clbUserCardPopoverService($rootScope) {
-  return {
-    open: function(element) {
-      $rootScope.$broadcast('clbUsercardPopover.open', element);
-    }
-  };
-}
-
-angular.module('clb-ui-identity')
-.run(['$templateCache', function($templateCache) {
-  // During the build, templateUrl will be replaced by the inline template.
-  // We need to inject it in template cache as it is used for displaying
-  // the tooltip. Does it smell like a hack? sure, it is a hack!
-  var injector = {
-    template:'<clb-usercard clb-user=vm.popover.user ng-click="togglePopover($event, \'close\')"></clb-usercard>'
-  };
-  // If defined, it means that the template has been inlined during build.
-  if (injector.template) {
-    $templateCache.put('usercard-popover.tpl.html', injector.template);
-  }
-}]);
-
-angular.module('clb-ui-identity')
-.directive('clbUsercard', clbUsercard)
-.run(clbUsercardCacheTemplate);
-
-/**
- * Display general user informations.
- *
- * Attributes
- * ----------
- *
- * ==================  ====================================
- * Name                Description
- * ==================  ====================================
- * clb-user            The ClbUser instance to display
- * clb-template        URL of a custom template to use
- * ==================  ====================================
- *
- *
- * @param  {object} lodash Angular DI
- * @memberof module:clb-ui-identity
- * @return {object}        Directive Descriptor
- * @example <caption>Display user informations</caption>
- * <clb-usercard clb-user="vm.currentUser"></clb-usercard>
- * @example <caption>Using a different templates</caption>
- * <clb-usercard clb-user="vm.currentUser" clb-template="custom/simple-user.html">
- * </clb-usercard>
- */
-function clbUsercard(lodash) {
-  'use strict';
-  return {
-    restrict: 'EA',
-    scope: {
-      user: '=clbUser'
-    },
-    templateUrl: function(tElement, tAttrs) {
-      return tAttrs.clbTemplate || 'usercard.directive.html';
-    },
-    link: {
-      pre: function(scope) {
-        scope.$watch('user', function(newValue) {
-          scope.institution = newValue &&
-            lodash.find(newValue.institutions, 'primary');
-          scope.email = newValue &&
-            lodash(newValue.emails).filter('primary').map('value').first();
-          scope.phone = newValue &&
-            lodash(newValue.phones).filter('primary').map('value').first();
-          scope.ims = newValue && newValue.ims;
-        });
-      }
-    }
-  };
-}
-
-/**
- * During the build, templateUrl will be replaced by the inline template.
- * We need to inject it in template cache as it is used for displaying
- * the tooltip. Does it smell like a hack? sure, it is a hack!
- * @param  {object} $templateCache Angular DI
- * @private
- */
-function clbUsercardCacheTemplate($templateCache) {
-  //
-  var injector = {
-    template:'<div ng-if=user class="clb-usercard clb-card clb-card-default"><h3 class=clb-usercard-header><span class=clb-usercard-name>{{user.displayName}}</span> <span class="text-muted clb-usercard-username">@{{user.username}}</span></h3><div class=clb-usercard-pix><clb-user-avatar clb-user=user></clb-user-avatar></div><div class=clb-usercard-institution ng-if=institution><span class=clb-usercard-institution-title>{{institution.title}}</span>, <span class=clb-usercard-institution-name>{{institution.name}}</span>, <span class=clb-usercard-institution-dept>{{institution.department}}</span></div><div class=clb-usercard-contact><a class="clb-usercard-contact-item clb-usercard-email" target=_top href=mailto:{{email}} ng-if=email><span class="glyphicon glyphicon-envelope"></span> {{email}}</a> <span class="clb-usercard-contact-item clb-usercard-phone" ng-if=phone><span class="glyphicon glyphicon-phone"></span> {{phone}}</span> <span class="clb-usercard-contact-item clb-usercard-im-list" ng-if=ims.length><span class="glyphicon glyphicon-bullhorn"></span> <span ng-repeat-start="im in ims"></span> <span class=clb-usercard-im>{{im.value}}({{im.type}})</span> <span ng-repeat-end></span></span></div></div>'
-  };
-  // If defined, it means that the template has been inlined during build.
-  if (injector.template) {
-    $templateCache.put('usercard.directive.html', injector.template);
+    var instance = $uibModal.open({
+      template:'<div class=modal-header><button type=button ng-show=closable class=close ng-click="$dismiss(\'cancel\')" aria-hidden=true>&times;</button><h4 class=modal-title>{{title}}</h4></div><div class=modal-body><alert ng-if=error type=danger>{{error.reason}}</alert><div class="alert alert-warning" ng-show=securityQuestion>Unexpected bad things will happen if you don’t read this!</div><ng-include ng-if=confirmationContentUrl src=confirmationContentUrl></ng-include><p ng-if=!confirmationContentUrl>{{confirmationContent}}</p><fieldset class=form-group ng-show=securityQuestion><label for=securityAnswer>{{securityQuestion}}</label> <input type=text class=form-control name=securityAnswer ng-model=answer></fieldset></div><div class=modal-footer><button class="btn btn-default" ng-click="$dismiss(\'cancel\')">{{cancelLabel}}</button> <button class="btn btn-danger" ng-disabled="securityAnswer && answer !== securityAnswer" ng-click=$close()>{{confirmLabel}}</button></div>',
+      show: true,
+      backdrop: 'static',
+      scope: modalScope,
+      keyboard: options.keyboard || options.closable
+    });
+    return instance.result;
   }
 }
-
-/**
- * @namespace clbFormControlFocus
- * @memberof module:clb-ui-form
- * @desc
- * The ``clbFormControlFocus`` Directive mark a form element as the one that
- * should receive the focus first.
- * @example <caption>Give the focus to the search field</caption>
- * angular.module('exampleApp', ['clb-ui-form']);
- *
- * // HTML snippet:
- * // <form ng-app="exampleApp"><input type="search" clb-ui-form-control-focus></form>
- */
-angular.module('clb-ui-form')
-.directive('clbFormControlFocus', ['$timeout', function clbFormControlFocus($timeout) {
-  return {
-    type: 'A',
-    link: function formControlFocusLink(scope, elt) {
-      $timeout(function() {
-        elt[0].focus();
-      }, 0, false);
-    }
-  };
-}]);
-
-/**
- * @namespace clbFormGroupState
- * @memberof module:clb-ui-form
- * @desc
- * ``clbFormGroupState`` directive flag the current form group with
- * the class has-error or has-success depending on its form field
- * current state.
- *
- * @example
- * <caption>Track a field validity at the ``.form-group`` level</caption>
- * angular.module('exampleApp', ['hbpCollaboratory']);
- */
-angular.module('clb-ui-form')
-.directive('clbFormGroupState', function formGroupState() {
-  return {
-    type: 'A',
-    scope: {
-      model: '=clbFormGroupState'
-    },
-    link: function formGroupStateLink(scope, elt) {
-      scope.$watchGroup(['model.$touched', 'model.$valid'], function() {
-        if (!scope.model) {
-          return;
-        }
-        elt.removeClass('has-error', 'has-success');
-        if (!scope.model.$touched) {
-          return;
-        }
-        if (scope.model.$valid) {
-          elt.addClass('has-success');
-        } else {
-          elt.addClass('has-error');
-        }
-      }, true);
-    }
-  };
-});
 
 angular.module('clb-ui-loading')
 .directive('clbLoading', clbLoading);
@@ -6072,17 +5889,10 @@ function clbActivity() {
     controller: ActivityController,
     controllerAs: 'vm',
     bindToController: true,
-    template:'<div class=clb-activity-metadata ng-click=vm.navigate($event)><div class=clb-activity-time am-time-ago=vm.activity.time></div><a clb-usercard-popover=vm.activity.actor.data ng-click="vm.navigate($event, false)"><clb-user-avatar class=clb-activity-avatar clb-user=vm.activity.actor.data ng-if=vm.activity.actor.data></clb-user-avatar></a></div><div class=clb-activity-summary ng-href ng-click=vm.navigate($event)><span class=clb-activity-link ng-repeat="p in vm.parts" ng-class="\'clb-activity-link-\' + p.tag"><a clb-usercard-popover=p.ref.id ng-click="vm.navigate($event, false)" ng-if="p.tag && p.ref.type === \'HBPUser\'">{{p.text}}</a> <a ng-if="p.tag && p.ref.type !== \'HBPUser\'" ng-click="vm.navigate($event, p)">{{p.text}}</a> <span ng-if=!p.tag>{{p.text}}</span></span></div>',
+    template:'<div class=clb-activity-metadata><div class=clb-activity-time am-time-ago=vm.activity.time></div><a clb-usercard-popover=vm.activity.actor.data ng-click="vm.navigate($event, false)"><clb-user-avatar class=clb-activity-avatar clb-user=vm.activity.actor.data ng-if=vm.activity.actor.data></clb-user-avatar></a></div><div class=clb-activity-summary><span class=clb-activity-link ng-repeat="p in vm.parts" ng-class="\'clb-activity-link-\' + p.tag"><a ng-if="p.tag && p.ref.type === \'HBPUser\'" clb-usercard-popover=p.ref.id ng-click="vm.navigate($event, false)">{{p.text}}</a> <a ng-if="p.tag && p.ref.type !== \'HBPUser\'" ng-init=vm.resolveUrl(p) ng-href={{p.url}}>{{p.text}}</a> <span ng-if=!p.tag>{{p.text}}</span></span></div>',
     link: {
       post: function(scope, elt, attr, ctrl) {
         elt.addClass('clb-activity').addClass(ctrl.verbClass);
-        scope.$watch('vm.primaryLink', function(val) {
-          if (val) {
-            elt.addClass('clb-activity-activable');
-          } else {
-            elt.removeClass('clb-activity-activable');
-          }
-        });
         scope.$watch('vm.activity.verb', function(newVal) {
           if (newVal) {
             elt.addClass('clb-activity-' + newVal.toLowerCase());
@@ -6156,6 +5966,13 @@ function ActivityController(
     }
   };
 
+  vm.resolveUrl = function(data) {
+    clbResourceLocator.urlFor(data.ref, vm.activity)
+    .then(function(url) {
+      data.url = url;
+    });
+  };
+
   activate();
 
   /* ------------- */
@@ -6207,6 +6024,11 @@ function ActivityController(
     while (head) {
       head.data.text = String.prototype.substring.apply(
         vm.activity.summary, head.indices);
+      // disable object link for 'delete' verb
+      if (vm.activity.verb === 'DELETE' &&
+          head.data.tag === 'object') {
+        head.data.tag = null;
+      }
       parts.push(head.data);
       head = head.next;
     }
@@ -6646,116 +6468,299 @@ function clbBootstrap(module, options) {
   return deferredBootstrapper.bootstrap(options);
 }
 
-angular.module('clb-ctx-data')
-.factory('clbCtxData', clbCtxData);
+angular.module('clb-ui-identity')
+.directive('clbUserAvatar', clbUserAvatar);
 
 /**
- * A service to retrieve data for a given ctx. This is a convenient
- * way to store JSON data for a given context. Do not use it for
- * Sensitive data. There is no data migration functionality available, so if
- * the expected data format change, you are responsible to handle the old
- * format on the client side.
+ * Display an square icon for a user.
  *
- * @namespace clbCtxData
- * @memberof clb-ctx-data
- * @param  {object} $http    Angular DI
- * @param  {object} $q       Angular DI
- * @param  {object} uuid4     Angular DI
- * @param  {object} clbEnv   Angular DI
- * @param  {object} clbError Angular DI
- * @return {object}          Angular Service Descriptor
+ * Attributes
+ * ----------
+ *
+ * ==================  ====================================
+ * Name                Description
+ * ==================  ====================================
+ * clb-user            The ClbUser instance to display
+ * ==================  ====================================
+ *
+ * @namespace clbUserAvatar
+ * @memberof module:clb-ui-identity
+ * @return {Object} Directive Descriptor
+ * @example <caption>Display user avatar</caption>
+ * <clb-user-avatar clb-user="vm.currentUser"></clb-user-avatar>
  */
-function clbCtxData($http, $q, uuid4, clbEnv, clbError) {
-  var configUrl = clbEnv.get('api.collab.v0') + '/config/';
+function clbUserAvatar() {
+  'use strict';
   return {
-    /**
-     * Return an Array or an Object containing the data or
-     * ``undefined`` if there is no data stored.
-     * @memberof module:clb-ctx-data.clbCtxData
-     * @param  {UUID} ctx   the current context UUID
-     * @return {Promise}    fullfil to {undefined|object|array}
-     */
-    get: function(ctx) {
-      if (!uuid4.validate(ctx)) {
-        return $q.reject(invalidUuidError(ctx));
-      }
-      return $http.get(configUrl + ctx + '/')
-      .then(function(res) {
-        try {
-          return angular.fromJson(res.data.content);
-        } catch (ex) {
-          return $q.reject(clbError.error({
-            type: 'InvalidData',
-            message: 'Cannot parse JSON string: ' + res.data.content,
-            code: -2,
-            data: {
-              cause: ex
-            }
-          }));
-        }
-      })
-      .catch(function(err) {
-        if (err.code === 404) {
+    restrict: 'EA',
+    scope: {
+      user: '=clbUser'
+    },
+    template:'<img class=clb-user-avatar-img ng-if=user.picture ng-src={{user.picture}}><svg class=clb-user-avatar-icon viewBox="0 0 40 40" preserveAspectRatio="xMidYMid meet" ng-cloak ng-if=!user.picture ng-class="\'clb-user-avatar-icon-hue-\' + hueNumber"><rect x=0 y=0 width=40 height=40 class=clb-user-avatar-icon-fill></rect><text x=50% y=58% font-size=26px class=clb-user-avatar-icon-text dominant-baseline=middle text-anchor=middle>{{char}}</text></svg>',
+    link: function(scope, elt) {
+      elt.addClass('clb-user-avatar');
+      scope.$watch('user', function() {
+        if (!scope.user || !scope.user.displayName) {
           return;
         }
-        return clbError.rejectHttpError(err);
+
+        if (scope.user.displayName) {
+          scope.char = scope.user.displayName[0].toUpperCase();
+        }
+        // Define a hue index to generate a custom class
+        var words = scope.user.displayName.split(/\s+/, 2);
+        var initials = (String(words[0][0]) +
+          (words[1] ? words[1][0] : words[0][1]))
+          .toUpperCase();
+        scope.hueNumber = (13 * initials.charCodeAt(0) * 23 *
+          initials.charCodeAt(1)) % 7 + 1;
       });
-    },
-
-    /**
-     * @memberof module:clb-ctx-data.clbCtxData
-     * @param  {UUID} ctx The context UUID
-     * @param  {array|object|string|number} data JSON serializable data
-     * @return {Promise} Return the data when fulfilled
-     */
-    save: function(ctx, data) {
-      if (!uuid4.validate(ctx)) {
-        return $q.reject(invalidUuidError(ctx));
-      }
-      return $http.put(configUrl + ctx + '/', {
-        context: ctx,
-        content: angular.toJson(data)
-      }).then(function() {
-        return data;
-      })
-      .catch(clbError.rejectHttpError);
-    },
-
-    /**
-     * @memberof module:clb-ctx-data.clbCtxData
-     * @param  {UUID} ctx The context UUID
-     * @return {Promise}  fulfilled once deleted
-     */
-    delete: function(ctx) {
-      if (!uuid4.validate(ctx)) {
-        return $q.reject(invalidUuidError(ctx));
-      }
-      return $http.delete(configUrl + ctx + '/')
-      .then(function() {
-        return true;
-      })
-      .catch(clbError.rejectHttpError);
     }
   };
+}
 
-  /**
-   * Generate the appropriate error when context is invalid.
-   * @param  {any} badCtx  the wrong ctx
-   * @return {HbpError}    The Error
-   */
-  function invalidUuidError(badCtx) {
-    return clbError.error({
-      type: 'InvalidArgument',
-      message: 'Provided ctx must be a valid UUID4 but is: ' + badCtx,
-      data: {
-        argName: 'ctx',
-        argPosition: 0,
-        argValue: badCtx
-      },
-      code: -3
-    });
+angular.module('clb-ui-identity')
+.directive('clbUsercardPopover', clbUsercardPopoverDirective);
+
+/**
+ * Display the user summary in a popover element.
+ *
+ * Only one of those can be open at any time.
+ *
+ * =======================================  =========================================
+ * Name                  Description
+ * =======================================  =========================================
+ * {string|HBPUser} clb-usercard-popover    The ClbUser instance to display or its ID
+ * =======================================  =========================================
+ *
+ * @namespace clbUsercardPopoverDirective
+ * @memberof module:clb-ui-identity
+ * @param  {object} $log               DI
+ * @param  {object} $q                 DI
+ * @param  {object} clbUser            DI
+ * @param  {object} clbUsercardPopover DI
+ * @return {object}                    Directive Descriptor
+ */
+function clbUsercardPopoverDirective(
+  $log,
+  $q,
+  clbUser,
+  clbUsercardPopover
+) {
+  return {
+    restrict: 'A',
+    scope: {
+      user: '=clbUsercardPopover'
+    },
+    transclude: true,
+    template:'<span class=clb-usercard-popover popover-append-to-body=vm.popover.appendToBody popover-is-open=vm.popover.isOpen popover-trigger=outsideClick ng-click=togglePopover($event) uib-popover-template="\'usercard-popover.tpl.html\'" ng-transclude></span>',
+    controller: function() {
+      var vm = this;
+      vm.popover = {
+        isOpen: false,
+        user: null,
+        appendToBody: true
+      };
+
+      if (vm.user && vm.user.displayName) {
+        vm.popover.user = vm.user;
+      } else {
+        clbUser.get(vm.user).then(function(user) {
+          vm.popover.user = user;
+        }).catch(function(err) {
+          $log.error('Unable to get user with id', vm.user, err);
+        });
+      }
+    },
+    controllerAs: 'vm',
+    bindToController: true,
+    link: function(scope, elt, attrs, vm) {
+      var unbind = scope.$on('clbUsercardPopover.open',
+        function(event, element) {
+          vm.popover.isOpen = (element === elt);
+        });
+
+      scope.$on('$destroy', unbind);
+
+      scope.togglePopover = function($event, action) {
+        if ($event.isDefaultPrevented()) {
+          return;
+        }
+        $event.preventDefault();
+        if (action === 'close') {
+          return clbUsercardPopover.open(null);
+        }
+        clbUsercardPopover.open(vm.popover.isOpen ? null : elt);
+      };
+    }
+  };
+}
+
+angular.module('clb-ui-identity')
+.factory('clbUsercardPopover', clbUserCardPopoverService);
+
+/**
+ * A singleton to manage clb-usercard-popover instances
+ * @namespace clbUserCardPopoverService
+ * @memberof module:clb-ui-identity
+ * @private
+ * @param {object} $rootScope DI
+ * @return {object} factory descriptor
+ */
+function clbUserCardPopoverService($rootScope) {
+  return {
+    open: function(element) {
+      $rootScope.$broadcast('clbUsercardPopover.open', element);
+    }
+  };
+}
+
+angular.module('clb-ui-identity')
+.run(['$templateCache', function($templateCache) {
+  // During the build, templateUrl will be replaced by the inline template.
+  // We need to inject it in template cache as it is used for displaying
+  // the tooltip. Does it smell like a hack? sure, it is a hack!
+  var injector = {
+    template:'<clb-usercard clb-user=vm.popover.user ng-click="togglePopover($event, \'close\')"></clb-usercard>'
+  };
+  // If defined, it means that the template has been inlined during build.
+  if (injector.template) {
+    $templateCache.put('usercard-popover.tpl.html', injector.template);
+  }
+}]);
+
+angular.module('clb-ui-identity')
+.directive('clbUsercard', clbUsercard)
+.run(clbUsercardCacheTemplate);
+
+/**
+ * Display general user informations.
+ *
+ * Attributes
+ * ----------
+ *
+ * ==================  ====================================
+ * Name                Description
+ * ==================  ====================================
+ * clb-user            The ClbUser instance to display
+ * clb-template        URL of a custom template to use
+ * ==================  ====================================
+ *
+ *
+ * @param  {object} lodash Angular DI
+ * @memberof module:clb-ui-identity
+ * @return {object}        Directive Descriptor
+ * @example <caption>Display user informations</caption>
+ * <clb-usercard clb-user="vm.currentUser"></clb-usercard>
+ * @example <caption>Using a different templates</caption>
+ * <clb-usercard clb-user="vm.currentUser" clb-template="custom/simple-user.html">
+ * </clb-usercard>
+ */
+function clbUsercard(lodash) {
+  'use strict';
+  return {
+    restrict: 'EA',
+    scope: {
+      user: '=clbUser'
+    },
+    templateUrl: function(tElement, tAttrs) {
+      return tAttrs.clbTemplate || 'usercard.directive.html';
+    },
+    link: {
+      pre: function(scope) {
+        scope.$watch('user', function(newValue) {
+          scope.institution = newValue &&
+            lodash.find(newValue.institutions, 'primary');
+          scope.email = newValue &&
+            lodash(newValue.emails).filter('primary').map('value').first();
+          scope.phone = newValue &&
+            lodash(newValue.phones).filter('primary').map('value').first();
+          scope.ims = newValue && newValue.ims;
+        });
+      }
+    }
+  };
+}
+
+/**
+ * During the build, templateUrl will be replaced by the inline template.
+ * We need to inject it in template cache as it is used for displaying
+ * the tooltip. Does it smell like a hack? sure, it is a hack!
+ * @param  {object} $templateCache Angular DI
+ * @private
+ */
+function clbUsercardCacheTemplate($templateCache) {
+  //
+  var injector = {
+    template:'<div ng-if=user class="clb-usercard clb-card clb-card-default"><h3 class=clb-usercard-header><span class=clb-usercard-name>{{user.displayName}}</span> <span class="text-muted clb-usercard-username">@{{user.username}}</span></h3><div class=clb-usercard-pix><clb-user-avatar clb-user=user></clb-user-avatar></div><div class=clb-usercard-institution ng-if=institution><span class=clb-usercard-institution-title>{{institution.title}}</span>, <span class=clb-usercard-institution-name>{{institution.name}}</span>, <span class=clb-usercard-institution-dept>{{institution.department}}</span></div><div class=clb-usercard-contact><a class="clb-usercard-contact-item clb-usercard-email" target=_top href=mailto:{{email}} ng-if=email><span class="glyphicon glyphicon-envelope"></span> {{email}}</a> <span class="clb-usercard-contact-item clb-usercard-phone" ng-if=phone><span class="glyphicon glyphicon-phone"></span> {{phone}}</span> <span class="clb-usercard-contact-item clb-usercard-im-list" ng-if=ims.length><span class="glyphicon glyphicon-bullhorn"></span> <span ng-repeat-start="im in ims"></span> <span class=clb-usercard-im>{{im.value}}({{im.type}})</span> <span ng-repeat-end></span></span></div></div>'
+  };
+  // If defined, it means that the template has been inlined during build.
+  if (injector.template) {
+    $templateCache.put('usercard.directive.html', injector.template);
   }
 }
+
+/**
+ * @namespace clbFormControlFocus
+ * @memberof module:clb-ui-form
+ * @desc
+ * The ``clbFormControlFocus`` Directive mark a form element as the one that
+ * should receive the focus first.
+ * @example <caption>Give the focus to the search field</caption>
+ * angular.module('exampleApp', ['clb-ui-form']);
+ *
+ * // HTML snippet:
+ * // <form ng-app="exampleApp"><input type="search" clb-ui-form-control-focus></form>
+ */
+angular.module('clb-ui-form')
+.directive('clbFormControlFocus', ['$timeout', function clbFormControlFocus($timeout) {
+  return {
+    type: 'A',
+    link: function formControlFocusLink(scope, elt) {
+      $timeout(function() {
+        elt[0].focus();
+      }, 0, false);
+    }
+  };
+}]);
+
+/**
+ * @namespace clbFormGroupState
+ * @memberof module:clb-ui-form
+ * @desc
+ * ``clbFormGroupState`` directive flag the current form group with
+ * the class has-error or has-success depending on its form field
+ * current state.
+ *
+ * @example
+ * <caption>Track a field validity at the ``.form-group`` level</caption>
+ * angular.module('exampleApp', ['hbpCollaboratory']);
+ */
+angular.module('clb-ui-form')
+.directive('clbFormGroupState', function formGroupState() {
+  return {
+    type: 'A',
+    scope: {
+      model: '=clbFormGroupState'
+    },
+    link: function formGroupStateLink(scope, elt) {
+      scope.$watchGroup(['model.$touched', 'model.$valid'], function() {
+        if (!scope.model) {
+          return;
+        }
+        elt.removeClass('has-error', 'has-success');
+        if (!scope.model.$touched) {
+          return;
+        }
+        if (scope.model.$valid) {
+          elt.addClass('has-success');
+        } else {
+          elt.addClass('has-error');
+        }
+      }, true);
+    }
+  };
+});
 
 })();
 
