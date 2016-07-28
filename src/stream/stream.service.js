@@ -1,5 +1,3 @@
-/* global moment */
-
 angular.module('clb-stream')
 .factory('clbStream', clbStream);
 
@@ -13,9 +11,10 @@ angular.module('clb-stream')
  * @param {function} clbEnv angular dependency injection
  * @param {function} clbError angular dependency injection
  * @param {function} clbResultSet angular dependency injection
+ * @param {function} moment angular dependency injection
  * @return {object} the clbActivityStream service
  */
-function clbStream($http, clbEnv, clbError, clbResultSet) {
+function clbStream($http, clbEnv, clbError, clbResultSet, moment) {
   return {
     getStream: getStream,
     getHeatmapStream: getHeatmapStream
