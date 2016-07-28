@@ -42,7 +42,7 @@ clbIdentityUtil.$inject = ['$log', 'lodash'];
 clbResultSet.$inject = ['$http', '$q', 'clbError'];
 clbStorage.$inject = ['$http', '$q', '$log', 'uuid4', 'clbEnv', 'clbError', 'clbUser', 'clbResultSet'];
 clbResourceLocator.$inject = ['$q', '$log', '$injector', 'clbError'];
-clbStream.$inject = ['$http', '$log', 'clbEnv', 'clbError', 'clbResultSet'];
+clbStream.$inject = ['$http', 'clbEnv', 'clbError', 'clbResultSet', 'moment'];
 clbConfirm.$inject = ['$rootScope', '$uibModal'];
 clbErrorDialog.$inject = ['$uibModal', 'clbError'];
 clbUsercardPopoverDirective.$inject = ['$log', '$q', 'clbUser', 'clbUsercardPopover'];
@@ -53,7 +53,7 @@ clbFileBrowserPath.$inject = ['clbStorage'];
 clbFileBrowser.$inject = ['lodash'];
 clbFileChooser.$inject = ['$q', '$log'];
 ActivityController.$inject = ['$scope', '$sce', '$log', '$window', '$q', '$compile', 'clbResourceLocator', 'clbErrorDialog'];
-FeedController.$inject = ['$log', 'clbStream', 'clbUser'];
+FeedController.$inject = ['$rootScope', 'clbStream', 'clbUser'];
 angular.module('hbpCollaboratoryCore', [
   'clb-app',
   'clb-automator',
@@ -162,6 +162,13 @@ angular.module('clb-env', []);
 
 angular.module('clb-error', []);
 
+angular.module('clb-identity', [
+  'lodash',
+  'clb-env',
+  'clb-error',
+  'clb-rest'
+]);
+
 /* global _ */
 /**
  * Fix some compatibility issues with previous angular-hbp-common.
@@ -182,13 +189,6 @@ angular.module('lodash', [])
     lodash.keyBy = lodash.indexBy;
   }
 }]);
-
-angular.module('clb-identity', [
-  'lodash',
-  'clb-env',
-  'clb-error',
-  'clb-rest'
-]);
 
 /**
  * @module clb-rest
@@ -224,7 +224,8 @@ angular.module('clb-stream', [
   'clb-env',
   'clb-error',
   'clb-rest',
-  'clb-identity'
+  'clb-identity',
+  'angularMoment'
 ]);
 
 /**
@@ -4967,20 +4968,27 @@ angular.module('clb-stream')
  * @memberof module:clb-stream
  * @namespace clbStream
  * @param {function} $http angular dependency injection
- * @param {function} $log angular dependency injection
  * @param {function} clbEnv angular dependency injection
  * @param {function} clbError angular dependency injection
  * @param {function} clbResultSet angular dependency injection
+ * @param {function} moment angular dependency injection
  * @return {object} the clbActivityStream service
  */
-function clbStream($http, $log, clbEnv, clbError, clbResultSet) {
+function clbStream($http, clbEnv, clbError, clbResultSet, moment) {
   return {
-    getStream: getStream
+    getStream: getStream,
+    getHeatmapStream: getHeatmapStream
   };
 
-  /* -------------------- */
-
-  // Build activities
+  /**
+   * @name activityListFactoryFunc
+   * @desc
+   * Return activities
+   *
+   * @memberof module:clb-stream.clbStream
+   * @param {boolean} next indicates if there is next page
+   * @return {object} Activities
+   */
   function activityListFactoryFunc(next) { // eslint-disable-line require-jsdoc
     return function(results) {
       if (!(results && results.length)) {
@@ -5000,6 +5008,35 @@ function clbStream($http, $log, clbEnv, clbError, clbResultSet) {
   }
 
   /**
+   * Builds the URL options such as the from and to date
+   * as well as the page_size
+   * @memberof module:clb-stream.clbStream
+   * @param {string} url original url
+   * @param {object} options  pageSize:15, date:'2016-07-20'
+   * @return {string} Built URL
+   */
+  function buildURLOptions(url, options) {
+    // Addition of stream options e.g. date and page_size
+    var paramToken = url.indexOf("?") === -1 ? "?" : "&";
+
+    if (options.date) {
+      var _targetDate = moment(options.date);
+      var format = 'YYYY-MM-DD';
+      url += paramToken + "from=" + _targetDate.format(format);
+      url += "&to=" + _targetDate.add(1, 'day').format(format);
+      paramToken = "&";
+    }
+
+    if (options.days) {
+      url += paramToken + "days=" + options.days;
+    } else if (options.pageSize) {
+      url += paramToken + "page_size=" + options.pageSize;
+    }
+
+    return url;
+  }
+
+  /**
    * Get a feed of activities regarding an item type and id.
    * @memberof module:clb-stream.clbStream
    * @param  {string} type The type of object to get the feed for
@@ -5013,8 +5050,31 @@ function clbStream($http, $log, clbEnv, clbError, clbResultSet) {
         options.resultsFactory);
     var url = clbEnv.get('api.stream.v0') + '/stream/' +
                          type + ':' + id + '/';
+
+    url = buildURLOptions(url, options);
     return clbResultSet.get($http.get(url), options)
     .catch(clbError.rejectHttpError);
+  }
+
+  /**
+   * Returns a heatmap stream of the number of activities per
+   * day for a HBPUser or HBPCollab
+   * @param  {string} type The type of object to get the feed for
+   * @param  {string|int} id   The id of the object to get the feed for
+   * @param  {object} options  Parameters to pass to the query
+   * @return {Promise}         resolve to the feed of activities
+   */
+  function getHeatmapStream(type, id, options) {
+    options = angular.extend({resultKey: 'details'}, options);
+    options.resultsFactory = activityListFactoryFunc(options.resultsFactory);
+
+    var url = clbEnv.get('api.stream.v0') + '/heatmap/' +
+        type + ':' + id + '/';
+
+    url = buildURLOptions(url, options);
+
+    return clbResultSet.get($http.get(url), options)
+        .catch(clbError.rejectHttpError);
   }
 }
 
@@ -6621,7 +6681,7 @@ function clbFeed() {
     controller: FeedController,
     controllerAs: 'vm',
     bindToController: true,
-    template:'<ul class="feed list-group" ng-class="{\'feed-empty\': vm.activities.results.length === 0}"><li ng-if=vm.error class=list-group-item><div class="alert alert-warning"><strong>Load Error:</strong> {{vm.error}}</div></li><li class=list-group-item ng-if="!vm.activities && !vm.error"><hbp-loading></hbp-loading></li><li class=list-group-item ng-if="vm.activities.results.length === 0"><div class="alert alert-info">Nothing new</div></li><li class=list-group-item ng-repeat="a in vm.activities.results" clb-activity=a></li><li class=list-group-item ng-if=vm.activities.hasNext><a clb-perform-action=vm.activities.next() class="btn btn-default">More</a></li></ul>',
+    template:'<div ng-if=vm.loadingFeed class="alert alert-info"><div ng-switch on=vm.feedDate><div ng-switch-when=null>Loading all activities...</div><div class=animate-switch ng-switch-default>Loading Feed for {{vm.feedDate}}...</div></div></div><p ng-if="vm.feedDate != null">Selected date: {{vm.feedDate}}</p><ul class="feed list-group" ng-if=!vm.loadingFeed ng-class="{\'feed-empty\': vm.activities.results.length === 0}"><li ng-if=vm.error class=list-group-item><div class="alert alert-error"><strong>Load Error:</strong> {{vm.error}}</div></li><li class=list-group-item ng-if="!vm.activities && !vm.error"><hbp-loading></hbp-loading></li><li class=list-group-item ng-if="vm.activities.results.length === 0 && vm.feedDate"><div class="alert alert-info">No activities on {{vm.feedDate}}</div></li><li class=list-group-item ng-if="vm.activities.results.length === 0 && !vm.feedDate"><div class="alert alert-info">No activities to show</div></li><li class=list-group-item ng-repeat="a in vm.activities.results track by $index" clb-activity=a></li><li class=list-group-item ng-if=vm.activities.hasNext><a clb-perform-action=vm.activities.next() class="btn btn-default">Show More</a></li></ul>',
     link: function(scope, elt) {
       elt.addClass('clb-feed');
       var unbind = scope.$on(
@@ -6638,21 +6698,32 @@ function clbFeed() {
 
 /**
  * ViewModel of an activity used to render the clb-activity directive
- * @param {object} $log angular injection
+ * @param {object} $rootScope angular injection
  * @param {object} clbStream DI
  * @param {object} clbUser DI
  */
-function FeedController($log, clbStream, clbUser) {
+function FeedController($rootScope, clbStream, clbUser) {
   var vm = this;
+
+  if (vm.feedType === 'HBPCollab') {
+    vm.pageSize = 15;
+  }
+
+  vm.feedDate = null;
 
   activate();
 
+  $rootScope.$on('feedDate.changed', function(event, data) {
+    vm.feedDate = data;
+    activate();
+  });
   /* ------------- */
 
   function hydrateActors(activities) {  // eslint-disable-line require-jsdoc
     if (!activities || activities.length === 0) {
       return;
     }
+
     var acc = [];
     for (var i = 0; i < activities.length; i++) {
       if (activities[i].actor.type === 'HBPUser') {
@@ -6674,14 +6745,19 @@ function FeedController($log, clbStream, clbUser) {
    * init controller
    */
   function activate() {
+    vm.loadingFeed = true;
     clbStream.getStream(vm.feedType, vm.feedId, {
-      resultsFactory: hydrateActors
+      resultsFactory: hydrateActors,
+      date: vm.feedDate,
+      pageSize: vm.pageSize
     })
     .then(function(rs) {
       vm.activities = rs;
     })
     .catch(function(err) {
       vm.error = err.message;
+    }).finally(function() {
+      vm.loadingFeed = false;
     });
   }
 }

@@ -38,21 +38,32 @@ function clbFeed() {
 
 /**
  * ViewModel of an activity used to render the clb-activity directive
- * @param {object} $log angular injection
+ * @param {object} $rootScope angular injection
  * @param {object} clbStream DI
  * @param {object} clbUser DI
  */
-function FeedController($log, clbStream, clbUser) {
+function FeedController($rootScope, clbStream, clbUser) {
   var vm = this;
+
+  if (vm.feedType === 'HBPCollab') {
+    vm.pageSize = 15;
+  }
+
+  vm.feedDate = null;
 
   activate();
 
+  $rootScope.$on('feedDate.changed', function(event, data) {
+    vm.feedDate = data;
+    activate();
+  });
   /* ------------- */
 
   function hydrateActors(activities) {  // eslint-disable-line require-jsdoc
     if (!activities || activities.length === 0) {
       return;
     }
+
     var acc = [];
     for (var i = 0; i < activities.length; i++) {
       if (activities[i].actor.type === 'HBPUser') {
@@ -74,14 +85,19 @@ function FeedController($log, clbStream, clbUser) {
    * init controller
    */
   function activate() {
+    vm.loadingFeed = true;
     clbStream.getStream(vm.feedType, vm.feedId, {
-      resultsFactory: hydrateActors
+      resultsFactory: hydrateActors,
+      date: vm.feedDate,
+      pageSize: vm.pageSize
     })
     .then(function(rs) {
       vm.activities = rs;
     })
     .catch(function(err) {
       vm.error = err.message;
+    }).finally(function() {
+      vm.loadingFeed = false;
     });
   }
 }

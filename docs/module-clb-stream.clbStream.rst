@@ -23,6 +23,22 @@ Description
 given a user, a collab or a specific context.
 
 
+.. _module-clb-stream.clbStream.buildURLOptions:
+
+
+Function: ``buildURLOptions``
+=============================
+
+Builds the URL options such as the from and to date
+as well as the page_size
+
+.. js:function:: buildURLOptions(url, options)
+
+    
+    :param string url: original url
+    :param object options: pageSize:15, date:'2016-07-20'
+    :return string: Built URL
+    
 .. _module-clb-stream.clbStream.getStream:
 
 
@@ -39,6 +55,10 @@ Get a feed of activities regarding an item type and id.
     :param object options: Parameters to pass to the query
     :return Promise: resolve to the feed of activities
     
+
+.. _module-clb-stream.clbStream.activityListFactoryFunc:
+
+Member: ``activityListFactoryFunc``: Return activities
 
 
 

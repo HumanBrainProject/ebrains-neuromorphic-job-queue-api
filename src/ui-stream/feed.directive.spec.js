@@ -99,6 +99,6 @@ describe('clbFeed directive', function() {
     scope.$digest();
     expect(element.find('ul').hasClass('feed-empty')).toBe(true);
     expect(element.find('ul').find('div').text()).toMatch(
-      'Nothing new');
+      'No activities to show');
   });
 });
