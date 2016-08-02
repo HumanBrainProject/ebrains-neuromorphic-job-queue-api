@@ -2,3 +2,4 @@ image: cnrsunic/neuromorphic_docs
 ports:
     443: 443
 env: []
+volumes: ["/etc/letsencrypt"]

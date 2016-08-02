@@ -101,7 +101,7 @@ def build(service, colour):
     # tag image
     colour_tag = colour or "latest"
     for tag in (colour_tag, git_tag):
-        cmd = "docker tag -f {} {}:{}".format(image, image, tag)
+        cmd = "docker tag {} {}:{}".format(image, image, tag)
         shell.run(cmd.split())
 
     # push image
