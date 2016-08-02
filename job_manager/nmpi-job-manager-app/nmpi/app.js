@@ -32,6 +32,11 @@
         templateUrl: 'static/nmpi/queue/detail.tpl.html', 
         controller: 'DetailQueue'
       })
+      .state('job_resubmit', {
+        url: '/queue/:eId',
+        templateUrl: 'static/nmpi/queue/detail.tpl.html', 
+        controller: 'ReSubmitJob'
+      })
     }
   )
   .filter('extractInitialComment', function() {

@@ -135,6 +135,7 @@ angular.module('nmpi')
             });
         };
 
+
         Results.get(
             {id: $stateParams.eId},
             // first we try to get the job from the Results endpoint
@@ -173,6 +174,136 @@ angular.module('nmpi')
 
 
 .controller('AddJob', 
+            ['$scope', '$rootScope', '$location', 'Queue', 'DataItem', 'User', 'Context',
+    function( $scope,   $rootScope,   $location,   Queue,   DataItem,   User,   Context ) 
+    {
+        $scope.msg = {text: "", css: "", show: false}; // debug
+
+        // Context
+        $rootScope.ctx = $location.search().ctx;
+        $rootScope.with_ctx = true;
+
+        // presets
+        $scope.hardwares = [
+            {value:'BrainScaleS', text:'BrainScaleS'},
+            {value:'SpiNNaker', text:'SpiNNaker'},
+            {value:'BrainScaleS-ESS', text:'BrainScaleS-ESS'},
+            {value:'Spikey', text:'Spikey'},
+        ];
+        $scope.job = new Queue();
+        var curdate = new Date();
+        $scope.job.id = null;
+        $scope.job.log = " ";
+        $scope.job.status = "submitted";
+        $scope.job.timestamp_submission = curdate.toUTCString();
+        $scope.job.timestamp_completion = curdate.toUTCString(); 
+        $scope.job.code = "";
+        $scope.job.command = "";
+        $scope.job.hardware_config = null;
+        $scope.job.hardware_platform = ""; 
+        $scope.job.input_data = [];
+        $scope.job.output_data = []; 
+        $scope.job.resource_uri = ""; 
+        $scope.inputs = [];
+        $scope.dataitem = DataItem.get({id:'last'});
+        // User
+        User.get({id:'me'}, function(user){
+            //console.log("create user id:"+user.id);
+            $scope.job.user_id = user.id;
+        });
+        // Collab from Context
+        Context.get({ctx: $rootScope.ctx}, function(context){
+            //console.log("create collab id: "+context.collab.id);
+            $scope.job.collab_id = context.collab.id;
+        });
+
+        $scope.addInput = function() {
+            $scope.inputs.push( {id:null, url:'', resource_uri:''} );
+        }
+
+        $scope.removeInput = function() {
+            $scope.inputs.pop(); 
+        }
+
+        // post
+        $scope.submit = function( job ){
+            $scope.master_job = angular.copy( job );
+            if( $scope.job.hardware_config != null ){
+                $scope.job.hardware_config = JSON.parse( $scope.job.hardware_config );
+            }
+            // if dataitem have been added, save them and at the end save the job
+            if( $scope.inputs.length ){
+                $scope.inputs.forEach( function(input){
+                    if( input.url.length ){ // if there is a value
+                        var dataitem = new DataItem();
+                        dataitem.id = null;
+                        dataitem.url = input.url;
+                        dataitem.resource_uri = '';
+                        dataitem.$save(
+                            function(response){
+                                $scope.job.input_data.push(response);
+                                //console.log(JSON.stringify($scope.inputs));
+                                // save the job only when the input_data is full
+                                // wait until $scope.job.input_data has the same number as $scope.inputs.length
+                                if( $scope.inputs.length == $scope.job.input_data.length ){
+                                    // save to server
+                                    $scope.savejob();
+                                }
+                            }
+                        );
+                    }
+                });
+            } else {
+                // save directly to server if there are no inputs
+                $scope.savejob();
+            }
+        };
+
+        $scope.checkJSON = function(){
+            //console.log( $scope.job.hardware_config );
+            // this is called any time any field is edited. Is there a way to ensure it is
+            // only called when the hardware config field is edited?
+            try{
+                JSON.parse($scope.job.hardware_config);
+            }catch(e){
+
+                return true;
+            }
+            return false;
+        };
+
+        $scope.savejob = function(){
+            // console.log(JSON.stringify($scope.job));
+            $scope.job.$save({},
+                function(data){  // success
+                    console.log(JSON.stringify(data));
+                    $rootScope.msg = {
+                        text: "Your job has been submitted. You will receive further updates by email.",
+                        css: "success",
+                        show: true
+                    };
+                    $location.path( '/queue').search({ctx:$rootScope.ctx});
+                },
+                function(err) { // error
+                    console.log(err.status + ": " + err.data);
+                    $scope.$parent.msg = {
+                        text: "Your job has not been submitted. " + err.data,
+                        css: "danger",
+                        show: true
+                    };
+                }
+            );        
+        }
+
+        // reset
+        $scope.reset = function(){
+            $scope.msg.show = false;
+            $location.path( '/queue').search({ctx:$rootScope.ctx});
+        };
+    }
+])
+
+.controller('ReSubmitJob', 
             ['$scope', '$rootScope', '$location', 'Queue', 'DataItem', 'User', 'Context',
     function( $scope,   $rootScope,   $location,   Queue,   DataItem,   User,   Context ) 
     {
