@@ -126,7 +126,8 @@ angular.module('nmpi')
         $scope.showHPCsites = false;
         
         $scope.del_job = function(id){
-            Queue.del({id:id.eId}, function(data){
+            $scope.job.$del({id:id.eId}, function(data){
+                // on success, return to job list
                 if($rootScope.with_ctx){
                     window.location.href = "app/#/queue?ctx="+$rootScope.ctx;
                 } else {
@@ -143,7 +144,7 @@ angular.module('nmpi')
                 $scope.job = job;
                 $scope.job.collab = Collab.get({cid:$scope.job.collab_id}, function(data){});
             },
-            // if it's not there we try the Queue endpoing
+            // if it's not there we try the Queue endpoint
             function(error) {
                 Queue.get(
                     {id: $stateParams.eId},
