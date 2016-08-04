@@ -10,9 +10,6 @@
 
     <div class="">
 
-      <h3 ng-if="with_ctx"><a class="glyphicon glyphicon-list" href="app/#/queue?ctx={{ctx}}" ng-click="msg.show=false"></a> / Job {{job.id}} / <a class="glyphicon glyphicon glyphicon-edit" href="" ng-click=""></a></h3>
-      <h3 ng-if="!with_ctx"><a class="glyphicon glyphicon-list" href="app/#/queue" ng-click="msg.show=false"></a> / Job {{job.id}} / <a class="glyphicon glyphicon glyphicon-edit" href="" ng-click=""></a></h3>
-
       <hr/>
       <span style="float:right; position: relative; bottom:50px">
         <a class="nav" href="app/#/queue?ctx={{ctx}}" ng-click="msg.show=false" ng-if="with_ctx">back</a>

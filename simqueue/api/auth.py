@@ -155,6 +155,7 @@ class CollabAuthorization(Authorization):
         else:
             user = self.identity_service.get_user(bundle.request)
             if bundle.obj.user_id == user["id"]:
+                # can only delete own jobs
                 if bundle.request.method == "DELETE":
                     return True
                 else:
