@@ -82,7 +82,9 @@ angular.module('nmpi')
                     console.log("User in team: " + response);
                 });
 
-                hbpIdentityUserDirectory.isGroupMember(['hbp-sp09-member', 'hbp-neuromorphic-platform-users']).then(function(response) {
+                hbpIdentityUserDirectory.isGroupMember(['hbp-sp09-member',
+                                                        'hbp-sga1-sp09-member',
+                                                        'hbp-neuromorphic-platform-users']).then(function(response) {
                     $scope.canAccessPlatform = response;
                     console.log("User has access to the platform: " + response);
                 });
