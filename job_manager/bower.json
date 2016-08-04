@@ -17,12 +17,9 @@
     "tests"
   ],
   "dependencies": {
-    "angular-hbp-common": "~2.0.1",
-    "hbp-collaboratory-theme": "~0.0.18",
-    "angular-resource": "~1.4.9",
-    "c3": "~0.4.10"
-  },
-  "resolutions": {
-    "angular": "~1.4.10"
+    "angular-hbp-common": "~2.3.0",
+    "hbp-collaboratory-theme": "~0.1.0",
+    "angular-resource": "~1.4.12",
+    "c3": "~0.4.11"
   }
 }

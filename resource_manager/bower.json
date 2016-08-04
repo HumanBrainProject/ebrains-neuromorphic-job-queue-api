@@ -17,11 +17,7 @@
     "tests"
   ],
   "dependencies": {
-    "angular-hbp-common": "~2.0.1",
-    "hbp-collaboratory-theme": "~0.0.18"
-  },
-  "resolutions": {
-    "bbp-oidc-client": "~0.8.1",
-    "angular": "~1.4.9"
+    "angular-hbp-common": "~2.3.0",
+    "hbp-collaboratory-theme": "~0.1.0"
   }
 }
