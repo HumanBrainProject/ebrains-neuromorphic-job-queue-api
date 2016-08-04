@@ -309,6 +309,13 @@ angular.module('nmpi')
     {
         $scope.msg = {text: "", css: "", show: false}; // debug
 
+        //get id
+        var location_array = new Array();
+        var job_id = "";
+        location_array = $location.$$url.split('/');
+        job_id = location_array[2];
+        console.log("job id : " + job_id);
+
         // Context
         $rootScope.ctx = $location.search().ctx;
         $rootScope.with_ctx = true;
@@ -320,31 +327,34 @@ angular.module('nmpi')
             {value:'BrainScaleS-ESS', text:'BrainScaleS-ESS'},
             {value:'Spikey', text:'Spikey'},
         ];
-        $scope.job = new Queue();
-        var curdate = new Date();
-        $scope.job.id = null;
-        $scope.job.log = " ";
-        $scope.job.status = "submitted";
-        $scope.job.timestamp_submission = curdate.toUTCString();
-        $scope.job.timestamp_completion = curdate.toUTCString(); 
-        $scope.job.code = "";
-        $scope.job.command = "";
-        $scope.job.hardware_config = null;
-        $scope.job.hardware_platform = ""; 
-        $scope.job.input_data = [];
-        $scope.job.output_data = []; 
-        $scope.job.resource_uri = ""; 
-        $scope.inputs = [];
-        $scope.dataitem = DataItem.get({id:'last'});
-        // User
-        User.get({id:'me'}, function(user){
-            //console.log("create user id:"+user.id);
-            $scope.job.user_id = user.id;
-        });
-        // Collab from Context
-        Context.get({ctx: $rootScope.ctx}, function(context){
-            //console.log("create collab id: "+context.collab.id);
-            $scope.job.collab_id = context.collab.id;
+        
+        Queue.get({id:job_id}, function(former_job){
+            $scope.job = new Queue();
+            var curdate = new Date();
+            $scope.job.id = null;
+            $scope.job.log = " ";
+            $scope.job.status = "submitted";
+            $scope.job.timestamp_submission = curdate.toUTCString();
+            $scope.job.timestamp_completion = curdate.toUTCString(); 
+            $scope.job.code = former_job.code; //
+            $scope.job.command = former_job.command; //
+            $scope.job.hardware_config = null; //
+            $scope.job.hardware_platform = former_job.hardware_platform; //
+            $scope.job.input_data = [];
+            $scope.job.output_data = []; 
+            $scope.job.resource_uri = ""; 
+            $scope.inputs = [];
+            $scope.dataitem = DataItem.get({id:'last'});
+            // User
+            User.get({id:'me'}, function(user){
+                //console.log("create user id:"+user.id);
+                $scope.job.user_id = user.id;
+            });
+            // Collab from Context
+            Context.get({ctx: $rootScope.ctx}, function(context){
+                //console.log("create collab id: "+context.collab.id);
+                $scope.job.collab_id = context.collab.id;
+            });
         });
 
         $scope.addInput = function() {
