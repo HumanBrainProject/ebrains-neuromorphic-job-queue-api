@@ -67,8 +67,9 @@ class IdentityService(object):
             raise Exception(res.content)
         groups = [g["name"] for g in res.json()['_embedded']['groups']]
         logger.debug("Groups: {}".format(groups))
-        return 'hbp-sp09-member' in groups or 'hbp-neuromorphic-platform-users' in groups
-
+        return 'hbp-sga1-sp09-member' in groups \
+               or 'hbp-neuromorphic-platform-users' in groups \
+               or 'hbp-sp09-member' in groups
 
 
 class ProviderAuthentication(ApiKeyAuthentication):
