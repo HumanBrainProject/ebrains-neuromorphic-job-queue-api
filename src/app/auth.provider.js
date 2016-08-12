@@ -107,6 +107,8 @@ function authProvider(clbAppHello, clbEnvProvider) {
             logout: function(callback, p) {
               $http.post(clbEnv.get('auth.url') + '/slo', {
                 token: p.authResponse.access_token
+              }, {
+                withCredentials: true
               })
               .then(function() {
                 callback();
