@@ -14,10 +14,13 @@ describe('clbAuth', function() {
       hello = clbAppHello;
       spyOn(hello, 'login')
       .and.returnValue($q.when({
-        access_token: 'aaaa', // eslint-disable-line camelcase
-        token_type: 'Bearer', // eslint-disable-line camelcase
-        expires: 999.0,
-        scope: ''
+        authResponse: {
+          access_token: 'aaaa', // eslint-disable-line camelcase
+          token_type: 'Bearer', // eslint-disable-line camelcase
+          expires: 999.0,
+          scope: ''
+        },
+        network: 'hbp'
       }));
     }));
 
@@ -38,6 +41,34 @@ describe('clbAuth', function() {
         expires: 999.0,
         scope: undefined
       });
+    }));
+  });
+
+  describe('logout()', function() {
+    var hello;
+    beforeEach(inject(function($q, clbAppHello) {
+      hello = clbAppHello;
+      hello.utils.store('hbp', {
+        token_type: 'Bearer', // eslint-disable-line camelcase
+        access_token: 'aaaa', // eslint-disable-line camelcase
+        expires: 999.0,
+        scope: ''
+      });
+      spyOn(hello, 'logout').and.returnValue($q.when({network: 'hbp'}));
+    }));
+
+    it('should call the hello.js logout method', function() {
+      service.logout();
+      expect(hello.logout).toHaveBeenCalledWith('hbp', undefined);
+    });
+
+    it('should call the single logout method', inject(function(
+      $httpBackend,
+      clbEnv
+    ) {
+      $httpBackend.expectPOST(clbEnv.get('auth.url') + '/slo', {token: 'aaaa'});
+      service.logout({force: true});
+      expect(hello.logout).toHaveBeenCalledWith('hbp', {force: true});
     }));
   });
 });

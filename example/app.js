@@ -16,8 +16,7 @@ angular.module('customCollabApp', [
   $scope.$on('$destroy', unbind);
   vm.login = function() {
     clbAuth.login().then(function(info) {
-      console.log('after login',
-        info.authResponse, info.network, info.unchanged);
+      console.log('after login', info);
     }, function(err) {
       console.log('error while login', err);
     });
@@ -34,6 +33,12 @@ angular.module('customCollabApp', [
   vm.logout = function() {
     clbAuth.logout().then(function(info) {
       console.log('logged out', info);
+    });
+  };
+
+  vm.forceLogout = function() {
+    clbAuth.logout({force: true}).then(function(info) {
+      console.log('logged out and killed session', info);
     });
   };
 })

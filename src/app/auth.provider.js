@@ -4,10 +4,10 @@ angular.module('clb-app')
 
 function authProvider(clbAppHello, clbEnvProvider) {
   return {
-    $get: function($log, $q, $rootScope, $timeout, clbError) {
-      addHbpProvider();
-      loadApplicationInfo();
-      bindEvents();
+    $get: function($http, $log, $q, $rootScope, $timeout, clbEnv, clbError) {
+      _addHbpProvider();
+      _loadApplicationInfo();
+      _bindEvents();
 
       return {
         login: login,
@@ -16,25 +16,27 @@ function authProvider(clbAppHello, clbEnvProvider) {
       };
 
       function login(options) {
-        $log.debug('Login attempt', options);
         var d = $q.defer();
         clbAppHello.login('hbp', options)
         .then(function(res) {
-          d.resolve(getAuthInfo(res));
+          d.resolve(getAuthInfo(res.authResponse));
         }, function(err) {
-          d.reject(formatError(err));
+          d.reject(_formatError(err));
         });
         return d.promise;
       }
 
-      function logout() {
-        $log.debug('Logout attempt');
+      function logout(options) {
+        var info = getAuthInfo();
+        if (!info) {
+          return $q.when(true);
+        }
         var d = $q.defer();
-        clbAppHello.logout('hbp')
-        .then(function(res) {
-          return d.resolve(res);
+        clbAppHello.logout('hbp', options)
+        .then(function() {
+          return d.resolve(true);
         }, function(err) {
-          d.reject(formatError(err));
+          d.reject(_formatError(err));
         });
         return d.promise;
       }
@@ -55,7 +57,7 @@ function authProvider(clbAppHello, clbEnvProvider) {
         };
       }
 
-      function formatError(err) {
+      function _formatError(err) {
         return clbError.error({
           type: err.error.code,
           message: err.error.message,
@@ -63,64 +65,75 @@ function authProvider(clbAppHello, clbEnvProvider) {
         });
       }
 
-      function bindEvents() {
-        clbAppHello.on('auth.login', handleAuthInfoChange);
-        clbAppHello.on('auth.logout', handleAuthInfoChange);
+      function _bindEvents() {
+        clbAppHello.on('auth.login', _handleAuthInfoChange);
+        clbAppHello.on('auth.logout', _handleAuthInfoChange);
       }
 
-      function handleAuthInfoChange(data, name) {
+      function _handleAuthInfoChange(data, name) {
         if (data.network !== 'hbp') {
           return;
         }
-        console.log('Catched hello.js event', name);
+        $log.debug('propagate auth event from original event', name);
         $timeout(function() {
           $rootScope.$broadcast('clbAuth.changed', getAuthInfo());
         }, 0);
       }
+
+      /**
+       * Define a new provider Hello.js provider for HBP
+       */
+      function _addHbpProvider() {
+        clbAppHello.init({
+          hbp: {
+            name: 'Human Brain Project',
+            oauth: {
+              version: '2',
+              auth: clbEnvProvider.get('auth.url') + '/authorize',
+              grant: clbEnvProvider.get('auth.url') + '/token'
+            },
+            // API base URL
+            base: clbEnvProvider.get('auth.url') + '/',
+            scope_delim: ' ', // eslint-disable-line camelcase
+            login: function(p) {
+              // Reauthenticate
+              if (p.options.force) {
+                p.qs.prompt = 'login';
+              }
+              if (!p.qs.scope) {
+                delete p.qs.scope;
+              }
+            },
+            logout: function(callback, p) {
+              $http.post(clbEnv.get('auth.url') + '/slo', {
+                token: p.authResponse.access_token
+              })
+              .then(function() {
+                callback();
+              })
+              .catch(function(err) {
+                $log.error('Cannot kill the global session');
+                $log.debug(err);
+                callback();
+              });
+            }
+          }
+        });
+      }
+
+      /**
+       * Set the current application data.
+       */
+      function _loadApplicationInfo() {
+        clbAppHello.init({
+          hbp: clbEnvProvider.get('auth.clientId')
+        }, {
+          default_service: 'hbp', // eslint-disable-line camelcase
+          display: 'page',
+          scope: clbEnvProvider.get('auth.scopes', null),
+          force: false
+        });
+      }
     }
   };
-
-  // ------------------- //
-
-  /**
-   * Define a new provider Hello.js provider for HBP
-   */
-  function addHbpProvider() {
-    clbAppHello.init({
-      hbp: {
-        name: 'Human Brain Project',
-        oauth: {
-          version: '2',
-          auth: clbEnvProvider.get('auth.url') + '/authorize',
-          grant: clbEnvProvider.get('auth.url') + '/token'
-        },
-        // API base URL
-        base: clbEnvProvider.get('auth.url') + '/',
-        scope_delim: ' ', // eslint-disable-line camelcase
-        login: function(p) {
-          // Reauthenticate
-          if (p.options.force) {
-            p.qs.prompt = 'login';
-          }
-          if (!p.qs.scope) {
-            delete p.qs.scope;
-          }
-        }
-      }
-    });
-  }
-
-  /**
-   * Set the current application data.
-   */
-  function loadApplicationInfo() {
-    clbAppHello.init({
-      hbp: clbEnvProvider.get('auth.clientId')
-    }, {
-      default_service: 'hbp', // eslint-disable-line camelcase
-      display: 'page',
-      scope: clbEnvProvider.get('auth.scopes', null),
-      force: false
-    });
-  }
 }

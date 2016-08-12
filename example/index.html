@@ -19,10 +19,12 @@
         <div class="panel-body" ng-controller="UiAuthController as vm">
           <button type="button" class="btn btn-primary"
                   ng-click="vm.login()">Login</button>
-          <button type="button" class="btn btn-default"
-                  ng-click="vm.forceLogin()">Force Login</button>
           <button type="button" class="btn btn-danger"
                   ng-click="vm.logout()">Logout</button>
+          <button type="button" class="btn btn-default"
+                  ng-click="vm.forceLogin()">Force Login</button>
+          <button type="button" class="btn btn-default"
+                  ng-click="vm.forceLogout()">Force Logout</button>
           <pre ng-cloak>{{vm.authInfo|json}}</pre>
         </div>
       </div>
