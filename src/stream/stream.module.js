@@ -7,6 +7,7 @@
  */
 
 angular.module('clb-stream', [
+  'clb-app',
   'clb-env',
   'clb-error',
   'clb-rest',

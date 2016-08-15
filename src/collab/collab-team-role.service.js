@@ -4,14 +4,14 @@ angular.module('clb-collab')
 /**
  * @namespace clbCollabTeamRole
  * @memberof module:clb-collab
- * @param  {object} $http    Angular DI
+ * @param  {object} clbAuthHttp    Angular DI
  * @param  {object} $log     Angular DI
  * @param  {object} $q       Angular DI
  * @param  {object} clbEnv   Angular DI
  * @param  {object} clbError Angular DI
  * @return {object}          Angular Service
  */
-function clbCollabTeamRole($http, $log, $q, clbEnv, clbError) {
+function clbCollabTeamRole(clbAuthHttp, $log, $q, clbEnv, clbError) {
   var urlBase = clbEnv.get('api.collab.v0');
   var collabUrl = urlBase + '/collab/';
   var rolesCache = {};
@@ -38,7 +38,7 @@ function clbCollabTeamRole($http, $log, $q, clbEnv, clbError) {
     if (rolesCache[collabId] && rolesCache[collabId][userId]) {
       return $q.when(rolesCache[collabId][userId]);
     }
-    return $http.get(collabUrl + collabId + '/team/role/' + userId + '/')
+    return clbAuthHttp.get(collabUrl + collabId + '/team/role/' + userId + '/')
     .then(function(res) {
       rolesCache[collabId][userId] = res.data.role;
       return $q.when(rolesCache[collabId][userId]);
@@ -62,10 +62,10 @@ function clbCollabTeamRole($http, $log, $q, clbEnv, clbError) {
     var thisUrl = collabUrl + collabId + '/team/role/' + userId + '/';
     if (rolesCache[collabId] && rolesCache[collabId][userId]) {
       rolesCache[collabId][userId] = role;
-      return $http.put(thisUrl, {role: role})
+      return clbAuthHttp.put(thisUrl, {role: role})
       .catch(function(resp) {
         if (resp.status === 404) { // should have been a POST...
-          return $http.post(thisUrl, {role: role})
+          return clbAuthHttp.post(thisUrl, {role: role})
           .catch(clbError.rejectHttpError);
         }
         return clbError.rejectHttpError(resp);
@@ -75,7 +75,7 @@ function clbCollabTeamRole($http, $log, $q, clbEnv, clbError) {
       rolesCache[collabId] = {};
     }
     rolesCache[collabId][userId] = role;
-    return $http.post(thisUrl, {role: role})
+    return clbAuthHttp.post(thisUrl, {role: role})
     .catch(clbError.rejectHttpError);
   }
 }

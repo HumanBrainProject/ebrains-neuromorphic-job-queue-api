@@ -10,7 +10,7 @@
 angular.module('clb-collab')
 .constant('folderAppId', '__collab_folder__')
 .service('clbCollabApp', function(
-  $q, $http, $cacheFactory,
+  $q, clbAuthHttp, $cacheFactory,
   clbError, clbEnv, clbResultSet
 ) {
   var appsCache = $cacheFactory('__appsCache__');
@@ -88,7 +88,7 @@ angular.module('clb-collab')
    */
   var list = function() {
     if (!apps) {
-      return loadAll(clbResultSet.get($http.get(urlBase), {
+      return loadAll(clbResultSet.get(clbAuthHttp.get(urlBase), {
         factory: App.fromJson
       }));
     }
@@ -109,7 +109,7 @@ angular.module('clb-collab')
     if (ext) {
       return $q.when(ext);
     }
-    return $http.get(urlBase + id + '/').then(function(res) {
+    return clbAuthHttp.get(urlBase + id + '/').then(function(res) {
       appsCache.put(id, App.fromJson(res.data));
       return appsCache.get(id);
     }, function(res) {
@@ -123,7 +123,7 @@ angular.module('clb-collab')
    * @return {Promise} promise of an App instance
    */
   var findOne = function(params) {
-    return $http.get(urlBase, {params: params}).then(function(res) {
+    return clbAuthHttp.get(urlBase, {params: params}).then(function(res) {
       var results = res.data.results;
       // Reject if more than one results
       if (results.length > 1) {

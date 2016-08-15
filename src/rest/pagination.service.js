@@ -4,12 +4,12 @@ angular.module('clb-rest')
 /**
  * @namespace clbResultSet
  * @memberof module:clb-rest
- * @param  {object} $http           Angular DI
+ * @param  {object} clbAuthHttp           Angular DI
  * @param  {object} $q              Angular DI
  * @param  {object} clbError Angular DI
  * @return {object}                 Angular Service
  */
-function clbResultSet($http, $q, clbError) {
+function clbResultSet(clbAuthHttp, $q, clbError) {
   /**
    * @attribute ResultSetEOL
    * @memberof module:clb-rest.clbResultSet
@@ -153,7 +153,7 @@ function clbResultSet($http, $q, clbError) {
       }
       var promise = (options.nextHandler ?
         wrappedNextCall() :
-        $http.get(self.nextUrl)
+        clbAuthHttp.get(self.nextUrl)
       );
       return promise.then(handleNextResults);
     }
@@ -172,7 +172,7 @@ function clbResultSet($http, $q, clbError) {
       }
       var promise = (options.previousHandler ?
         wrappedPreviousCall() :
-        $http.get(self.previousUrl)
+        clbAuthHttp.get(self.previousUrl)
       );
       return promise.then(handlePreviousResults);
     }

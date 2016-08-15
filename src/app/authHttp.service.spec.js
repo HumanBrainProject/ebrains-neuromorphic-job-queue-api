@@ -91,7 +91,7 @@ describe('clbAuthHttp', function() {
 
   describe('get, head, delete', function() {
     angular.forEach(['get', 'head', 'delete'], function(verb) {
-      it('should call authHttp()', function() {
+      it('should call clbAuthHttp()', function() {
         setToken('aaaa');
         authHttp[verb]('https://test/com');
         expect(spyHttp).toHaveBeenCalledWith({
@@ -103,7 +103,7 @@ describe('clbAuthHttp', function() {
         });
       });
 
-      it('should call authHttp() without credentials', function() {
+      it('should call clbAuthHttp() without credentials', function() {
         authHttp[verb]('https://test/com');
         expect(spyHttp).toHaveBeenCalledWith({
           url: 'https://test/com',
@@ -113,7 +113,7 @@ describe('clbAuthHttp', function() {
     });
 
     angular.forEach(['post', 'patch', 'put'], function(verb) {
-      it('should call authHttp()', function() {
+      it('should call clbAuthHttp()', function() {
         setToken('aaaa');
         authHttp[verb]('https://test/com', {a: 1});
         expect(spyHttp).toHaveBeenCalledWith({

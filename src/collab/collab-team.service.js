@@ -6,7 +6,7 @@ angular.module('clb-collab')
  *
  * @namespace clbCollabTeam
  * @memberof module:clb-collab
- * @param  {object} $http             Angular DI
+ * @param  {object} clbAuthHttp             Angular DI
  * @param  {object} $log              Angular DI
  * @param  {object} $q                Angular DI
  * @param  {object} lodash            Angular DI
@@ -17,7 +17,7 @@ angular.module('clb-collab')
  * @return {object}                   Angular Service
  */
 function clbCollabTeam(
-  $http,
+  clbAuthHttp,
   $log,
   $q,
   lodash,
@@ -45,7 +45,7 @@ function clbCollabTeam(
    * @return {Promise} resolve after the user has been added
    */
   function add(collabId, userId) {
-    return $http.put(collabUrl + collabId + '/team/', {
+    return clbAuthHttp.put(collabUrl + collabId + '/team/', {
       users: [userId]
     }).catch(clbError.rejectHttpError);
   }
@@ -57,7 +57,7 @@ function clbCollabTeam(
    * @return {Promise} resolve after the user has been added
    */
   function remove(collabId, userId) {
-    return $http({
+    return clbAuthHttp({
       method: 'DELETE',
       url: collabUrl + collabId + '/team/',
       data: {users: [userId]},
@@ -72,7 +72,7 @@ function clbCollabTeam(
    *                        informations.
    */
   function list(collabId) {
-    return $http.get(collabUrl + collabId + '/team/')
+    return clbAuthHttp.get(collabUrl + collabId + '/team/')
     .then(function(res) {
       var indexedTeam = lodash.keyBy(res.data, 'user_id');
       return clbUser.list({
@@ -102,7 +102,7 @@ function clbCollabTeam(
    */
   function userInTeam(collabId) {
     return clbUser.getCurrentUserOnly().then(function(me) {
-      return $http.get(collabUrl + collabId + '/team/')
+      return clbAuthHttp.get(collabUrl + collabId + '/team/')
       .then(function(list) {
         return lodash.keyBy(
           list.data, 'user_id')[parseInt(me.id, 10)] !== undefined;

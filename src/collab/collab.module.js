@@ -6,6 +6,7 @@
  */
 angular.module('clb-collab', [
   'lodash',
+  'clb-app',
   'clb-env',
   'clb-error',
   'clb-identity',

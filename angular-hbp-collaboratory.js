@@ -29,21 +29,22 @@
  */
 clbApp.$inject = ['$log', '$q', '$rootScope', '$timeout', '$window', 'clbError'];
 authProvider.$inject = ['clbAppHello', 'clbEnvProvider'];
+clbAuthHttp.$inject = ['$http', 'clbAuth'];
 clbAutomator.$inject = ['$q', '$log', 'clbError'];
-clbCtxData.$inject = ['$http', '$q', 'uuid4', 'clbEnv', 'clbError'];
+clbCollabTeamRole.$inject = ['clbAuthHttp', '$log', '$q', 'clbEnv', 'clbError'];
+clbCollabTeam.$inject = ['clbAuthHttp', '$log', '$q', 'lodash', 'clbEnv', 'clbError', 'clbCollabTeamRole', 'clbUser'];
+clbCollab.$inject = ['$log', '$q', '$cacheFactory', 'clbAuthHttp', 'lodash', 'clbContext', 'clbEnv', 'clbError', 'clbResultSet', 'clbUser', 'ClbCollabModel', 'ClbContextModel'];
+clbContext.$inject = ['clbAuthHttp', '$q', 'clbError', 'clbEnv', 'ClbContextModel'];
+clbCtxData.$inject = ['clbAuthHttp', '$q', 'uuid4', 'clbEnv', 'clbError'];
 clbEnv.$inject = ['$injector'];
-clbCollabTeamRole.$inject = ['$http', '$log', '$q', 'clbEnv', 'clbError'];
-clbCollabTeam.$inject = ['$http', '$log', '$q', 'lodash', 'clbEnv', 'clbError', 'clbCollabTeamRole', 'clbUser'];
-clbCollab.$inject = ['$log', '$q', '$cacheFactory', '$http', 'lodash', 'clbContext', 'clbEnv', 'clbError', 'clbResultSet', 'clbUser', 'ClbCollabModel', 'ClbContextModel'];
-clbContext.$inject = ['$http', '$q', 'clbError', 'clbEnv', 'ClbContextModel'];
 clbError.$inject = ['$q'];
-clbGroup.$inject = ['$rootScope', '$q', '$http', '$cacheFactory', 'lodash', 'clbEnv', 'clbError', 'clbResultSet', 'clbIdentityUtil'];
-clbUser.$inject = ['$rootScope', '$q', '$http', '$cacheFactory', '$log', 'lodash', 'clbEnv', 'clbError', 'clbResultSet', 'clbIdentityUtil'];
+clbGroup.$inject = ['$rootScope', '$q', 'clbAuthHttp', '$cacheFactory', 'lodash', 'clbEnv', 'clbError', 'clbResultSet', 'clbIdentityUtil'];
+clbUser.$inject = ['$rootScope', '$q', 'clbAuthHttp', '$cacheFactory', '$log', 'lodash', 'clbEnv', 'clbError', 'clbResultSet', 'clbIdentityUtil'];
 clbIdentityUtil.$inject = ['$log', 'lodash'];
-clbResultSet.$inject = ['$http', '$q', 'clbError'];
+clbResultSet.$inject = ['clbAuthHttp', '$q', 'clbError'];
 clbStorage.$inject = ['$http', '$q', '$log', 'uuid4', 'clbEnv', 'clbError', 'clbUser', 'clbResultSet'];
 clbResourceLocator.$inject = ['$q', '$log', '$injector', 'clbError'];
-clbStream.$inject = ['$http', 'clbEnv', 'clbError', 'clbResultSet', 'moment'];
+clbStream.$inject = ['clbAuthHttp', 'clbEnv', 'clbError', 'clbResultSet', 'moment'];
 clbConfirm.$inject = ['$rootScope', '$uibModal'];
 clbErrorDialog.$inject = ['$uibModal', 'clbError'];
 clbUsercardPopoverDirective.$inject = ['$log', '$q', 'clbUser', 'clbUsercardPopover'];
@@ -127,27 +128,12 @@ angular.module('clb-app', ['clb-env', 'clb-error'])
  * the `Create New Collab` functionality in `collaboratory-extension-core`.
  */
 angular.module('clb-automator', [
+  'clb-app',
   'clb-env',
   'clb-error',
   'clb-collab',
   'clb-storage'
 ]);
-
-/**
- * Provides a key value store where keys are context UUID
- * and values are string.
- *
- * @module clb-context-data
- */
-angular.module('clb-ctx-data', ['uuid4', 'clb-env', 'clb-error']);
-
-/**
- * @module clb-env
- * @desc
- * ``clb-env`` module provides a way to information from the global environment.
- */
-
-angular.module('clb-env', []);
 
 /**
  * @module clb-collab
@@ -157,6 +143,7 @@ angular.module('clb-env', []);
  */
 angular.module('clb-collab', [
   'lodash',
+  'clb-app',
   'clb-env',
   'clb-error',
   'clb-identity',
@@ -164,10 +151,27 @@ angular.module('clb-collab', [
   'uuid4'
 ]);
 
+/**
+ * Provides a key value store where keys are context UUID
+ * and values are string.
+ *
+ * @module clb-context-data
+ */
+angular.module('clb-ctx-data', ['uuid4', 'clb-app', 'clb-env', 'clb-error']);
+
+/**
+ * @module clb-env
+ * @desc
+ * ``clb-env`` module provides a way to information from the global environment.
+ */
+
+angular.module('clb-env', []);
+
 angular.module('clb-error', []);
 
 angular.module('clb-identity', [
   'lodash',
+  'clb-app',
   'clb-env',
   'clb-error',
   'clb-rest'
@@ -199,7 +203,7 @@ angular.module('lodash', [])
  * @desc
  * ``clb-rest`` module contains util for simplifying access to Rest service.
  */
-angular.module('clb-rest', ['clb-error']);
+angular.module('clb-rest', ['clb-app', 'clb-error']);
 
 /**
  * @module clb-storage
@@ -225,6 +229,7 @@ angular.module('clb-storage', [
  */
 
 angular.module('clb-stream', [
+  'clb-app',
   'clb-env',
   'clb-error',
   'clb-rest',
@@ -573,6 +578,8 @@ function authProvider(clbAppHello, clbEnvProvider) {
             logout: function(callback, p) {
               $http.post(clbEnv.get('auth.url') + '/slo', {
                 token: p.authResponse.access_token
+              }, {
+                withCredentials: true
               })
               .then(function() {
                 callback();
@@ -602,6 +609,73 @@ function authProvider(clbAppHello, clbEnvProvider) {
       }
     }]
   };
+}
+
+angular.module('clb-app')
+.factory('clbAuthHttp', clbAuthHttp);
+
+/**
+ * Proxy $http to add the HBP bearer token.
+ * Also handle 401 Authentication Required errors.
+ * See $http service
+ *
+ * @param  {object} $http   DI
+ * @param  {object} clbAuth DI
+ * @return {function}       the service
+ */
+function clbAuthHttp($http, clbAuth) {
+  var proxyHttp = function(config) {
+    var auth = clbAuth.getAuthInfo();
+    if (!auth) {
+      return $http(config);
+    }
+    var authToken = auth.tokenType + ' ' + auth.accessToken;
+    if (!config.headers) {
+      config.headers = {
+        Authorization: authToken
+      };
+    }
+    config.headers.Authorization = authToken;
+    return $http(config);
+  };
+  proxyHttp.get = _wrapper('GET');
+  proxyHttp.head = _wrapper('HEAD');
+  proxyHttp.delete = _wrapper('DELETE');
+  proxyHttp.post = _wrapperData('POST');
+  proxyHttp.put = _wrapperData('PUT');
+  proxyHttp.patch = _wrapperData('PATCH');
+  return proxyHttp;
+
+  /**
+   * Handle $http helper call for GET, DELETE, HEAD requests.
+   *
+   * @param  {string} verb the HTTP verb
+   * @return {function}    The function to attach
+   */
+  function _wrapper(verb) {
+    return function(url, config) {
+      config = config || {};
+      config.method = verb.toUpperCase();
+      config.url = url;
+      return proxyHttp(config);
+    };
+  }
+
+  /**
+   * Handle $http helper call for PUT, PATCH, POST requests.
+   *
+   * @param  {string} verb the HTTP verb
+   * @return {function}    The function to attach
+   */
+  function _wrapperData(verb) {
+    return function(url, data, config) {
+      config = config || {};
+      config.method = verb.toUpperCase();
+      config.url = url;
+      config.data = data;
+      return proxyHttp(config);
+    };
+  }
 }
 
 /* global deferredBootstrapper, window, document */
@@ -1147,8 +1221,8 @@ angular.module('clb-automator')
 }]);
 
 angular.module('clb-automator')
-.run(['$log', '$q', '$http', 'clbEnv', 'clbStorage', 'clbError', 'clbAutomator', 'clbCollabNav', 'clbCollabApp', function createOverview(
-  $log, $q, $http, clbEnv, clbStorage, clbError,
+.run(['$log', '$q', 'clbAuthHttp', 'clbEnv', 'clbStorage', 'clbError', 'clbAutomator', 'clbCollabNav', 'clbCollabApp', function createOverview(
+  $log, $q, clbAuthHttp, clbEnv, clbStorage, clbError,
   clbAutomator, clbCollabNav, clbCollabApp
 ) {
   clbAutomator.registerHandler('overview', overview);
@@ -1175,22 +1249,23 @@ angular.module('clb-automator')
    *                  config.storage
    */
   function overview(descriptor, context) {
-    $log.debug("Set the content of the overview page");
+    $log.debug('Set the content of the overview page');
     var collabId = descriptor.collab || context.collab.id;
     var createContentFile = function(overview, descriptor, context) {
-      $log.debug("Fill overview page with content from entity");
+      $log.debug('Fill overview page with content from entity');
 
       return fetchSourceContent(descriptor, context)
         .then(function(source) {
-          return $http.post(clbEnv.get('api.richtext.v0') + '/richtext/', {
-            ctx: overview.context,
-            raw: source
-          });
+          return clbAuthHttp.post(
+            clbEnv.get('api.richtext.v0') + '/richtext/', {
+              ctx: overview.context,
+              raw: source
+            });
         });
     };
 
     var updateAppId = function(overview, descriptor) {
-      $log.debug("Replace the overview page application id");
+      $log.debug('Replace the overview page application id');
 
       return clbCollabApp.findOne({title: descriptor.app})
         .then(function(app) {
@@ -1283,196 +1358,6 @@ angular.module('clb-automator')
   }
 }]);
 
-angular.module('clb-ctx-data')
-.factory('clbCtxData', clbCtxData);
-
-/**
- * A service to retrieve data for a given ctx. This is a convenient
- * way to store JSON data for a given context. Do not use it for
- * Sensitive data. There is no data migration functionality available, so if
- * the expected data format change, you are responsible to handle the old
- * format on the client side.
- *
- * @namespace clbCtxData
- * @memberof clb-ctx-data
- * @param  {object} $http    Angular DI
- * @param  {object} $q       Angular DI
- * @param  {object} uuid4     Angular DI
- * @param  {object} clbEnv   Angular DI
- * @param  {object} clbError Angular DI
- * @return {object}          Angular Service Descriptor
- */
-function clbCtxData($http, $q, uuid4, clbEnv, clbError) {
-  var configUrl = clbEnv.get('api.collab.v0') + '/config/';
-  return {
-    /**
-     * Return an Array or an Object containing the data or
-     * ``undefined`` if there is no data stored.
-     * @memberof module:clb-ctx-data.clbCtxData
-     * @param  {UUID} ctx   the current context UUID
-     * @return {Promise}    fullfil to {undefined|object|array}
-     */
-    get: function(ctx) {
-      if (!uuid4.validate(ctx)) {
-        return $q.reject(invalidUuidError(ctx));
-      }
-      return $http.get(configUrl + ctx + '/')
-      .then(function(res) {
-        try {
-          return angular.fromJson(res.data.content);
-        } catch (ex) {
-          return $q.reject(clbError.error({
-            type: 'InvalidData',
-            message: 'Cannot parse JSON string: ' + res.data.content,
-            code: -2,
-            data: {
-              cause: ex
-            }
-          }));
-        }
-      })
-      .catch(function(err) {
-        if (err.code === 404) {
-          return;
-        }
-        return clbError.rejectHttpError(err);
-      });
-    },
-
-    /**
-     * @memberof module:clb-ctx-data.clbCtxData
-     * @param  {UUID} ctx The context UUID
-     * @param  {array|object|string|number} data JSON serializable data
-     * @return {Promise} Return the data when fulfilled
-     */
-    save: function(ctx, data) {
-      if (!uuid4.validate(ctx)) {
-        return $q.reject(invalidUuidError(ctx));
-      }
-      return $http.put(configUrl + ctx + '/', {
-        context: ctx,
-        content: angular.toJson(data)
-      }).then(function() {
-        return data;
-      })
-      .catch(clbError.rejectHttpError);
-    },
-
-    /**
-     * @memberof module:clb-ctx-data.clbCtxData
-     * @param  {UUID} ctx The context UUID
-     * @return {Promise}  fulfilled once deleted
-     */
-    delete: function(ctx) {
-      if (!uuid4.validate(ctx)) {
-        return $q.reject(invalidUuidError(ctx));
-      }
-      return $http.delete(configUrl + ctx + '/')
-      .then(function() {
-        return true;
-      })
-      .catch(clbError.rejectHttpError);
-    }
-  };
-
-  /**
-   * Generate the appropriate error when context is invalid.
-   * @param  {any} badCtx  the wrong ctx
-   * @return {HbpError}    The Error
-   */
-  function invalidUuidError(badCtx) {
-    return clbError.error({
-      type: 'InvalidArgument',
-      message: 'Provided ctx must be a valid UUID4 but is: ' + badCtx,
-      data: {
-        argName: 'ctx',
-        argPosition: 0,
-        argValue: badCtx
-      },
-      code: -3
-    });
-  }
-}
-
-/* global window */
-
-angular.module('clb-env')
-.provider('clbEnv', clbEnv);
-
-/**
- * Get environement information using dotted notation with the `clbEnv` provider
- * or service.
- *
- * Before being used, clbEnv must be initialized with the context values. You
- * can do so by setting up a global bbpConfig variable or using
- * :ref:`angular.clbBootstrap <angular.clbBootstrap>`.
- *
- * @function clbEnv
- * @memberof module:clb-env
- * @param {object} $injector AngularJS injection
- * @return {object} provider
- * @example <caption>Basic usage of clbEnv</caption>
- * angular.module('myApp', ['clbEnv', 'rest'])
- * .service('myService', function(clbEnv, clbResultSet) {
- *   return {
- *     listCollab: function() {
- *       // return a paginated list of all collabs
- *       return clbResultSet.get($http.get(clbEnv.get('api.collab.v0') + '/'));
- *     }
- *   };
- * });
- * @example <caption>Use clbEnv in your configuration</caption>
- * angular.module('myApp', ['clbEnv', 'rest'])
- * .config(function(clbEnvProvider, myAppServiceProvider) {
- *   // also demonstrate how we accept a custom variable.
- *   myAppServiceProvider.setMaxFileUpload(clbEnvProvider.get('myapp.maxFileUpload', '1m'))
- * });
- */
-function clbEnv($injector) {
-  return {
-    get: get,
-    $get: function() {
-      return {
-        get: get
-      };
-    }
-  };
-
-  /**
-   * ``get(key, [defaultValue])`` provides configuration value loaded at
-   * the application bootstrap.
-   *
-   * Accept a key and an optional default
-   * value. If the key cannot be found in the configurations, it will return
-   * the provided default value. If the defaultValue is undefied, it will
-   * throw an error.
-   *
-   * To ensures that those data are available when angular bootstrap the
-   * application, use angular.clbBootstrap(module, options).
-   *
-   * @memberof module:clb-env.clbEnv
-   * @param {string} key the environment variable to retrieve, using a key.
-   * @param {any} [defaultValue] an optional default value.
-   * @return {any} the value or ``defaultValue`` if the asked for configuration
-   *               is not defined.
-   */
-  function get(key, defaultValue) {
-    var parts = key.split('.');
-    var cursor = (window.bbpConfig ?
-                  window.bbpConfig : $injector.get('CLB_ENVIRONMENT'));
-    for (var i = 0; i < parts.length; i++) {
-      if (!(cursor && cursor.hasOwnProperty(parts[i]))) {
-        if (defaultValue !== undefined) {
-          return defaultValue;
-        }
-        throw new Error('UnkownConfigurationKey: <' + key + '>');
-      }
-      cursor = cursor[parts[i]];
-    }
-    return cursor;
-  }
-}
-
 /* eslint camelcase: 0 */
 
 /**
@@ -1484,8 +1369,8 @@ function clbEnv($injector) {
  */
 angular.module('clb-collab')
 .constant('folderAppId', '__collab_folder__')
-.service('clbCollabApp', ['$q', '$http', '$cacheFactory', 'clbError', 'clbEnv', 'clbResultSet', function(
-  $q, $http, $cacheFactory,
+.service('clbCollabApp', ['$q', 'clbAuthHttp', '$cacheFactory', 'clbError', 'clbEnv', 'clbResultSet', function(
+  $q, clbAuthHttp, $cacheFactory,
   clbError, clbEnv, clbResultSet
 ) {
   var appsCache = $cacheFactory('__appsCache__');
@@ -1563,7 +1448,7 @@ angular.module('clb-collab')
    */
   var list = function() {
     if (!apps) {
-      return loadAll(clbResultSet.get($http.get(urlBase), {
+      return loadAll(clbResultSet.get(clbAuthHttp.get(urlBase), {
         factory: App.fromJson
       }));
     }
@@ -1584,7 +1469,7 @@ angular.module('clb-collab')
     if (ext) {
       return $q.when(ext);
     }
-    return $http.get(urlBase + id + '/').then(function(res) {
+    return clbAuthHttp.get(urlBase + id + '/').then(function(res) {
       appsCache.put(id, App.fromJson(res.data));
       return appsCache.get(id);
     }, function(res) {
@@ -1598,7 +1483,7 @@ angular.module('clb-collab')
    * @return {Promise} promise of an App instance
    */
   var findOne = function(params) {
-    return $http.get(urlBase, {params: params}).then(function(res) {
+    return clbAuthHttp.get(urlBase, {params: params}).then(function(res) {
       var results = res.data.results;
       // Reject if more than one results
       if (results.length > 1) {
@@ -1636,7 +1521,7 @@ angular.module('clb-collab')
  *       navigation items.
  */
 angular.module('clb-collab')
-.service('clbCollabNav', ['$q', '$http', '$log', '$cacheFactory', '$timeout', 'orderByFilter', 'uuid4', 'clbEnv', 'clbError', function($q, $http, $log,
+.service('clbCollabNav', ['$q', 'clbAuthHttp', '$log', '$cacheFactory', '$timeout', 'orderByFilter', 'uuid4', 'clbEnv', 'clbError', function($q, clbAuthHttp, $log,
     $cacheFactory, $timeout, orderByFilter, uuid4,
     clbEnv, clbError) {
   var collabApiUrl = clbEnv.get('api.collab.v0') + '/collab/';
@@ -1778,7 +1663,7 @@ angular.module('clb-collab')
     var treePromise = cacheNavRoots.get(collabId);
 
     if (!treePromise) {
-      treePromise = $http.get(collabApiUrl + collabId + '/nav/all/').then(
+      treePromise = clbAuthHttp.get(collabApiUrl + collabId + '/nav/all/').then(
         function(resp) {
           var root;
           var i;
@@ -1843,7 +1728,7 @@ angular.module('clb-collab')
       'collab/context',
       ctx
     ].join('/') + '/';
-    return $http.get(url)
+    return clbAuthHttp.get(url)
     .then(function(res) {
       var nav = NavItem.fromJson(res.data.collab.id, res.data);
       var k = key(nav.collabId, nav.id);
@@ -1865,7 +1750,7 @@ angular.module('clb-collab')
    * @return {Promise} promise of the added NavItem instance
    */
   var addNode = function(collabId, navItem) {
-    return $http.post(collabApiUrl + collabId + '/nav/', navItem.toJson())
+    return clbAuthHttp.post(collabApiUrl + collabId + '/nav/', navItem.toJson())
     .then(function(resp) {
       return NavItem.fromJson(collabId, resp.data);
     }, clbError.rejectHttpError);
@@ -1878,7 +1763,8 @@ angular.module('clb-collab')
    * @return {Promise} promise of an undefined item at the end
    */
   var deleteNode = function(collabId, navItem) {
-    return $http.delete(collabApiUrl + collabId + '/nav/' + navItem.id + '/')
+    return clbAuthHttp.delete(
+      collabApiUrl + collabId + '/nav/' + navItem.id + '/')
     .then(function() {
       cacheNavItems.remove(key(collabId, navItem.id));
     }, clbError.rejectHttpError);
@@ -1892,7 +1778,7 @@ angular.module('clb-collab')
    */
   var update = function(collabId, navItem) {
     navItem.collabId = collabId;
-    return $http.put(collabApiUrl + collabId + '/nav/' +
+    return clbAuthHttp.put(collabApiUrl + collabId + '/nav/' +
       navItem.id + '/', navItem.toJson())
     .then(function(resp) {
       return NavItem.fromJson(collabId, resp.data);
@@ -1954,14 +1840,14 @@ angular.module('clb-collab')
 /**
  * @namespace clbCollabTeamRole
  * @memberof module:clb-collab
- * @param  {object} $http    Angular DI
+ * @param  {object} clbAuthHttp    Angular DI
  * @param  {object} $log     Angular DI
  * @param  {object} $q       Angular DI
  * @param  {object} clbEnv   Angular DI
  * @param  {object} clbError Angular DI
  * @return {object}          Angular Service
  */
-function clbCollabTeamRole($http, $log, $q, clbEnv, clbError) {
+function clbCollabTeamRole(clbAuthHttp, $log, $q, clbEnv, clbError) {
   var urlBase = clbEnv.get('api.collab.v0');
   var collabUrl = urlBase + '/collab/';
   var rolesCache = {};
@@ -1988,7 +1874,7 @@ function clbCollabTeamRole($http, $log, $q, clbEnv, clbError) {
     if (rolesCache[collabId] && rolesCache[collabId][userId]) {
       return $q.when(rolesCache[collabId][userId]);
     }
-    return $http.get(collabUrl + collabId + '/team/role/' + userId + '/')
+    return clbAuthHttp.get(collabUrl + collabId + '/team/role/' + userId + '/')
     .then(function(res) {
       rolesCache[collabId][userId] = res.data.role;
       return $q.when(rolesCache[collabId][userId]);
@@ -2012,10 +1898,10 @@ function clbCollabTeamRole($http, $log, $q, clbEnv, clbError) {
     var thisUrl = collabUrl + collabId + '/team/role/' + userId + '/';
     if (rolesCache[collabId] && rolesCache[collabId][userId]) {
       rolesCache[collabId][userId] = role;
-      return $http.put(thisUrl, {role: role})
+      return clbAuthHttp.put(thisUrl, {role: role})
       .catch(function(resp) {
         if (resp.status === 404) { // should have been a POST...
-          return $http.post(thisUrl, {role: role})
+          return clbAuthHttp.post(thisUrl, {role: role})
           .catch(clbError.rejectHttpError);
         }
         return clbError.rejectHttpError(resp);
@@ -2025,7 +1911,7 @@ function clbCollabTeamRole($http, $log, $q, clbEnv, clbError) {
       rolesCache[collabId] = {};
     }
     rolesCache[collabId][userId] = role;
-    return $http.post(thisUrl, {role: role})
+    return clbAuthHttp.post(thisUrl, {role: role})
     .catch(clbError.rejectHttpError);
   }
 }
@@ -2038,7 +1924,7 @@ angular.module('clb-collab')
  *
  * @namespace clbCollabTeam
  * @memberof module:clb-collab
- * @param  {object} $http             Angular DI
+ * @param  {object} clbAuthHttp             Angular DI
  * @param  {object} $log              Angular DI
  * @param  {object} $q                Angular DI
  * @param  {object} lodash            Angular DI
@@ -2049,7 +1935,7 @@ angular.module('clb-collab')
  * @return {object}                   Angular Service
  */
 function clbCollabTeam(
-  $http,
+  clbAuthHttp,
   $log,
   $q,
   lodash,
@@ -2077,7 +1963,7 @@ function clbCollabTeam(
    * @return {Promise} resolve after the user has been added
    */
   function add(collabId, userId) {
-    return $http.put(collabUrl + collabId + '/team/', {
+    return clbAuthHttp.put(collabUrl + collabId + '/team/', {
       users: [userId]
     }).catch(clbError.rejectHttpError);
   }
@@ -2089,7 +1975,7 @@ function clbCollabTeam(
    * @return {Promise} resolve after the user has been added
    */
   function remove(collabId, userId) {
-    return $http({
+    return clbAuthHttp({
       method: 'DELETE',
       url: collabUrl + collabId + '/team/',
       data: {users: [userId]},
@@ -2104,7 +1990,7 @@ function clbCollabTeam(
    *                        informations.
    */
   function list(collabId) {
-    return $http.get(collabUrl + collabId + '/team/')
+    return clbAuthHttp.get(collabUrl + collabId + '/team/')
     .then(function(res) {
       var indexedTeam = lodash.keyBy(res.data, 'user_id');
       return clbUser.list({
@@ -2134,7 +2020,7 @@ function clbCollabTeam(
    */
   function userInTeam(collabId) {
     return clbUser.getCurrentUserOnly().then(function(me) {
-      return $http.get(collabUrl + collabId + '/team/')
+      return clbAuthHttp.get(collabUrl + collabId + '/team/')
       .then(function(list) {
         return lodash.keyBy(
           list.data, 'user_id')[parseInt(me.id, 10)] !== undefined;
@@ -2202,7 +2088,7 @@ angular.module('clb-collab')
  * @param  {object} $log             Angular injection
  * @param  {object} $q               Angular injection
  * @param  {object} $cacheFactory    Angular injection
- * @param  {object} $http            Angular injection
+ * @param  {object} clbAuthHttp            Angular injection
  * @param  {object} lodash           Angular injection
  * @param  {object} clbContext       Angular injection
  * @param  {object} clbEnv           Angular injection
@@ -2217,7 +2103,7 @@ function clbCollab(
   $log,
   $q,
   $cacheFactory,
-  $http,
+  clbAuthHttp,
   lodash,
   clbContext,
   clbEnv,
@@ -2279,7 +2165,7 @@ function clbCollab(
       return promise;
     }
 
-    ongoingCollabGetRequests[key] = $http.get(url + key + '/')
+    ongoingCollabGetRequests[key] = clbAuthHttp.get(url + key + '/')
     .then(function(res) {
       ongoingCollabGetRequests[key] = null;
       return ClbCollabModel.fromJson(res.data);
@@ -2375,9 +2261,9 @@ function clbCollab(
     }
 
     if (options.url) { // Deprecated URL support
-      request = $http.get(options.url);
+      request = clbAuthHttp.get(options.url);
     } else {
-      request = $http.get(url, {
+      request = clbAuthHttp.get(url, {
         params: angular.extend(
           {},
           options.params,
@@ -2404,7 +2290,7 @@ function clbCollab(
   function mine(options) {
     options = angular.extend({}, options);
     var params = angular.extend({}, lodash.pick(options, ['search']));
-    return clbResultSet.get($http.get(myCollabsUrl, {params: params}), {
+    return clbResultSet.get(clbAuthHttp.get(myCollabsUrl, {params: params}), {
       resultsFactory: resultsFactory
     });
   }
@@ -2416,7 +2302,7 @@ function clbCollab(
    */
   function create(jsonCollab) {
     var c = ClbCollabModel.fromJson(jsonCollab);
-    return $http.post(collabUrl, c.toJson()).then(function(res) {
+    return clbAuthHttp.post(collabUrl, c.toJson()).then(function(res) {
       c.update(res.data);
       collabCache.put(c.id, c);
       return c;
@@ -2430,7 +2316,8 @@ function clbCollab(
    */
   function save(jsonCollab) {
     var c = ClbCollabModel.fromJson(jsonCollab);
-    return $http.put(collabUrl + c.id + '/', c.toJson()).then(function(res) {
+    return clbAuthHttp.put(collabUrl + c.id + '/', c.toJson())
+    .then(function(res) {
       c.update(res.data);
       collabCache.put(c.id, c);
       return c;
@@ -2445,7 +2332,7 @@ function clbCollab(
    * @return {Promise}       Resolve once the delete operation is completed
    */
   function deleteCollab(collab) {
-    return $http.delete(collabUrl + collab.id + '/').then(
+    return clbAuthHttp.delete(collabUrl + collab.id + '/').then(
       function() {
         collabCache.remove(collab.id);
         if (collab._label) {
@@ -2498,14 +2385,14 @@ angular.module('clb-collab')
 /**
  * @namespace clbContext
  * @memberof module:clb-collab
- * @param  {object} $http             Angular DI
+ * @param  {object} clbAuthHttp             Angular DI
  * @param  {object} $q                Angular DI
  * @param  {object} clbError          Angular DI
  * @param  {object} clbEnv            Angular DI
  * @param  {class}  ClbContextModel   Angular DI
  * @return {object}                   the service
  */
-function clbContext($http, $q, clbError, clbEnv, ClbContextModel) {
+function clbContext(clbAuthHttp, $q, clbError, clbEnv, ClbContextModel) {
   var ongoingContextRequests = {};
   var urlBase = clbEnv.get('api.collab.v0');
   var collabUrl = urlBase + '/collab/';
@@ -2532,7 +2419,7 @@ function clbContext($http, $q, clbError, clbEnv, ClbContextModel) {
     }
     // proceed to the request
     ongoingContextRequests[uuid] =
-      $http.get(contextUrl + uuid + '/', {cache: true})
+      clbAuthHttp.get(contextUrl + uuid + '/', {cache: true})
     .then(function(res) {
       ongoingContextRequests[uuid] = null;
       return ClbContextModel.fromJson(res.data);
@@ -2541,6 +2428,196 @@ function clbContext($http, $q, clbError, clbEnv, ClbContextModel) {
       return clbError.rejectHttpError(res);
     });
     return ongoingContextRequests[uuid];
+  }
+}
+
+angular.module('clb-ctx-data')
+.factory('clbCtxData', clbCtxData);
+
+/**
+ * A service to retrieve data for a given ctx. This is a convenient
+ * way to store JSON data for a given context. Do not use it for
+ * Sensitive data. There is no data migration functionality available, so if
+ * the expected data format change, you are responsible to handle the old
+ * format on the client side.
+ *
+ * @namespace clbCtxData
+ * @memberof clb-ctx-data
+ * @param  {object} clbAuthHttp    Angular DI
+ * @param  {object} $q       Angular DI
+ * @param  {object} uuid4     Angular DI
+ * @param  {object} clbEnv   Angular DI
+ * @param  {object} clbError Angular DI
+ * @return {object}          Angular Service Descriptor
+ */
+function clbCtxData(clbAuthHttp, $q, uuid4, clbEnv, clbError) {
+  var configUrl = clbEnv.get('api.collab.v0') + '/config/';
+  return {
+    /**
+     * Return an Array or an Object containing the data or
+     * ``undefined`` if there is no data stored.
+     * @memberof module:clb-ctx-data.clbCtxData
+     * @param  {UUID} ctx   the current context UUID
+     * @return {Promise}    fullfil to {undefined|object|array}
+     */
+    get: function(ctx) {
+      if (!uuid4.validate(ctx)) {
+        return $q.reject(invalidUuidError(ctx));
+      }
+      return clbAuthHttp.get(configUrl + ctx + '/')
+      .then(function(res) {
+        try {
+          return angular.fromJson(res.data.content);
+        } catch (ex) {
+          return $q.reject(clbError.error({
+            type: 'InvalidData',
+            message: 'Cannot parse JSON string: ' + res.data.content,
+            code: -2,
+            data: {
+              cause: ex
+            }
+          }));
+        }
+      })
+      .catch(function(err) {
+        if (err.code === 404) {
+          return;
+        }
+        return clbError.rejectHttpError(err);
+      });
+    },
+
+    /**
+     * @memberof module:clb-ctx-data.clbCtxData
+     * @param  {UUID} ctx The context UUID
+     * @param  {array|object|string|number} data JSON serializable data
+     * @return {Promise} Return the data when fulfilled
+     */
+    save: function(ctx, data) {
+      if (!uuid4.validate(ctx)) {
+        return $q.reject(invalidUuidError(ctx));
+      }
+      return clbAuthHttp.put(configUrl + ctx + '/', {
+        context: ctx,
+        content: angular.toJson(data)
+      }).then(function() {
+        return data;
+      })
+      .catch(clbError.rejectHttpError);
+    },
+
+    /**
+     * @memberof module:clb-ctx-data.clbCtxData
+     * @param  {UUID} ctx The context UUID
+     * @return {Promise}  fulfilled once deleted
+     */
+    delete: function(ctx) {
+      if (!uuid4.validate(ctx)) {
+        return $q.reject(invalidUuidError(ctx));
+      }
+      return clbAuthHttp.delete(configUrl + ctx + '/')
+      .then(function() {
+        return true;
+      })
+      .catch(clbError.rejectHttpError);
+    }
+  };
+
+  /**
+   * Generate the appropriate error when context is invalid.
+   * @param  {any} badCtx  the wrong ctx
+   * @return {HbpError}    The Error
+   */
+  function invalidUuidError(badCtx) {
+    return clbError.error({
+      type: 'InvalidArgument',
+      message: 'Provided ctx must be a valid UUID4 but is: ' + badCtx,
+      data: {
+        argName: 'ctx',
+        argPosition: 0,
+        argValue: badCtx
+      },
+      code: -3
+    });
+  }
+}
+
+/* global window */
+
+angular.module('clb-env')
+.provider('clbEnv', clbEnv);
+
+/**
+ * Get environement information using dotted notation with the `clbEnv` provider
+ * or service.
+ *
+ * Before being used, clbEnv must be initialized with the context values. You
+ * can do so by setting up a global bbpConfig variable or using
+ * :ref:`angular.clbBootstrap <angular.clbBootstrap>`.
+ *
+ * @function clbEnv
+ * @memberof module:clb-env
+ * @param {object} $injector AngularJS injection
+ * @return {object} provider
+ * @example <caption>Basic usage of clbEnv</caption>
+ * angular.module('myApp', ['clbEnv', 'rest'])
+ * .service('myService', function(clbEnv, clbResultSet) {
+ *   return {
+ *     listCollab: function() {
+ *       // return a paginated list of all collabs
+ *       return clbResultSet.get($http.get(clbEnv.get('api.collab.v0') + '/'));
+ *     }
+ *   };
+ * });
+ * @example <caption>Use clbEnv in your configuration</caption>
+ * angular.module('myApp', ['clbEnv', 'rest'])
+ * .config(function(clbEnvProvider, myAppServiceProvider) {
+ *   // also demonstrate how we accept a custom variable.
+ *   myAppServiceProvider.setMaxFileUpload(clbEnvProvider.get('myapp.maxFileUpload', '1m'))
+ * });
+ */
+function clbEnv($injector) {
+  return {
+    get: get,
+    $get: function() {
+      return {
+        get: get
+      };
+    }
+  };
+
+  /**
+   * ``get(key, [defaultValue])`` provides configuration value loaded at
+   * the application bootstrap.
+   *
+   * Accept a key and an optional default
+   * value. If the key cannot be found in the configurations, it will return
+   * the provided default value. If the defaultValue is undefied, it will
+   * throw an error.
+   *
+   * To ensures that those data are available when angular bootstrap the
+   * application, use angular.clbBootstrap(module, options).
+   *
+   * @memberof module:clb-env.clbEnv
+   * @param {string} key the environment variable to retrieve, using a key.
+   * @param {any} [defaultValue] an optional default value.
+   * @return {any} the value or ``defaultValue`` if the asked for configuration
+   *               is not defined.
+   */
+  function get(key, defaultValue) {
+    var parts = key.split('.');
+    var cursor = (window.bbpConfig ?
+                  window.bbpConfig : $injector.get('CLB_ENVIRONMENT'));
+    for (var i = 0; i < parts.length; i++) {
+      if (!(cursor && cursor.hasOwnProperty(parts[i]))) {
+        if (defaultValue !== undefined) {
+          return defaultValue;
+        }
+        throw new Error('UnkownConfigurationKey: <' + key + '>');
+      }
+      cursor = cursor[parts[i]];
+    }
+    return cursor;
   }
 }
 
@@ -2726,7 +2803,7 @@ angular.module('clb-identity')
  * @memberof module:clb-identity
  * @param  {object} $rootScope      Angular DI
  * @param  {object} $q              Angular DI
- * @param  {object} $http           Angular DI
+ * @param  {object} clbAuthHttp           Angular DI
  * @param  {object} $cacheFactory   Angular DI
  * @param  {object} lodash          Angular DI
  * @param  {object} clbEnv          Angular DI
@@ -2738,7 +2815,7 @@ angular.module('clb-identity')
 function clbGroup(
   $rootScope,
   $q,
-  $http,
+  clbAuthHttp,
   $cacheFactory,
   lodash,
   clbEnv,
@@ -2772,7 +2849,7 @@ function clbGroup(
         relIds = lodash.isArray(relIds) ? relIds : [relIds];
         return $q.all(lodash.map(relIds, function(relId) {
           var url = [groupUrl, groupName, rel, relId].join('/');
-          return $http({
+          return clbAuthHttp({
             method: method,
             url: url
           }).then(function() {
@@ -2820,7 +2897,7 @@ function clbGroup(
    * @return {Promise} a promise that resolves to a group
    */
   function get(groupId) {
-    return $http.get(groupUrl + '/' + groupId).then(function(resp) {
+    return clbAuthHttp.get(groupUrl + '/' + groupId).then(function(resp) {
       return resp.data;
     }, clbError.rejectHttpError);
   }
@@ -2844,7 +2921,7 @@ function clbGroup(
   function getMembers(groupId, options) {
     options = angular.extend({}, options);
     return clbResultSet.get(
-      $http.get(groupUrl + '/' + groupId + '/members', {
+      clbAuthHttp.get(groupUrl + '/' + groupId + '/members', {
         params: clbIdentityUtil.queryParams(options)
       }),
       paginationOptions('users', options.factory)
@@ -2869,7 +2946,7 @@ function clbGroup(
   function getEpflSyncMembers(groupName, options) {
     options = angular.extend({}, options);
     return clbResultSet.get(
-      $http.get(groupUrl + '/' + groupName + '/epfl-synced-members', {
+      clbAuthHttp.get(groupUrl + '/' + groupName + '/epfl-synced-members', {
         params: clbIdentityUtil.queryParams()
       }),
       paginationOptions('users', options.factory)
@@ -2894,7 +2971,7 @@ function clbGroup(
   function getMemberGroups(groupName, options) {
     options = angular.extend({}, options);
     return clbResultSet.get(
-      $http.get(groupUrl + '/' + groupName + '/member-groups', {
+      clbAuthHttp.get(groupUrl + '/' + groupName + '/member-groups', {
         params: clbIdentityUtil.queryParams(options)
       }),
       paginationOptions('groups', options.factory)
@@ -2919,7 +2996,7 @@ function clbGroup(
   function getAdmins(groupName, options) {
     options = angular.extend({}, options);
     return clbResultSet.get(
-      $http.get(groupUrl + '/' + groupName + '/admins', {
+      clbAuthHttp.get(groupUrl + '/' + groupName + '/admins', {
         params: clbIdentityUtil.queryParams(options)
       }),
       paginationOptions('users', options.factory)
@@ -2944,7 +3021,7 @@ function clbGroup(
   function getAdminGroups(groupName, options) {
     options = angular.extend({}, options);
     return clbResultSet.get(
-      $http.get(groupUrl + '/' + groupName + '/admin-groups', {
+      clbAuthHttp.get(groupUrl + '/' + groupName + '/admin-groups', {
         params: clbIdentityUtil.queryParams(options)
       }),
       paginationOptions('groups', options.factory)
@@ -2969,7 +3046,7 @@ function clbGroup(
   function getParentGroups(groupName, options) {
     options = angular.extend({}, options);
     return clbResultSet.get(
-      $http.get(groupUrl + '/' + groupName + '/parent-groups', {
+      clbAuthHttp.get(groupUrl + '/' + groupName + '/parent-groups', {
         params: clbIdentityUtil.queryParams()
       }),
       paginationOptions('groups', options.factory)
@@ -2994,7 +3071,7 @@ function clbGroup(
   function getManagedGroups(groupName, options) {
     options = angular.extend({}, options);
     return clbResultSet.get(
-      $http.get(groupUrl + '/' + groupName + '/managed-groups', {
+      clbAuthHttp.get(groupUrl + '/' + groupName + '/managed-groups', {
         params: clbIdentityUtil.queryParams(options)
       }),
       paginationOptions('groups', options.factory)
@@ -3014,7 +3091,7 @@ function clbGroup(
    * @return {Promise} promise of creation completion
    */
   function createGroup(name, description) {
-    return $http.post(groupUrl, {
+    return clbAuthHttp.post(groupUrl, {
       name: name,
       description: description
     })
@@ -3031,7 +3108,7 @@ function clbGroup(
    * @return {Promise} resolve to the updated group once the operation is complete
    */
   function updateGroup(group) {
-    return $http.patch(groupUrl + '/' + group.name, {
+    return clbAuthHttp.patch(groupUrl + '/' + group.name, {
       // only description field can be updated
       description: group.description
     })
@@ -3053,7 +3130,7 @@ function clbGroup(
    * @return {Promise} promise of creation completion
    */
   function deleteGroup(groupId) {
-    return $http.delete(groupUrl + '/' + groupId)
+    return clbAuthHttp.delete(groupUrl + '/' + groupId)
     .then(function() {
       return;
     })
@@ -3143,7 +3220,7 @@ function clbGroup(
       }
     }
 
-    return clbResultSet.get($http.get(url, {
+    return clbResultSet.get(clbAuthHttp.get(url, {
       params: lodash.omit(params, 'filter')
     }), paginationOptions('groups', options.factory));
   }
@@ -3162,7 +3239,7 @@ function clbGroup(
     var params = clbIdentityUtil.queryParams(options);
     params.str = queryString;
     var url = groupUrl + '/searchByText';
-    return clbResultSet.get($http.get(url, {
+    return clbResultSet.get(clbAuthHttp.get(url, {
       params: params
     }), paginationOptions('groups', options.factory));
   }
@@ -3180,7 +3257,7 @@ angular.module('clb-identity')
  * @memberof module:clb-identity
  * @param  {object} $rootScope      Angular DI
  * @param  {object} $q              Angular DI
- * @param  {object} $http           Angular DI
+ * @param  {object} clbAuthHttp           Angular DI
  * @param  {object} $cacheFactory   Angular DI
  * @param  {object} $log            Angular DI
  * @param  {object} lodash          Angular DI
@@ -3193,7 +3270,7 @@ angular.module('clb-identity')
 function clbUser(
   $rootScope,
   $q,
-  $http,
+  clbAuthHttp,
   $cacheFactory,
   $log,
   lodash,
@@ -3328,7 +3405,7 @@ function clbUser(
       }
       addToCache(items, response);
       if (urls && urls.length > 0) {
-        return $http.get(urls.shift())
+        return clbAuthHttp.get(urls.shift())
         .then(processResponseAndCarryOn, rejectDeferred);
       }
       deferred.resolve(single ? response[ids[0]] : response);
@@ -3352,7 +3429,8 @@ function clbUser(
       splitInURl(uncachedUser, userUrl + userBaseUrl, urls, 'id');
 
       // Async calls and combination of result
-      $http.get(urls.shift()).then(processResponseAndCarryOn, rejectDeferred);
+      clbAuthHttp.get(urls.shift())
+      .then(processResponseAndCarryOn, rejectDeferred);
     }
 
     return deferred.promise;
@@ -3407,7 +3485,7 @@ function clbUser(
       }
     }
     return clbResultSet.get(
-      $http.get(url, {params: params}),
+      clbAuthHttp.get(url, {params: params}),
       paginationOptions('groups', options.factory)
     );
   }
@@ -3437,7 +3515,7 @@ function clbUser(
       }
     }
     return clbResultSet.get(
-      $http.get(url, {
+      clbAuthHttp.get(url, {
         params: params
       }),
       paginationOptions('groups', options.factory)
@@ -3514,7 +3592,7 @@ function clbUser(
       return $q.when(user);
     }
     // load it from user profile service
-    return $http.get(userUrl + '/me').then(
+    return clbAuthHttp.get(userUrl + '/me').then(
       function(userData) {
         // merge groups into user profile
         var profile = userData.data;
@@ -3548,7 +3626,7 @@ function clbUser(
     }
 
     request.groups = clbResultSet.get(
-      $http.get(userUrl + '/me/member-groups'),
+      clbAuthHttp.get(userUrl + '/me/member-groups'),
       paginationOptions('groups')
     ).then(function(rs) {
       return rs.toArray();
@@ -3580,7 +3658,7 @@ function clbUser(
    * @return {Promise} Resolve to the new User
    */
   function create(user) {
-    return $http.post(userUrl, user).then(
+    return clbAuthHttp.post(userUrl, user).then(
       function() {
         return user;
       },
@@ -3610,7 +3688,7 @@ function clbUser(
   function update(user, data) {
     data = data || user;
     var id = (typeof user === 'string' ? user : user.id);
-    return $http.patch(userUrl + '/' + id, data).then(
+    return clbAuthHttp.patch(userUrl + '/' + id, data).then(
       function() {
         userCache.remove(id);
         var cachedCurrentUser = userCache.get(currentUserKey);
@@ -3697,7 +3775,7 @@ function clbUser(
     var pageOptions = paginationOptions('users', opt.factory);
     var params = clbIdentityUtil.queryParams(opt);
 
-    var result = clbResultSet.get($http.get(endpoint, {
+    var result = clbResultSet.get(clbAuthHttp.get(endpoint, {
       params: params
     }), pageOptions);
 
@@ -3721,7 +3799,7 @@ function clbUser(
     params.str = queryString;
     var url = userUrl + '/searchByText';
 
-    return clbResultSet.get($http.get(url, {
+    return clbResultSet.get(clbAuthHttp.get(url, {
       params: params
     }), paginationOptions('users', options.factory));
   }
@@ -3795,12 +3873,12 @@ angular.module('clb-rest')
 /**
  * @namespace clbResultSet
  * @memberof module:clb-rest
- * @param  {object} $http           Angular DI
+ * @param  {object} clbAuthHttp           Angular DI
  * @param  {object} $q              Angular DI
  * @param  {object} clbError Angular DI
  * @return {object}                 Angular Service
  */
-function clbResultSet($http, $q, clbError) {
+function clbResultSet(clbAuthHttp, $q, clbError) {
   /**
    * @attribute ResultSetEOL
    * @memberof module:clb-rest.clbResultSet
@@ -3944,7 +4022,7 @@ function clbResultSet($http, $q, clbError) {
       }
       var promise = (options.nextHandler ?
         wrappedNextCall() :
-        $http.get(self.nextUrl)
+        clbAuthHttp.get(self.nextUrl)
       );
       return promise.then(handleNextResults);
     }
@@ -3963,7 +4041,7 @@ function clbResultSet($http, $q, clbError) {
       }
       var promise = (options.previousHandler ?
         wrappedPreviousCall() :
-        $http.get(self.previousUrl)
+        clbAuthHttp.get(self.previousUrl)
       );
       return promise.then(handlePreviousResults);
     }
@@ -5111,14 +5189,14 @@ angular.module('clb-stream')
  *
  * @memberof module:clb-stream
  * @namespace clbStream
- * @param {function} $http angular dependency injection
+ * @param {function} clbAuthHttp angular dependency injection
  * @param {function} clbEnv angular dependency injection
  * @param {function} clbError angular dependency injection
  * @param {function} clbResultSet angular dependency injection
  * @param {function} moment angular dependency injection
  * @return {object} the clbActivityStream service
  */
-function clbStream($http, clbEnv, clbError, clbResultSet, moment) {
+function clbStream(clbAuthHttp, clbEnv, clbError, clbResultSet, moment) {
   return {
     getStream: getStream,
     getHeatmapStream: getHeatmapStream
@@ -5196,7 +5274,7 @@ function clbStream($http, clbEnv, clbError, clbResultSet, moment) {
                          type + ':' + id + '/';
 
     url = buildURLOptions(url, options);
-    return clbResultSet.get($http.get(url), options)
+    return clbResultSet.get(clbAuthHttp.get(url), options)
     .catch(clbError.rejectHttpError);
   }
 
@@ -5217,7 +5295,7 @@ function clbStream($http, clbEnv, clbError, clbResultSet, moment) {
 
     url = buildURLOptions(url, options);
 
-    return clbResultSet.get($http.get(url), options)
+    return clbResultSet.get(clbAuthHttp.get(url), options)
         .catch(clbError.rejectHttpError);
   }
 }

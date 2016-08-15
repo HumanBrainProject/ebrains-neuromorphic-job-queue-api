@@ -4,14 +4,14 @@ angular.module('clb-collab')
 /**
  * @namespace clbContext
  * @memberof module:clb-collab
- * @param  {object} $http             Angular DI
+ * @param  {object} clbAuthHttp             Angular DI
  * @param  {object} $q                Angular DI
  * @param  {object} clbError          Angular DI
  * @param  {object} clbEnv            Angular DI
  * @param  {class}  ClbContextModel   Angular DI
  * @return {object}                   the service
  */
-function clbContext($http, $q, clbError, clbEnv, ClbContextModel) {
+function clbContext(clbAuthHttp, $q, clbError, clbEnv, ClbContextModel) {
   var ongoingContextRequests = {};
   var urlBase = clbEnv.get('api.collab.v0');
   var collabUrl = urlBase + '/collab/';
@@ -38,7 +38,7 @@ function clbContext($http, $q, clbError, clbEnv, ClbContextModel) {
     }
     // proceed to the request
     ongoingContextRequests[uuid] =
-      $http.get(contextUrl + uuid + '/', {cache: true})
+      clbAuthHttp.get(contextUrl + uuid + '/', {cache: true})
     .then(function(res) {
       ongoingContextRequests[uuid] = null;
       return ClbContextModel.fromJson(res.data);
