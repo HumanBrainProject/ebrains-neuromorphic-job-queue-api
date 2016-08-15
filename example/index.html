@@ -31,15 +31,16 @@
 
       <div class="panel panel-default">
         <div class="panel-heading">
-          <h4>User Avatar</h4>
+          Identity UI
         </div>
         <div class="panel-body" ng-controller="UiIdentityController as vm">
-          <p>Default Avatar</p>
+          <h4>User Avatar</h4>
+          <h5>Default Avatar</h5>
           <clb-user-avatar clb-user="{displayName: 'John Doe'}"></clb-user-avatar>
           <clb-user-avatar clb-user="{displayName: 'wohn Doe'}"></clb-user-avatar>
           <clb-user-avatar clb-user="{displayName: 'mohn Doe'}"></clb-user-avatar>
 
-          <p>Override Avatar Colors</p>
+          <h5>Override Avatar Colors</h5>
           <style>
             .grey-background .clb-user-avatar-icon-fill {
               fill: #d4d4d4;
@@ -55,13 +56,16 @@
           <clb-user-avatar class="pink-text outline-text" clb-user="{displayName: 'aohn Doe'}"></clb-user-avatar>
           <clb-user-avatar class="grey-background pink-text" clb-user="{displayName: 'bohn Doe'}"></clb-user-avatar>
 
-          <p>Override Avatar Size</p>
+          <h5>Override Avatar Size</h5>
           <clb-user-avatar style="width: 20px; height: 20px;" clb-user="{displayName: 'oohn Doe'}"></clb-user-avatar>
           <clb-user-avatar style="width: 80px; height: 80px;" clb-user="{displayName: 'xohn Doe'}"></clb-user-avatar>
           <clb-user-avatar style="width: 60px; height: 60px;" clb-user="vm.user"></clb-user-avatar>
 
-          <p>User Card</p>
+          <h4>User Card</h4>
           <clb-usercard clb-user="vm.user"></clb-usercard>
+          <uib-alert ng-if="!vm.user">
+            <strong>Not available:</strong> You must login to see the user card.
+          </uib-alert>
         </div>
       </div>
 
