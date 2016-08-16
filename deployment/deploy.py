@@ -300,8 +300,7 @@ def db_restore(service, filename):
     shell.run(["sh", "-c", cmd], update_env={"PGPASSWORD": pg_password})
 
 
-#certbot certonly --standalone --agree-tos --email andrew.davison@unic.cnrs-gif.fr --domains nmpi.hbpneuromorphic.eu nmpi-staging.hbpneuromorphic.eu nmpi-dev.hbpneuromorphic.eu --non-interactive
-# --standalone-supported-challenges http-01  # use port 80 only
+#./certbot-auto certonly --standalone --agree-tos --email andrew.davison@unic.cnrs-gif.fr --domains nmpi.hbpneuromorphic.eu --domains nmpi-staging.hbpneuromorphic.eu nmpi-dev.hbpneuromorphic.eu --non-interactive --standalone-supported-challenges http-01  # use port 80 only
 
 # deploy.py build quotas blue
 # deploy.py redeploy quotas blue

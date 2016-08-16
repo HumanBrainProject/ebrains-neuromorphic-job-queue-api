@@ -4,3 +4,4 @@ ports:
 env: [DEBUG,
       NMPI_DATABASE_HOST,
       NMPI_DATABASE_PORT]
+volumes: ["/etc/letsencrypt"]
