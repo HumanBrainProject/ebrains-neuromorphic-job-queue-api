@@ -23,7 +23,7 @@ describe('clbAuthHttp', function() {
         clbAppHello.utils.store('hbp', {
           access_token: token, // eslint-disable-line camelcase
           token_type: 'Bearer', // eslint-disable-line camelcase
-          expires: 999.0
+          expires: Number.MAX_SAFE_INTEGER
         });
       } else {
         clbAppHello.utils.store('hbp', null);

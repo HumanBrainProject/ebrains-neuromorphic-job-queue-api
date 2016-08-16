@@ -8,6 +8,7 @@ function authProvider(clbAppHello, clbEnvProvider) {
       _addHbpProvider();
       _loadApplicationInfo();
       _bindEvents();
+      var _readEnvOnce = false;
 
       return {
         login: login,
@@ -17,6 +18,15 @@ function authProvider(clbAppHello, clbEnvProvider) {
 
       function login(options) {
         var d = $q.defer();
+        if (!_readEnvOnce) {
+          _readEnvOnce = true;
+          _readTokenFromEnv();
+        }
+        var auth = getAuthInfo();
+        if (auth) {
+          d.resolve(auth);
+          return d.promise;
+        }
         clbAppHello.login('hbp', options)
         .then(function(res) {
           d.resolve(getAuthInfo(res.authResponse));
@@ -55,6 +65,20 @@ function authProvider(clbAppHello, clbEnvProvider) {
           scope: authResponse.scope || undefined,
           expires: authResponse.expires
         };
+      }
+
+      function _readTokenFromEnv() {
+        var authInfo = clbEnv.get('auth.token', false);
+        if (!authInfo) {
+          return;
+        }
+        var now = (new Date()).getTime();
+        if (!authInfo.expires && authInfo.expires_in) {
+          authInfo.expires = now + (authInfo.expires_in * 1000);
+        }
+        if (!authInfo.expires || now < authInfo.expires) {
+          clbAppHello.utils.store('hbp', authInfo);
+        }
       }
 
       function _formatError(err) {
