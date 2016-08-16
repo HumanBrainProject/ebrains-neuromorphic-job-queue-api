@@ -20,12 +20,14 @@ function authProvider(clbAppHello, clbEnvProvider) {
         var d = $q.defer();
         if (!_readEnvOnce) {
           _readEnvOnce = true;
-          _readTokenFromEnv();
-        }
-        var auth = getAuthInfo();
-        if (auth) {
-          d.resolve(auth);
-          return d.promise;
+          var envToken = _readTokenFromEnv();
+          if (envToken) {
+            // The token delivered by the backend is considered valid.
+            var authInfo = getAuthInfo(envToken);
+            d.resolve(authInfo);
+            $rootScope.$broadcast('clbAuth.changed', authInfo);
+            return d.promise;
+          }
         }
         clbAppHello.login('hbp', options)
         .then(function(res) {
@@ -72,12 +74,13 @@ function authProvider(clbAppHello, clbEnvProvider) {
         if (!authInfo) {
           return;
         }
-        var now = (new Date()).getTime();
+        var now = (new Date()).getTime() / 1e3;
         if (!authInfo.expires && authInfo.expires_in) {
-          authInfo.expires = now + (authInfo.expires_in * 1000);
+          authInfo.expires = (now) + authInfo.expires_in;
         }
         if (!authInfo.expires || now < authInfo.expires) {
           clbAppHello.utils.store('hbp', authInfo);
+          return authInfo;
         }
       }
 

@@ -86,9 +86,9 @@ describe('clbAuth with token from backend', function() {
 
   beforeEach(function() {
     token = {
-      access_token: 'bbbb', // eslint-disable-line camelcase
+      access_token: 'bbbb',  // eslint-disable-line camelcase
       token_type: 'TOKTYPE', // eslint-disable-line camelcase
-      expires_in: 300 // eslint-disable-line camelcase
+      expires_in: 1          // eslint-disable-line camelcase
     };
     window.bbpConfig.auth.token = token;
   });
@@ -104,7 +104,7 @@ describe('clbAuth with token from backend', function() {
   }));
 
   it('load the token provied in auth.token', inject(function(clbAppHello) {
-    spyOn(clbAppHello, 'login');
+    spyOn(clbAppHello, 'login').and.callThrough();
     var authInfo;
     service.login().then(function(auth) {
       authInfo = auth;
@@ -122,12 +122,12 @@ describe('clbAuth with token from backend', function() {
       authInfo = auth;
     });
     scope.$apply();
-    expect(authInfo.expires > (new Date()).getTime()).toBe(true);
-    expect(authInfo.expires < (new Date()).getTime() + 320000).toBe(true);
+    expect(authInfo.expires > (new Date()).getTime() / 1e3).toBe(true);
+    expect(authInfo.expires < ((new Date()).getTime() / 1e3) + 4).toBe(true);
   });
 
   it('dont trigger login', inject(function(clbAppHello) {
-    spyOn(clbAppHello, 'login');
+    spyOn(clbAppHello, 'login').and.callThrough();
     service.login().then(function(authInfo) {
       expect(authInfo.accessToken).toBe(token.access_token);
     });
@@ -139,10 +139,20 @@ describe('clbAuth with token from backend', function() {
   });
 
   it('trigger login if token expired', inject(function($q, clbAppHello) {
-    token.expires = (new Date()).getTime() - 1000000;
+    token.expires = ((new Date()).getTime() / 1e3) - 1;
     spyOn(clbAppHello, 'login').and.returnValue($q.when(token));
     service.login();
     scope.$apply();
     expect(clbAppHello.login).toHaveBeenCalled();
   }));
+
+  it('trigger the clbAuth.changed event', function() {
+    var auth;
+    scope.$on('clbAuth.changed', function(event, data) {
+      auth = data;
+    });
+    service.login();
+    scope.$apply();
+    expect(auth.accessToken).toBe(token.access_token);
+  });
 });
