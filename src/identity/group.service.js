@@ -8,7 +8,7 @@ angular.module('clb-identity')
  * @memberof module:clb-identity
  * @param  {object} $rootScope      Angular DI
  * @param  {object} $q              Angular DI
- * @param  {object} $http           Angular DI
+ * @param  {object} clbAuthHttp           Angular DI
  * @param  {object} $cacheFactory   Angular DI
  * @param  {object} lodash          Angular DI
  * @param  {object} clbEnv          Angular DI
@@ -20,7 +20,7 @@ angular.module('clb-identity')
 function clbGroup(
   $rootScope,
   $q,
-  $http,
+  clbAuthHttp,
   $cacheFactory,
   lodash,
   clbEnv,
@@ -54,7 +54,7 @@ function clbGroup(
         relIds = lodash.isArray(relIds) ? relIds : [relIds];
         return $q.all(lodash.map(relIds, function(relId) {
           var url = [groupUrl, groupName, rel, relId].join('/');
-          return $http({
+          return clbAuthHttp({
             method: method,
             url: url
           }).then(function() {
@@ -102,7 +102,7 @@ function clbGroup(
    * @return {Promise} a promise that resolves to a group
    */
   function get(groupId) {
-    return $http.get(groupUrl + '/' + groupId).then(function(resp) {
+    return clbAuthHttp.get(groupUrl + '/' + groupId).then(function(resp) {
       return resp.data;
     }, clbError.rejectHttpError);
   }
@@ -126,7 +126,7 @@ function clbGroup(
   function getMembers(groupId, options) {
     options = angular.extend({}, options);
     return clbResultSet.get(
-      $http.get(groupUrl + '/' + groupId + '/members', {
+      clbAuthHttp.get(groupUrl + '/' + groupId + '/members', {
         params: clbIdentityUtil.queryParams(options)
       }),
       paginationOptions('users', options.factory)
@@ -151,7 +151,7 @@ function clbGroup(
   function getEpflSyncMembers(groupName, options) {
     options = angular.extend({}, options);
     return clbResultSet.get(
-      $http.get(groupUrl + '/' + groupName + '/epfl-synced-members', {
+      clbAuthHttp.get(groupUrl + '/' + groupName + '/epfl-synced-members', {
         params: clbIdentityUtil.queryParams()
       }),
       paginationOptions('users', options.factory)
@@ -176,7 +176,7 @@ function clbGroup(
   function getMemberGroups(groupName, options) {
     options = angular.extend({}, options);
     return clbResultSet.get(
-      $http.get(groupUrl + '/' + groupName + '/member-groups', {
+      clbAuthHttp.get(groupUrl + '/' + groupName + '/member-groups', {
         params: clbIdentityUtil.queryParams(options)
       }),
       paginationOptions('groups', options.factory)
@@ -201,7 +201,7 @@ function clbGroup(
   function getAdmins(groupName, options) {
     options = angular.extend({}, options);
     return clbResultSet.get(
-      $http.get(groupUrl + '/' + groupName + '/admins', {
+      clbAuthHttp.get(groupUrl + '/' + groupName + '/admins', {
         params: clbIdentityUtil.queryParams(options)
       }),
       paginationOptions('users', options.factory)
@@ -226,7 +226,7 @@ function clbGroup(
   function getAdminGroups(groupName, options) {
     options = angular.extend({}, options);
     return clbResultSet.get(
-      $http.get(groupUrl + '/' + groupName + '/admin-groups', {
+      clbAuthHttp.get(groupUrl + '/' + groupName + '/admin-groups', {
         params: clbIdentityUtil.queryParams(options)
       }),
       paginationOptions('groups', options.factory)
@@ -251,7 +251,7 @@ function clbGroup(
   function getParentGroups(groupName, options) {
     options = angular.extend({}, options);
     return clbResultSet.get(
-      $http.get(groupUrl + '/' + groupName + '/parent-groups', {
+      clbAuthHttp.get(groupUrl + '/' + groupName + '/parent-groups', {
         params: clbIdentityUtil.queryParams()
       }),
       paginationOptions('groups', options.factory)
@@ -276,7 +276,7 @@ function clbGroup(
   function getManagedGroups(groupName, options) {
     options = angular.extend({}, options);
     return clbResultSet.get(
-      $http.get(groupUrl + '/' + groupName + '/managed-groups', {
+      clbAuthHttp.get(groupUrl + '/' + groupName + '/managed-groups', {
         params: clbIdentityUtil.queryParams(options)
       }),
       paginationOptions('groups', options.factory)
@@ -296,7 +296,7 @@ function clbGroup(
    * @return {Promise} promise of creation completion
    */
   function createGroup(name, description) {
-    return $http.post(groupUrl, {
+    return clbAuthHttp.post(groupUrl, {
       name: name,
       description: description
     })
@@ -313,7 +313,7 @@ function clbGroup(
    * @return {Promise} resolve to the updated group once the operation is complete
    */
   function updateGroup(group) {
-    return $http.patch(groupUrl + '/' + group.name, {
+    return clbAuthHttp.patch(groupUrl + '/' + group.name, {
       // only description field can be updated
       description: group.description
     })
@@ -335,7 +335,7 @@ function clbGroup(
    * @return {Promise} promise of creation completion
    */
   function deleteGroup(groupId) {
-    return $http.delete(groupUrl + '/' + groupId)
+    return clbAuthHttp.delete(groupUrl + '/' + groupId)
     .then(function() {
       return;
     })
@@ -425,7 +425,7 @@ function clbGroup(
       }
     }
 
-    return clbResultSet.get($http.get(url, {
+    return clbResultSet.get(clbAuthHttp.get(url, {
       params: lodash.omit(params, 'filter')
     }), paginationOptions('groups', options.factory));
   }
@@ -444,7 +444,7 @@ function clbGroup(
     var params = clbIdentityUtil.queryParams(options);
     params.str = queryString;
     var url = groupUrl + '/searchByText';
-    return clbResultSet.get($http.get(url, {
+    return clbResultSet.get(clbAuthHttp.get(url, {
       params: params
     }), paginationOptions('groups', options.factory));
   }

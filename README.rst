@@ -153,6 +153,7 @@ If your code is using some of the directive from angular-hbp-common or
 angular-hbp-document-client, you need to refactor them as well before being
 able to cut the old dependencies.
 
+
 UI Refactoring
 ~~~~~~~~~~~~~~
 
@@ -249,6 +250,22 @@ At the end of the process, your application should only load ``angular-hbp-colla
       'clb-ui-loading',
       'clb-stream'
     ]);
+
+
+Auth Refactoring
+~~~~~~~~~~~~~~~~
+
+This module contains clbAuth and clbAuthHttp service to manage authentication.
+clbAuth provide a login() and a logout() method. To use them, just drop
+any reference to bbpOidcClient and bbpOidcSession from your code and use instead
+``clbAuth.login()`` and ``clbAuth.logout()`` method.
+
+The injection of the Authorization header is no more automatic to avoid leakage
+of the token. It is part of every service library from ``angular-hbp-collaboratory``.
+Check in every place you are using ``$http`` Angular module. If the call require
+the token to be injected, add it by using ``clbAuthHttp`` service instead of
+``$http``.
+
 
 
 LICENSE

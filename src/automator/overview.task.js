@@ -1,6 +1,6 @@
 angular.module('clb-automator')
 .run(function createOverview(
-  $log, $q, $http, clbEnv, clbStorage, clbError,
+  $log, $q, clbAuthHttp, clbEnv, clbStorage, clbError,
   clbAutomator, clbCollabNav, clbCollabApp
 ) {
   clbAutomator.registerHandler('overview', overview);
@@ -27,22 +27,23 @@ angular.module('clb-automator')
    *                  config.storage
    */
   function overview(descriptor, context) {
-    $log.debug("Set the content of the overview page");
+    $log.debug('Set the content of the overview page');
     var collabId = descriptor.collab || context.collab.id;
     var createContentFile = function(overview, descriptor, context) {
-      $log.debug("Fill overview page with content from entity");
+      $log.debug('Fill overview page with content from entity');
 
       return fetchSourceContent(descriptor, context)
         .then(function(source) {
-          return $http.post(clbEnv.get('api.richtext.v0') + '/richtext/', {
-            ctx: overview.context,
-            raw: source
-          });
+          return clbAuthHttp.post(
+            clbEnv.get('api.richtext.v0') + '/richtext/', {
+              ctx: overview.context,
+              raw: source
+            });
         });
     };
 
     var updateAppId = function(overview, descriptor) {
-      $log.debug("Replace the overview page application id");
+      $log.debug('Replace the overview page application id');
 
       return clbCollabApp.findOne({title: descriptor.app})
         .then(function(app) {

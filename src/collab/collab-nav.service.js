@@ -7,7 +7,7 @@
  *       navigation items.
  */
 angular.module('clb-collab')
-.service('clbCollabNav', function($q, $http, $log,
+.service('clbCollabNav', function($q, clbAuthHttp, $log,
     $cacheFactory, $timeout, orderByFilter, uuid4,
     clbEnv, clbError) {
   var collabApiUrl = clbEnv.get('api.collab.v0') + '/collab/';
@@ -149,7 +149,7 @@ angular.module('clb-collab')
     var treePromise = cacheNavRoots.get(collabId);
 
     if (!treePromise) {
-      treePromise = $http.get(collabApiUrl + collabId + '/nav/all/').then(
+      treePromise = clbAuthHttp.get(collabApiUrl + collabId + '/nav/all/').then(
         function(resp) {
           var root;
           var i;
@@ -214,7 +214,7 @@ angular.module('clb-collab')
       'collab/context',
       ctx
     ].join('/') + '/';
-    return $http.get(url)
+    return clbAuthHttp.get(url)
     .then(function(res) {
       var nav = NavItem.fromJson(res.data.collab.id, res.data);
       var k = key(nav.collabId, nav.id);
@@ -236,7 +236,7 @@ angular.module('clb-collab')
    * @return {Promise} promise of the added NavItem instance
    */
   var addNode = function(collabId, navItem) {
-    return $http.post(collabApiUrl + collabId + '/nav/', navItem.toJson())
+    return clbAuthHttp.post(collabApiUrl + collabId + '/nav/', navItem.toJson())
     .then(function(resp) {
       return NavItem.fromJson(collabId, resp.data);
     }, clbError.rejectHttpError);
@@ -249,7 +249,8 @@ angular.module('clb-collab')
    * @return {Promise} promise of an undefined item at the end
    */
   var deleteNode = function(collabId, navItem) {
-    return $http.delete(collabApiUrl + collabId + '/nav/' + navItem.id + '/')
+    return clbAuthHttp.delete(
+      collabApiUrl + collabId + '/nav/' + navItem.id + '/')
     .then(function() {
       cacheNavItems.remove(key(collabId, navItem.id));
     }, clbError.rejectHttpError);
@@ -263,7 +264,7 @@ angular.module('clb-collab')
    */
   var update = function(collabId, navItem) {
     navItem.collabId = collabId;
-    return $http.put(collabApiUrl + collabId + '/nav/' +
+    return clbAuthHttp.put(collabApiUrl + collabId + '/nav/' +
       navItem.id + '/', navItem.toJson())
     .then(function(resp) {
       return NavItem.fromJson(collabId, resp.data);

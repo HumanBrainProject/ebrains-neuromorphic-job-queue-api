@@ -4,4 +4,4 @@
  *
  * @module clb-context-data
  */
-angular.module('clb-ctx-data', ['uuid4', 'clb-env', 'clb-error']);
+angular.module('clb-ctx-data', ['uuid4', 'clb-app', 'clb-env', 'clb-error']);

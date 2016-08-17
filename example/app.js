@@ -43,8 +43,15 @@ angular.module('customCollabApp', [
   };
 })
 .controller('UiIdentityController', function($scope, clbUser) {
-  clbUser.getCurrentUser().then(function(me) {
-    $scope.user = me;
+  var vm = this;
+  $scope.$on('clbAuth.changed', function(event, authInfo) {
+    if (authInfo) {
+      clbUser.getCurrentUser().then(function(me) {
+        vm.user = me;
+      });
+    } else {
+      vm.user = null;
+    }
   });
 })
 .controller('CollabConfigurationController', function(
@@ -115,6 +122,10 @@ angular.module('customCollabApp', [
   }
 });
 
+// You can find a complete configuration file at:
+// https://collab.humanbrainproject.eu/config.json
+// Try to use its live representation to benefit
+// from automatic configuration update.
 angular.clbBootstrap('customCollabApp', {env: {
   auth: {
     clientId: '2cb12cf8-abc5-4d07-9c67-b5f8b3efe12f',

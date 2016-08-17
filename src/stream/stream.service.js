@@ -7,14 +7,14 @@ angular.module('clb-stream')
  *
  * @memberof module:clb-stream
  * @namespace clbStream
- * @param {function} $http angular dependency injection
+ * @param {function} clbAuthHttp angular dependency injection
  * @param {function} clbEnv angular dependency injection
  * @param {function} clbError angular dependency injection
  * @param {function} clbResultSet angular dependency injection
  * @param {function} moment angular dependency injection
  * @return {object} the clbActivityStream service
  */
-function clbStream($http, clbEnv, clbError, clbResultSet, moment) {
+function clbStream(clbAuthHttp, clbEnv, clbError, clbResultSet, moment) {
   return {
     getStream: getStream,
     getHeatmapStream: getHeatmapStream
@@ -92,7 +92,7 @@ function clbStream($http, clbEnv, clbError, clbResultSet, moment) {
                          type + ':' + id + '/';
 
     url = buildURLOptions(url, options);
-    return clbResultSet.get($http.get(url), options)
+    return clbResultSet.get(clbAuthHttp.get(url), options)
     .catch(clbError.rejectHttpError);
   }
 
@@ -113,7 +113,7 @@ function clbStream($http, clbEnv, clbError, clbResultSet, moment) {
 
     url = buildURLOptions(url, options);
 
-    return clbResultSet.get($http.get(url), options)
+    return clbResultSet.get(clbAuthHttp.get(url), options)
         .catch(clbError.rejectHttpError);
   }
 }

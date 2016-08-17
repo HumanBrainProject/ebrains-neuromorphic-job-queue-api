@@ -10,14 +10,14 @@ angular.module('clb-ctx-data')
  *
  * @namespace clbCtxData
  * @memberof clb-ctx-data
- * @param  {object} $http    Angular DI
+ * @param  {object} clbAuthHttp    Angular DI
  * @param  {object} $q       Angular DI
  * @param  {object} uuid4     Angular DI
  * @param  {object} clbEnv   Angular DI
  * @param  {object} clbError Angular DI
  * @return {object}          Angular Service Descriptor
  */
-function clbCtxData($http, $q, uuid4, clbEnv, clbError) {
+function clbCtxData(clbAuthHttp, $q, uuid4, clbEnv, clbError) {
   var configUrl = clbEnv.get('api.collab.v0') + '/config/';
   return {
     /**
@@ -31,7 +31,7 @@ function clbCtxData($http, $q, uuid4, clbEnv, clbError) {
       if (!uuid4.validate(ctx)) {
         return $q.reject(invalidUuidError(ctx));
       }
-      return $http.get(configUrl + ctx + '/')
+      return clbAuthHttp.get(configUrl + ctx + '/')
       .then(function(res) {
         try {
           return angular.fromJson(res.data.content);
@@ -64,7 +64,7 @@ function clbCtxData($http, $q, uuid4, clbEnv, clbError) {
       if (!uuid4.validate(ctx)) {
         return $q.reject(invalidUuidError(ctx));
       }
-      return $http.put(configUrl + ctx + '/', {
+      return clbAuthHttp.put(configUrl + ctx + '/', {
         context: ctx,
         content: angular.toJson(data)
       }).then(function() {
@@ -82,7 +82,7 @@ function clbCtxData($http, $q, uuid4, clbEnv, clbError) {
       if (!uuid4.validate(ctx)) {
         return $q.reject(invalidUuidError(ctx));
       }
-      return $http.delete(configUrl + ctx + '/')
+      return clbAuthHttp.delete(configUrl + ctx + '/')
       .then(function() {
         return true;
       })

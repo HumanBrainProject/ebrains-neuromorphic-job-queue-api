@@ -11,7 +11,7 @@ angular.module('clb-collab')
  * @param  {object} $log             Angular injection
  * @param  {object} $q               Angular injection
  * @param  {object} $cacheFactory    Angular injection
- * @param  {object} $http            Angular injection
+ * @param  {object} clbAuthHttp            Angular injection
  * @param  {object} lodash           Angular injection
  * @param  {object} clbContext       Angular injection
  * @param  {object} clbEnv           Angular injection
@@ -26,7 +26,7 @@ function clbCollab(
   $log,
   $q,
   $cacheFactory,
-  $http,
+  clbAuthHttp,
   lodash,
   clbContext,
   clbEnv,
@@ -88,7 +88,7 @@ function clbCollab(
       return promise;
     }
 
-    ongoingCollabGetRequests[key] = $http.get(url + key + '/')
+    ongoingCollabGetRequests[key] = clbAuthHttp.get(url + key + '/')
     .then(function(res) {
       ongoingCollabGetRequests[key] = null;
       return ClbCollabModel.fromJson(res.data);
@@ -184,9 +184,9 @@ function clbCollab(
     }
 
     if (options.url) { // Deprecated URL support
-      request = $http.get(options.url);
+      request = clbAuthHttp.get(options.url);
     } else {
-      request = $http.get(url, {
+      request = clbAuthHttp.get(url, {
         params: angular.extend(
           {},
           options.params,
@@ -213,7 +213,7 @@ function clbCollab(
   function mine(options) {
     options = angular.extend({}, options);
     var params = angular.extend({}, lodash.pick(options, ['search']));
-    return clbResultSet.get($http.get(myCollabsUrl, {params: params}), {
+    return clbResultSet.get(clbAuthHttp.get(myCollabsUrl, {params: params}), {
       resultsFactory: resultsFactory
     });
   }
@@ -225,7 +225,7 @@ function clbCollab(
    */
   function create(jsonCollab) {
     var c = ClbCollabModel.fromJson(jsonCollab);
-    return $http.post(collabUrl, c.toJson()).then(function(res) {
+    return clbAuthHttp.post(collabUrl, c.toJson()).then(function(res) {
       c.update(res.data);
       collabCache.put(c.id, c);
       return c;
@@ -239,7 +239,8 @@ function clbCollab(
    */
   function save(jsonCollab) {
     var c = ClbCollabModel.fromJson(jsonCollab);
-    return $http.put(collabUrl + c.id + '/', c.toJson()).then(function(res) {
+    return clbAuthHttp.put(collabUrl + c.id + '/', c.toJson())
+    .then(function(res) {
       c.update(res.data);
       collabCache.put(c.id, c);
       return c;
@@ -254,7 +255,7 @@ function clbCollab(
    * @return {Promise}       Resolve once the delete operation is completed
    */
   function deleteCollab(collab) {
-    return $http.delete(collabUrl + collab.id + '/').then(
+    return clbAuthHttp.delete(collabUrl + collab.id + '/').then(
       function() {
         collabCache.remove(collab.id);
         if (collab._label) {

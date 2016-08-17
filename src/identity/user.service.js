@@ -10,7 +10,7 @@ angular.module('clb-identity')
  * @memberof module:clb-identity
  * @param  {object} $rootScope      Angular DI
  * @param  {object} $q              Angular DI
- * @param  {object} $http           Angular DI
+ * @param  {object} clbAuthHttp           Angular DI
  * @param  {object} $cacheFactory   Angular DI
  * @param  {object} $log            Angular DI
  * @param  {object} lodash          Angular DI
@@ -23,7 +23,7 @@ angular.module('clb-identity')
 function clbUser(
   $rootScope,
   $q,
-  $http,
+  clbAuthHttp,
   $cacheFactory,
   $log,
   lodash,
@@ -158,7 +158,7 @@ function clbUser(
       }
       addToCache(items, response);
       if (urls && urls.length > 0) {
-        return $http.get(urls.shift())
+        return clbAuthHttp.get(urls.shift())
         .then(processResponseAndCarryOn, rejectDeferred);
       }
       deferred.resolve(single ? response[ids[0]] : response);
@@ -182,7 +182,8 @@ function clbUser(
       splitInURl(uncachedUser, userUrl + userBaseUrl, urls, 'id');
 
       // Async calls and combination of result
-      $http.get(urls.shift()).then(processResponseAndCarryOn, rejectDeferred);
+      clbAuthHttp.get(urls.shift())
+      .then(processResponseAndCarryOn, rejectDeferred);
     }
 
     return deferred.promise;
@@ -237,7 +238,7 @@ function clbUser(
       }
     }
     return clbResultSet.get(
-      $http.get(url, {params: params}),
+      clbAuthHttp.get(url, {params: params}),
       paginationOptions('groups', options.factory)
     );
   }
@@ -267,7 +268,7 @@ function clbUser(
       }
     }
     return clbResultSet.get(
-      $http.get(url, {
+      clbAuthHttp.get(url, {
         params: params
       }),
       paginationOptions('groups', options.factory)
@@ -344,7 +345,7 @@ function clbUser(
       return $q.when(user);
     }
     // load it from user profile service
-    return $http.get(userUrl + '/me').then(
+    return clbAuthHttp.get(userUrl + '/me').then(
       function(userData) {
         // merge groups into user profile
         var profile = userData.data;
@@ -378,7 +379,7 @@ function clbUser(
     }
 
     request.groups = clbResultSet.get(
-      $http.get(userUrl + '/me/member-groups'),
+      clbAuthHttp.get(userUrl + '/me/member-groups'),
       paginationOptions('groups')
     ).then(function(rs) {
       return rs.toArray();
@@ -410,7 +411,7 @@ function clbUser(
    * @return {Promise} Resolve to the new User
    */
   function create(user) {
-    return $http.post(userUrl, user).then(
+    return clbAuthHttp.post(userUrl, user).then(
       function() {
         return user;
       },
@@ -440,7 +441,7 @@ function clbUser(
   function update(user, data) {
     data = data || user;
     var id = (typeof user === 'string' ? user : user.id);
-    return $http.patch(userUrl + '/' + id, data).then(
+    return clbAuthHttp.patch(userUrl + '/' + id, data).then(
       function() {
         userCache.remove(id);
         var cachedCurrentUser = userCache.get(currentUserKey);
@@ -527,7 +528,7 @@ function clbUser(
     var pageOptions = paginationOptions('users', opt.factory);
     var params = clbIdentityUtil.queryParams(opt);
 
-    var result = clbResultSet.get($http.get(endpoint, {
+    var result = clbResultSet.get(clbAuthHttp.get(endpoint, {
       params: params
     }), pageOptions);
 
@@ -551,7 +552,7 @@ function clbUser(
     params.str = queryString;
     var url = userUrl + '/searchByText';
 
-    return clbResultSet.get($http.get(url, {
+    return clbResultSet.get(clbAuthHttp.get(url, {
       params: params
     }), paginationOptions('users', options.factory));
   }
