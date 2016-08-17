@@ -48,6 +48,23 @@ describe('clbAuth', function() {
         scope: undefined
       });
     }));
+
+    it('can login twice', function() {
+      var authInfo;
+      service.login();
+      scope.$apply();
+      service.login().then(function(val) {
+        authInfo = val;
+      });
+      hello.login.and.callThrough();
+      scope.$apply();
+      expect(authInfo).toEqual({
+        accessToken: 'aaaa',
+        tokenType: 'Bearer',
+        expires: Number.MAX_SAFE_INTEGER,
+        scope: undefined
+      });
+    });
   });
 
   describe('logout()', function() {
@@ -154,5 +171,40 @@ describe('clbAuth with token from backend', function() {
     service.login();
     scope.$apply();
     expect(auth.accessToken).toBe(token.access_token);
+  });
+
+  it('should look for backend token only once', function(done) {
+    inject(function(clbEnv) {
+      var loc = window.location;
+      var info;
+      spyOn(clbEnv, 'get').and.callThrough();
+      service.login()
+      .then(function(data) {
+        info = data;
+      });
+      scope.$apply();
+      expect(clbEnv.get).toHaveBeenCalledWith('auth.token', false);
+      expect(info.accessToken).toBe(token.access_token);
+      info = undefined;
+
+      // Had to do a lot of crap to deal with the still async hellojs code
+      // and the angular synchronous code...
+      clbEnv.get.calls.reset();
+      service.login().then(function(data) {
+        info = data;
+      })
+      .catch(function(err) {
+        expect(false).toBe(true, err);
+      });
+      // Artificially wait for the hellojs async code to fulfill.
+      // It must be quick as the result is stored locally.
+      window.setTimeout(function() {
+        scope.$apply();
+        expect(window.location).toBe(loc);
+        expect(info).toBeDefined();
+        expect(clbEnv.get).not.toHaveBeenCalled();
+        done();
+      }, 0, false);
+    });
   });
 });
