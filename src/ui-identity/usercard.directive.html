@@ -7,8 +7,10 @@
       <clb-user-avatar clb-user="user"></clb-user-avatar>
     </div>
     <div class="clb-usercard-institution" ng-if="institution">
-        <span class="clb-usercard-institution-title">{{institution.title}}</span>,
-        <span class="clb-usercard-institution-name">{{institution.name}}</span>,
+        <span class="clb-usercard-institution-title">{{institution.title}}</span>
+        <span ng-if="institution.title && (institution.name || institution.department)">, </span>
+        <span class="clb-usercard-institution-name">{{institution.name}}</span>
+        <span ng-if="institution.name && institution.department">, </span>
         <span class="clb-usercard-institution-dept">{{institution.department}}</span>
     </div>
     <div class="clb-usercard-contact">
