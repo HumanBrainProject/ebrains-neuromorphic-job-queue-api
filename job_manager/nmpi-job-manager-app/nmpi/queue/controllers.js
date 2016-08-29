@@ -329,30 +329,25 @@ angular.module('nmpi')
             {value:'Spikey', text:'Spikey'},
         ];
 
-        Results.get({id:job_id}, function(former_job){
-            $scope.job = new Queue();
-            var curdate = new Date();
-            $scope.job.id = null;
-            $scope.job.log = " ";
-            $scope.job.status = "submitted";
-            $scope.job.timestamp_submission = curdate.toUTCString();
-            $scope.job.timestamp_completion = curdate.toUTCString(); 
-            $scope.job.code = former_job.code; //
-            //$scope.job.code = "https://github.com/jonathanduperrier/helmholtz";
-            $scope.job.command = former_job.command; //
-            //$scope.job.command = "command";
-            //$scope.job.hardware_config = null; //
-            $scope.job.hardware_config = former_job.hardware_config; //
-            //$scope.job.hardware_config = '{"resource_allocation_id":2}';
-            $scope.job.hardware_platform = former_job.hardware_platform; //
-            //$scope.job.hardware_platform = "BrainScaleS";
-            $scope.job.input_data = [];
-            $scope.job.output_data = []; 
-            $scope.job.resource_uri = ""; 
-            $scope.inputs = [];
-            $scope.dataitem = DataItem.get({id:'last'});
+        $scope.job = new Queue();
+        var curdate = new Date();
+        $scope.job.id = null;
+        $scope.job.log = " ";
+        $scope.job.status = "submitted";
+        $scope.job.timestamp_submission = curdate.toUTCString();
+        $scope.job.timestamp_completion = curdate.toUTCString(); 
 
-            //$scope.hardwares_selected = {value:$scope.job.hardware_platform, text:$scope.job.hardware_platform};
+        $scope.job.input_data = [];
+        $scope.job.output_data = []; 
+        $scope.job.resource_uri = ""; 
+        $scope.inputs = [];
+        $scope.dataitem = DataItem.get({id:'last'});
+
+        Results.get({id:job_id}, function(former_job){
+            $scope.job.code = former_job.code; //
+            $scope.job.command = former_job.command; //
+            $scope.job.hardware_config = former_job.hardware_config; //
+            $scope.job.hardware_platform = former_job.hardware_platform; //
 
             // User
             User.get({id:'me'}, function(user){
