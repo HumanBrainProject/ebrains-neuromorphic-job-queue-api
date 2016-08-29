@@ -57,14 +57,21 @@ class Service(object):
             k = parts[0]
             v = "".join(parts[1:])
             env[k] = v
+        volumes = []
+        volume_data = data["HostConfig"]["Binds"]
+        if volume_data:
+            for bind in volume_data:  # info also available under "Mounts"
+                a, b = bind.split(":")
+                assert a == b
+                volumes.append(a)
         obj = cls(name=data["Name"][1:],  # remove initial "/"
                   image=data["Config"]["Image"],
                   node=node,
                   status=data["State"]["Status"],
                   id=data["Id"],
                   ports=ports,
-                  env=env)
-        # todo: add volumes
+                  env=env,
+                  volumes=volumes)
         return obj
 
     def start(self):
