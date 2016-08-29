@@ -33,8 +33,8 @@
         controller: 'DetailQueue'
       })
       .state('job_resubmit', {
-        url: '/queue/:eId',
-        templateUrl: 'static/nmpi/queue/create.tpl.html', 
+        url: '/queue/createfrom/:eId',
+        templateUrl: 'static/nmpi/queue/resubmit.tpl.html', 
         controller: 'ReSubmitJob'
       })
     }

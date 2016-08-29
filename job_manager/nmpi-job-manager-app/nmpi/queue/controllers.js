@@ -305,8 +305,8 @@ angular.module('nmpi')
 ])
 
 .controller('ReSubmitJob', 
-            ['$scope', '$rootScope', '$location', 'Queue', 'DataItem', 'User', 'Context',
-    function( $scope,   $rootScope,   $location,   Queue,   DataItem,   User,   Context ) 
+            ['$scope', '$rootScope', '$location', 'Queue', 'Results', 'DataItem', 'User', 'Context',
+    function( $scope,   $rootScope,   $location,   Queue, Results,   DataItem,   User,   Context ) 
     {
         $scope.msg = {text: "", css: "", show: false}; // debug
 
@@ -314,7 +314,7 @@ angular.module('nmpi')
         var location_array = new Array();
         var job_id = "";
         location_array = $location.$$url.split('/');
-        job_id = location_array[2];
+        job_id = location_array[3];
         console.log("job id : " + job_id);
 
         // Context
@@ -328,8 +328,8 @@ angular.module('nmpi')
             {value:'BrainScaleS-ESS', text:'BrainScaleS-ESS'},
             {value:'Spikey', text:'Spikey'},
         ];
-        
-        Queue.get({id:job_id}, function(former_job){
+
+        Results.get({id:job_id}, function(former_job){
             $scope.job = new Queue();
             var curdate = new Date();
             $scope.job.id = null;
@@ -338,14 +338,22 @@ angular.module('nmpi')
             $scope.job.timestamp_submission = curdate.toUTCString();
             $scope.job.timestamp_completion = curdate.toUTCString(); 
             $scope.job.code = former_job.code; //
+            //$scope.job.code = "https://github.com/jonathanduperrier/helmholtz";
             $scope.job.command = former_job.command; //
-            $scope.job.hardware_config = null; //
+            //$scope.job.command = "command";
+            //$scope.job.hardware_config = null; //
+            $scope.job.hardware_config = former_job.hardware_config; //
+            //$scope.job.hardware_config = '{"resource_allocation_id":2}';
             $scope.job.hardware_platform = former_job.hardware_platform; //
+            //$scope.job.hardware_platform = "BrainScaleS";
             $scope.job.input_data = [];
             $scope.job.output_data = []; 
             $scope.job.resource_uri = ""; 
             $scope.inputs = [];
             $scope.dataitem = DataItem.get({id:'last'});
+
+            //$scope.hardwares_selected = {value:$scope.job.hardware_platform, text:$scope.job.hardware_platform};
+
             // User
             User.get({id:'me'}, function(user){
                 //console.log("create user id:"+user.id);
