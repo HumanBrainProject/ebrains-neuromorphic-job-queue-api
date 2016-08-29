@@ -35,6 +35,7 @@ from datetime import datetime
 from getpass import getpass
 import shlex
 import yaml
+import json
 import git
 import spur
 import click
@@ -91,6 +92,14 @@ def build(service, colour):
         build_directory = PROJECT_DIR
     else:
         raise NotImplementedError("Building the {} image not yet supported.".format(image))
+
+    # write version information
+    with open(join(build_directory, "build_info.json"), "w") as fp:
+        json.dump({"git": git_tag,
+                   "colour": colour,
+                   "date": datetime.now().isoformat()},
+                  fp)
+
     click.echo("Building image")
     result = shell.run(cmd.split(), cwd=build_directory, allow_error=True)
     logger.debug(result.output)

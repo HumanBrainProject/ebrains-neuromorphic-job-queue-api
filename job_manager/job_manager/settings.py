@@ -11,6 +11,7 @@ https://docs.djangoproject.com/en/1.9/ref/settings/
 """
 
 import os, sys
+import json
 import hbp_app_python_auth.settings as auth_settings
 
 ENV = os.environ.get('NMPI_ENV', 'production')
@@ -226,3 +227,9 @@ LOGGING = {
 }
 if ENV == "dev":
     LOGGING['handlers']['file']['filename'] = 'django.log'
+
+if os.path.exists(os.path.join(BASE_DIR, "build_info.json")):
+    with open(os.path.join(BASE_DIR, "build_info.json"), "r") as fp:
+        BUILD_INFO = json.load(fp)
+else:
+    BUILD_INFO = None

@@ -24,6 +24,7 @@ ENV SITEDIR /home/docker/site
 COPY resource_manager $SITEDIR
 COPY packages /home/docker/packages
 COPY quotas /home/docker/quotas
+COPY build_info.json $SITEDIR
 
 WORKDIR /home/docker
 RUN pip install -r $SITEDIR/requirements.txt

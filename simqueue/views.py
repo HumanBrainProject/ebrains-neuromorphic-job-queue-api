@@ -44,6 +44,7 @@ def config(request):
         'token_type': get_token_type(request.user.social_auth.get()),
         'expires_in': request.session.get_expiry_age(),
     }
+    config['build'] = settings.BUILD_INFO
 
     return HttpResponse(json.dumps(config), content_type='application/json')
 
