@@ -8,7 +8,8 @@
     'bbpOidcClient',
     'ui.router',
     'ng',
-    'ngResource'
+    'ngResource',
+    'ui.codemirror'
   ])
 
   .config(

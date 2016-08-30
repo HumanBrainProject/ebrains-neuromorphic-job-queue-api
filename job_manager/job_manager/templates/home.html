@@ -10,6 +10,8 @@
     {# Bower Dependencies #}
     <link rel="stylesheet" href="{% static 'hbp-collaboratory-theme/dist/css/bootstrap.css' %}">
     <link rel="stylesheet" href="{% static 'nmpi/css/app.css' %}">
+    <link rel="stylesheet" type="text/css" href="{% static 'codemirror/lib/codemirror.css' %}">
+    <link rel="stylesheet" type="text/css" href="{% static 'codemirror/theme/elegant.css' %}">
 
     <base href="/">
 </head>
@@ -19,7 +21,6 @@
             <div class="navbar navbar-inverse navbar-fixed-top">
                 <div class="navbar-inner">
                     <div class="container">
-                        <img src="{% static 'nmpi/img/hbp_diamond_120.png' %}" alt="Human Brain Project" style="height:45px; padding: 5px;">
                         <span style="color:white; font-size:15px; font-weight:bold;">Neuromorphic Computing Platform</span>
                     </div>
                 </div>
@@ -42,6 +43,9 @@
     <script type="text/javascript" src="{% static 'angular-resource/angular-resource.min.js' %}"></script>
     <script type="text/javascript" src="{% static 'marked-hbp/marked.min.js' %}"></script>
     <script type="text/javascript" src="{% static 'angular-hbp-common/dist/angular-hbp-common.min.js' %}"></script>
+    <script type="text/javascript" src="{% static 'codemirror/lib/codemirror.js' %}"></script>
+    <script type="text/javascript" src="{% static 'codemirror/mode/python/python.js' %}"></script>
+    <script type="text/javascript" src="{% static 'angular-ui-codemirror/ui-codemirror.js' %}"></script>
 
     {# App Specific #}
     <script type="text/javascript" src="{% static 'nmpi/app.js' %}"></script>

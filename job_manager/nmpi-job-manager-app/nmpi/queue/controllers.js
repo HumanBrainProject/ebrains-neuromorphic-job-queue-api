@@ -171,6 +171,14 @@ angular.module('nmpi')
                 $scope.msg = {text: "Data could not be copied.", css: "danger", show: true};
             });
         }
+
+        $scope.editorOptions = {
+            lineWrapping : false,
+            lineNumbers: false,
+            readOnly: true,
+            mode: {name: "python", version: 2},
+            theme: "elegant"
+        };
     }
 ])
 
@@ -301,6 +309,14 @@ angular.module('nmpi')
         $scope.reset = function(){
             $scope.msg.show = false;
             $location.path( '/queue').search({ctx:$rootScope.ctx});
+        };
+
+        $scope.editorOptions = {
+            lineWrapping : false,
+            lineNumbers: false,
+            indentUnit: 4,
+            mode: {name: "python", version: 2},
+            theme: "elegant"
         };
     }
 ]);

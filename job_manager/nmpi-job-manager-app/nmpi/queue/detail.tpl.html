@@ -68,7 +68,7 @@
   <div class="panel panel-default">
     <div class="panel-heading">Experiment</div>
     <div class="panel-body">
-      <pre>{{job.code}}</pre>
+      <div ui-codemirror ui-codemirror-opts="editorOptions" id="code" name="code" rows="5" ng-model="job.code" required style="width:100%">{{job.code}}</div>
     </div>
   </div>
 
