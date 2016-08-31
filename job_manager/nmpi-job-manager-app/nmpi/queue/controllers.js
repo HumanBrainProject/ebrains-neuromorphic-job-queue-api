@@ -124,7 +124,8 @@ angular.module('nmpi')
         $scope.msg = {text: "", css: "", show: false};
         $scope.hpcSite = null;
         $scope.showHPCsites = false;
-        
+
+        console.log('context:'+$rootScope.ctx);
         $scope.del_job = function(id){
             $scope.job.$del({id:id.eId}, function(data){
                 // on success, return to job list
@@ -277,7 +278,7 @@ angular.module('nmpi')
             // console.log(JSON.stringify($scope.job));
             $scope.job.$save({},
                 function(data){  // success
-                    console.log(JSON.stringify(data));
+                    //console.log(JSON.stringify(data));
                     $rootScope.msg = {
                         text: "Your job has been submitted. You will receive further updates by email.",
                         css: "success",
@@ -315,11 +316,13 @@ angular.module('nmpi')
         var job_id = "";
         location_array = $location.$$url.split('/');
         job_id = location_array[3];
-        console.log("job id : " + job_id);
 
         // Context
-        $rootScope.ctx = $location.search().ctx;
+        //$rootScope.ctx = $location.search().ctx;
         $rootScope.with_ctx = true;
+
+        console.log("job id : " + job_id);
+        console.log('context:'+$rootScope.ctx);
 
         // presets
         $scope.hardwares = [
@@ -336,18 +339,20 @@ angular.module('nmpi')
         $scope.job.status = "submitted";
         $scope.job.timestamp_submission = curdate.toUTCString();
         $scope.job.timestamp_completion = curdate.toUTCString(); 
+        $scope.job.collab_id = $scope.collab_id;
 
         $scope.job.input_data = [];
         $scope.job.output_data = []; 
         $scope.job.resource_uri = ""; 
-        $scope.inputs = [];
-        $scope.dataitem = DataItem.get({id:'last'});
 
         Results.get({id:job_id}, function(former_job){
-            $scope.job.code = former_job.code; //
-            $scope.job.command = former_job.command; //
-            $scope.job.hardware_config = former_job.hardware_config; //
-            $scope.job.hardware_platform = former_job.hardware_platform; //
+            $scope.job.code = former_job.code;
+            $scope.job.command = former_job.command;
+            $scope.job.hardware_config = former_job.hardware_config;
+            $scope.job.hardware_platform = former_job.hardware_platform;
+
+            $scope.inputs = [];
+            $scope.dataitem = DataItem.get({id:'last'});
 
             // User
             User.get({id:'me'}, function(user){
@@ -373,7 +378,7 @@ angular.module('nmpi')
         $scope.submit = function( job ){
             $scope.master_job = angular.copy( job );
             if( $scope.job.hardware_config != null ){
-                $scope.job.hardware_config = JSON.parse( $scope.job.hardware_config );
+                $scope.job.hardware_config = JSON.parse( JSON.stringify($scope.job.hardware_config) );
             }
             // if dataitem have been added, save them and at the end save the job
             if( $scope.inputs.length ){
