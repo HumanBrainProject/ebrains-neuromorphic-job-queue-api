@@ -351,7 +351,8 @@ angular.module('nmpi')
             $scope.job.hardware_config = former_job.hardware_config;
             $scope.job.hardware_platform = former_job.hardware_platform;
 
-            $scope.inputs = [];
+            //$scope.inputs = [];
+            $scope.inputs = former_job.input_data;
             $scope.dataitem = DataItem.get({id:'last'});
 
             // User
