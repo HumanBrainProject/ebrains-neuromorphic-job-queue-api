@@ -321,8 +321,8 @@ angular.module('nmpi')
         //$rootScope.ctx = $location.search().ctx;
         $rootScope.with_ctx = true;
 
-        console.log("job id : " + job_id);
-        console.log('context:'+$rootScope.ctx);
+        //console.log("job id : " + job_id);
+        //console.log('context:'+$rootScope.ctx);
 
         // presets
         $scope.hardwares = [
