@@ -107,8 +107,11 @@
       <pre>{{log.content}}</pre>
     </div>
   </div>
-  <div class="panel-body" style="float:right; ">
-    <button type="button" class="btn btn-danger" ng-click="del_job({eId:job.id})" ng-if="job.user_id === user.id">Delete</button>
+  <div class="panel-body" style="float:right;">
+    <button type="button" ng-if="job.status!='error'" class="btn btn-danger" ng-click="del_job({eId:job.id})" ng-if="job.user_id === user.id">Delete</button>
+  </div>
+  <div class="panel-body" style="float:right;">
+    <button type="button" ng-if="job.status=='error'" class="btn btn-info" ui-sref="job_resubmit({eId:job.id})">Resubmit</button>
   </div>
   <div class="panel-body" style="float:right; ">
     <a class="nav" href="app/#/queue?ctx={{ctx}}" ng-click="msg.show=false" ng-if="with_ctx">back</a>
