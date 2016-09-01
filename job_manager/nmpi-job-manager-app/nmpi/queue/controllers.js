@@ -14,12 +14,24 @@ angular.module('nmpi')
         // pagination client-side
         // alternative: http://stackoverflow.com/questions/10816073/how-to-do-paging-in-angularjs ( http://plnkr.co/edit/6PFCPuFrN6lfGHjHVwGf?p=preview )
         $scope.curPage = 0;
-        $scope.pageSize = 20;
+        $scope.pageSize = 10;
         $rootScope.with_ctx = true;
+
+        $scope.sendState = function(state, page){
+            window.parent.postMessage({
+              eventName: 'workspace.context',
+              ticket: 112,
+              data: {
+                //state: 'MyStateAsAPlainString like' + JSON.stringify([1, 2])
+                state:'{"state":'+state+', "page":'+page+'}'
+              }
+            }, 'https://collab.humanbrainproject.eu/');
+        };
 
         $scope.changePage = function( page )
         {
             $scope.msg = {text:"", css:"", show:false};
+            $scope.sendState("list", page);
             $scope.curPage = page;
         };
 
@@ -59,6 +71,7 @@ angular.module('nmpi')
             $scope.results.objects = new Array(); // init before the resource is answered by the server
         };
 
+        $scope.sendState("list", $scope.curPage);
 
         // depending on whether there is a context...
         if( $location.search().ctx ){
@@ -125,7 +138,7 @@ angular.module('nmpi')
         $scope.hpcSite = null;
         $scope.showHPCsites = false;
 
-        console.log('context:'+$rootScope.ctx);
+        console.log('context:'+$scope.job);
         $scope.del_job = function(id){
             $scope.job.$del({id:id.eId}, function(data){
                 // on success, return to job list
@@ -156,6 +169,17 @@ angular.module('nmpi')
                 );
             }
         );
+        
+        $scope.sendState = function(state, job_id){
+            window.parent.postMessage({
+              eventName: 'workspace.context',
+              ticket: 112,
+              data: {
+                //state: 'MyStateAsAPlainString like' + JSON.stringify([1, 2])
+                state:'{"state":'+state+', "job_id":'+job_id+'}'
+              }
+            }, 'https://collab.humanbrainproject.eu/');
+        };
 
         $scope.getLog = function() {
             $scope.log = Log.get({id: $stateParams.eId});
@@ -171,6 +195,7 @@ angular.module('nmpi')
                 $scope.msg = {text: "Data could not be copied.", css: "danger", show: true};
             });
         }
+        $scope.sendState("detail", $stateParams.eId);
     }
 ])
 
