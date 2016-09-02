@@ -23,11 +23,11 @@ angular.module('nmpi')
               ticket: 112,
               data: {
                 //state: 'MyStateAsAPlainString like' + JSON.stringify([1, 2])
-                state:'{"state":'+state+', "page":'+page+'}'
+                state:'{"state":"'+state+'", "page":"'+page+'"}'
               }
             }, 'https://collab.humanbrainproject.eu/');
         };
-
+        
         $scope.changePage = function( page )
         {
             $scope.msg = {text:"", css:"", show:false};
@@ -176,7 +176,7 @@ angular.module('nmpi')
               ticket: 112,
               data: {
                 //state: 'MyStateAsAPlainString like' + JSON.stringify([1, 2])
-                state:'{"state":'+state+', "job_id":'+job_id+'}'
+                state:'{"state":"'+state+'", "job_id":"'+job_id+'"}'
               }
             }, 'https://collab.humanbrainproject.eu/');
         };
