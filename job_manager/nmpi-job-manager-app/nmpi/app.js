@@ -36,7 +36,7 @@
         url: '/queue',
         //url: $rootScopeProvider.url,
         templateUrl: 'static/nmpi/queue/list.tpl.html',   
-        controller: 'ListQueue',
+        //controller: 'ListQueue',
       })
       .state('job_create', {
         url: '/queue/create',
