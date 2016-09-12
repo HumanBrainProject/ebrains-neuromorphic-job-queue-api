@@ -17,6 +17,20 @@ angular.module('nmpi')
         $scope.pageSize = 10;
         $rootScope.with_ctx = true;
 
+        /*window.addEventListener('message', function(event) {
+          if (!msg || msg.origin !== 112) {
+            // another answer
+            return;
+          }
+          if (msg.eventName === 'error') {
+            // unexpected error
+            console.error('Cannot retrieve context', msg);
+            return;
+          }
+          // Manage event response
+          console.log('Current State is:', msg.data.state);
+        });*/
+
         $scope.sendState = function(state, page){
             window.parent.postMessage({
               eventName: 'workspace.context',

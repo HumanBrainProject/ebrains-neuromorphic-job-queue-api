@@ -16,48 +16,27 @@
     {
       $resourceProvider.defaults.stripTrailingSlashes = false;
 
-      window.addEventListener('message', function(event) {
-        //console.log(event);
-        // Print the message if it is the answer to the context query.
-
-        var msg = event.data;
-        if (!msg || msg.origin !== 112) {
-          // another answer
-          return;
-        }
-
-        if (msg.eventName === 'error') {
-          // unexpected error
-          console.error('Cannot retrieve context', msg);
-          return;
-        }
-
-        // Manage event response
-        console.log('Current Context is:', msg.data.ctx);
-        console.log('Current Mode is:', msg.data.mode);
-        console.log('Current State is:', msg.data.state);
-        
-        if(msg.data.state.state == "detail"){
-          console.log(msg.data.state.job_id);
-          $rootScopeProvider.url = "/queue";
-
-        }
-
-        if(msg.data.state.state == "list") {
-          console.log(msg.data.state.page);
-          $rootScopeProvider.url = "/queue/"+msg.data.state.page;
-        }
-
-
-      }, false);
+        window.addEventListener('message', function(event) {
+          if (!msg || msg.origin !== 112) {
+            // another answer
+            return;
+          }
+          if (msg.eventName === 'error') {
+            // unexpected error
+            console.error('Cannot retrieve context', msg);
+            return;
+          }
+          // Manage event response
+          console.log('Current State is:', msg.data.state);
+        });
 
       // Routing
       $stateProvider
       .state('job_list', {
-        //url: '/queue',
-        url: $rootScopeProvider.url,
+        url: '/queue',
+        //url: $rootScopeProvider.url,
         templateUrl: 'static/nmpi/queue/list.tpl.html',   
-        controller: 'ListQueue'
+        controller: 'ListQueue',
       })
       .state('job_create', {
         url: '/queue/create',
@@ -65,8 +44,8 @@
         controller: 'AddJob'
       })
       .state('job_detail', {
-        //url: '/queue/:eId',
-        url: $rootScopeProvider.url,
+        url: '/queue/:eId',
+        //url: $rootScopeProvider.url,
         templateUrl: 'static/nmpi/queue/detail.tpl.html', 
         controller: 'DetailQueue'
       })
