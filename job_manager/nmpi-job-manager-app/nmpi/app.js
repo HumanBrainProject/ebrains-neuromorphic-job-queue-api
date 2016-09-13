@@ -16,27 +16,13 @@
     {
       $resourceProvider.defaults.stripTrailingSlashes = false;
 
-        window.addEventListener('message', function(event) {
-          if (!msg || msg.origin !== 112) {
-            // another answer
-            return;
-          }
-          if (msg.eventName === 'error') {
-            // unexpected error
-            console.error('Cannot retrieve context', msg);
-            return;
-          }
-          // Manage event response
-          console.log('Current State is:', msg.data.state);
-        });
-
       // Routing
       $stateProvider
       .state('job_list', {
         url: '/queue',
         //url: $rootScopeProvider.url,
         templateUrl: 'static/nmpi/queue/list.tpl.html',   
-        //controller: 'ListQueue',
+        controller: 'ListQueue',
       })
       .state('job_create', {
         url: '/queue/create',
