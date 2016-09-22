@@ -23,7 +23,7 @@
         <dt>Status</dt><dd><span ng-class="{'label label-info':job.status=='submitted', 'label label-success':job.status=='finished', 'label label-warning':job.status=='error'}">{{job.status}}</span></dd>
         <dt>Submitted</dt><dd>{{job.timestamp_submission | date : "yyyy-MM-dd HH:mm:ss" }}</dd>
         <dt data-ng-show="job.status != 'submitted'">Completed</dt><dd data-ng-show="job.status != 'submitted'">{{job.timestamp_completion | date : "yyyy-MM-dd HH:mm:ss" }}</dd>
-        <dt>Collaboratory</dt><dd>{{job.collab.title}}</dd>
+        <dt>Collab</dt><dd>{{job.collab.title}}</dd>
         <dt>Platform</dt><dd>{{job.hardware_platform}}</dd>
       </dl>
       </div>

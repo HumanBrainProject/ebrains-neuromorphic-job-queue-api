@@ -59,7 +59,25 @@
             return output;
         }
   })
+  .run(function($rootScope, $location, $state) {
+        $rootScope.$on('$stateChangeStart', function(e, toState, toParams, fromState, fromParams) {
+            if( $location.search().ctx ) {
+                $rootScope.ctx = $location.search().ctx;
+                $rootScope.with_ctx = true;
+            }
+            var contextState = $location.search().ctxstate;
+            if (contextState && contextState.startsWith('job')) {
+                var job_id = contextState.slice(4);
+                // don't redirect if we're already heading to the correct state
+                if (toState.name === 'job_detail' && toParams.eId == job_id) {
+                    return;
+                }
 
+                e.preventDefault();
+                $state.go('job_detail', { eId: job_id });
+            }
+        });
+  })
 
  // Bootstrap function
  angular.bootstrap().invoke(function($http, $log) {

@@ -17,9 +17,21 @@ angular.module('nmpi')
         $scope.pageSize = 20;
         $rootScope.with_ctx = true;
 
+        var sendState = function(state, page) {
+            var displayPage = page + 1; // in the UI, pages are numbered from 1
+            window.parent.postMessage({
+                eventName: 'workspace.context',
+                data: {
+                    state: 'page.' + displayPage
+                }
+            }, 'https://collab.humanbrainproject.eu/');
+        };
+
+
         $scope.changePage = function( page )
         {
             $scope.msg = {text:"", css:"", show:false};
+            sendState("list", page);
             $scope.curPage = page;
         };
 
@@ -59,6 +71,13 @@ angular.module('nmpi')
             $scope.results.objects = new Array(); // init before the resource is answered by the server
         };
 
+        var contextState = $location.search().ctxstate;
+        if (contextState && contextState.startsWith('page')) {
+            var displayPage = contextState.slice(5);
+            $scope.curPage = displayPage - 1;
+        }
+
+        sendState("list", $scope.curPage);
 
         // depending on whether there is a context...
         if( $location.search().ctx ){
@@ -70,7 +89,6 @@ angular.module('nmpi')
             $rootScope.user = User.get({id:'me'}, function(data){
                 console.log("user id:"+$rootScope.user.id);
             });
-            // todo: check that user has permission to use the platform
             // todo: check that there is at least one quota associated with the collab
             $scope.inTeam = false;
             $scope.canAccessPlatform = false;
@@ -139,6 +157,14 @@ angular.module('nmpi')
             });
         };
 
+        var sendState = function(state, job_id){
+            window.parent.postMessage({
+                eventName: 'workspace.context',
+                data: {
+                    state: 'job.' + job_id
+                }
+            }, 'https://collab.humanbrainproject.eu/');
+        };
 
         Results.get(
             {id: $stateParams.eId},
@@ -173,6 +199,8 @@ angular.module('nmpi')
                 $scope.msg = {text: "Data could not be copied.", css: "danger", show: true};
             });
         }
+
+        sendState("detail", $stateParams.eId);
     }
 ])
 
