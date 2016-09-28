@@ -39,8 +39,8 @@
       <div class="control-group">
           <label class="control-label" for="hardware_config">Hardware Config</label>
           <div class="controls">
-            <textarea id="hardware_config" name="hardware_config" rows="5" ng-model="job.hardware_config" value="job.hardware_config" style="width:100%"></textarea>
-            <span class="badge" ng-show="checkJSON()">Please enter valid JSON.</span>
+            <textarea json-text id="hardware_config" name="hardware_config" rows="5" ng-model="job.hardware_config" value="job.hardware_config" style="width:100%"></textarea>
+            <span class="badge" ng-show="!job.hardware_config">Please enter valid JSON.</span>
           </div>
       </div>
 

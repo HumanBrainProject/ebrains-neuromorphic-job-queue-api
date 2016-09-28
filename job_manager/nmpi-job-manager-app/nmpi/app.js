@@ -78,6 +78,34 @@
             }
         });
   })
+  .directive('jsonText', function() {
+      return {
+          restrict: 'A',
+          require: 'ngModel',
+          link: function(scope, element, attr, ngModel) {
+              function into(input) {
+                  if (input.length > 0) {
+                      try {
+                          return JSON.parse(input);
+                      } catch(e) {
+                          return false;  // JSON is invalid
+                      }
+                  } else {  // empty textarea implies an empty object
+                     return {};
+                  }
+              }
+              function out(data) {
+                  if (Object.getOwnPropertyNames(data).length > 0) {  // non-empty
+                      return JSON.stringify(data, undefined, 2);
+                  } else {  // empty object
+                      return "";
+                  }
+              }
+              ngModel.$parsers.push(into);
+              ngModel.$formatters.push(out);
+          }
+      };
+  })
 
  // Bootstrap function
  angular.bootstrap().invoke(function($http, $log) {

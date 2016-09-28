@@ -231,7 +231,7 @@ angular.module('nmpi')
         $scope.job.timestamp_completion = curdate.toUTCString(); 
         $scope.job.code = "";
         $scope.job.command = "";
-        $scope.job.hardware_config = null;
+        $scope.job.hardware_config = {};
         $scope.job.hardware_platform = ""; 
         $scope.job.input_data = [];
         $scope.job.output_data = []; 
@@ -260,9 +260,6 @@ angular.module('nmpi')
         // post
         $scope.submit = function( job ){
             $scope.master_job = angular.copy( job );
-            if( $scope.job.hardware_config != null ){
-                $scope.job.hardware_config = JSON.parse( $scope.job.hardware_config );
-            }
             // if dataitem have been added, save them and at the end save the job
             if( $scope.inputs.length ){
                 $scope.inputs.forEach( function(input){
@@ -289,19 +286,6 @@ angular.module('nmpi')
                 // save directly to server if there are no inputs
                 $scope.savejob();
             }
-        };
-
-        $scope.checkJSON = function(){
-            //console.log( $scope.job.hardware_config );
-            // this is called any time any field is edited. Is there a way to ensure it is
-            // only called when the hardware config field is edited?
-            try{
-                JSON.parse($scope.job.hardware_config);
-            }catch(e){
-
-                return true;
-            }
-            return false;
         };
 
         $scope.savejob = function(){
@@ -407,9 +391,6 @@ angular.module('nmpi')
         // post
         $scope.submit = function( job ){
             $scope.master_job = angular.copy( job );
-            if( $scope.job.hardware_config != null ){
-                $scope.job.hardware_config = JSON.parse( JSON.stringify($scope.job.hardware_config) );
-            }
             // if dataitem have been added, save them and at the end save the job
             if( $scope.inputs.length ){
                 $scope.inputs.forEach( function(input){
@@ -436,19 +417,6 @@ angular.module('nmpi')
                 // save directly to server if there are no inputs
                 $scope.savejob();
             }
-        };
-
-        $scope.checkJSON = function(){
-            //console.log( $scope.job.hardware_config );
-            // this is called any time any field is edited. Is there a way to ensure it is
-            // only called when the hardware config field is edited?
-            try{
-                JSON.parse($scope.job.hardware_config);
-            }catch(e){
-
-                return true;
-            }
-            return false;
         };
 
         $scope.savejob = function(){
