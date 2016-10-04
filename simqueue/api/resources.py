@@ -21,13 +21,17 @@ from tastypie.authorization import Authorization
 from tastypie.serializers import Serializer
 from tastypie.exceptions import NotFound, Unauthorized, ImmediateHttpResponse
 
+from tastypie.utils import trailing_slash
+
 import numpy as np
+import requests
 
 from ..models import DataItem, Job, Log
 from .auth import CollabAuthorization, HBPAuthentication, ProviderAuthentication
 from quotas.models import Quota
 
 CODE_MAX_LENGTH = 10000
+LAST_LINE_OF_LOGS = 10
 STANDARD_QUEUES = ("BrainScaleS", "BrainScaleS-ESS", "Spikey", "SpiNNaker")
 
 logger = logging.getLogger("simqueue")
@@ -150,8 +154,6 @@ class BaseJobResource(ModelResource):
 
         return auth_result
 
-
-
 # QUEUE contains unfinished jobs (jobs whose status is not 'finished', 'error' or 'removed')
 # You can only put, get and patch (to another status) jobs using this view
 class QueueResource(BaseJobResource):
@@ -217,8 +219,7 @@ class QueueResource(BaseJobResource):
         if collab and platform:  # if either of these are missing, we pass through,
                                  # as the error response will be generated later
             logger.info("Creating job in collab {} for {}".format(collab, platform))
-            quotas = get_quotas(collab,
-                                platform)  # there could be multiple projects and hence multiple quotas
+            quotas = get_quotas(collab, platform)  # there could be multiple projects and hence multiple quotas
             logger.info("Quotas: {}".format(quotas))
             requested_resources = 0.0  # or get from submitted job
             if quotas:
@@ -244,13 +245,54 @@ class QueueResource(BaseJobResource):
 
     def _send_email(self, bundle):
         users = User.objects.filter(social_auth__uid=bundle.data['user_id'])
+        #users = Job.objects.values("user_id").distinct()
+
+        logs_job = Log.objects.values('job')
+        logs_content = Log.objects.values('content')
+        #logs_3 = bundle.data['id']
+        #if Log.objects.values('job') == bundle.data['user_id']:
+
         if len(users) > 0:
             email = users[0].email
             if len(users) > 1:
                 logger.warning("Multiple users found with the same oidc id.")
             if email:
                 logger.info("Sending e-mail about job #{} to {}".format(str(bundle.data['id']), bundle.request.user.email))
-                subject = 'NMPI: job ' + str(bundle.data['id']) + ' ' + bundle.data['status']
+                # f = open('django.log', 'r')
+                # log_content = f.read()
+                # list_log_content = log_content.split('\n')
+                # length_log = len(list_log_content)
+                # lines_in_email = length_log - LAST_LINE_OF_LOGS
+                # content_log_in_email = ""
+                # for (i, item) in enumerate(list_log_content):
+                #     if i >= lines_in_email:
+                #         content_log_in_email = content_log_in_email + item + "\n"
+                
+                #log = Log.objects.get()
+
+                #svc_url = settings.HBP_COLLAB_SERVICE_URL
+                #url="https://127.0.0.1:8000/api/v2/log"
+                #headers = {'Authorization': request.META["HTTP_AUTHORIZATION"]}
+                #rlog = requests.get(url, headers=headers)
+
+                #for key, val in Log.objects.values('job'):
+                    #logs_3 = key + ' - ' + value
+                    #if Log.objects.values('job') == bundle.data['id']:
+                        #logs_3 = str(Log.objects.values('content')[key])
+                    #else:
+                        #logs_3 = "none"
+                i = 0
+                while i <= len(logs_job):
+                    if Log.objects.values('job') == bundle.data['id']:
+                        logs_mail_content = logs_content[i]
+                    else :
+                        logs_mail_content = "none"
+                    i += 1
+
+                #logs_3 = bundle.data['id']
+                subject = 'NMPI: job ' + str(bundle.data['id']) + ' ' + bundle.data['status'] + " -- " + str(logs_mail_content) #+ ' -- ' + str(Log.objects)
+                #content = subject + "\n" + content_log_in_email
+                #content = subject + str(logs)
                 content = subject
                 try:
                     send_mail(
@@ -266,6 +308,7 @@ class QueueResource(BaseJobResource):
                 logger.info("E-mail not available for user {}".format(users[0].username))
         else:
             logger.error("User matching job owner {} not found.".format(bundle.data['user_id']))
+
 
     def obj_update(self, bundle, **kwargs):
         # update quota usage
@@ -349,9 +392,7 @@ class ResultsResource(BaseJobResource):
         else:
             return bundle.data['code']
 
-
 class LogResource(ModelResource):
-
     class Meta:
         queryset = Log.objects.all()
         resource_name = 'log'

@@ -15,7 +15,7 @@ import hbp_app_python_auth.settings as auth_settings
 
 ENV = os.environ.get('NMPI_ENV', 'production')
 LOCAL_DB = True    # only applies when ENV='dev'
-EMAIL_DEBUG = False
+EMAIL_DEBUG = True
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
