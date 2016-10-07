@@ -44,7 +44,6 @@ class Job(models.Model):
     # so we add a method that retrieves a more convenient dict.
     def as_json(self):
         return {
-            #'pk': self.pk, #J.D.
             'code': self.code,
             'command': self.command,
             'status': self.status,

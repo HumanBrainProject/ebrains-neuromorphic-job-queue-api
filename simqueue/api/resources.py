@@ -31,7 +31,6 @@ from .auth import CollabAuthorization, HBPAuthentication, ProviderAuthentication
 from quotas.models import Quota
 
 CODE_MAX_LENGTH = 10000
-LAST_LINE_OF_LOGS = 10
 STANDARD_QUEUES = ("BrainScaleS", "BrainScaleS-ESS", "Spikey", "SpiNNaker")
 
 logger = logging.getLogger("simqueue")
