@@ -247,53 +247,26 @@ class QueueResource(BaseJobResource):
         users = User.objects.filter(social_auth__uid=bundle.data['user_id'])
         #users = Job.objects.values("user_id").distinct()
 
-        logs_job = Log.objects.values('job')
-        logs_content = Log.objects.values('content')
-        #logs_3 = bundle.data['id']
-        #if Log.objects.values('job') == bundle.data['user_id']:
-
         if len(users) > 0:
             email = users[0].email
             if len(users) > 1:
                 logger.warning("Multiple users found with the same oidc id.")
             if email:
                 logger.info("Sending e-mail about job #{} to {}".format(str(bundle.data['id']), bundle.request.user.email))
-                # f = open('django.log', 'r')
-                # log_content = f.read()
-                # list_log_content = log_content.split('\n')
-                # length_log = len(list_log_content)
-                # lines_in_email = length_log - LAST_LINE_OF_LOGS
-                # content_log_in_email = ""
-                # for (i, item) in enumerate(list_log_content):
-                #     if i >= lines_in_email:
-                #         content_log_in_email = content_log_in_email + item + "\n"
-                
-                #log = Log.objects.get()
-
-                #svc_url = settings.HBP_COLLAB_SERVICE_URL
-                #url="https://127.0.0.1:8000/api/v2/log"
-                #headers = {'Authorization': request.META["HTTP_AUTHORIZATION"]}
-                #rlog = requests.get(url, headers=headers)
-
-                #for key, val in Log.objects.values('job'):
-                    #logs_3 = key + ' - ' + value
-                    #if Log.objects.values('job') == bundle.data['id']:
-                        #logs_3 = str(Log.objects.values('content')[key])
-                    #else:
-                        #logs_3 = "none"
-                i = 0
-                while i <= len(logs_job):
-                    if Log.objects.values('job') == bundle.data['id']:
-                        logs_mail_content = logs_content[i]
-                    else :
-                        logs_mail_content = "none"
-                    i += 1
-
-                #logs_3 = bundle.data['id']
-                subject = 'NMPI: job ' + str(bundle.data['id']) + ' ' + bundle.data['status'] + " -- " + str(logs_mail_content) #+ ' -- ' + str(Log.objects)
-                #content = subject + "\n" + content_log_in_email
-                #content = subject + str(logs)
-                content = subject
+                logs_list = Log.objects.filter(pk=bundle.data['id'])
+                if len(logs_list) == 0:
+                    logs_content = " "
+                else:
+                    logs_splited = logs_list[0].content.split("\n")
+                    nb_lines = len(logs_splited)
+                    logs_content = ""
+                    for (i, item) in enumerate(logs_splited):
+                        if (i == 11):
+                            logs_content = logs_content + "\n" + "..................."
+                        if (i < 10) | (i>=(nb_lines-10)):
+                            logs_content = logs_content + "\n" +item
+                subject = 'NMPI: job ' + str(bundle.data['id']) + ' ' + bundle.data['status']
+                content = subject + "\n" + str(logs_content)
                 try:
                     send_mail(
                         subject,
@@ -302,6 +275,7 @@ class QueueResource(BaseJobResource):
                         [email],  # recipient
                         fail_silently=False
                     )
+
                 except Exception as err:
                     logger.error(err)
             else:
@@ -312,6 +286,7 @@ class QueueResource(BaseJobResource):
 
     def obj_update(self, bundle, **kwargs):
         # update quota usage
+        update = super(QueueResource, self).obj_update(bundle, **kwargs)
         logger.info("Updating status of job {} to {}".format(bundle.data['id'], bundle.data['status']))
         if bundle.data['status'] in ('finished', 'error'):
             self._send_email(bundle)
@@ -325,7 +300,7 @@ class QueueResource(BaseJobResource):
             logger.info("E-mail sent and quota updated")
         else:
             logger.info("Doing nothing for status {}".format(bundle.data['status']))
-        return super(QueueResource, self).obj_update(bundle, **kwargs)
+        return update
 
     def get_next(self, request, **kwargs):
         if self._meta.authentication.is_provider(request):
