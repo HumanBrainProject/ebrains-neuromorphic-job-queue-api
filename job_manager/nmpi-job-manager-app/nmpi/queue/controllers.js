@@ -120,6 +120,7 @@ angular.module('nmpi')
         }
 
         if( !$scope.msg ){ $scope.msg = {text:"", css:"", show:false} };
+        $scope.build_info = window.bbpConfig.build;
     }
 ])
 

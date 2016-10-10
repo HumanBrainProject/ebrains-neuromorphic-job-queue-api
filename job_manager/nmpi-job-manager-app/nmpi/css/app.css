@@ -49,3 +49,8 @@ td code {
     border: none;
     background-color: none;
 }
+
+.subdued {
+    color: #dddddd;
+    font-size: 50%;
+}
