@@ -21,10 +21,7 @@ from tastypie.authorization import Authorization
 from tastypie.serializers import Serializer
 from tastypie.exceptions import NotFound, Unauthorized, ImmediateHttpResponse
 
-from tastypie.utils import trailing_slash
-
 import numpy as np
-import requests
 
 from ..models import DataItem, Job, Log
 from .auth import CollabAuthorization, HBPAuthentication, ProviderAuthentication
@@ -244,7 +241,6 @@ class QueueResource(BaseJobResource):
 
     def _send_email(self, bundle):
         users = User.objects.filter(social_auth__uid=bundle.data['user_id'])
-        #users = Job.objects.values("user_id").distinct()
 
         if len(users) > 0:
             email = users[0].email
@@ -256,10 +252,10 @@ class QueueResource(BaseJobResource):
                 if len(logs_list) == 0:
                     logs_content = " "
                 else:
-                    logs_splited = logs_list[0].content.split("\n")
-                    nb_lines = len(logs_splited)
+                    logs_lines = logs_list[0].content.split("\n")
+                    nb_lines = len(logs_lines)
                     logs_content = ""
-                    for (i, item) in enumerate(logs_splited):
+                    for (i, item) in enumerate(logs_lines):
                         if (i == 11):
                             logs_content = logs_content + "\n" + "..................."
                         if (i < 10) | (i>=(nb_lines-10)):
