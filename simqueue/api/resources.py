@@ -150,8 +150,6 @@ class BaseJobResource(ModelResource):
 
         return auth_result
 
-
-
 # QUEUE contains unfinished jobs (jobs whose status is not 'finished', 'error' or 'removed')
 # You can only put, get and patch (to another status) jobs using this view
 class QueueResource(BaseJobResource):
@@ -217,8 +215,7 @@ class QueueResource(BaseJobResource):
         if collab and platform:  # if either of these are missing, we pass through,
                                  # as the error response will be generated later
             logger.info("Creating job in collab {} for {}".format(collab, platform))
-            quotas = get_quotas(collab,
-                                platform)  # there could be multiple projects and hence multiple quotas
+            quotas = get_quotas(collab, platform)  # there could be multiple projects and hence multiple quotas
             logger.info("Quotas: {}".format(quotas))
             requested_resources = 0.0  # or get from submitted job
             if quotas:
@@ -244,14 +241,27 @@ class QueueResource(BaseJobResource):
 
     def _send_email(self, bundle):
         users = User.objects.filter(social_auth__uid=bundle.data['user_id'])
+
         if len(users) > 0:
             email = users[0].email
             if len(users) > 1:
                 logger.warning("Multiple users found with the same oidc id.")
             if email:
                 logger.info("Sending e-mail about job #{} to {}".format(str(bundle.data['id']), bundle.request.user.email))
+                logs_list = Log.objects.filter(pk=bundle.data['id'])
+                if len(logs_list) == 0:
+                    logs_content = " "
+                else:
+                    logs_lines = logs_list[0].content.split("\n")
+                    nb_lines = len(logs_lines)
+                    logs_content = ""
+                    for (i, item) in enumerate(logs_lines):
+                        if (i == 11):
+                            logs_content = logs_content + "\n" + "..................."
+                        if (i < 10) | (i>=(nb_lines-10)):
+                            logs_content = logs_content + "\n" +item
                 subject = 'NMPI: job ' + str(bundle.data['id']) + ' ' + bundle.data['status']
-                content = subject
+                content = subject + "\n" + str(logs_content)
                 try:
                     send_mail(
                         subject,
@@ -260,6 +270,7 @@ class QueueResource(BaseJobResource):
                         [email],  # recipient
                         fail_silently=False
                     )
+
                 except Exception as err:
                     logger.error(err)
             else:
@@ -267,8 +278,10 @@ class QueueResource(BaseJobResource):
         else:
             logger.error("User matching job owner {} not found.".format(bundle.data['user_id']))
 
+
     def obj_update(self, bundle, **kwargs):
         # update quota usage
+        update = super(QueueResource, self).obj_update(bundle, **kwargs)
         logger.info("Updating status of job {} to {}".format(bundle.data['id'], bundle.data['status']))
         if bundle.data['status'] in ('finished', 'error'):
             self._send_email(bundle)
@@ -282,7 +295,7 @@ class QueueResource(BaseJobResource):
             logger.info("E-mail sent and quota updated")
         else:
             logger.info("Doing nothing for status {}".format(bundle.data['status']))
-        return super(QueueResource, self).obj_update(bundle, **kwargs)
+        return update
 
     def get_next(self, request, **kwargs):
         if self._meta.authentication.is_provider(request):
@@ -349,9 +362,7 @@ class ResultsResource(BaseJobResource):
         else:
             return bundle.data['code']
 
-
 class LogResource(ModelResource):
-
     class Meta:
         queryset = Log.objects.all()
         resource_name = 'log'
