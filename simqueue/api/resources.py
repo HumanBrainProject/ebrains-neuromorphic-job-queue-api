@@ -248,20 +248,23 @@ class QueueResource(BaseJobResource):
                 logger.warning("Multiple users found with the same oidc id.")
             if email:
                 logger.info("Sending e-mail about job #{} to {}".format(str(bundle.data['id']), bundle.request.user.email))
-                logs_list = Log.objects.filter(pk=bundle.data['id'])
-                if len(logs_list) == 0:
-                    logs_content = " "
+                log_list = Log.objects.filter(pk=bundle.data['id'])
+                if log_list.count() == 0:
+                    log_content = ""
                 else:
-                    logs_lines = logs_list[0].content.split("\n")
-                    nb_lines = len(logs_lines)
-                    logs_content = ""
-                    for (i, item) in enumerate(logs_lines):
-                        if (i == 11):
-                            logs_content = logs_content + "\n" + "..................."
-                        if (i < 10) | (i>=(nb_lines-10)):
-                            logs_content = logs_content + "\n" +item
-                subject = 'NMPI: job ' + str(bundle.data['id']) + ' ' + bundle.data['status']
-                content = subject + "\n" + str(logs_content)
+                    log_lines = log_list[0].content.split("\n")
+                    nb_lines = len(log_lines)
+                    if nb_lines <= 20:
+                        log_content = "\n".join(log_lines[:20])
+                    else:
+                        log_content = "\n".join(log_lines[:10])
+                        log_content += "\n\n.  .  .\n\n"
+                        log_content += "\n".join(log_lines[-10:])
+                subject = '[HBP Neuromorphic] job ' + str(bundle.data['id']) + ' ' + bundle.data['status']
+                content = 'HBP Neuromorphic Computing Platform: Job {} {}\n\n'.format(bundle.data['id'],
+                                                                                      bundle.data['status'])
+                content += "https://collab.humanbrainproject.eu/#/collab/{}\n\n".format(bundle.data['collab_id'])
+                content += log_content
                 try:
                     send_mail(
                         subject,
