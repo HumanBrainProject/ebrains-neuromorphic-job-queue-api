@@ -127,7 +127,7 @@ class CollabAuthorization(Authorization):
             return object_list.filter(user_id=user["id"])
 
     def read_detail(self, object_list, bundle):
-        collab_id = bundle.obj.collab_id
+        collab_id = bundle.request.GET.get("collab_id", None)
         logger.debug("Checking authorization for viewing job in collab {}".format(collab_id))
         if self._is_provider(bundle.request):
             logger.debug("auth for collab {}: provider".format(collab_id))
