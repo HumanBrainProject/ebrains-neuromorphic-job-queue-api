@@ -1,7 +1,11 @@
 <div ng-if="user" class="clb-usercard clb-card clb-card-default">
     <h3 class="clb-usercard-header">
         <span class="clb-usercard-name">{{user.displayName}}</span>
-        <span class="text-muted clb-usercard-username">@{{user.username}}</span>
+        <span class="text-muted clb-usercard-username"
+          uib-popover="{{user.id}}"
+          popover-trigger="mouseenter"
+          popover-popup-close-delay="2000"
+          popover-placement="right">@{{user.username}}</span>
     </h3>
     <div class="clb-usercard-pix">
       <clb-user-avatar clb-user="user"></clb-user-avatar>
