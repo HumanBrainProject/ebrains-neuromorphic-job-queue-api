@@ -13,79 +13,78 @@
       <h3>Create Job</h3>
       <form name="create_job" novalidate role="form" class="form-horizontal" ng-controller="AddJob">
         <ul class="nav nav-tabs">
-          <li class="nav-item">
-            <a class="nav-link active" ng-click="toogleTabs('code_editor')" >Code Editor</a>
+          <li id="li_code_editor" class="nav-item active">
+            <a class="nav-link" ng-click="toogleTabs('code_editor')" >Code Editor</a>
           </li>
-          <li class="nav-item">
-            <a class="nav-link active" ng-click="toogleTabs('upload_link')" >GIT or ZIP file from clound storage</a>
+          <li id="li_upload_link" class="nav-item">
+            <a class="nav-link" ng-click="toogleTabs('upload_link')" >GIT or ZIP file from clound storage</a>
           </li>
-          <li class="nav-item">
-            <a class="nav-link active" ng-click="toogleTabs('upload_script')" >Load or upload an existing script</a>
+          <li id="li_upload_script" class="nav-item">
+            <a class="nav-link" ng-click="toogleTabs('upload_script')" >Load or upload an existing script</a>
           </li>
         </ul>
 
+        <div class="control-group">
+            <label class="control-label" for="hardware_platform">Hardware Platform</label>
+            <div class="controls">
+                <select name="platform" ng-options="hw.value as hw.text for hw in hardwares" ng-model="job.hardware_platform" required></select>
+                <span class="badge" ng-show="create_job.platform.$error.required">Please choose a simulation platform.</span>
+            </div>
+        </div>
 
-      <div class="control-group">
-          <label class="control-label" for="hardware_platform">Hardware Platform</label>
-          <div class="controls">
-              <select name="platform" ng-options="hw.value as hw.text for hw in hardwares" ng-model="job.hardware_platform" required></select>
-              <span class="badge" ng-show="create_job.platform.$error.required">Please choose a simulation platform.</span>
-          </div>
-      </div>
+        <div class="control-group" id="code_editor" style="display:block;" aria-expanded="true">
+            <label class="control-label" for="code">Code</label>
+            <div name="code" class="controls">
+              <textarea id="code" name="code" rows="5" ng-model="job.code" required style="width:100%"></textarea>
+              <span class="badge" ng-show="create_job.code.$error.required">Please enter PyNN code, a Git repository URL or the URL of a zip archive containing your code.</span>
+            </div>
+        </div>
 
-      <div class="control-group" id="code_editor" style="display:block;">
-          <label class="control-label" for="code">Code</label>
-          <div name="code" class="controls">
-            <textarea id="code" name="code" rows="5" ng-model="job.code" required style="width:100%"></textarea>
-            <span class="badge" ng-show="create_job.code.$error.required">Please enter PyNN code, a Git repository URL or the URL of a zip archive containing your code.</span>
-          </div>
-      </div>
+        <div class="control-group"  id="upload_link" style="display:none;" aria-expanded="false">
+            <label class="control-label" for="hardware_platform">GIT or ZIP file from clound storage</label>
+            <div class="controls">
+            GIT or ZIP file from clound storage
+            </div>
+        </div>
+        <div class="control-group" id="upload_script" style="display:none;" aria-expanded="false">
+            <label class="control-label" for="hardware_platform">Load or upload an existing script</label>
+            <div class="controls">
+            Load or upload an existing script
+            </div>
+        </div>
 
-      <div class="control-group"  id="upload_link" style="display:none;">
-          <label class="control-label" for="hardware_platform">GIT or ZIP file from clound storage</label>
-          <div class="controls">
-          GIT or ZIP file from clound storage
-          </div>
-      </div>
-      <div class="control-group" id="upload_script" style="display:none;">
-          <label class="control-label" for="hardware_platform">Load or upload an existing script</label>
-          <div class="controls">
-          Load or upload an existing script
-          </div>
-      </div>
+        <div class="control-group">
+            <label class="control-label" for="command">Command</label>
+            <div name="command" class="controls">
+              <input type="text" class="form-control" id="command" name="command" ng-model="job.command">
+            </div>
+        </div>
 
-      <div class="control-group">
-          <label class="control-label" for="command">Command</label>
-          <div name="command" class="controls">
-            <input type="text" class="form-control" id="command" name="command" ng-model="job.command">
-          </div>
-      </div>
+        <div class="control-group">
+            <label class="control-label" for="hardware_config">Hardware Config</label>
+            <div class="controls">
+              <textarea id="hardware_config" name="hardware_config" rows="5" ng-model="job.hardware_config" style="width:100%"></textarea>
+              <span class="badge" ng-show="checkJSON()">Please enter valid JSON.</span>
+            </div>
+        </div>
 
-      <div class="control-group">
-          <label class="control-label" for="hardware_config">Hardware Config</label>
-          <div class="controls">
-            <textarea id="hardware_config" name="hardware_config" rows="5" ng-model="job.hardware_config" style="width:100%"></textarea>
-            <span class="badge" ng-show="checkJSON()">Please enter valid JSON.</span>
-          </div>
-      </div>
+        <div class="control-group">
+            <label class="control-label" for="inputs">
+              Input Files 
+              <a href="" ng-click="addInput()" class="glyphicon glyphicon-plus"></a>
+              <a href="" ng-click="removeInput()" class="glyphicon glyphicon-minus"></a>
+            </label>
+            <div class="controls" data-ng-repeat="input in inputs">
+              <input type="text" ng-model="input.url" name="" placeholder="file URL">
+            </div>
+        </div>
 
-      <div class="control-group">
-          <label class="control-label" for="inputs">
-            Input Files 
-            <a href="" ng-click="addInput()" class="glyphicon glyphicon-plus"></a>
-            <a href="" ng-click="removeInput()" class="glyphicon glyphicon-minus"></a>
-          </label>
-          <div class="controls" data-ng-repeat="input in inputs">
-            <input type="text" ng-model="input.url" name="" placeholder="file URL">
-          </div>
-      </div>
+        <br/>
 
-      <br/>
-
-      <div class="control-group">
-          <button ng-click="reset()" class="btn btn-warning">Cancel</button>
-          <button ng-click="create_job.$valid && submit(job)" class="btn btn-info" style="float:right;">Submit</button>
-      </div>
+        <div class="control-group">
+            <button ng-click="reset()" class="btn btn-warning">Cancel</button>
+            <button ng-click="create_job.$valid && submit(job)" class="btn btn-info" style="float:right;">Submit</button>
+        </div>
       </form>
 
     </div>
