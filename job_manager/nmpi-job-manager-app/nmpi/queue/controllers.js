@@ -421,7 +421,6 @@ angular.module('nmpi')
         };
 
         $scope.savejob = function(){
-            // console.log(JSON.stringify($scope.job));
             $scope.job.$save({},
                 function(data){  // success
                     console.log(JSON.stringify(data));
@@ -451,12 +450,17 @@ angular.module('nmpi')
 
         //toogle code tabs
         $scope.toogleTabs = function(id_tab){
-            //angular.element('#'+id_tab+'').tab('show');
             document.getElementById("code_editor").style.display="none";
             document.getElementById("upload_link").style.display="none";
             document.getElementById("upload_script").style.display="none";
-
             document.getElementById(id_tab).style.display="block";
+
+            var a = document.getElementById("li_code_editor");
+            var b = document.getElementById("li_upload_link");
+            var c = document.getElementById("li_upload_script");
+            a.className = b.className = c.className = "nav-link";
+            var d = document.getElementById("li_"+id_tab);
+            d.className += " active";
         };
     }
 ]);
