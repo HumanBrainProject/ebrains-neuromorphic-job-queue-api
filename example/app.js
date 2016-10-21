@@ -120,6 +120,28 @@ angular.module('customCollabApp', [
       }
     }, true);
   }
+})
+.controller('UiStorageController', function($scope, clbUser, clbCollab, clbStorage) {
+  var vm = this;
+
+  clbCollab.list().then(function(collabs) {
+    vm.collabs = collabs.results;
+  });
+
+  $scope.$watch('vm.selectedCollabId', function(id) {
+    vm.loading = true;
+    clbStorage.getEntity({collab: id}).then(function(collabStorage) {
+      vm.collabStorage = collabStorage;
+    }, function() {
+      vm.collabStorage = null;  
+    })
+    .finally(function() {
+      vm.loading = false;
+    });
+  });
+  $scope.$on('clbAuth.changed', function(event, authInfo) {
+    vm.authInfo = authInfo;
+  });
 });
 
 // You can find a complete configuration file at:

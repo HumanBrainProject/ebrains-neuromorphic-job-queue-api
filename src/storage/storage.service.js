@@ -22,7 +22,7 @@ angular.module('clb-storage')
  * @desc
  * The ``clbStorage`` service provides utility functions to ease the interaction
  * of apps with storage.
- * @param  {object} $http        Angular DI
+ * @param  {object} clbAuthHttp        Angular DI
  * @param  {object} $q           Angular DI
  * @param  {object} $log         Angular DI
  * @param  {object} uuid4        Angular DI
@@ -33,7 +33,7 @@ angular.module('clb-storage')
  * @return {object}              Angular DI
  */
 function clbStorage(
-  $http,
+  clbAuthHttp,
   $q,
   $log,
   uuid4,
@@ -131,7 +131,7 @@ function clbStorage(
       return $q.when(null);
     }
     var uuid = entity._uuid || entity;
-    return $http.get(baseUrl + '/entity_path/' + uuid)
+    return clbAuthHttp.get(baseUrl + '/entity_path/' + uuid)
     .then(function(res) {
       return res.data._path;
     })
@@ -167,7 +167,7 @@ function clbStorage(
     var url = entityUrl + '/' + uuid;
     var k = 'GET ' + url;
     return runOnce(k, function() {
-      return $http.get(url).then(function(data) {
+      return clbAuthHttp.get(url).then(function(data) {
         return data.data;
       }).catch(clbError.rejectHttpError);
     });
@@ -183,7 +183,7 @@ function clbStorage(
    */
   function query(params) {
     $log.debug('clbStorage.query with', params);
-    return $http.get(entityUrl + '/', {
+    return clbAuthHttp.get(entityUrl + '/', {
       params: params
     }).then(function(response) {
       return response.data;
@@ -298,7 +298,7 @@ function clbStorage(
    * @return {Promise}        Resolves after the operation is completed
    */
   function addMetadata(entity, metadata) {
-    return $http.post(baseUrl + '/' + entity._entityType + '/' +
+    return clbAuthHttp.post(baseUrl + '/' + entity._entityType + '/' +
     entity._uuid + '/metadata', metadata)
     .then(function(response) {
       return response.data;
@@ -317,7 +317,7 @@ function clbStorage(
    * @return {Promise}           Resolve to the metadata
    */
   function deleteMetadata(entity, metadataKeys) {
-    return $http.delete(baseUrl + '/' + entity._entityType + '/' +
+    return clbAuthHttp.delete(baseUrl + '/' + entity._entityType + '/' +
       entity._uuid + '/metadata', {data: {keys: metadataKeys}})
     .then(function(response) {
       return response.data;
@@ -354,7 +354,7 @@ function clbStorage(
    * @return {Promise}               Resolve once done
    */
   function create(type, parent, name, options) {
-    return $http.post(
+    return clbAuthHttp.post(
       baseUrl + '/' + type.split(':')[0],
       angular.extend({
         _name: name,
@@ -399,7 +399,7 @@ function clbStorage(
       })
       .then(function(dest) {
         var url = [baseUrl, dest._entityType, dest._uuid, 'content'].join('/');
-        return $http.put(url, {}, {
+        return clbAuthHttp.put(url, {}, {
           headers: {'X-Copy-From': src._uuid}
         }).then(function() {
           return dest;
@@ -430,7 +430,7 @@ function clbStorage(
     if (angular.isDefined(customConfig)) {
       angular.extend(config, customConfig);
     }
-    return $http(config).then(function(data) {
+    return clbAuthHttp(config).then(function(data) {
       return data.data;
     }).catch(clbError.rejectHttpError);
   }
@@ -454,7 +454,7 @@ function clbStorage(
    */
   function getUserAccess(entity) {
     return $q.all({
-      acl: $http.get(baseUrl + '/' + entity._entityType + '/' +
+      acl: clbAuthHttp.get(baseUrl + '/' + entity._entityType + '/' +
         entity._uuid + '/acl'),
       user: clbUser.getCurrentUser()
     })
@@ -522,7 +522,7 @@ function clbStorage(
       access: options.access,
       limit: options.pageSize > 0 ? options.pageSize : null
     };
-    return clbResultSet.get($http.get(url, {params: params}), {
+    return clbResultSet.get(clbAuthHttp.get(url, {params: params}), {
       resultKey: 'result',
       hasNextHandler: function(res) {
         return Boolean(res.hasMore);
@@ -530,7 +530,7 @@ function clbStorage(
       nextHandler: function(rs) {
         var p = angular.extend({}, params);
         p.from = rs.nextId;
-        return $http.get(url, {params: p});
+        return clbAuthHttp.get(url, {params: p});
       },
       hasPreviousHandler: function(res) {
         return Boolean(res.hasPrevious);
@@ -538,7 +538,7 @@ function clbStorage(
       previousHandler: function(rs) {
         var p = angular.extend({}, params);
         p.until = rs.previousId;
-        return $http.get(url, {params: p});
+        return clbAuthHttp.get(url, {params: p});
       },
       resultsFactory: function(results, rs) {
         if (rs.hasMore) {
@@ -582,7 +582,7 @@ function clbStorage(
    */
   function uploadFile(file, entity, config) {
     var d = $q.defer();
-    $http.post(fileUrl + '/' + entity._uuid + '/content/upload', file,
+    clbAuthHttp.post(fileUrl + '/' + entity._uuid + '/content/upload', file,
       angular.extend({
         headers: {
           'Content-Type': 'application/octet-stream'
@@ -730,7 +730,7 @@ function clbStorage(
    * @return {Promise}        Return once fulfilled
    */
   function deleteEntity(entity) {
-    return $http.delete(entityUrl + '/' + entity._uuid)
+    return clbAuthHttp.delete(entityUrl + '/' + entity._uuid)
     .catch(clbError.rejectHttpError);
   }
 
@@ -795,7 +795,7 @@ function clbStorage(
    */
   function downloadUrl(entity) {
     var id = entity._uuid || entity;
-    return $http.get(baseUrl + '/file/' + id + '/content/secure_link')
+    return clbAuthHttp.get(baseUrl + '/file/' + id + '/content/secure_link')
     .then(function(response) {
       return baseUrl + response.data.signed_url;
     }).catch(clbError.rejectHttpError);
