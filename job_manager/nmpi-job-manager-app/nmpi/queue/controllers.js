@@ -3,7 +3,6 @@
 /* Controllers */
 angular.module('nmpi')
 
-
 .controller('ListQueue', 
             ['$scope', '$rootScope', '$http', '$location', 'Queue', 'Results', 'Context', 'Collab', 'User', 'hbpCollabStore', 'hbpIdentityUserDirectory',
     function( $scope,   $rootScope,   $http,   $location,   Queue,   Results,   Context,   Collab,   User,   hbpCollabStore,   hbpIdentityUserDirectory)
@@ -315,4 +314,28 @@ angular.module('nmpi')
             d.className += " active";
         };
     }
-]);
+])
+
+.controller('UiStorageController', function($scope, clbUser, clbCollab, clbStorage) {
+  var vm = this;
+  vm.authInfo = true;
+
+  clbCollab.list().then(function(collabs) {
+    vm.collabs = collabs.results;
+  });
+
+  $scope.$watch('vm.selectedCollabId', function(id) {
+    vm.loading = true;
+    clbStorage.getEntity({collab: id}).then(function(collabStorage) {
+      vm.collabStorage = collabStorage;
+    }, function() {
+      vm.collabStorage = null;  
+    })
+    .finally(function() {
+      vm.loading = false;
+    });
+  });
+  $scope.$on('clbAuth.changed', function(event, authInfo) {
+    vm.authInfo = authInfo;
+  });
+});

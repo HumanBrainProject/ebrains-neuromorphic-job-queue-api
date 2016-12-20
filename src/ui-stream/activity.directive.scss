@@ -1,0 +1,40 @@
+.clb-activity {
+  display: flex;
+
+  .clb-activity-metadata {
+    display: flex;
+    width: 132px;
+  }
+
+  .clb-activity-time {
+    flex: 1;
+    max-width: 92px;
+    padding-right: $padding-base-horizontal;
+    text-align: right;
+  }
+
+  .clb-activity-avatar {
+    padding-right: $padding-base-horizontal;
+    width: 40px;
+  }
+
+  a {
+    cursor: pointer;
+  }
+}
+
+.clb-activity-link-object {
+  font-weight: bold;
+}
+
+.clb-activity-summary {
+  flex: 1;
+}
+
+.clb-activity-activable {
+  color: rgba(0, 0, 0, .55);
+}
+
+.clb-activity-activable:hover {
+  color: rgba(0, 0, 0, .85);
+}

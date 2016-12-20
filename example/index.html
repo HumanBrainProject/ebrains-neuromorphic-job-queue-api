@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>Create a collab</title>
+    <!-- bower:css -->
+    <link rel="stylesheet" href="../bower_components/hbp-collaboratory-theme/dist/css/bootstrap.css" />
+    <link rel="stylesheet" href="../angular-hbp-collaboratory.css" />
+    <!-- endbower -->
+
+    <link rel="stylesheet" type="text/css" href="../bower_components/codemirror/lib/codemirror.css">
+  </head>
+  <body>
+    <div class="container">
+      <div class="panel panel-default">
+        <div class="panel-heading">
+          <h4>Login</h4>
+        </div>
+        <div class="panel-body" ng-controller="UiAuthController as vm">
+          <button type="button" class="btn btn-primary"
+                  ng-click="vm.login()">Login</button>
+          <button type="button" class="btn btn-danger"
+                  ng-click="vm.logout()">Logout</button>
+          <button type="button" class="btn btn-default"
+                  ng-click="vm.forceLogin()">Force Login</button>
+          <button type="button" class="btn btn-default"
+                  ng-click="vm.forceLogout()">Force Logout</button>
+          <pre ng-cloak ng-if="vm.authInfo">{{vm.authInfo|json}}</pre>
+        </div>
+      </div>
+
+      <div class="panel panel-default">
+        <div class="panel-heading">
+          <h4>Identity UI</h4>
+        </div>
+        <div class="panel-body" ng-controller="UiIdentityController as vm">
+          <h4>User Avatar</h4>
+          <h5>Default Avatar</h5>
+          <clb-user-avatar clb-user="{displayName: 'John Doe'}"></clb-user-avatar>
+          <clb-user-avatar clb-user="{displayName: 'wohn Doe'}"></clb-user-avatar>
+          <clb-user-avatar clb-user="{displayName: 'mohn Doe'}"></clb-user-avatar>
+
+          <h5>Override Avatar Colors</h5>
+          <style>
+            .grey-background .clb-user-avatar-icon-fill {
+              fill: #d4d4d4;
+            }
+            .pink-text .clb-user-avatar-icon-text {
+              fill: #ff66cc;
+            }
+            .outline-text .clb-user-avatar-icon-text {
+              stroke: #000000;
+            }
+          </style>
+          <clb-user-avatar class="grey-background" clb-user="{displayName: 'iohn Doe'}"></clb-user-avatar>
+          <clb-user-avatar class="pink-text outline-text" clb-user="{displayName: 'aohn Doe'}"></clb-user-avatar>
+          <clb-user-avatar class="grey-background pink-text" clb-user="{displayName: 'bohn Doe'}"></clb-user-avatar>
+
+          <h5>Override Avatar Size</h5>
+          <clb-user-avatar style="width: 20px; height: 20px;" clb-user="{displayName: 'oohn Doe'}"></clb-user-avatar>
+          <clb-user-avatar style="width: 80px; height: 80px;" clb-user="{displayName: 'xohn Doe'}"></clb-user-avatar>
+          <clb-user-avatar style="width: 60px; height: 60px;" clb-user="vm.user"></clb-user-avatar>
+
+          <h4>User Card</h4>
+          <clb-usercard clb-user="vm.user"></clb-usercard>
+          <uib-alert ng-if="!vm.user">
+            <strong>Not available:</strong> You must login to see the user card.
+          </uib-alert>
+        </div>
+      </div>
+
+      <div class="panel panel-default" ng-controller="CollabConfigurationController as vm">
+        <div class="panel-heading">
+          <h4>Create a custom Collab with <code><a href="http://humanbrainproject.github.io/angular-hbp-collaboratory/module-clb-automator.html">clb-automator</a></code></h4>
+        </div>
+        <div class="panel-body">
+          <form class="form" ng-submit="vm.handleSubmit($event)">
+            <div class="form-group">
+              <label>Collab Configuration:</label>
+              <textarea class="form-control" name="name" rows="30" cols="80"
+                        ng-model="vm.configJson"
+                        ui-codemirror></textarea>
+            </div>
+            <div ng-if="vm.error" class="row" ng-cloak>
+              <div class="col-md-6">
+                <img src="https://placebear.com/500/500" alt="Error Image" />
+              </div>
+              <div class="col-md-6">
+                An error occured:
+                <pre>{{vm.error | json}}</pre>
+              </div>
+            </div>
+            <button class="btn btn-primary" type="submit">Create Collab</button>
+          </form>
+        </div>
+      </div>
+
+      <div class="panel panel-default">
+        <div class="panel-heading">
+          <h4>Alert box</h4>
+        </div>
+        <div class="panel-body">
+          <uib-alert type="danger">Hello World</uib-alert>
+        </div>
+      </div>
+
+      <div class="panel panel-default">
+        <div class="panel-heading">
+          <h4>Collab Storage Browser</h4>
+        </div>
+        <div class="panel-body" ng-controller="UiStorageController as vm">
+          <uib-alert type="warning" ng-if="!vm.authInfo">You have to be logged in to access the collab storage</uib-alert>
+          <div ng-if="vm.authInfo">
+            <div class="form-group" ng-if="!vm.collabStorage">
+              <label for="targetCollab">Select a collab:</label>
+              <select class="form-control" name="targetCollab" ng-model="vm.selectedCollabId">
+                <option ng-repeat="c in vm.collabs" value="{{c.id}}">{{c.title}}</option>
+              </select>
+            </div>
+            <clb-file-browser ng-if="vm.collabStorage" 
+              clb-root="vm.collabStorage" 
+              clb-entity="vm.collabStorage">
+            </clb-file-browser>
+            <uib-alert type="warning" ng-if="!vm.loading && vm.selectedCollabId && !vm.collabStorage">
+              No storage available for the selected colab. Please select another one.
+            </clb-alert>
+          </div>
+        </div>
+      </div>
+    </div>
+    <!-- bower:js -->
+    <script src="../bower_components/angular/angular.js"></script>
+    <script src="../bower_components/angular-uuid4/angular-uuid4.js"></script>
+    <script src="../bower_components/angular-deferred-bootstrap/angular-deferred-bootstrap.js"></script>
+    <script src="../bower_components/moment/moment.js"></script>
+    <script src="../bower_components/angular-moment/angular-moment.js"></script>
+    <script src="../bower_components/angular-bootstrap/ui-bootstrap-tpls.js"></script>
+    <script src="../bower_components/lodash/lodash.js"></script>
+    <script src="../bower_components/hello/dist/hello.all.js"></script>
+    <script src="../angular-hbp-collaboratory.js"></script>
+    <!-- endbower -->
+
+    <script type="text/javascript" src="../bower_components/codemirror/lib/codemirror.js"></script>
+    <script type="text/javascript" src="../bower_components/angular-ui-codemirror/ui-codemirror.js"></script>
+    <script type="text/javascript" src="../bower_components/hello/dist/hello.all.js"></script>
+    <script src="./app.js"></script>
+  </body>
+</html>

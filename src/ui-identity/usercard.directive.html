@@ -1,0 +1,34 @@
+<div ng-if="user" class="clb-usercard clb-card clb-card-default">
+    <h3 class="clb-usercard-header">
+        <span class="clb-usercard-name">{{user.displayName}}</span>
+        <span class="text-muted clb-usercard-username"
+          uib-popover="{{user.id}}"
+          popover-trigger="mouseenter"
+          popover-popup-close-delay="2000"
+          popover-placement="right">@{{user.username}}</span>
+    </h3>
+    <div class="clb-usercard-pix">
+      <clb-user-avatar clb-user="user"></clb-user-avatar>
+    </div>
+    <div class="clb-usercard-institution" ng-if="institution">
+        <span class="clb-usercard-institution-title">{{institution.title}}</span>
+        <span ng-if="institution.title && (institution.name || institution.department)">, </span>
+        <span class="clb-usercard-institution-name">{{institution.name}}</span>
+        <span ng-if="institution.name && institution.department">, </span>
+        <span class="clb-usercard-institution-dept">{{institution.department}}</span>
+    </div>
+    <div class="clb-usercard-contact">
+        <a class="clb-usercard-contact-item clb-usercard-email"
+           target="_top" href="mailto:{{email}}"
+           ng-if="email"><span class="glyphicon glyphicon-envelope"></span> {{email}}</a>
+        <span class="clb-usercard-contact-item clb-usercard-phone" ng-if="phone"><span class="glyphicon glyphicon-phone"></span> {{phone}}</span>
+        <span class="clb-usercard-contact-item clb-usercard-im-list" ng-if="ims.length">
+          <span class="glyphicon glyphicon-bullhorn"></span>
+          <span ng-repeat-start="im in ims"></span>
+          <span class="clb-usercard-im">
+            {{im.value}}({{im.type}})
+          </span>
+          <span ng-repeat-end></span>
+        </span>
+    </div>
+</div>

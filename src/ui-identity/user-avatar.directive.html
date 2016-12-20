@@ -1,0 +1,12 @@
+<img class="clb-user-avatar-img"
+     ng-if="user.picture"
+     ng-src="{{user.picture}}">
+<svg class="clb-user-avatar-icon"
+     viewBox="0 0 40 40"
+     preserveAspectRatio="xMidYMid meet"
+     ng-cloak
+     ng-if="!user.picture"
+     ng-class="'clb-user-avatar-icon-hue-' + hueNumber">
+  <rect x="0" y="0" width="40" height="40" class="clb-user-avatar-icon-fill"></rect>
+  <text x="50%" y="58%" font-size="26px" class="clb-user-avatar-icon-text" dominant-baseline="middle" text-anchor="middle">{{char}}</text>
+</svg>

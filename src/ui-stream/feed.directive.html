@@ -1,0 +1,30 @@
+<div ng-if="vm.loadingFeed" class="alert alert-info">
+  <div ng-switch on="vm.feedDate">
+    <div ng-switch-when="null">Loading all activities...</div>
+    <div class="animate-switch" ng-switch-default>Loading Feed for {{vm.feedDate}}...</div>
+  </div>
+</div>
+<p ng-if="vm.feedDate != null">Selected date: {{vm.feedDate}}</p>
+
+<ul class="feed list-group" ng-if="!vm.loadingFeed" ng-class="{'feed-empty': vm.activities.results.length === 0}">
+  <li ng-if="vm.error" class="list-group-item">
+    <div class="alert alert-error">
+      <strong>Load Error:</strong> {{vm.error}}
+    </div>
+  </li>
+  <li class="list-group-item" ng-if="!vm.activities && !vm.error"><hbp-loading></hbp-loading></li>
+
+  <li class="list-group-item" ng-if="vm.activities.results.length === 0 && vm.feedDate">
+    <div class="alert alert-info">No activities on {{vm.feedDate}}</div>
+  </li>
+
+  <li class="list-group-item" ng-if="vm.activities.results.length === 0 && !vm.feedDate">
+    <div class="alert alert-info">No activities to show</div>
+  </li>
+
+  <li class="list-group-item"
+      ng-repeat="a in vm.activities.results track by $index" clb-activity="a" class="clb-activity-item"></li>
+  <li class="list-group-item" ng-if="vm.activities.hasNext">
+    <a href clb-perform-action="vm.activities.next()" class="btn btn-default">Show More</a>
+  </li>
+</ul>

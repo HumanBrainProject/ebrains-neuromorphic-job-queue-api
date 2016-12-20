@@ -14,7 +14,7 @@ import os, sys
 import hbp_app_python_auth.settings as auth_settings
 
 ENV = os.environ.get('NMPI_ENV', 'production')
-LOCAL_DB = True    # only applies when ENV='dev'
+LOCAL_DB = False    # only applies when ENV='dev'
 EMAIL_DEBUG = False
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
@@ -99,8 +99,8 @@ else:
             'ENGINE': 'django.db.backends.postgresql_psycopg2',
             'NAME': 'nmpi',
             'USER': 'nmpi_dbadmin',
-            'PASSWORD': os.environ.get("NMPI_DATABASE_PASSWORD"),
-            'HOST': os.environ.get("NMPI_DATABASE_HOST"),
+            'PASSWORD': os.environ.get("NMPI_DATABASE_PASSWORD", "nmpi_pass_dbad05"),
+            'HOST': os.environ.get("NMPI_DATABASE_HOST", "172.17.0.2"),
             'PORT': os.environ.get("NMPI_DATABASE_PORT", "5432"),
         },
     }

@@ -1,0 +1,41 @@
+$usercard-padding: $grid-gutter-width/2 !default;
+
+.clb-usercard {
+  min-height: 80px;
+  position: relative;
+
+  .clb-usercard-pix {
+    height: 100%;
+    left: 0;
+    overflow: hidden;
+    position: absolute;
+    top: 0;
+
+    > .clb-user-avatar {
+      width: 80px;
+    }
+
+    > img {
+      border: 0;
+      height: auto;
+      vertical-align: middle;
+      width: 80px;
+    }
+  }
+
+  .clb-usercard-header {
+    margin-bottom: $padding-base-vertical;
+    margin-top: $usercard-padding;
+  }
+
+  .clb-usercard-header,
+  .clb-usercard-institution,
+  .clb-usercard-contact {
+    margin-left: 80 + $usercard-padding;
+  }
+
+  .clb-usercard-contact-item {
+    display: inline-block; // try to keep item on one line
+    padding-right: $usercard-padding;
+  }
+}

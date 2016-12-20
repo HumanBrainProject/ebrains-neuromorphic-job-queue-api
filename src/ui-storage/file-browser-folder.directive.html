@@ -1,0 +1,9 @@
+<div class="clb-file-browser-item clb-file-browser-folder"
+  ng-dblclick="browserView.handleNavigation(folder)"
+  ng-click="browserView.handleFocus(folder)"
+  hbp-on-touch="browserView.handleNavigation(folder)"
+  ng-class="{'clb-file-browser-item-selected': browserView.selectedEntity === folder}">
+  <div class="clb-file-browser-label">
+    <i class="fa" ng-class="folderIcon ? folderIcon : 'fa-folder'"></i><span>{{folderLabel || folder._name}}</span>
+  </div>
+</div>

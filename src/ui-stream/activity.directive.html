@@ -1,0 +1,21 @@
+<div class="clb-activity-metadata">
+  <div class="clb-activity-time" am-time-ago="vm.activity.time"></div>
+  <a clb-usercard-popover="vm.activity.actor.data"
+     ng-click="vm.navigate($event, false)">
+  <clb-user-avatar class="clb-activity-avatar"
+                   clb-user="vm.activity.actor.data"
+                   ng-if="vm.activity.actor.data"></clb-user-avatar>
+  </a>
+</div>
+<div class="clb-activity-summary">
+  <span class="clb-activity-link"
+        ng-repeat="p in vm.parts"
+        ng-class="'clb-activity-link-' + p.tag">
+    <a ng-if="p.tag && p.ref.type === 'HBPUser'"
+       clb-usercard-popover="p.ref.id"
+       ng-click="vm.navigate($event, false)">{{p.text}}</a>
+    <a ng-if="p.tag && p.ref.type !== 'HBPUser'"
+       ng-init="vm.resolveUrl(p)" ng-href="{{p.url}}">{{p.text}}</a>
+    <span ng-if="!p.tag">{{p.text}}</span>
+  </span>
+</div>

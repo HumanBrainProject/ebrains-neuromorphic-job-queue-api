@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 *.log
 *.pyc
 *.orig
@@ -16,3 +17,12 @@ resource_manager/static
 job_manager/deployment/ssl
 resource_manager/deployment/ssl
 documentation/letsencrypt
+=======
+/bower_components/
+/node_modules/
+/dist/
+*.log
+/output/
+/.publish/
+.idea/
+>>>>>>> 3cf0fcbe8b6b2bca18c4497e9ef1ea637f586a3c

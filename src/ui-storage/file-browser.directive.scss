@@ -1,0 +1,147 @@
+// Variable used by the file-browser;
+$bundle-item-height: 40px !default;
+$bundle-box-shadow:  0 1px 3px 0 rgba(0, 0, 0, 0.26) !default;
+$bundle-bar-shadow:  0 2px 5px 0 rgba(0, 0, 0, 0.26) !default;
+
+.clb-file-browser {
+    overflow-y: auto;
+    min-height: 200px;
+    
+    .clb-file-browser-heading, .clb-file-browser-content {
+        padding-left: $padding-base-horizontal;
+        padding-right: $padding-base-horizontal;
+
+        ul {
+            padding-left: 0px;
+            > li {
+                display: inline;
+            }
+        }
+    }
+
+    .clb-file-browser-heading {
+        font-size: $font-size-h4;
+        line-height: 2.5*$font-size-h4;
+        width: 100%;
+        background-color: #f5f5f5;
+        box-shadow: $bundle-bar-shadow;
+
+        .clb-file-browser-heading-separator {
+            padding-left: 8px;
+            padding-right: 8px;
+        }
+    }
+
+    .clb-file-browser-content {
+
+        .clb-file-browser-item {
+            display: inline-block;
+            margin-top: $grid-gutter-width/2;
+            margin-right: $grid-gutter-width/2;
+            width: calc(24% - 20px);
+            height: $bundle-item-height;
+            vertical-align: top;
+            box-sizing: border-box;
+            cursor: default;
+
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+
+            &.clb-file-browser-item-error * {
+                color: $brand-danger;
+            }
+
+            &.clb-file-browser-folder {
+                box-shadow: $bundle-box-shadow;
+                background-color: $white;
+
+                .fa {
+                    color: #888888;
+                    margin-right: 15px;
+                }
+            }
+
+            &.clb-file-browser-item-selected {
+                color: $white;
+                background-color: $brand-primary;
+                box-shadow: $bundle-box-shadow;
+
+                .clb-file-browser-label {
+                    .fa {
+                        color: $white;
+                    }
+                    span {
+                        color: $white;
+                    }
+                }
+            }
+
+
+            .clb-file-browser-label {
+                overflow: hidden;
+                text-overflow: ellipsis;
+                white-space: nowrap;
+                line-height: $bundle-item-height;
+                padding-left: $padding-base-horizontal;
+
+                span {
+                    text-shadow: none;
+                }
+
+                &.btn {
+                  padding-top: 0;
+                  padding-right: 0;
+                  padding-bottom: 0;
+                }
+            }
+        }
+
+        .tooltip-inner {
+            max-width: 500px;
+            line-height: 30px;
+        }
+
+        .clb-file-browser-item-error + .tooltip {
+            .tooltip-inner {
+                background-color: $brand-danger;
+            }
+            .tooltip-arrow {
+                border-bottom-color: $brand-danger;
+            }
+        }
+    }
+}
+
+.clb-file-browser-path.breadcrumb {
+  background: transparent;
+  padding: 0;
+  margin-bottom: 0;
+
+  > li + li:before {
+    content: '/\00a0';
+  }
+}
+
+.clb-file-browser-state-error .clb-file-browser-item-upload {
+  background-color: red;
+}
+
+.clb-file-browser-item-upload.progress {
+  height: 4px;
+}
+
+.file-browser-upload .close{
+  margin-right: $padding-base-horizontal;
+  margin-top: $padding-base-vertical;
+}
+
+.file-browser-thumbnail {
+  margin: 0 auto;
+  text-align: center;
+  width: 164px;
+  img {
+    width: 100%;
+    height: auto;
+  }
+}

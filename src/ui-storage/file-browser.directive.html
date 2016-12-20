@@ -1,0 +1,103 @@
+<div class="clb-file-browser" in-view-container ng-click="selectItem()">
+  <clb-error-message clb-error='browserView.error'></clb-error-message>
+  <div class="navbar navbar-default">
+    <div class="container-fluid">
+      <div class="nav navbar-nav navbar-text">
+        <clb-file-browser-path></clb-file-browser-path>
+      </div>
+      <div class="dropdown nav navbar-nav pull-right" uib-dropdown ng-if="browserView.canEdit">
+        <button type="button" href class="btn btn-default navbar-btn dropdown-toggle" uib-dropdown-toggle>
+          <span class="glyphicon glyphicon-plus"></span>
+          <span class="caret"></span>
+        </button>
+        <ul class="dropdown-menu" role="menu" uib-dropdown-menu>
+          <li ng-if="browserView.canEdit"><a href ng-click="browserView.startCreateFolder()"><span class="fa fa-folder"></span> Create Folder</a></li>
+          <li ng-if="browserView.canEdit"><a href ng-click="browserView.showFileUpload = true"><span class="fa fa-file"></span> Upload File</a></li>
+        </ul>
+      </div>
+    </div>
+  </div>
+  <div class="clb-file-browser-content">
+    <div ng-if="browserView.isLoading" class="alert alert-info" role="alert">Loading...</div>
+    <div class="file-browser-upload" ng-if="browserView.showFileUpload" >
+      <button type="button" class="btn close pull-right"
+        ng-click="browserView.showFileUpload = false">
+        <span aria-hidden="true">&times;</span><span class="sr-only">Close</span>
+      </button>
+      <clb-file-upload on-drop="browserView.onFileChanged(files)" on-error="browserView.setError(error)"></clb-file-upload>
+    </div>
+
+    <div ng-if="browserView.isRoot && browserView.isEmpty()" class="alert alert-info" role="alert">
+      The collab storage is still empty, use the '+' button to upload some content.
+    </div>
+
+    <ul>
+      <!-- navigate up one level -->
+      <li ng-if="!browserView.isRoot" clb-file-browser-folder="browserView.parent" clb-file-browser-folder-label=".." clb-file-browser-folder-icon="fa-level-up"></li>
+
+      <!-- folders -->
+      <li ng-repeat="folder in browserView.folders" clb-file-browser-folder="folder"></li>
+      <li ng-if="browserView.showCreateFolder" class="clb-file-browser-item">
+        <div class="clb-file-browser-folder">
+          <form class="form form-inline" action="index.html" method="post" ng-submit="browserView.doCreateFolder($event)">
+            <div class="input-group">
+              <input type="text" class="form-control new-folder-name" name="newFolderName" ng-model="browserView.newFolderName">
+              <span class="input-group-btn">
+                <input class="btn btn-primary" type="submit" name="name" value="Ok">
+                <button class="btn btn-default" type="button" ng-click="browserView.cancelCreateFolder()">
+                  <span aria-hidden="true">&times;</span><span class="sr-only">Cancel</span>
+                </button>
+              </span>
+            </div>
+          </form>
+        </div>
+      </li>
+      <li class="clb-file-browser-item"
+          ng-if="browserView.hasMoreFolders">
+        <a href class="clb-file-browser-label btn" clb-perform-action="browserView.loadMoreFolders()">
+          <span class="fa fa-refresh"></span>
+          Load More Folders
+        </a>
+      </li>
+
+      <!-- files -->
+      <li ng-repeat="file in browserView.files"
+          ng-dblclick="browseToEntity(file)"
+          ng-click="browserView.handleFocus(file)"
+          uib-tooltip-template="'file-browser-tooltip.tpl.html'" tooltip-placement="bottom" tooltip-popup-delay="600"
+          class="clb-file-browser-item"
+          ng-class="{ 'clb-file-browser-item-selected': browserView.selectedEntity === file }">
+          <div class="clb-file-browser-label">
+            <hbp-content-icon content="file._contentType"></hbp-content-icon>
+            <span>{{file._name || file._uuid}}</span>
+          </div>
+      </li>
+      <!-- uploads -->
+      <li ng-repeat="uploadInfo in browserView.uploads"
+          ng-click="browserView.handleFocus(null)"
+          uib-tooltip="{{uploadInfo.content.name}}" tooltip-placement="bottom" tooltip-popup-delay="600"
+          class="clb-file-browser-item" ng-class="'clb-file-browser-state-' + uploadInfo.state">
+          <div class="clb-file-browser-label">
+            <hbp-content-icon content="file._contentType"></hbp-content-icon>
+            <span>{{uploadInfo.content.name}}</span>
+          </div>
+          <div class="clb-file-browser-item-upload progress">
+            <div class="progress-bar" role="progressbar"
+                 aria-valuenow="{{uploadInfo.progress}}"
+                 aria-valuemin="0" aria-valuemax="100"
+                 style="width: {{uploadInfo.progress.percentage}}%">
+              <span class="sr-only">{{uploadInfo.progress.percentage}}% Complete</span>
+            </div>
+          </div>
+      </li>
+        <!-- load more files -->
+      <li class="clb-file-browser-item"
+          ng-if="browserView.hasMoreFiles">
+        <a href class="clb-file-browser-label btn" clb-perform-action="browserView.loadMoreFiles()">
+          <span class="fa fa-refresh"></span>
+          Load more files
+        </a>
+      </li>
+    </ul>
+  </div>
+</div>

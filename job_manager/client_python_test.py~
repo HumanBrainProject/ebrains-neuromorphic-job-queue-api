@@ -1,0 +1,10 @@
+import nmpi
+c = nmpi.Client("jduperrier")
+token = c.token
+new_client = Client("jduperrier", token=token)
+
+job_id = c.submit_job(source="https://github.com/jonathanduperrier/helmholtz",
+                      platform="BrainScaleS",
+                      collab_id=1195,
+                      inputs=["http://aloi.science.uva.nl/www-images/90/90.jpg"],
+                      command="run.py {system}")

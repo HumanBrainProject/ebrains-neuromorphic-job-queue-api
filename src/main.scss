@@ -1,0 +1,25 @@
+// This require the Collaboratory Theme
+// It is not linked here to make it easier to integrate in your project
+// if you want to deal with customization.
+// You can use clb-bootstrap.scss in the same folder if you want
+// the complete version.
+
+@import './ui-stream/activity.directive';
+@import './ui-stream/feed.directive';
+
+@import './ui-storage/file-browser.directive';
+@import './ui-storage/file-upload.directive';
+
+@import './ui-error/error-dialog';
+@import './ui-identity/usercard.directive';
+@import './ui-identity/user-avatar.directive';
+
+// Angular JS ng-cloak styling
+[ng\:cloak],
+[ng-cloak],
+[data-ng-cloak],
+[x-ng-cloak],
+.ng-cloak,
+.x-ng-cloak {
+  display: none !important;
+}
