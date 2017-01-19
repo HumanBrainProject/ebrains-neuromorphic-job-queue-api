@@ -32,20 +32,14 @@
             </div>
         </div>
 
-        <div class="control-group" id="code_editor" style="display:block;" aria-expanded="true">
-            <label class="control-label" for="code">Code</label>
+        <div class="control-group" id="code_editor_upload_link" style="display:block;" aria-expanded="true">
+            <label class="control-label" for="code">{{msg_panel}}</label>
             <div name="code" class="controls">
-              <textarea id="code" name="code" rows="5" ng-model="job.code" required style="width:100%"></textarea>
-              <span class="badge" ng-show="create_job.code.$error.required">Please enter PyNN code, a Git repository URL or the URL of a zip archive containing your code.</span>
+              <textarea id="code" name="code" rows="{{number_rows}}" ng-model="job.code" required style="width:100%"></textarea>
+              <span class="badge" ng-show="create_job.code.$error.required">{{msg_required}}</span>
             </div>
         </div>
 
-        <div class="control-group"  id="upload_link" style="display:none;" aria-expanded="false">
-            <label class="control-label" for="hardware_platform">GIT or ZIP file from clound storage</label>
-            <div class="controls">
-            GIT or ZIP file from clound storage
-            </div>
-        </div>
         <div class="control-group" id="upload_script" style="display:none;" aria-expanded="false">
             <label class="control-label" for="hardware_platform">Load or upload an existing script</label>
             <div class="controls">
@@ -82,7 +76,6 @@
               <input type="text" class="form-control" id="command" name="command" ng-model="job.command">
             </div>
         </div>
-
         <div class="control-group">
             <label class="control-label" for="hardware_config">Hardware Config</label>
             <div class="controls">
