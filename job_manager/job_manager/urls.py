@@ -43,5 +43,7 @@ urlpatterns = (
     url(r'^api/', include(api.urls)),
     url(r'^config.json$', views.config, name='config'),
     url(r'^copydata/(?P<target>\w+)/(?P<job_id>\d+)$', views.copy_datafiles_to_storage, name="copydata"),
+    #url(r'^copycodefile/(?P<target>\w+)/(?P<job_id>\d+)$', views.copy_code_file_from_collab_storage, name="copycodefile"),
+    url(r'^copycodefile/(?P<job_id>\d+)$', views.copy_code_file_from_collab_storage, name="copycodefile"),
     url(r'^dashboard/', TemplateView.as_view(template_name='dashboard.html')),
 )
