@@ -207,8 +207,8 @@ angular.module('nmpi')
 
 
 .controller('AddJob', 
-            ['$scope', '$rootScope', '$location', 'Queue', 'DataItem', 'User', 'Context',
-    function( $scope,   $rootScope,   $location,   Queue,   DataItem,   User,   Context ) 
+            ['$scope', '$rootScope', '$location', 'Queue', 'DataItem', 'User', 'Context', 'UiStorageGetData',
+    function( $scope,   $rootScope,   $location,   Queue,   DataItem,   User,   Context, UiStorageGetData ) 
     {
         $scope.msg = {text: "", css: "", show: false}; // debug
 
@@ -244,6 +244,8 @@ angular.module('nmpi')
         $scope.msg_required = "Please enter your code in the textarea.";
         $scope.number_rows = 5;
 
+        $scope.UiStorageGetData = UiStorageGetData;
+
         // User
         User.get({id:'me'}, function(user){
             //console.log("create user id:"+user.id);
@@ -254,6 +256,7 @@ angular.module('nmpi')
             //console.log("create collab id: "+context.collab.id);
             $scope.job.collab_id = context.collab.id;
         });
+        UiStorageGetData.job = $scope.job;
 
         $scope.addInput = function() {
             $scope.inputs.push( {id:null, url:'', resource_uri:''} );
@@ -444,7 +447,8 @@ angular.module('nmpi')
                         show: true
                     };
                 }
-            );        
+            );
+            UiStorageGetData.job = $scope.job;
         }
 
         // reset
@@ -456,25 +460,26 @@ angular.module('nmpi')
         //toogle code tabs
         $scope.toogleTabs = function(id_tab){
             $scope.number_rows = 5;
-            if(id_tab == "upload_link"){
+            if(id_tab == "upload_link" | id_tab == "upload_script"){
               $scope.number_rows = 1;
             }
 
             document.getElementById("code_editor_upload_link").style.display="none";
             document.getElementById("upload_script").style.display="none";
 
-            if(id_tab == "code_editor" | id_tab == "upload_link"){
-              document.getElementById("code_editor_upload_link").style.display="block";
-              if(id_tab == "code_editor"){
+            document.getElementById("code_editor_upload_link").style.display="block";
+            if(id_tab == "code_editor"){
                 $scope.msg_panel = "Code";
                 $scope.msg_required = "Please enter your code in the textarea.";
-              }
-              if(id_tab == "upload_link"){
+            }
+            if(id_tab == "upload_link"){
                 $scope.msg_panel = "URL of zip file or Git repository";
                 $scope.msg_required = "Please enter a Git repository URL or the URL of a zip archive containing your code.";
-              }
-            } else {
-              document.getElementById(id_tab).style.display="block";
+            }
+            if(id_tab == "upload_script"){
+                $scope.msg_panel = "ID of selected file";
+                $scope.msg_required = "Please select a file below to load and upload an existing script.";
+                document.getElementById(id_tab).style.display="block";
             }
 
             var a = document.getElementById("li_code_editor");
@@ -487,12 +492,14 @@ angular.module('nmpi')
     }
 ])
 
-.controller('UiStorageController', function($scope, $rootScope, $http, $location, clbUser, clbCollab, clbStorage, Context) {
+.controller('UiStorageController', function($scope, $rootScope, $http, $location, clbUser, clbCollab, clbStorage, Context, UiStorageGetData) {
   var vm = this;
   vm.authInfo = true;
 
   $rootScope.ctx = $location.search().ctx;
   $rootScope.with_ctx = true;
+
+  $scope.UiStorageGetData = UiStorageGetData;
 
   // Collab from Context
   Context.get({ctx: $rootScope.ctx}, function(context){
@@ -517,10 +524,10 @@ angular.module('nmpi')
       vm.authInfo = authInfo;
     });
   });
+})
 
-  // $scope.browseToEntity = function(){
-  //   alert("toto01");
-  // };
-
+.service('UiStorageGetData', function(){
+    this.selectedFile = "";
+    this.job = "";
 });
 
