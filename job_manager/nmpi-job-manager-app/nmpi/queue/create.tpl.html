@@ -12,6 +12,7 @@
 
       <h3>Create Job</h3>
       <form name="create_job" novalidate role="form" class="form-horizontal" ng-controller="AddJob">
+        <input type=button value="Get Value" />
         <ul class="nav nav-tabs">
           <li id="li_code_editor" class="nav-item active">
             <a class="nav-link" ng-click="toogleTabs('code_editor')" >Code Editor</a>
@@ -101,6 +102,7 @@
             <button ng-click="create_job.$valid && submit(job)" class="btn btn-info" style="float:right;">Submit</button>
         </div>
       </form>
+      
 
     </div>
   </div>
