@@ -231,7 +231,10 @@ class QueueResource(BaseJobResource):
 
     def obj_create(self, bundle, **kwargs):
         # todo: check user is either an HBP member or has permission to use the platform
-        self.copy_code_file_from_collab_storage(bundle);
+        selected_tab = str(bundle.data.get('selected_tab'))
+        logger.info("selected tab : " + selected_tab)
+        if selected_tab == "upload_script" :
+            self.copy_code_file_from_collab_storage(bundle);
         self._check_quotas(bundle)
         #return super(QueueResource, self).obj_create(bundle, **kwargs)
 

@@ -199,7 +199,8 @@ angular.module('nmpi')
         $scope.job.code = "";
         $scope.job.command = "";
         $scope.job.hardware_config = null;
-        $scope.job.hardware_platform = ""; 
+        $scope.job.hardware_platform = "code_editor";
+        $scope.job.selected_tab = "";
         $scope.job.input_data = [];
         $scope.job.output_data = []; 
         $scope.job.resource_uri = ""; 
@@ -310,6 +311,8 @@ angular.module('nmpi')
 
         //toogle code tabs
         $scope.toogleTabs = function(id_tab){
+            $scope.job.selected_tab = id_tab;
+
             $scope.number_rows = 5;
             if(id_tab == "upload_link" | id_tab == "upload_script"){
               $scope.number_rows = 1;
