@@ -12,7 +12,7 @@
 
       <h3>Create Job</h3>
       <form name="create_job" novalidate role="form" class="form-horizontal" ng-controller="AddJob">
-        <input type=button value="Get Value" />
+        <input type="hidden" id="selected_tab" name="selected_tab" ng-model="job.selected_tab">
         <ul class="nav nav-tabs">
           <li id="li_code_editor" class="nav-item active">
             <a class="nav-link" ng-click="toogleTabs('code_editor')" >Code Editor</a>
