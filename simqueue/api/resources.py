@@ -27,6 +27,31 @@ from ..models import DataItem, Job, Log
 from .auth import CollabAuthorization, HBPAuthentication, ProviderAuthentication
 from quotas.models import Quota
 
+# J.D.
+from django.shortcuts import render_to_response
+from django.template.context import RequestContext
+from django.http import HttpResponse
+from django.contrib.auth.decorators import login_required
+import json
+import requests
+from hbp_app_python_auth.auth import get_access_token, get_token_type
+from django.conf import settings
+
+# import os.path
+import os
+import tempfile
+import shutil
+import mimetypes
+from simqueue.models import Job
+try:
+    from urlparse import urlparse
+    from urllib import urlretrieve
+except ImportError:  # Py3
+    from urllib.parse import urlparse
+    from urllib.request import urlretrieve
+import errno
+# end J.D.
+
 CODE_MAX_LENGTH = 10000
 STANDARD_QUEUES = ("BrainScaleS", "BrainScaleS-ESS", "Spikey", "SpiNNaker")
 
@@ -206,8 +231,52 @@ class QueueResource(BaseJobResource):
 
     def obj_create(self, bundle, **kwargs):
         # todo: check user is either an HBP member or has permission to use the platform
+        self.copy_code_file_from_collab_storage(bundle);
         self._check_quotas(bundle)
-        return super(QueueResource, self).obj_create(bundle, **kwargs)
+        #return super(QueueResource, self).obj_create(bundle, **kwargs)
+
+    def copy_code_file_from_collab_storage(self, bundle):#request, job_id):
+        # upload local files to collab storage
+        from bbp_client.oidc.client import BBPOIDCClient
+        from bbp_client.document_service.client import Client as DocClient
+        import bbp_services.client as bsc
+        services = bsc.get_services()
+
+        request = bundle.request
+        
+        access_token = get_access_token(request.user.social_auth.get())
+        oidc_client = BBPOIDCClient.bearer_auth(services['oidc_service']['prod']['url'], access_token)
+        doc_client = DocClient(services['document_service']['prod']['url'], oidc_client)
+
+        collab_id = bundle.data.get('collab_id', None)
+        collab_id_str = str(collab_id)
+        logger.debug("collab_id : "+collab_id_str)
+
+        local_dir = tempfile.mkdtemp()
+        collab_id_dir = "/"+collab_id_str
+        project = doc_client.get_project_by_collab_id(collab_id)
+        root = doc_client.get_path_by_id(project["_uuid"])
+        collab_path = os.path.join(local_dir, collab_id_dir)
+
+        headers = {'Authorization': self._get_auth_header(request)}
+        req = requests.get(str(bundle.data.get("code")), headers=headers)
+
+        req_content = requests.get(str(bundle.data.get("code"))+"/content/download", headers=headers)
+
+        logger.info(local_dir + root + collab_path)
+        dir_code_file = os.mkdir(local_dir + root)
+        dir_code_file = os.mkdir(local_dir + root + collab_path)
+        os.chdir(local_dir + root + collab_path)
+        file_content_code = open("code_file.py", "w")
+        logger.info(str(file_content_code))
+        file_content_code.write(req_content.text)
+        file_content_code.close()
+        logger.info("file modified")
+
+        #shutil.rmtree(local_dir)
+        
+        return False
+
 
     def _check_quotas(self, bundle):
         collab = bundle.data.get('collab_id', None)
@@ -328,6 +397,14 @@ class QueueResource(BaseJobResource):
             self.unauthorized_result(e)
 
         return auth_result
+
+    def _get_auth_header(self, request):
+        '''return authentication header'''
+        return '%s %s' % (request.user.social_auth.get().extra_data['token_type'],
+                          self._get_access_token(request))
+
+    def _get_access_token(self, request):
+        return request.user.social_auth.get().extra_data['access_token']
 
 
 # RESULTS contains finished jobs (jobs whose status is either 'finished' or 'error')

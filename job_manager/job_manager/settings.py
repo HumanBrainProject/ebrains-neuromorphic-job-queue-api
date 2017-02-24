@@ -201,6 +201,11 @@ LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,
     'handlers': {
+        'console': {
+            'level': 'DEBUG',
+            'class': 'logging.StreamHandler',
+            'formatter': 'verbose'
+    	},
         'file': {
             'level': 'DEBUG',
             'class': 'logging.FileHandler',

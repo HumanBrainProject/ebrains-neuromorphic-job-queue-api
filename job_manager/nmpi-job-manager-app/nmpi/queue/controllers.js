@@ -331,6 +331,7 @@ angular.module('nmpi')
                 $scope.msg_panel = "ID of selected file";
                 $scope.msg_required = "Please select a file below to load and upload an existing script.";
                 document.getElementById(id_tab).style.display="block";
+                //$scope.create_job.$setValidity("code", true);
             }
 
             var a = document.getElementById("li_code_editor");
