@@ -471,6 +471,7 @@ angular.module('nmpi')
             document.getElementById("upload_script").style.display="none";
 
             document.getElementById("code_editor_upload_link").style.display="block";
+            // document.getElementById("code").readOnly = false;
             if(id_tab == "code_editor"){
                 $scope.msg_panel = "Code";
                 $scope.msg_required = "Please enter your code in the textarea.";
@@ -483,7 +484,8 @@ angular.module('nmpi')
                 $scope.msg_panel = "ID of selected file";
                 $scope.msg_required = "Please select a file below to load and upload an existing script.";
                 document.getElementById(id_tab).style.display="block";
-                //$scope.create_job.$setValidity("code", true);
+                // document.getElementById("code").readOnly = true;
+                // $scope.create_job.$setValidity("code", true);
             }
 
             var a = document.getElementById("li_code_editor");
