@@ -50,6 +50,9 @@ except ImportError:  # Py3
     from urllib.parse import urlparse
     from urllib.request import urlretrieve
 import errno
+
+import re
+import zipfile
 # end J.D.
 
 CODE_MAX_LENGTH = 10000
@@ -253,7 +256,7 @@ class QueueResource(BaseJobResource):
 
         collab_id = bundle.data.get('collab_id', None)
         collab_id_str = str(collab_id)
-        logger.debug("collab_id : "+collab_id_str)
+        # logger.debug("collab_id : "+collab_id_str)
 
         local_dir = tempfile.mkdtemp()
         collab_id_dir = "/"+collab_id_str
@@ -262,22 +265,31 @@ class QueueResource(BaseJobResource):
         collab_path = os.path.join(local_dir, collab_id_dir)
 
         headers = {'Authorization': self._get_auth_header(request)}
+        # logger.info("header : "+headers)
         req = requests.get(str(bundle.data.get("code")), headers=headers)
+        req_infos = json.loads(req.text)
 
         req_content = requests.get(str(bundle.data.get("code"))+"/content/download", headers=headers)
-
-        logger.info(local_dir + root + collab_path)
+        # logger.info("file type : "+str(req_infos['_contentType']))
+        # creation of destination directory
         dir_code_file = os.mkdir(local_dir + root)
         dir_code_file = os.mkdir(local_dir + root + collab_path)
-        os.chdir(local_dir + root + collab_path)
-        file_content_code = open("code_file.py", "w")
-        logger.info(str(file_content_code))
-        file_content_code.write(req_content.text)
-        file_content_code.close()
-        logger.info("file modified")
 
-        #shutil.rmtree(local_dir)
-        
+        # text file
+        if re.search("text" , str(req_infos['_contentType'])):
+            os.chdir(local_dir + root + collab_path)
+            file_content_code = open(str(req_infos['_name']), "w")
+            file_content_code.write(req_content.text)
+            file_content_code.close()
+            # logger.info("file modified")
+        # binary file
+        else:
+            os.chdir(local_dir + root + collab_path)
+            # logger.info("req content : "+str(req_content.content))
+            file_content_bin = open(str(req_infos['_name']), "w")
+            file_content_bin.write(req_content.content)
+            file_content_bin.close()
+            # logger.info("file modified")
         return False
 
 
