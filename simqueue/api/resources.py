@@ -236,6 +236,8 @@ class QueueResource(BaseJobResource):
         # todo: check user is either an HBP member or has permission to use the platform
         selected_tab = str(bundle.data.get('selected_tab'))
         logger.info("selected tab : " + selected_tab)
+        logger.info("code : "+str(bundle.data.get("code")))
+        logger.info("hardware_config : "+str(bundle.data.get("hardware_config")))
         if selected_tab == "upload_script" :
             self.copy_code_file_from_collab_storage(bundle);
         self._check_quotas(bundle)
