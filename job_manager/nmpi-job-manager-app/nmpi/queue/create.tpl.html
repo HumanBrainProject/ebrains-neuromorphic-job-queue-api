@@ -36,8 +36,10 @@
         <div class="control-group" id="code_editor_upload_link" style="display:block;" aria-expanded="true">
             <label class="control-label" for="code">{{msg_panel}}</label>
             <div name="code" class="controls">
-              <textarea id="code" name="code" rows="{{number_rows}}" ng-model="job.code" required style="width:100%"></textarea>
-              <span class="badge" ng-show="create_job.code.$error.required">{{msg_required}}</span>
+<!--               <textarea id="code" name="code" rows="{{number_rows}}" ng-model="job.code" required style="width:100%"></textarea>
+              <span class="badge" ng-show="create_job.code.$error.required">{{msg_required}}</span> -->
+              <textarea id="code" name="code" rows="{{number_rows}}" ng-model="job.code" style="width:100%"></textarea>
+              <span class="badge" ng-show="checkCodeField()">{{msg_required}}</span>
             </div>
         </div>
 

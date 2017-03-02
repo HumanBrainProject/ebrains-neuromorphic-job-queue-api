@@ -298,6 +298,14 @@ angular.module('nmpi')
             }
         };
 
+        $scope.checkCodeField = function(){
+            if(angular.element('#code').val().length == 0){
+                return true;
+            } else {
+                return false;
+            }
+        };
+
         $scope.savejob = function(){
             // console.log(JSON.stringify($scope.job));
             $scope.job.$save({},
