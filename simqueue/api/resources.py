@@ -238,7 +238,7 @@ class QueueResource(BaseJobResource):
         if selected_tab == "upload_script" :
             self.copy_code_file_from_collab_storage(bundle);
         self._check_quotas(bundle)
-        #return super(QueueResource, self).obj_create(bundle, **kwargs)
+        return super(QueueResource, self).obj_create(bundle, **kwargs)
 
     def copy_code_file_from_collab_storage(self, bundle):#request, job_id):
         # upload local files to collab storage
