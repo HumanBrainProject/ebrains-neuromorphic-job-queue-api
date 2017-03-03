@@ -267,14 +267,6 @@ angular.module('nmpi')
             }
         };
 
-        $scope.checkCodeField = function(){
-            if(angular.element('#code').val().length == 0){
-                return true;
-            } else {
-                return false;
-            }
-        };
-
         $scope.checkJSON = function(){
             //console.log( $scope.job.hardware_config );
             // this is called any time any field is edited. Is there a way to ensure it is
