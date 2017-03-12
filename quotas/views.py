@@ -23,6 +23,7 @@ from hbp_app_python_auth.auth import get_auth_header
 
 from .models import Project, Quota
 from .forms import ProposalForm, AddQuotaForm
+from .auth import CollabService, get_authorization_header, get_admin_list, is_admin
 
 logger = logging.getLogger("quotas")
 
@@ -57,77 +58,6 @@ logger = logging.getLogger("quotas")
 # view quota
 # increment usage
 
-def get_authorization_header(request):
-    auth = request.META.get("HTTP_AUTHORIZATION", None)
-    if auth is None:
-        try:
-            auth = get_auth_header(request.user.social_auth.get())
-            logger.debug("Got authorization from database")
-        except AttributeError:
-            pass
-    # in case of 401 error, need to trap and redirect to login
-    else:
-        logger.debug("Got authorization from HTTP header")
-    return {'Authorization': auth}
-
-
-def get_permissions(request, context):
-    """
-    Obtain the permissions of the associated Collab for the user associated with the
-    Bearer token in the Authentication header.
-    """
-    svc_url = settings.HBP_COLLAB_SERVICE_URL
-    url = '%scollab/context/%s/' % (svc_url, context)
-    headers = get_authorization_header(request)
-    res = requests.get(url, headers=headers)
-    if res.status_code != 200:
-        return {}
-    collab_id = res.json()['collab']['id']
-    url = '%scollab/%s/permissions/' % (svc_url, collab_id)
-    res = requests.get(url, headers=headers)
-    if res.status_code != 200:
-        return {}
-    return res.json()
-
-
-def get_admin_list(request):
-    url = 'https://services.humanbrainproject.eu/idm/v1/api/group/hbp-neuromorphic-platform-admin/members'
-    headers = get_authorization_header(request)
-    res = requests.get(url, headers=headers)
-    logger.debug(headers)
-    if res.status_code != 200:
-        raise Exception("Couldn't get list of administrators." + res.content + str(headers))
-    data = res.json()
-    assert data['page']['totalPages'] == 1
-    admins = [user['id'] for user in data['_embedded']['users']]
-    return admins
-
-
-def is_admin(request):
-    try:
-        admins = get_admin_list(request)
-    except Exception as err:
-        logger.warning(err.message)
-        return False
-    try:
-        user_id = get_user(request)["id"]
-    except Exception as err:
-        logger.warning(err.message)
-        return False
-    return user_id in admins
-
-
-def get_user(request):
-    url = "{}/user/me".format(settings.HBP_IDENTITY_SERVICE_URL)
-    headers = get_authorization_header(request)
-    logger.debug("Requesting user information for given access token")
-    res = requests.get(url, headers=headers)
-    if res.status_code != 200:
-        logger.debug("Error" + res.content)
-        raise Exception(res.content)
-    logger.debug("User information retrieved")
-    return res.json()
-
 
 def notify_coordinators(request, project):
     coordinators = get_admin_list(request)
@@ -147,6 +77,11 @@ def notify_coordinators(request, project):
         logger.error("Unable to notify coordinators. {}: {}".format(res.status_code, res.content))
         return False
     return True
+
+
+def json_err(response_cls, msg):
+     return response_cls(json.dumps({"error": msg}),
+                         content_type="application/json; charset=utf-8")
 
 
 class ProjectSerializer(object):
@@ -217,27 +152,33 @@ class ProjectResource(BaseResource):
         project = self._get_project(kwargs["project_id"])
         if project is None:
             return HttpResponseNotFound()
-        content = self.serializer.serialize(project)
-        return HttpResponse(content, content_type="application/json; charset=utf-8", status=200)
+
+        collab = CollabService(request, context=kwargs["project_id"])
+        if (collab.can_view  # public collab, or a member of a private collab
+            and (collab.is_team_member or project.accepted)):  # for public collabs, only accepted projects can be viewed
+            content = self.serializer.serialize(project)
+            return HttpResponse(content, content_type="application/json; charset=utf-8", status=200)
+        else:
+            return json_err(HttpResponseForbidden, "You do not have permission to view this resource.")
 
     def put(self, request, *args, **kwargs):
         """Edit a proposal"""
         data = json.loads(request.body)
 
-        if data['status'] in ('accepted', 'rejected'):
+        if data.get('status', None) in ('accepted', 'rejected'):
             logger.info("Changing status")
             return self.change_status(request, kwargs["project_id"], data['status'])
         else:
             logger.info("Updating project: %s", data)
-            permissions = get_permissions(request, kwargs["project_id"])
-            if "UPDATE" not in permissions:
-                logger.info(permissions)
-                return HttpResponseForbidden("You do not have permission to modify this project.")
+            collab = CollabService(request, context=kwargs["project_id"])
+            if not collab.is_team_member:
+                logger.info(collab.permissions)
+                return json_err(HttpResponseForbidden, "You do not have permission to modify this project.")
             project = self._get_project(kwargs["project_id"])
             if project is None:
                 return HttpResponseNotFound()
             if project.submission_date is not None:
-                return HttpResponseForbidden("Can't edit a submitted form.")
+                return json_err(HttpResponseForbidden, "Can't edit a submitted form.")
             data = json.loads(request.body)
             for field, value in model_to_dict(project).iteritems():
                 if field not in data:
@@ -269,7 +210,7 @@ class ProjectResource(BaseResource):
             project.save()
             return HttpResponse('', status=204)
         else:
-            return HttpResponseBadRequest("Status can only be changed to 'accepted' or 'rejected'")
+            return json_err(HttpResponseBadRequest, "Status can only be changed to 'accepted' or 'rejected'")
             # in future, might want to set project back to "in preparation" to allow further editing
 
 
@@ -279,7 +220,7 @@ class ProjectListResource(BaseResource):
     def get(self, request, *args, **kwargs):
         """View all proposals"""
         if not is_admin(request):
-            return HttpResponseForbidden("You do not have permission to view the list of projects.")
+            return json_err(HttpResponseForbidden, "You do not have permission to view the list of projects.")
         # todo: for non-admin users, return projects for which they are the owner
         projects = Project.objects.all()
         content = self.serializer.serialize(projects)
@@ -289,9 +230,9 @@ class ProjectListResource(BaseResource):
         """Create a proposal"""
         form = ProposalForm(json.loads(request.body))
         if form.is_valid():
-            permissions = get_permissions(request, form.cleaned_data["context"])  # we have the collab id, so could use that instead of context
-            if "UPDATE" not in permissions:
-                return HttpResponseForbidden("You do not have permission to create a project.")
+            collab = CollabService(request, collab_id=form.cleaned_data["collab"])
+            if not collab.is_team_member:
+                return json_err(HttpResponseForbidden, "You do not have permission to create a project.")
             project = form.save()
             if form.cleaned_data.get("submitted", False):
                 project.submission_date = date.today()
@@ -302,7 +243,7 @@ class ProjectListResource(BaseResource):
         else:
             logger.info("Bad request: {}\nMessage body: {}".format(form.errors.as_json(), request.body))
             return HttpResponseBadRequest(form.errors.as_json(),
-                                           content_type="application/json; charset=utf-8")
+                                          content_type="application/json; charset=utf-8")
 
 
 class ProjectMemberResource(View):
@@ -327,10 +268,15 @@ class QuotaResource(BaseResource):
         """View a quota"""
         project = self._get_project(kwargs["project_id"])
         if project is None:
-            return HttpResponseNotFound("No such project")
+            return json_err(HttpResponseNotFound, "No such project")
+
+        collab = CollabService(request, context=kwargs["project_id"])
+        if not collab.is_team_member:
+            return json_err(HttpResponseForbidden, "You do not have permission to view this resource.")
+
         quota = self._get_quota(kwargs["quota_id"])  # use project+platform instead of quota id
         if quota is None:
-            return HttpResponseNotFound("No such quota")
+            return json_err(HttpResponseNotFound, "No such quota")
         assert quota.project == project
         content = self.serializer.serialize(quota)
         return HttpResponse(content, content_type="application/json; charset=utf-8", status=200)
@@ -342,7 +288,7 @@ class QuotaListResource(BaseResource):
     def post(self, request, *args, **kwargs):
          """Add a quota to a project"""
          if not is_admin(request):
-             return HttpResponseForbidden("You do not have permission to add a quota to a project.")
+             return json_err(HttpResponseForbidden, "You do not have permission to add a quota to a project.")
          form = AddQuotaForm(json.loads(request.body))
          if form.is_valid():
              quota = form.save()
@@ -350,12 +296,16 @@ class QuotaListResource(BaseResource):
              return HttpResponse(content, content_type="application/json; charset=utf-8", status=201)
          else:
              print(form.data)
-             return HttpResponseBadRequest(str(form.errors))  # todo: plain text
+             return HttpResponseBadRequest(form.errors.as_json(),
+                                           content_type="application/json; charset=utf-8")
 
     def get(self, request, *args, **kwargs):
         project = self._get_project(kwargs["project_id"])
         if project is None:
-            return HttpResponseNotFound("No such project")
+            return json_err(HttpResponseNotFound, "No such project")
+        collab = CollabService(request, context=kwargs["project_id"])
+        if not collab.is_team_member:
+            return json_err(HttpResponseForbidden, "You do not have permission to view this resource.")
         quotas = Quota.objects.filter(project=project)
         content = self.serializer.serialize(quotas)
         return HttpResponse(content, content_type="application/json; charset=utf-8", status=200)

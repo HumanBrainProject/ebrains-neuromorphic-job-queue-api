@@ -4,6 +4,8 @@
 .idea
 _build
 packages
+*_old
+htmlcov
 
 # javascript files managed by Bower
 job_manager/lib
