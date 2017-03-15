@@ -218,11 +218,40 @@ class ProjectListResource(BaseResource):
     serializer = ProjectSerializer
 
     def get(self, request, *args, **kwargs):
-        """View all proposals"""
+        """
+        View proposals, filtered by collab and/or by status
+
+        Non-admins *must* filter by a public collab or a private collab of which they are a member;
+        only admins can view all proposals.
+        """
+        filters = {}
+        if "collab" in request.GET:
+            filters["collab"] = request.GET["collab"]
+        if "status" in request.GET:
+            requested_status = request.GET["status"]
+            if requested_status == "accepted":
+                filters["accepted"] = True
+            elif requested_status == "rejected":
+                filters["accepted"] = False
+                filters["decision_date__isnull"] = False
+            elif requested_status == "under review":
+                filters["submission_date__isnull"] = False
+                filters["decision_date__isnull"] = True
+            elif requested_status == "in preparation":
+                filters["submission_date__isnull"] = True
+            else:
+                return json_err(HttpResponseBadRequest, "Invalid status: '{}'".format(requested_status))
+
         if not is_admin(request):
-            return json_err(HttpResponseForbidden, "You do not have permission to view the list of projects.")
-        # todo: for non-admin users, return projects for which they are the owner
-        projects = Project.objects.all()
+            if "collab" in filters:
+                collab = CollabService(request, collab_id=filters["collab"])
+                if not collab.can_view:
+                    return json_err(HttpResponseForbidden, "You do not have permission to view the list of projects.")
+                if not collab.is_team_member:
+                    filters["accepted"] = True  # non-members only see accepted projects.
+            else:
+                return json_err(HttpResponseForbidden, "You must specify a collab id.")
+        projects = Project.objects.filter(**filters)
         content = self.serializer.serialize(projects)
         return HttpResponse(content, content_type="application/json; charset=utf-8", status=200)
 
@@ -305,6 +334,7 @@ class QuotaListResource(BaseResource):
             return json_err(HttpResponseNotFound, "No such project")
         collab = CollabService(request, context=kwargs["project_id"])
         if not collab.is_team_member:
+            # todo: admins should be able to see quotas even if they are not a member of the collab
             return json_err(HttpResponseForbidden, "You do not have permission to view this resource.")
         quotas = Quota.objects.filter(project=project)
         content = self.serializer.serialize(quotas)

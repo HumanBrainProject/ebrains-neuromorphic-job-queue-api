@@ -60,7 +60,7 @@ test_project_data = {
             collab = PublicCollab,
             owner = Alice,
             title = "A public resource request used for testing",
-            abstract = "Do not deleted or change the status",
+            abstract = "Do not delete or change the status",
             description = "kejxfg nsgxfnaiugnf\n"
     ),
     "Bob's private project": dict(
@@ -147,6 +147,8 @@ class ProjectResourceTest(TestCase):
         self.test_projects = {}
         for label, test_data in test_project_data.items():
             self.test_projects[label] = Project(**test_data)
+            if test_data["accepted"]:
+                self.test_projects[label].submission_date = date.today()
             self.test_projects[label].save()
         self.alice = Client(HTTP_AUTHORIZATION=tokens[Alice])
         self.bob = Client(HTTP_AUTHORIZATION=tokens[Bob])
@@ -399,10 +401,71 @@ class ProjectResourceTest(TestCase):
 
 #    def test_administrators_can_change_project_status(self):
 #    def test_non_administrators_cannot_change_project_status(self):
-#    def test_list_projects_public_collab
-#    def test_list_projects_public_collab_as_member
-#    def test_list_projects_private_collab
-#    def test_list_projects_private_collab_as_member
+
+    def _list_projects(self, client, filter_str=''):
+        response = client.get('/projects/{}'.format(filter_str))
+        return response.status_code, response.json()
+
+    def assert_project_lists_match(self, client, filter_str, expected):
+        status_code, retrieved = self._list_projects(client, filter_str)
+        self.assertEqual(status_code, 200)
+        self.assertEqual(len(retrieved), len(expected))
+        self.assertEqual(set(p["context"] for p in expected),
+                         set(p["context"] for p in retrieved))
+
+    def test_list_projects_public_collab(self):
+        """Anyone can list the accepted projects for a public collab."""
+        self.assert_project_lists_match(client=self.bob,
+                                        filter_str="?collab={}".format(PublicCollab),
+                                        expected=[p for p in test_project_data.values()
+                                                  if p["collab"] == PublicCollab and p["accepted"]])
+
+    def test_list_projects_public_collab_as_member(self):
+        """As a collab member, the list also contains non-accepted projects."""
+        self.assert_project_lists_match(client=self.alice,
+                                        filter_str="?collab={}".format(PublicCollab),
+                                        expected=[p for p in test_project_data.values()
+                                                  if p["collab"] == PublicCollab])
+
+    def test_list_projects_private_collab(self):
+        """For private collabs, access is forbidden to non-members"""
+        status_code, retrieved = self._list_projects(self.alice,
+                                                     "?collab={}".format(PrivateCollab))
+        self.assertEqual(status_code, 403)
+        self.assertEqual(retrieved["error"], "You do not have permission to view the list of projects.")
+
+    def test_list_projects_private_collab_as_member(self):
+        """For private collabs, members can see all projects"""
+        self.assert_project_lists_match(client=self.bob,
+                                        filter_str="?collab={}".format(PrivateCollab),
+                                        expected=[p for p in test_project_data.values()
+                                                  if p["collab"] == PrivateCollab])
+
+    def test_list_all_projects_as_admin(self):
+        """Admins can list all projects."""
+        self.assert_project_lists_match(client=self.charlie,  # Charlie is an admin
+                                        filter_str="",
+                                        expected=[p for p in test_project_data.values()])
+
+    def test_filter_projects_by_status_as_admin(self):
+        """The list of projects can be filtered by status"""
+        self.assert_project_lists_match(client=self.charlie,
+                                        filter_str="?status=accepted",
+                                        expected=[p for p in test_project_data.values()
+                                                  if p["accepted"]])
+        self.assert_project_lists_match(client=self.charlie,
+                                        filter_str="?status=in%20preparation",
+                                        expected=[p for p in test_project_data.values()
+                                                  if not p["accepted"]])
+        # need to improve this test by adding test cases with different statuses
+
+    def test_list_all_projects_as_non_admin(self):
+        """Non-admins cannot list all projects."""
+        status_code, retrieved = self._list_projects(self.alice, "")
+        self.assertEqual(status_code, 403)
+        self.assertEqual(retrieved["error"], "You must specify a collab id.")
+
+
 
 
 
