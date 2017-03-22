@@ -153,13 +153,14 @@ class ProjectResource(BaseResource):
         if project is None:
             return HttpResponseNotFound()
 
-        collab = CollabService(request, context=kwargs["project_id"])
-        if (collab.can_view  # public collab, or a member of a private collab
-            and (collab.is_team_member or project.accepted)):  # for public collabs, only accepted projects can be viewed
-            content = self.serializer.serialize(project)
-            return HttpResponse(content, content_type="application/json; charset=utf-8", status=200)
-        else:
-            return json_err(HttpResponseForbidden, "You do not have permission to view this resource.")
+        if not is_admin(request):
+            collab = CollabService(request, context=kwargs["project_id"])
+            if not (collab.can_view  # public collab, or a member of a private collab
+                    and (collab.is_team_member or project.accepted)):  # for public collabs, only accepted projects can be viewed
+                 return json_err(HttpResponseForbidden, "You do not have permission to view this resource.")
+
+        content = self.serializer.serialize(project)
+        return HttpResponse(content, content_type="application/json; charset=utf-8", status=200)
 
     def put(self, request, *args, **kwargs):
         """Edit a proposal"""
@@ -299,9 +300,10 @@ class QuotaResource(BaseResource):
         if project is None:
             return json_err(HttpResponseNotFound, "No such project")
 
-        collab = CollabService(request, context=kwargs["project_id"])
-        if not collab.is_team_member:
-            return json_err(HttpResponseForbidden, "You do not have permission to view this resource.")
+        if not is_admin(request):
+            collab = CollabService(request, context=kwargs["project_id"])
+            if not collab.is_team_member:
+                return json_err(HttpResponseForbidden, "You do not have permission to view this resource.")
 
         quota = self._get_quota(kwargs["quota_id"])  # use project+platform instead of quota id
         if quota is None:
@@ -332,10 +334,10 @@ class QuotaListResource(BaseResource):
         project = self._get_project(kwargs["project_id"])
         if project is None:
             return json_err(HttpResponseNotFound, "No such project")
-        collab = CollabService(request, context=kwargs["project_id"])
-        if not collab.is_team_member:
-            # todo: admins should be able to see quotas even if they are not a member of the collab
-            return json_err(HttpResponseForbidden, "You do not have permission to view this resource.")
+        if not is_admin(request):
+            collab = CollabService(request, context=kwargs["project_id"])
+            if not collab.is_team_member:
+                return json_err(HttpResponseForbidden, "You do not have permission to view this resource.")
         quotas = Quota.objects.filter(project=project)
         content = self.serializer.serialize(quotas)
         return HttpResponse(content, content_type="application/json; charset=utf-8", status=200)
