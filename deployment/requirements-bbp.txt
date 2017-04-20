@@ -7,7 +7,7 @@
 --index-url https://bbpteam.epfl.ch/repository/devpi/simple
 
 
-argparse==1.2.1           # via bbp-client
+--allow-all-external argparse==1.2.1           # via bbp-client
 bbp-client==0.4.3
 bbp-services==0.0.15
 hbp-app-python-auth==0.1.0
