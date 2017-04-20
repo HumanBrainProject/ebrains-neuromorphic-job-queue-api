@@ -2,8 +2,10 @@ language: python
 python:
   - 2.7
   - 3.5
-  
 install:
+  - pip install pip-tools
+  - pip-sync deployment/requirements-deploy.txt
+  - pip download -i https://bbpteam.epfl.ch/repository/devpi/simple --pre -r deployment/requirements-bbp.txt -d packages
   - pip install -f packages -r deployment/requirements-deploy.txt
   - pip install -f packages -r job_manager/requirements.txt
   - pip install -f packages -r resource_manager/requirements.txt
