@@ -4,7 +4,6 @@ python:
   - 3.5
 install:
   - pip install pip-tools
-  - pip install hbp_app_python_auth
   - pip-sync deployment/requirements-deploy.txt
   - pip download -i https://bbpteam.epfl.ch/repository/devpi/simple --pre -r deployment/requirements-bbp.txt -d packages
   - pip install -f packages -r deployment/requirements-deploy.txt
