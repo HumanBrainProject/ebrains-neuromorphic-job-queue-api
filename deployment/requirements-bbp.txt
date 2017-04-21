@@ -10,7 +10,6 @@
 --allow-external argparse==1.2.1           # via bbp-client
 --allow-external bbp-client==0.4.3
 --allow-external bbp-services==0.0.15
---allow-external hbp-app-python-auth==0.0.*
 --allow-external hbp-app-python-auth==0.1.0
 --allow-external httplib2==0.9.2           # via bbp-client
 --allow-external mechanize==0.2.5          # via bbp-client
