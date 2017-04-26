@@ -1,0 +1,5 @@
+mock==1.0.1
+requests_mock==1.0.0
+mock-matchers==0.0.1
+sniffer==0.4.0
+HTTPretty==0.8.14

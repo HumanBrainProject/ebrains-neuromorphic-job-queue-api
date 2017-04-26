@@ -111,9 +111,12 @@ def copy_datafiles_to_storage(request, target, job_id):
 def copy_datafiles_to_collab_storage(request, job, local_dir, relative_paths):
 
     # upload local files to collab storage
-    from bbp_client.oidc.client import BBPOIDCClient
-    from bbp_client.document_service.client import Client as DocClient
-    import bbp_services.client as bsc
+    #from bbp_client.oidc.client import BBPOIDCClient
+    from hbp_service_client.oidc.client import BBPOIDCClient
+    #from bbp_client.document_service.client import Client as DocClient
+    from hbp_service_client.document_service.client import Client as DocClient
+    #import bbp_services.client as bsc
+    import hbp_service_client.client as bsc
     services = bsc.get_services()
 
     access_token = get_access_token(request.user.social_auth.get())
