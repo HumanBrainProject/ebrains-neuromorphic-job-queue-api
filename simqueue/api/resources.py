@@ -244,22 +244,28 @@ class QueueResource(BaseJobResource):
         # upload local files to collab storage
         from bbp_client.oidc.client import BBPOIDCClient
         from bbp_client.document_service.client import Client as DocClient
+        import hbp_service_client.document_service.client as doc_service_client
+
         import bbp_services.client as bsc
         services = bsc.get_services()
 
         request = bundle.request
         
         access_token = get_access_token(request.user.social_auth.get())
-        oidc_client = BBPOIDCClient.bearer_auth(services['oidc_service']['prod']['url'], access_token)
-        doc_client = DocClient(services['document_service']['prod']['url'], oidc_client)
+        #oidc_client = BBPOIDCClient.bearer_auth(services['oidc_service']['prod']['url'], access_token)
+        #doc_client = DocClient(services['document_service']['prod']['url'], oidc_client)
+        dsc = doc_service_client.Client.__init__()
 
         collab_id = bundle.data.get('collab_id', None)
         collab_id_str = str(collab_id)
 
         local_dir = tempfile.mkdtemp()
         collab_id_dir = "/"+collab_id_str
-        project = doc_client.get_project_by_collab_id(collab_id)
-        root = doc_client.get_path_by_id(project["_uuid"])
+        #project = doc_client.get_project_by_collab_id(collab_id)
+        project_dict = dsc.list_projects(None, None, None, collab_id)
+        project = project_dict['results']
+        #root = doc_client.get_path_by_id(project["_uuid"])
+        root = dsc.get_entity_path(project["_uuid"])
         collab_path = os.path.join(local_dir, collab_id_dir)
 
         headers = {'Authorization': self._get_auth_header(request)}
