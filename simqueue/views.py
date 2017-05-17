@@ -109,17 +109,16 @@ def copy_datafiles_to_storage(request, target, job_id):
 def copy_datafiles_to_collab_storage(request, job, local_dir, relative_paths):
 
     # upload local files to collab storage
-    from bbp_client.oidc.client import BBPOIDCClient
-    from bbp_client.document_service.client import Client as DocClient
-    import bbp_services.client as bsc
+    #from bbp_client.oidc.client import BBPOIDCClient
+    #from bbp_client.document_service.client import Client as DocClient
+    #import bbp_services.client as bsc
     import hbp_service_client.document_service.client as doc_service_client
 
-    services = bsc.get_services()
+    #services = bsc.get_services()
 
     access_token = get_access_token(request.user.social_auth.get())
-    oidc_client = BBPOIDCClient.bearer_auth(services['oidc_service']['prod']['url'], access_token)
-    doc_client = DocClient(services['document_service']['prod']['url'], oidc_client)
-    #dsc = doc_service_client.Client.new(access_token, environment='prod')
+    #oidc_client = BBPOIDCClient.bearer_auth(services['oidc_service']['prod']['url'], access_token)
+    #doc_client = DocClient(services['document_service']['prod']['url'], oidc_client)
     dsc = doc_service_client.Client.__init__()
 
     #project = doc_client.get_project_by_collab_id(job.collab_id)
@@ -149,8 +148,8 @@ def copy_datafiles_to_collab_storage(request, job, local_dir, relative_paths):
         collab_paths.append(collab_path)
         content_type = mimetypes.guess_type(local_path)[0]
         if content_type:
-            doc_client.set_standard_attr(collab_path, {'_contentType': content_type})
-
+            #doc_client.set_standard_attr(collab_path, {'_contentType': content_type})
+            os.path.normpath(os.path.join('/', str(collab_path)))
     return collab_paths
 
 
