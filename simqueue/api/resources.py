@@ -242,19 +242,19 @@ class QueueResource(BaseJobResource):
 
     def copy_code_file_from_collab_storage(self, bundle):#request, job_id):
         # upload local files to collab storage
-        from bbp_client.oidc.client import BBPOIDCClient
-        from bbp_client.document_service.client import Client as DocClient
+        #from bbp_client.oidc.client import BBPOIDCClient
+        #from bbp_client.document_service.client import Client as DocClient
         import hbp_service_client.document_service.client as doc_service_client
 
-        import bbp_services.client as bsc
-        services = bsc.get_services()
+        #import bbp_services.client as bsc
+        #services = bsc.get_services()
 
         request = bundle.request
         
         access_token = get_access_token(request.user.social_auth.get())
         #oidc_client = BBPOIDCClient.bearer_auth(services['oidc_service']['prod']['url'], access_token)
         #doc_client = DocClient(services['document_service']['prod']['url'], oidc_client)
-        dsc = doc_service_client.Client.__init__()
+        dsc = doc_service_client.Client.new(access_token)
 
         collab_id = bundle.data.get('collab_id', None)
         collab_id_str = str(collab_id)

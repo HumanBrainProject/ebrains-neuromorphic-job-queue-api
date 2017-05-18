@@ -20,6 +20,8 @@ except ImportError:  # Py3
     from urllib.request import urlretrieve
 import errno
 
+import logging
+
 @login_required(login_url='/login/hbp/')
 def home(request):
     # from the request context, load user
@@ -115,29 +117,36 @@ def copy_datafiles_to_collab_storage(request, job, local_dir, relative_paths):
     import hbp_service_client.document_service.client as doc_service_client
 
     #services = bsc.get_services()
-
     access_token = get_access_token(request.user.social_auth.get())
     #oidc_client = BBPOIDCClient.bearer_auth(services['oidc_service']['prod']['url'], access_token)
     #doc_client = DocClient(services['document_service']['prod']['url'], oidc_client)
-    dsc = doc_service_client.Client.__init__()
+    #dsc = doc_service_client.Client.__init__()
+    dsc = doc_service_client.Client.new(access_token)
 
     #project = doc_client.get_project_by_collab_id(job.collab_id)
     project_dict = dsc.list_projects(None, None, None, job.collab_id)
     project = project_dict['results']
     #root = doc_client.get_path_by_id(project["_uuid"])
-    root = dsc.get_entity_path(project["_uuid"])
+    root = dsc.get_entity_path(project[0]['uuid'])
     collab_folder = root + "/job_{}".format(job.pk)
+    collab_folder_2 = "job_{}".format(job.pk)
     #folder_id = doc_client.mkdir(collab_folder)
-    folder = dsc.create_folder(collab_folder, root)
+    folder = dsc.create_folder(collab_folder_2, str(project[0]['uuid']))
     folder_id = folder['uuid']
 
     collab_paths = []
     for relative_path in relative_paths:
         collab_path = os.path.join(collab_folder, relative_path)
+        cps = collab_path.split('/')
+        collab_path_2 = cps[3]
         if os.path.dirname(relative_path):  # if there are subdirectories...
             #doc_client.makedirs(os.path.dirname(collab_path))
-            dsc.create_folder(os.path.dirname(collab_path), root)
+            dsc.create_folder(collab_path_2, folder_id)
         local_path = os.path.join(local_dir, relative_path)
+        logging.warning("local_dir : " + local_dir)
+        logging.warning("relative_path : " + relative_path)
+        logging.warning("local_path : " + local_path)
+
         #id = doc_client.upload_file(local_path, collab_path)
         file = dsc.create_file("file_to_upload", "plain/text", local_path)
         with open(local_path, 'rb') as fp:
