@@ -264,8 +264,10 @@ class QueueResource(BaseJobResource):
         #project = doc_client.get_project_by_collab_id(collab_id)
         project_dict = dsc.list_projects(None, None, None, collab_id)
         project = project_dict['results']
+        #logger.warning("project : " + str(project))
         #root = doc_client.get_path_by_id(project["_uuid"])
-        root = dsc.get_entity_path(project["_uuid"])
+        root = dsc.get_entity_path(project[0]["uuid"])
+        #logger.warning("root : " + str(root))
         collab_path = os.path.join(local_dir, collab_id_dir)
 
         headers = {'Authorization': self._get_auth_header(request)}
