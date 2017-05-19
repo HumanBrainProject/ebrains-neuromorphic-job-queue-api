@@ -141,18 +141,17 @@ def copy_datafiles_to_collab_storage(request, job, local_dir, relative_paths):
         collab_path_2 = cps[3]
         if os.path.dirname(relative_path):  # if there are subdirectories...
             #doc_client.makedirs(os.path.dirname(collab_path))
-            dsc.create_folder(collab_path_2, folder_id)
+            collab_path_id = dsc.create_folder(collab_path_2, folder_id)
         local_path = os.path.join(local_dir, relative_path)
-        logging.warning("local_dir : " + local_dir)
-        logging.warning("relative_path : " + relative_path)
-        logging.warning("local_path : " + local_path)
 
         #id = doc_client.upload_file(local_path, collab_path)
-        file = dsc.create_file("file_to_upload", "plain/text", local_path)
+        #file = dsc.create_file("file_to_upload", "plain/text", collab_path_id['uuid'])
+        file = dsc.create_file(relative_path, "plain/text", folder_id)
         with open(local_path, 'rb') as fp:
             file_contents = fp.read()
-        id = dsc.upload_file_content(file, None, None, file_contents)
-        shutil.move(local_path+'/'+file['name'], collab_path)
+
+        id = dsc.upload_file_content(file['uuid'], None, None, file_contents)
+        #logging.warning("successful upload content")
 
         collab_paths.append(collab_path)
         content_type = mimetypes.guess_type(local_path)[0]
