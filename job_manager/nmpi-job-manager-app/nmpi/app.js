@@ -8,7 +8,12 @@
     'bbpOidcClient',
     'ui.router',
     'ng',
-    'ngResource'
+    'ngResource',
+    'hbpCollaboratory',
+    'clb-error',
+    'clb-ui-error',
+    'clb-env',
+    'clb-app'
   ])
 
   .config(

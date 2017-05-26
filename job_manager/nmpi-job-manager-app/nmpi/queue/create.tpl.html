@@ -50,6 +50,29 @@
             <label class="control-label" for="hardware_platform">Load or upload an existing script</label>
             <div class="controls">
             Load or upload an existing script
+              <div class="panel panel-default">
+                <div class="panel-heading">
+                  <h4>Collab Storage Browser</h4>
+                </div>
+                <div class="panel-body" ng-controller="UiStorageController as vm">
+                  <uib-alert type="warning" ng-if="!vm.authInfo">You have to be logged in to access the collab storage</uib-alert>
+                  <div ng-if="vm.authInfo">
+                    <div class="form-group" ng-if="!vm.collabStorage">
+                      <label for="targetCollab">Select a collab:</label>
+                      <select class="form-control" name="targetCollab" ng-model="vm.selectedCollabId">
+                        <option ng-repeat="c in vm.collabs" value="{{c.id}}">{{c.title}}</option>
+                      </select>
+                    </div>
+                    <clb-file-browser ng-if="vm.collabStorage"
+                      clb-root="vm.collabStorage"
+                      clb-entity="vm.collabStorage">
+                    </clb-file-browser>
+                    <clb-alert type="warning" ng-if="!vm.loading && vm.selectedCollabId && !vm.collabStorage">
+                      No storage available for the selected colab. Please select another one.
+                    </clb-alert>
+                  </div>
+                </div>
+              </div>
             </div>
         </div>
 
