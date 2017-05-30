@@ -327,8 +327,8 @@ angular.module('nmpi')
             $location.path( '/queue').search({ctx:$rootScope.ctx});
         };
 
-        //toogle code tabs
-        $scope.toogleTabs = function(id_tab){
+        //toggle code tabs
+        $scope.toggleTabs = function(id_tab){
              console.log("tab" + id_tab);
             $scope.job.selected_tab = id_tab;
 

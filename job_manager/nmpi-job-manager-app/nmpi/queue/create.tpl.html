@@ -15,13 +15,13 @@
         <input type="hidden" id="selected_tab" name="selected_tab" ng-model="job.selected_tab">
         <ul class="nav nav-tabs">
           <li id="li_code_editor" class="nav-item active">
-            <a class="nav-link" ng-click="toogleTabs('code_editor')" >Code Editor</a>
+            <a class="nav-link" ng-click="toggleTabs('code_editor')" >Code Editor</a>
           </li>
           <li id="li_upload_link" class="nav-item">
-            <a class="nav-link" ng-click="toogleTabs('upload_link')" >GIT or ZIP file from clound storage</a>
+            <a class="nav-link" ng-click="toggleTabs('upload_link')" >GIT or ZIP file from cloud storage</a>
           </li>
           <li id="li_upload_script" class="nav-item">
-            <a class="nav-link" ng-click="toogleTabs('upload_script')" >Load or upload an existing script</a>
+            <a class="nav-link" ng-click="toggleTabs('upload_script')" >Load or upload an existing script</a>
           </li>
         </ul>
 
@@ -79,8 +79,8 @@
         <div class="control-group">
             <label class="control-label" for="hardware_config">Hardware Config</label>
             <div class="controls">
-              <textarea id="hardware_config" name="hardware_config" rows="5" ng-model="job.hardware_config" style="width:100%"></textarea>
-              <span class="badge" ng-show="checkJSON()">Please enter valid JSON.</span>
+            <textarea json-text id="hardware_config" name="hardware_config" rows="5" ng-model="job.hardware_config" style="width:100%"></textarea>
+            <span class="badge" ng-show="!job.hardware_config">Please enter valid JSON.</span>
             </div>
         </div>
 

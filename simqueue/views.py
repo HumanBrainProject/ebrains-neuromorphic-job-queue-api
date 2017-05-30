@@ -168,15 +168,3 @@ def copy_datafiles_with_unicore(request, target, job, local_dir, relative_paths)
         remote_paths.append(remote_path)
 
     return remote_paths
-
-# @login_required(login_url='/login/hbp/')
-# def copy_code_file_from_collab_storage(request, job_id):
-#     job = Job.objects.get(pk=job_id)
-#     local_dir = tempfile.mkdtemp()
-
-#     project = doc_client.get_project_by_collab_id(job.collab_id)
-#     root = doc_client.get_path_by_id(project["_uuid"])
-#     collab_folder = root + "/job_{}".format(job.pk)
-#     folder_id = doc_client.mkdir(collab_folder)
-#     return False
-    
