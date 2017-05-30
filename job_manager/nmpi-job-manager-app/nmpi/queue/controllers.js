@@ -326,6 +326,45 @@ angular.module('nmpi')
             $scope.msg.show = false;
             $location.path( '/queue').search({ctx:$rootScope.ctx});
         };
+
+        //toogle code tabs
+        $scope.toogleTabs = function(id_tab){
+             console.log("tab" + id_tab);
+            $scope.job.selected_tab = id_tab;
+
+            $scope.number_rows = 5;
+            if(id_tab == "upload_link" | id_tab == "upload_script"){
+              $scope.number_rows = 1;
+            }
+
+            document.getElementById("code_editor_upload_link").style.display="none";
+            document.getElementById("upload_script").style.display="none";
+
+            document.getElementById("code_editor_upload_link").style.display="block";
+            // document.getElementById("code").readOnly = false;
+            if(id_tab == "code_editor"){
+                $scope.msg_panel = "Code";
+                $scope.msg_required = "Please enter your code in the textarea.";
+            }
+            if(id_tab == "upload_link"){
+                $scope.msg_panel = "URL of zip file or Git repository";
+                $scope.msg_required = "Please enter a Git repository URL or the URL of a zip archive containing your code.";
+            }
+            if(id_tab == "upload_script"){
+                $scope.msg_panel = "ID of selected file";
+                $scope.msg_required = "Please select a file below to load and upload an existing script.";
+                document.getElementById(id_tab).style.display="block";
+                // document.getElementById("code").readOnly = true;
+                // $scope.create_job.$setValidity("code", true);
+            }
+
+            var a = document.getElementById("li_code_editor");
+            var b = document.getElementById("li_upload_link");
+            var c = document.getElementById("li_upload_script");
+            a.className = b.className = c.className = "nav-link";
+            var d = document.getElementById("li_"+id_tab);
+            d.className += " active";
+        };
     }
 ])
 
@@ -458,43 +497,6 @@ angular.module('nmpi')
             $location.path( '/queue').search({ctx:$rootScope.ctx});
         };
 
-        //toogle code tabs
-        $scope.toogleTabs = function(id_tab){
-            $scope.job.selected_tab = id_tab;
-
-            $scope.number_rows = 5;
-            if(id_tab == "upload_link" | id_tab == "upload_script"){
-              $scope.number_rows = 1;
-            }
-
-            document.getElementById("code_editor_upload_link").style.display="none";
-            document.getElementById("upload_script").style.display="none";
-
-            document.getElementById("code_editor_upload_link").style.display="block";
-            // document.getElementById("code").readOnly = false;
-            if(id_tab == "code_editor"){
-                $scope.msg_panel = "Code";
-                $scope.msg_required = "Please enter your code in the textarea.";
-            }
-            if(id_tab == "upload_link"){
-                $scope.msg_panel = "URL of zip file or Git repository";
-                $scope.msg_required = "Please enter a Git repository URL or the URL of a zip archive containing your code.";
-            }
-            if(id_tab == "upload_script"){
-                $scope.msg_panel = "ID of selected file";
-                $scope.msg_required = "Please select a file below to load and upload an existing script.";
-                document.getElementById(id_tab).style.display="block";
-                // document.getElementById("code").readOnly = true;
-                // $scope.create_job.$setValidity("code", true);
-            }
-
-            var a = document.getElementById("li_code_editor");
-            var b = document.getElementById("li_upload_link");
-            var c = document.getElementById("li_upload_script");
-            a.className = b.className = c.className = "nav-link";
-            var d = document.getElementById("li_"+id_tab);
-            d.className += " active";
-        };
     }
 ])
 
