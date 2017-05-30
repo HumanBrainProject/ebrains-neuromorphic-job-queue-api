@@ -6,13 +6,19 @@ Definition of Resources for the Job Queue REST API
 from datetime import date, datetime, timedelta
 import logging
 from collections import Counter, defaultdict
+import os
+import tempfile
+import re
 import pytz
+import json
+import requests
 
 from django.conf.urls import url
 from django.core.mail import send_mail
 from django.http import HttpResponseForbidden, HttpResponseNotFound
 from django.contrib.auth.models import User
 from django.db.models import DurationField, F, ExpressionWrapper
+from django.conf import settings
 
 from tastypie.resources import Resource, ModelResource
 from tastypie import fields
@@ -27,33 +33,8 @@ from ..models import DataItem, Job, Log
 from .auth import CollabAuthorization, HBPAuthentication, ProviderAuthentication
 from quotas.models import Quota
 
-# J.D.
-from django.shortcuts import render_to_response
-from django.template.context import RequestContext
-from django.http import HttpResponse
-from django.contrib.auth.decorators import login_required
-import json
-import requests
-from hbp_app_python_auth.auth import get_access_token, get_token_type
-from django.conf import settings
+from hbp_app_python_auth.auth import get_access_token
 
-# import os.path
-import os
-import tempfile
-import shutil
-import mimetypes
-from simqueue.models import Job
-try:
-    from urlparse import urlparse
-    from urllib import urlretrieve
-except ImportError:  # Py3
-    from urllib.parse import urlparse
-    from urllib.request import urlretrieve
-import errno
-
-import re
-import zipfile
-# end J.D.
 
 CODE_MAX_LENGTH = 10000
 STANDARD_QUEUES = ("BrainScaleS", "BrainScaleS-ESS", "Spikey", "SpiNNaker")
@@ -178,6 +159,7 @@ class BaseJobResource(ModelResource):
 
         return auth_result
 
+
 # QUEUE contains unfinished jobs (jobs whose status is not 'finished', 'error' or 'removed')
 # You can only put, get and patch (to another status) jobs using this view
 class QueueResource(BaseJobResource):
@@ -236,55 +218,40 @@ class QueueResource(BaseJobResource):
         # todo: check user is either an HBP member or has permission to use the platform
         selected_tab = str(bundle.data.get('selected_tab'))
         if selected_tab == "upload_script" :
-            self.copy_code_file_from_collab_storage(bundle);
+            bundle.data["code"] = self.copy_code_file_from_collab_storage(bundle)
+            # putting the temporary download path in the code field is not ideal.
+            # perhaps we can temporarily store the collab file id somewhere, and
+            # restore it once the job has been launched
         self._check_quotas(bundle)
         return super(QueueResource, self).obj_create(bundle, **kwargs)
 
-    def copy_code_file_from_collab_storage(self, bundle):#request, job_id):
-        # upload local files to collab storage
+    def copy_code_file_from_collab_storage(self, bundle):
+        """
+        Download code from Collab storage
+        """
         from bbp_client.oidc.client import BBPOIDCClient
         from bbp_client.document_service.client import Client as DocClient
         import bbp_services.client as bsc
         services = bsc.get_services()
-
-        request = bundle.request
         
-        access_token = get_access_token(request.user.social_auth.get())
+        access_token = get_access_token(bundle.request.user.social_auth.get())
         oidc_client = BBPOIDCClient.bearer_auth(services['oidc_service']['prod']['url'], access_token)
         doc_client = DocClient(services['document_service']['prod']['url'], oidc_client)
 
-        collab_id = bundle.data.get('collab_id', None)
-        collab_id_str = str(collab_id)
-
-        local_dir = tempfile.mkdtemp()
-        collab_id_dir = "/"+collab_id_str
-        project = doc_client.get_project_by_collab_id(collab_id)
-        root = doc_client.get_path_by_id(project["_uuid"])
-        collab_path = os.path.join(local_dir, collab_id_dir)
-
-        headers = {'Authorization': self._get_auth_header(request)}
-        req = requests.get(str(bundle.data.get("code")), headers=headers)
-        req_infos = json.loads(req.text)
-
-        req_content = requests.get(str(bundle.data.get("code"))+"/content/download", headers=headers)
-        # creation of destination directory
-        dir_code_file = os.mkdir(local_dir + root)
-        dir_code_file = os.mkdir(local_dir + root + collab_path)
-
-        # text file
-        if re.search("text" , str(req_infos['_contentType'])):
-            os.chdir(local_dir + root + collab_path)
-            file_content_code = open(str(req_infos['_name']), "w")
-            file_content_code.write(req_content.text)
-            file_content_code.close()
-        # binary file
+        entity_id = bundle.data.get("code")
+        metadata = doc_client.get_standard_attr_by_id(entity_id)
+        filename = "{}_{}".format(entity_id, metadata._name)
+        entity_type = metadata._entityType
+        local_dir = settings.TMP_FILE_ROOT
+        if entity_type == 'file':
+            local_path = os.path.join(local_dir, filename)
+            doc_client.download_file_by_id(entity_id, dst_path=local_path)
+        elif entity_type == 'directory':
+            raise NotImplementedError("todo")
         else:
-            os.chdir(local_dir + root + collab_path)
-            file_content_bin = open(str(req_infos['_name']), "w")
-            file_content_bin.write(req_content.content)
-            file_content_bin.close()
-        return False
-
+            raise ValueError("Can't handle entity type '{}'".format(entity_type))
+        temporary_url = settings.TMP_FILE_URL + filename
+        return temporary_url
 
     def _check_quotas(self, bundle):
         collab = bundle.data.get('collab_id', None)
@@ -358,7 +325,6 @@ class QueueResource(BaseJobResource):
         else:
             logger.error("User matching job owner {} not found.".format(bundle.data['user_id']))
 
-
     def obj_update(self, bundle, **kwargs):
         # update quota usage
         update = super(QueueResource, self).obj_update(bundle, **kwargs)
@@ -409,14 +375,6 @@ class QueueResource(BaseJobResource):
 
         return auth_result
 
-    def _get_auth_header(self, request):
-        '''return authentication header'''
-        return '%s %s' % (request.user.social_auth.get().extra_data['token_type'],
-                          self._get_access_token(request))
-
-    def _get_access_token(self, request):
-        return request.user.social_auth.get().extra_data['access_token']
-
 
 # RESULTS contains finished jobs (jobs whose status is either 'finished' or 'error')
 # You can only get and patch (to another status) jobs using this view
@@ -449,6 +407,7 @@ class ResultsResource(BaseJobResource):
             return bundle.data['code'][:CODE_MAX_LENGTH] + "\n\n...truncated..."
         else:
             return bundle.data['code']
+
 
 class LogResource(ModelResource):
     class Meta:

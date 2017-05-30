@@ -488,7 +488,6 @@ angular.module('nmpi')
                     };
                 }
             );
-            UiStorageGetData.job = $scope.job;
         }
 
         // reset
@@ -530,6 +529,12 @@ angular.module('nmpi')
     });
     $scope.$on('clbAuth.changed', function(event, authInfo) {
       vm.authInfo = authInfo;
+    });
+    $scope.$on('clbFileBrowser:focusChanged', function(event, value) {
+      console.log('focus changed. Value is:');
+      console.log(value);
+      $scope.UiStorageGetData.selectedFile = value.name;
+      $scope.UiStorageGetData.job.code = value.uuid;
     });
   });
 })
