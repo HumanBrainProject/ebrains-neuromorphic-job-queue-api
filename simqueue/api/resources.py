@@ -242,12 +242,11 @@ class QueueResource(BaseJobResource):
         entity_type = metadata["entity_type"]
         local_dir = settings.TMP_FILE_ROOT
         if entity_type == 'file':
-            filename = entity_name
-            local_path = joinp(local_dir, filename)
+            # put the file content into the "code" field directly
             etag, content = doc_client.download_file_content(entity_id)
-            with open(local_path, 'wb') as fp:
-                fp.write(content)
+            return content
         elif entity_type == 'folder':
+            # create a zip archive and put its url into the "code" field
             def download_folder(entity, local_dir):
                 folder_content = doc_client.list_folder_content(entity["uuid"])
                 sub_dir = joinp(local_dir, entity["name"])
@@ -270,10 +269,10 @@ class QueueResource(BaseJobResource):
                                 base_dir=metadata["name"])
             filename = entity_name + ".zip"
             shutil.rmtree(folder_root)
+            temporary_url = bundle.request.build_absolute_uri(settings.TMP_FILE_URL + filename)
+            return temporary_url
         else:
             raise ValueError("Can't handle entity type '{}'".format(entity_type))
-        temporary_url = bundle.request.build_absolute_uri(settings.TMP_FILE_URL + filename)
-        return temporary_url
 
     def _check_quotas(self, bundle):
         collab = bundle.data.get('collab_id', None)
