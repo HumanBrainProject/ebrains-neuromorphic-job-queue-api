@@ -250,7 +250,7 @@ class QueueResource(BaseJobResource):
             raise NotImplementedError("todo")
         else:
             raise ValueError("Can't handle entity type '{}'".format(entity_type))
-        temporary_url = settings.TMP_FILE_URL + filename
+        temporary_url = bundle.request.build_absolute_uri(settings.TMP_FILE_URL + filename)
         return temporary_url
 
     def _check_quotas(self, bundle):
