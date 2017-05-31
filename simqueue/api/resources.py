@@ -8,6 +8,7 @@ import logging
 from collections import Counter, defaultdict
 import os
 import tempfile
+import shutil
 import re
 import pytz
 import json
@@ -229,25 +230,46 @@ class QueueResource(BaseJobResource):
         """
         Download code from Collab storage
         """
-        from bbp_client.oidc.client import BBPOIDCClient
-        from bbp_client.document_service.client import Client as DocClient
-        import bbp_services.client as bsc
-        services = bsc.get_services()
-        
+        from hbp_service_client.document_service.client import Client as DocClient
+        joinp = os.path.join
+
         access_token = get_access_token(bundle.request.user.social_auth.get())
-        oidc_client = BBPOIDCClient.bearer_auth(services['oidc_service']['prod']['url'], access_token)
-        doc_client = DocClient(services['document_service']['prod']['url'], oidc_client)
+        doc_client = DocClient.new(access_token)
 
         entity_id = bundle.data.get("code")
-        metadata = doc_client.get_standard_attr_by_id(entity_id)
-        filename = "{}_{}".format(entity_id, metadata._name)
-        entity_type = metadata._entityType
+        metadata = doc_client.get_entity_details(entity_id)
+        entity_name = "{}_{}".format(entity_id, metadata["name"])
+        entity_type = metadata["entity_type"]
         local_dir = settings.TMP_FILE_ROOT
         if entity_type == 'file':
-            local_path = os.path.join(local_dir, filename)
-            doc_client.download_file_by_id(entity_id, dst_path=local_path)
-        elif entity_type == 'directory':
-            raise NotImplementedError("todo")
+            filename = entity_name
+            local_path = joinp(local_dir, filename)
+            etag, content = doc_client.download_file_content(entity_id)
+            with open(local_path, 'wb') as fp:
+                fp.write(content)
+        elif entity_type == 'folder':
+            def download_folder(entity, local_dir):
+                folder_content = doc_client.list_folder_content(entity["uuid"])
+                sub_dir = joinp(local_dir, entity["name"])
+                os.mkdir(sub_dir)
+                for child in folder_content['results']:
+                    entity_type = child["entity_type"]
+                    if entity_type == 'file':
+                        with open(joinp(sub_dir, child["name"]), "wb") as fp:
+                            etag, content = doc_client.download_file_content(child["uuid"])
+                            fp.write(content)
+                    elif entity_type == 'folder':
+                        download_folder(child, sub_dir)
+                    else:
+                        logger.warning("Cannot handle entity type '{}'".format(entity_type))
+                return sub_dir
+
+            folder_root = download_folder(metadata, local_dir)
+            shutil.make_archive(joinp(local_dir, entity_name), 'zip',
+                                root_dir=local_dir,
+                                base_dir=metadata["name"])
+            filename = entity_name + ".zip"
+            shutil.rmtree(folder_root)
         else:
             raise ValueError("Can't handle entity type '{}'".format(entity_type))
         temporary_url = bundle.request.build_absolute_uri(settings.TMP_FILE_URL + filename)

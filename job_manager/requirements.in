@@ -9,3 +9,4 @@ django-tastypie
 django-sslserver  # dev only
 psycopg2          # dev only - installed as Debian package in Docker image
 numpy             # dev only - installed as Debian package in Docker image
+hbp-service-client
