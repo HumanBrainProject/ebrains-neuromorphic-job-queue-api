@@ -116,7 +116,6 @@ def copy_datafiles_to_collab_storage(request, job, local_dir, relative_paths):
     from hbp_service_client.document_service.client import Client as DocClient
     #import bbp_services.client as bsc
     import hbp_service_client.client as bsc
-
     services = bsc.get_services()
 
     access_token = get_access_token(request.user.social_auth.get())
