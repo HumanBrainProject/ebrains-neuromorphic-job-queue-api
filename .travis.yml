@@ -1,0 +1,21 @@
+language: python
+python:
+  - 2.7
+  - 3.5
+install:
+  - pip install pip-tools
+  - pip-sync deployment/requirements-deploy.txt
+  - pip download -i https://bbpteam.epfl.ch/repository/devpi/simple --pre -r deployment/requirements-bbp.txt -d packages
+  - git clone https://github.com/HumanBrainProject/hbp-app-python-auth
+  - mv -v hbp-app-python-auth/ /packages/hbp-app-python-auth
+  - pip install -f packages -r deployment/requirements-deploy.txt
+  - pip install -f packages -r job_manager/requirements.txt
+  - pip install -f packages -r resource_manager/requirements.txt
+  - sudo apt-get install libpq-dev python-dev
+  - pip install psycopg2
+  - pip install numpy
+script:
+  - sleep 1m
+  - cd job_manager
+  - python manage.py test quotas
+  - python manage.py test simqueue
