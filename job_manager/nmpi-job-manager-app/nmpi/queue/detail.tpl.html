@@ -58,8 +58,10 @@
     </div>
     <ul class="list-group">
         <li class="list-group-item" ng-repeat="file in job.output_data">
-          <a href="{{file.url}}" target="_blank"><span class="label label-default">{{file.url}}</span></a><br/>
-          <img ng-src="{{file.url}}" err-src="queue/document.png" style="margin-top:5px">
+          <a href="{{file.url}}" target="_blank">
+            <img ng-if="isImage(file.url)" ng-src="{{file.url}}" err-src="queue/document.png" style="margin-top:5px">
+            <br/><span class="glyphicon glyphicon-file" aria-hidden="true"></span>&nbsp;{{file.url}}
+          </a>
         </li>
     </ul>
     <div class="panel-footer"><small>These files are in temporary storage, and may be deleted after 3 months. For longer-term preservation or further analysis, we recommend copying the files to the Collab storage.</small></div>
