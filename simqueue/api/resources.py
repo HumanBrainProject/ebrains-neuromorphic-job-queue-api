@@ -6,13 +6,20 @@ Definition of Resources for the Job Queue REST API
 from datetime import date, datetime, timedelta
 import logging
 from collections import Counter, defaultdict
+import os
+import tempfile
+import shutil
+import re
 import pytz
+import json
+import requests
 
 from django.conf.urls import url
 from django.core.mail import send_mail
 from django.http import HttpResponseForbidden, HttpResponseNotFound
 from django.contrib.auth.models import User
 from django.db.models import DurationField, F, ExpressionWrapper
+from django.conf import settings
 
 from tastypie.resources import Resource, ModelResource
 from tastypie import fields
@@ -26,6 +33,9 @@ import numpy as np
 from ..models import DataItem, Job, Log
 from .auth import CollabAuthorization, HBPAuthentication, ProviderAuthentication
 from quotas.models import Quota
+
+from hbp_app_python_auth.auth import get_access_token
+
 
 CODE_MAX_LENGTH = 10000
 STANDARD_QUEUES = ("BrainScaleS", "BrainScaleS-ESS", "Spikey", "SpiNNaker")
@@ -151,7 +161,6 @@ class BaseJobResource(ModelResource):
         return auth_result
 
 
-
 # QUEUE contains unfinished jobs (jobs whose status is not 'finished', 'error' or 'removed')
 # You can only put, get and patch (to another status) jobs using this view
 class QueueResource(BaseJobResource):
@@ -208,8 +217,62 @@ class QueueResource(BaseJobResource):
 
     def obj_create(self, bundle, **kwargs):
         # todo: check user is either an HBP member or has permission to use the platform
+        selected_tab = str(bundle.data.get('selected_tab'))
+        if selected_tab == "upload_script" :
+            bundle.data["code"] = self.copy_code_file_from_collab_storage(bundle)
+            # putting the temporary download path in the code field is not ideal.
+            # perhaps we can temporarily store the collab file id somewhere, and
+            # restore it once the job has been launched
         self._check_quotas(bundle)
         return super(QueueResource, self).obj_create(bundle, **kwargs)
+
+    def copy_code_file_from_collab_storage(self, bundle):
+        """
+        Download code from Collab storage
+        """
+        from hbp_service_client.document_service.client import Client as DocClient
+        joinp = os.path.join
+
+        access_token = get_access_token(bundle.request.user.social_auth.get())
+        doc_client = DocClient.new(access_token)
+
+        entity_id = bundle.data.get("code")
+        metadata = doc_client.get_entity_details(entity_id)
+        entity_name = "{}_{}".format(entity_id, metadata["name"])
+        entity_type = metadata["entity_type"]
+        local_dir = settings.TMP_FILE_ROOT
+        if entity_type == 'file':
+            # put the file content into the "code" field directly
+            etag, content = doc_client.download_file_content(entity_id)
+            return content
+        elif entity_type == 'folder':
+            # create a zip archive and put its url into the "code" field
+            def download_folder(entity, local_dir):
+                folder_content = doc_client.list_folder_content(entity["uuid"])
+                sub_dir = joinp(local_dir, entity["name"])
+                os.mkdir(sub_dir)
+                for child in folder_content['results']:
+                    entity_type = child["entity_type"]
+                    if entity_type == 'file':
+                        with open(joinp(sub_dir, child["name"]), "wb") as fp:
+                            etag, content = doc_client.download_file_content(child["uuid"])
+                            fp.write(content)
+                    elif entity_type == 'folder':
+                        download_folder(child, sub_dir)
+                    else:
+                        logger.warning("Cannot handle entity type '{}'".format(entity_type))
+                return sub_dir
+
+            folder_root = download_folder(metadata, local_dir)
+            shutil.make_archive(joinp(local_dir, entity_name), 'zip',
+                                root_dir=local_dir,
+                                base_dir=metadata["name"])
+            filename = entity_name + ".zip"
+            shutil.rmtree(folder_root)
+            temporary_url = bundle.request.build_absolute_uri(settings.TMP_FILE_URL + filename)
+            return temporary_url
+        else:
+            raise ValueError("Can't handle entity type '{}'".format(entity_type))
 
     def _check_quotas(self, bundle):
         collab = bundle.data.get('collab_id', None)
@@ -217,8 +280,7 @@ class QueueResource(BaseJobResource):
         if collab and platform:  # if either of these are missing, we pass through,
                                  # as the error response will be generated later
             logger.info("Creating job in collab {} for {}".format(collab, platform))
-            quotas = get_quotas(collab,
-                                platform)  # there could be multiple projects and hence multiple quotas
+            quotas = get_quotas(collab, platform)  # there could be multiple projects and hence multiple quotas
             logger.info("Quotas: {}".format(quotas))
             requested_resources = 0.0  # or get from submitted job
             if quotas:
@@ -244,14 +306,30 @@ class QueueResource(BaseJobResource):
 
     def _send_email(self, bundle):
         users = User.objects.filter(social_auth__uid=bundle.data['user_id'])
+
         if len(users) > 0:
             email = users[0].email
             if len(users) > 1:
                 logger.warning("Multiple users found with the same oidc id.")
             if email:
                 logger.info("Sending e-mail about job #{} to {}".format(str(bundle.data['id']), bundle.request.user.email))
-                subject = 'NMPI: job ' + str(bundle.data['id']) + ' ' + bundle.data['status']
-                content = subject
+                log_list = Log.objects.filter(pk=bundle.data['id'])
+                if log_list.count() == 0:
+                    log_content = ""
+                else:
+                    log_lines = log_list[0].content.split("\n")
+                    nb_lines = len(log_lines)
+                    if nb_lines <= 20:
+                        log_content = "\n".join(log_lines[:20])
+                    else:
+                        log_content = "\n".join(log_lines[:10])
+                        log_content += "\n\n.  .  .\n\n"
+                        log_content += "\n".join(log_lines[-10:])
+                subject = '[HBP Neuromorphic] job ' + str(bundle.data['id']) + ' ' + bundle.data['status']
+                content = 'HBP Neuromorphic Computing Platform: Job {} {}\n\n'.format(bundle.data['id'],
+                                                                                      bundle.data['status'])
+                content += "https://collab.humanbrainproject.eu/#/collab/{}\n\n".format(bundle.data['collab_id'])
+                content += log_content
                 try:
                     send_mail(
                         subject,
@@ -260,6 +338,7 @@ class QueueResource(BaseJobResource):
                         [email],  # recipient
                         fail_silently=False
                     )
+
                 except Exception as err:
                     logger.error(err)
             else:
@@ -269,6 +348,7 @@ class QueueResource(BaseJobResource):
 
     def obj_update(self, bundle, **kwargs):
         # update quota usage
+        update = super(QueueResource, self).obj_update(bundle, **kwargs)
         logger.info("Updating status of job {} to {}".format(bundle.data['id'], bundle.data['status']))
         if bundle.data['status'] in ('finished', 'error'):
             self._send_email(bundle)
@@ -282,7 +362,7 @@ class QueueResource(BaseJobResource):
             logger.info("E-mail sent and quota updated")
         else:
             logger.info("Doing nothing for status {}".format(bundle.data['status']))
-        return super(QueueResource, self).obj_update(bundle, **kwargs)
+        return update
 
     def get_next(self, request, **kwargs):
         if self._meta.authentication.is_provider(request):
@@ -351,7 +431,6 @@ class ResultsResource(BaseJobResource):
 
 
 class LogResource(ModelResource):
-
     class Meta:
         queryset = Log.objects.all()
         resource_name = 'log'

@@ -12,56 +12,97 @@
 
       <h3>Create Job</h3>
       <form name="create_job" novalidate role="form" class="form-horizontal" ng-controller="AddJob">
+        <input type="hidden" id="selected_tab" name="selected_tab" ng-model="job.selected_tab">
+        <ul class="nav nav-tabs">
+          <li id="li_code_editor" class="nav-item active">
+            <a class="nav-link" ng-click="toggleTabs('code_editor')" >Code Editor</a>
+          </li>
+          <li id="li_upload_link" class="nav-item">
+            <a class="nav-link" ng-click="toggleTabs('upload_link')" >Code from Git repository or zip archive</a>
+          </li>
+          <li id="li_upload_script" class="nav-item">
+            <a class="nav-link" ng-click="toggleTabs('upload_script')" >Code from Collab storage</a>
+          </li>
+        </ul>
 
-      <div class="control-group">
-          <label class="control-label" for="hardware_platform">Hardware Platform</label>
-          <div class="controls">
-              <select name="platform" ng-options="hw.value as hw.text for hw in hardwares" ng-model="job.hardware_platform" required></select>
-              <span class="badge" ng-show="create_job.platform.$error.required">Please choose a simulation platform.</span>
-          </div>
-      </div>
+        <div class="control-group">
+            <label class="control-label" for="hardware_platform">Hardware Platform</label>
+            <div class="controls">
+                <select name="platform" ng-options="hw.value as hw.text for hw in hardwares" ng-model="job.hardware_platform" required></select>
+                <span class="badge" ng-show="create_job.platform.$error.required">Please choose a simulation platform.</span>
+            </div>
+        </div>
 
-      <div class="control-group">
-          <label class="control-label" for="code">Code</label>
-          <div name="code" class="controls">
-            <textarea ui-codemirror ui-codemirror-opts="editorOptions" id="code" name="code" rows="5" ng-model="job.code" required style="width:100%"></textarea>
-            <span class="badge" ng-show="create_job.code.$error.required">Please enter PyNN code, a Git repository URL or the URL of a zip archive containing your code.</span>
-          </div>
-      </div>
+        <div class="control-group" id="code_editor_upload_link" style="display:block;" aria-expanded="true">
+            <label class="control-label" for="code">{{msg_panel}}</label>
+            <div name="code" class="controls">
+              <textarea ui-codemirror ui-codemirror-opts="editorOptions" id="code" name="code" rows="{{number_rows}}" ng-model="job.code" required style="width:100%"></textarea>
+              <span class="badge" ng-show="create_job.code.$error.required">{{msg_required}}</span>
+            </div>
+        </div>
 
-      <div class="control-group">
-          <label class="control-label" for="command">Command</label>
-          <div name="command" class="controls">
-            <input type="text" class="form-control" id="command" name="command" ng-model="job.command">
-          </div>
-      </div>
+        <div class="control-group" id="upload_script" style="display:none;" aria-expanded="false">
+            <div class="controls">
+              <div class="panel panel-default">
+                <div class="panel-heading">
+                  <h4>Collab Storage Browser</h4>
+                </div>
+                <div class="panel-body" ng-controller="UiStorageController as vm">
+                  <uib-alert type="warning" ng-if="!vm.authInfo">You have to be logged in to access the collab storage</uib-alert>
+                  <div ng-if="vm.authInfo">
+                    <div class="form-group" ng-if="!vm.collabStorage">
+                      <label for="targetCollab">Select a collab:</label>
+                      <select class="form-control" name="targetCollab" ng-model="vm.selectedCollabId">
+                        <option ng-repeat="c in vm.collabs" value="{{c.id}}">{{c.title}}</option>
+                      </select>
+                    </div>
+                    <clb-file-browser ng-if="vm.collabStorage"
+                      clb-root="vm.collabStorage"
+                      clb-entity="vm.collabStorage">
+                    </clb-file-browser>
+                    <clb-alert type="warning" ng-if="!vm.loading && vm.selectedCollabId && !vm.collabStorage">
+                      No storage available for the selected colab. Please select another one.
+                    </clb-alert>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div>Selected file : {{UiStorageGetData.selectedFile}}</div>
+        </div>
 
-      <div class="control-group">
-          <label class="control-label" for="hardware_config">Hardware Config</label>
-          <div class="controls">
-            <textarea id="hardware_config" name="hardware_config" rows="5" ng-model="job.hardware_config" style="width:100%"></textarea>
-            <span class="badge" ng-show="checkJSON()">Please enter valid JSON.</span>
-          </div>
-      </div>
+        <div class="control-group">
+            <label class="control-label" for="command">Command</label>
+            <div name="command" class="controls">
+              <input type="text" class="form-control" id="command" name="command" ng-model="job.command">
+            </div>
+        </div>
+        <div class="control-group">
+            <label class="control-label" for="hardware_config">Hardware Config</label>
+            <div class="controls">
+            <textarea json-text id="hardware_config" name="hardware_config" rows="5" ng-model="job.hardware_config" style="width:100%"></textarea>
+            <span class="badge" ng-show="!job.hardware_config">Please enter valid JSON.</span>
+            </div>
+        </div>
 
-      <div class="control-group">
-          <label class="control-label" for="inputs">
-            Input Files 
-            <a href="" ng-click="addInput()" class="glyphicon glyphicon-plus"></a>
-            <a href="" ng-click="removeInput()" class="glyphicon glyphicon-minus"></a>
-          </label>
-          <div class="controls" data-ng-repeat="input in inputs">
-            <input type="text" ng-model="input.url" name="" placeholder="file URL">
-          </div>
-      </div>
+        <div class="control-group">
+            <label class="control-label" for="inputs">
+              Input Files 
+              <a href="" ng-click="addInput()" class="glyphicon glyphicon-plus"></a>
+              <a href="" ng-click="removeInput()" class="glyphicon glyphicon-minus"></a>
+            </label>
+            <div class="controls" data-ng-repeat="input in inputs">
+              <input type="text" ng-model="input.url" name="" placeholder="file URL">
+            </div>
+        </div>
 
-      <br/>
+        <br/>
 
-      <div class="control-group">
-          <button ng-click="reset()" class="btn btn-warning">Cancel</button>
-          <button ng-click="create_job.$valid && submit(job)" class="btn btn-info" style="float:right;">Submit</button>
-      </div>
+        <div class="control-group">
+            <button ng-click="reset()" class="btn btn-warning">Cancel</button>
+            <button ng-click="create_job.$valid && submit(job)" class="btn btn-info" style="float:right;">Submit</button>
+        </div>
       </form>
+      
 
     </div>
   </div>

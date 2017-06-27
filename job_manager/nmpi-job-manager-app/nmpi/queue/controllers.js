@@ -17,9 +17,21 @@ angular.module('nmpi')
         $scope.pageSize = 20;
         $rootScope.with_ctx = true;
 
+        var sendState = function(state, page) {
+            var displayPage = page + 1; // in the UI, pages are numbered from 1
+            window.parent.postMessage({
+                eventName: 'workspace.context',
+                data: {
+                    state: 'page.' + displayPage
+                }
+            }, 'https://collab.humanbrainproject.eu/');
+        };
+
+
         $scope.changePage = function( page )
         {
             $scope.msg = {text:"", css:"", show:false};
+            sendState("list", page);
             $scope.curPage = page;
         };
 
@@ -59,6 +71,13 @@ angular.module('nmpi')
             $scope.results.objects = new Array(); // init before the resource is answered by the server
         };
 
+        var contextState = $location.search().ctxstate;
+        if (contextState && contextState.startsWith('page')) {
+            var displayPage = contextState.slice(5);
+            $scope.curPage = displayPage - 1;
+        }
+
+        sendState("list", $scope.curPage);
 
         // depending on whether there is a context...
         if( $location.search().ctx ){
@@ -70,7 +89,6 @@ angular.module('nmpi')
             $rootScope.user = User.get({id:'me'}, function(data){
                 console.log("user id:"+$rootScope.user.id);
             });
-            // todo: check that user has permission to use the platform
             // todo: check that there is at least one quota associated with the collab
             $scope.inTeam = false;
             $scope.canAccessPlatform = false;
@@ -102,6 +120,7 @@ angular.module('nmpi')
         }
 
         if( !$scope.msg ){ $scope.msg = {text:"", css:"", show:false} };
+        $scope.build_info = window.bbpConfig.build;
     }
 ])
 
@@ -120,13 +139,14 @@ angular.module('nmpi')
 
 
 .controller( 'DetailQueue', 
-            ['$scope', '$location', '$http', '$rootScope', '$stateParams', 'Queue', 'Results', 'Collab', 'Log',
-    function( $scope,   $location,   $http,   $rootScope,   $stateParams,   Queue,   Results,   Collab,   Log)
+            ['$scope', '$location', '$http', '$rootScope', '$stateParams', 'Queue', 'Results', 'Collab', 'Log', 'User',
+    function( $scope,   $location,   $http,   $rootScope,   $stateParams,   Queue,   Results,   Collab,   Log,   User)
     {
         $scope.msg = {text: "", css: "", show: false};
         $scope.hpcSite = null;
         $scope.showHPCsites = false;
-        
+
+        console.log('context:'+$rootScope.ctx);
         $scope.del_job = function(id){
             $scope.job.$del({id:id.eId}, function(data){
                 // on success, return to job list
@@ -138,12 +158,22 @@ angular.module('nmpi')
             });
         };
 
+        var sendState = function(state, job_id){
+            window.parent.postMessage({
+                eventName: 'workspace.context',
+                data: {
+                    state: 'job.' + job_id
+                }
+            }, 'https://collab.humanbrainproject.eu/');
+        };
+
         Results.get(
             {id: $stateParams.eId},
             // first we try to get the job from the Results endpoint
             function(job) {
                 $scope.job = job;
                 $scope.job.collab = Collab.get({cid:$scope.job.collab_id}, function(data){});
+                $scope.job.user = User.get({id:job.user_id}, function(data){});
             },
             // if it's not there we try the Queue endpoint
             function(error) {
@@ -152,6 +182,7 @@ angular.module('nmpi')
                     function(job){
                         $scope.job = job;
                         $scope.job.collab = Collab.get({cid:$scope.job.collab_id}, function(data){});
+                        $scope.job.user = User.get({id:job.user_id}, function(data){});
                     }
                 );
             }
@@ -170,7 +201,13 @@ angular.module('nmpi')
             response.error(function (data, status, headers, config) {
                 $scope.msg = {text: "Data could not be copied.", css: "danger", show: true};
             });
-        }
+        };
+
+        $scope.isImage = function(url) {
+            var filename = url.split('/').pop();
+            var extension = filename.split('.').pop().toLowerCase()
+            return ['jpg', 'jpeg', 'gif', 'png', 'svg'].includes(extension);
+        };
 
         $scope.editorOptions = {
             lineWrapping : false,
@@ -179,13 +216,15 @@ angular.module('nmpi')
             mode: {name: "python", version: 2},
             theme: "elegant"
         };
+
+        sendState("detail", $stateParams.eId);
     }
 ])
 
 
 .controller('AddJob', 
-            ['$scope', '$rootScope', '$location', 'Queue', 'DataItem', 'User', 'Context',
-    function( $scope,   $rootScope,   $location,   Queue,   DataItem,   User,   Context ) 
+            ['$scope', '$rootScope', '$location', 'Queue', 'DataItem', 'User', 'Context', 'UiStorageGetData',
+    function( $scope,   $rootScope,   $location,   Queue,   DataItem,   User,   Context, UiStorageGetData ) 
     {
         $scope.msg = {text: "", css: "", show: false}; // debug
 
@@ -209,13 +248,20 @@ angular.module('nmpi')
         $scope.job.timestamp_completion = curdate.toUTCString(); 
         $scope.job.code = "";
         $scope.job.command = "";
-        $scope.job.hardware_config = null;
-        $scope.job.hardware_platform = ""; 
+        $scope.job.hardware_config = {};
+        $scope.job.hardware_platform = "code_editor";
+        $scope.job.selected_tab = "";
         $scope.job.input_data = [];
         $scope.job.output_data = []; 
         $scope.job.resource_uri = ""; 
         $scope.inputs = [];
-        $scope.dataitem = DataItem.get({id:'last'});
+
+        $scope.msg_panel = "Code";
+        $scope.msg_required = "Please enter your code in the textarea.";
+        $scope.number_rows = 5;
+
+        $scope.UiStorageGetData = UiStorageGetData;
+
         // User
         User.get({id:'me'}, function(user){
             //console.log("create user id:"+user.id);
@@ -226,6 +272,7 @@ angular.module('nmpi')
             //console.log("create collab id: "+context.collab.id);
             $scope.job.collab_id = context.collab.id;
         });
+        UiStorageGetData.job = $scope.job;
 
         $scope.addInput = function() {
             $scope.inputs.push( {id:null, url:'', resource_uri:''} );
@@ -238,9 +285,6 @@ angular.module('nmpi')
         // post
         $scope.submit = function( job ){
             $scope.master_job = angular.copy( job );
-            if( $scope.job.hardware_config != null ){
-                $scope.job.hardware_config = JSON.parse( $scope.job.hardware_config );
-            }
             // if dataitem have been added, save them and at the end save the job
             if( $scope.inputs.length ){
                 $scope.inputs.forEach( function(input){
@@ -269,24 +313,11 @@ angular.module('nmpi')
             }
         };
 
-        $scope.checkJSON = function(){
-            //console.log( $scope.job.hardware_config );
-            // this is called any time any field is edited. Is there a way to ensure it is
-            // only called when the hardware config field is edited?
-            try{
-                JSON.parse($scope.job.hardware_config);
-            }catch(e){
-
-                return true;
-            }
-            return false;
-        };
-
         $scope.savejob = function(){
             // console.log(JSON.stringify($scope.job));
             $scope.job.$save({},
                 function(data){  // success
-                    console.log(JSON.stringify(data));
+                    //console.log(JSON.stringify(data));
                     $rootScope.msg = {
                         text: "Your job has been submitted. You will receive further updates by email.",
                         css: "success",
@@ -311,12 +342,219 @@ angular.module('nmpi')
             $location.path( '/queue').search({ctx:$rootScope.ctx});
         };
 
-        $scope.editorOptions = {
-            lineWrapping : false,
-            lineNumbers: false,
-            indentUnit: 4,
-            mode: {name: "python", version: 2},
-            theme: "elegant"
+        //toggle code tabs
+        $scope.toggleTabs = function(id_tab){
+             console.log("tab" + id_tab);
+            $scope.job.selected_tab = id_tab;
+
+            $scope.number_rows = 5;
+            if(id_tab == "upload_link" | id_tab == "upload_script"){
+              $scope.number_rows = 1;
+            }
+
+            document.getElementById("code_editor_upload_link").style.display="none";
+            document.getElementById("upload_script").style.display="none";
+
+            document.getElementById("code_editor_upload_link").style.display="block";
+            // document.getElementById("code").readOnly = false;
+            if(id_tab == "code_editor"){
+                $scope.msg_panel = "Code";
+                $scope.msg_required = "Please enter your code in the textarea.";
+            }
+            if(id_tab == "upload_link"){
+                $scope.msg_panel = "URL of zip file or Git repository";
+                $scope.msg_required = "Please enter a Git repository URL or the URL of a zip archive containing your code.";
+            }
+            if(id_tab == "upload_script"){
+                $scope.msg_panel = "ID of selected file";
+                $scope.msg_required = "Please select a file or folder below to submit an existing script.";
+                document.getElementById(id_tab).style.display="block";
+                // document.getElementById("code").readOnly = true;
+                // $scope.create_job.$setValidity("code", true);
+            }
+
+            var a = document.getElementById("li_code_editor");
+            var b = document.getElementById("li_upload_link");
+            var c = document.getElementById("li_upload_script");
+            a.className = b.className = c.className = "nav-link";
+            var d = document.getElementById("li_"+id_tab);
+            d.className += " active";
         };
     }
-]);
+])
+
+.controller('ReSubmitJob', 
+            ['$scope', '$rootScope', '$location', 'Queue', 'Results', 'DataItem', 'User', 'Context',
+    function( $scope,   $rootScope,   $location,   Queue, Results,   DataItem,   User,   Context ) 
+    {
+        $scope.msg = {text: "", css: "", show: false}; // debug
+
+        //get id
+        var location_array = new Array();
+        var job_id = "";
+        location_array = $location.$$url.split('/');
+        job_id = location_array[3];
+
+        // Context
+        //$rootScope.ctx = $location.search().ctx;
+        $rootScope.with_ctx = true;
+
+        //console.log("job id : " + job_id);
+        //console.log('context:'+$rootScope.ctx);
+
+        // presets
+        $scope.hardwares = [
+            {value:'BrainScaleS', text:'BrainScaleS'},
+            {value:'SpiNNaker', text:'SpiNNaker'},
+            {value:'BrainScaleS-ESS', text:'BrainScaleS-ESS'},
+            {value:'Spikey', text:'Spikey'},
+        ];
+
+        $scope.job = new Queue();
+        var curdate = new Date();
+        $scope.job.id = null;
+        $scope.job.log = " ";
+        $scope.job.status = "submitted";
+        $scope.job.timestamp_submission = curdate.toUTCString();
+        $scope.job.timestamp_completion = curdate.toUTCString(); 
+        $scope.job.collab_id = $scope.collab_id;
+
+        $scope.job.input_data = [];
+        $scope.job.output_data = []; 
+        $scope.job.resource_uri = ""; 
+
+        Results.get({id:job_id}, function(former_job){
+            $scope.job.code = former_job.code;
+            $scope.job.command = former_job.command;
+            $scope.job.hardware_config = former_job.hardware_config;
+            $scope.job.hardware_platform = former_job.hardware_platform;
+
+            $scope.inputs = [];
+
+            // User
+            User.get({id:'me'}, function(user){
+                //console.log("create user id:"+user.id);
+                $scope.job.user_id = user.id;
+            });
+            // Collab from Context
+            Context.get({ctx: $rootScope.ctx}, function(context){
+                //console.log("create collab id: "+context.collab.id);
+                $scope.job.collab_id = context.collab.id;
+            });
+        });
+
+        $scope.addInput = function() {
+            $scope.inputs.push( {id:null, url:'', resource_uri:''} );
+        }
+
+        $scope.removeInput = function() {
+            $scope.inputs.pop(); 
+        }
+
+        // post
+        $scope.submit = function( job ){
+            $scope.master_job = angular.copy( job );
+            // if dataitem have been added, save them and at the end save the job
+            if( $scope.inputs.length ){
+                $scope.inputs.forEach( function(input){
+                    if( input.url.length ){ // if there is a value
+                        var dataitem = new DataItem();
+                        dataitem.id = null;
+                        dataitem.url = input.url;
+                        dataitem.resource_uri = '';
+                        dataitem.$save(
+                            function(response){
+                                $scope.job.input_data.push(response);
+                                //console.log(JSON.stringify($scope.inputs));
+                                // save the job only when the input_data is full
+                                // wait until $scope.job.input_data has the same number as $scope.inputs.length
+                                if( $scope.inputs.length == $scope.job.input_data.length ){
+                                    // save to server
+                                    $scope.savejob();
+                                }
+                            }
+                        );
+                    }
+                });
+            } else {
+                // save directly to server if there are no inputs
+                $scope.savejob();
+            }
+        };
+
+        $scope.savejob = function(){
+            $scope.job.$save({},
+                function(data){  // success
+                    console.log(JSON.stringify(data));
+                    $rootScope.msg = {
+                        text: "Your job has been submitted. You will receive further updates by email.",
+                        css: "success",
+                        show: true
+                    };
+                    $location.path( '/queue').search({ctx:$rootScope.ctx});
+                },
+                function(err) { // error
+                    console.log(err.status + ": " + err.data);
+                    $scope.$parent.msg = {
+                        text: "Your job has not been submitted. " + err.data,
+                        css: "danger",
+                        show: true
+                    };
+                }
+            );
+        }
+
+        // reset
+        $scope.reset = function(){
+            $scope.msg.show = false;
+            $location.path( '/queue').search({ctx:$rootScope.ctx});
+        };
+
+    }
+])
+
+.controller('UiStorageController', function($scope, $rootScope, $http, $location, clbUser, clbCollab, clbStorage, Context, UiStorageGetData) {
+  var vm = this;
+  vm.authInfo = true;
+
+  $rootScope.ctx = $location.search().ctx;
+  $rootScope.with_ctx = true;
+
+  $scope.UiStorageGetData = UiStorageGetData;
+
+  // Collab from Context
+  Context.get({ctx: $rootScope.ctx}, function(context){
+    vm.selectedCollabId = context.collab.id;
+  
+    clbCollab.list().then(function(collabs) {
+      vm.collabs = collabs.results;
+    });
+
+    $scope.$watch('vm.selectedCollabId', function(id) {
+      vm.loading = true;
+      clbStorage.getEntity({collab: id}).then(function(collabStorage) {
+        vm.collabStorage = collabStorage;
+      }, function() {
+        vm.collabStorage = null;
+      })
+      .finally(function() {
+        vm.loading = false;
+      });
+    });
+    $scope.$on('clbAuth.changed', function(event, authInfo) {
+      vm.authInfo = authInfo;
+    });
+    $scope.$on('clbFileBrowser:focusChanged', function(event, value) {
+      console.log('focus changed. Value is:');
+      console.log(value);
+      $scope.UiStorageGetData.selectedFile = value.name;
+      $scope.UiStorageGetData.job.code = value.uuid;
+    });
+  });
+})
+
+.service('UiStorageGetData', function(){
+    this.selectedFile = "";
+    this.job = "";
+});
+

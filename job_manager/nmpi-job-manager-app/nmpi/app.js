@@ -9,6 +9,11 @@
     'ui.router',
     'ng',
     'ngResource',
+    'hbpCollaboratory',
+    'clb-error',
+    'clb-ui-error',
+    'clb-env',
+    'clb-app'
     'ui.codemirror'
   ])
 
@@ -33,6 +38,11 @@
         templateUrl: 'static/nmpi/queue/detail.tpl.html', 
         controller: 'DetailQueue'
       })
+      .state('job_resubmit', {
+        url: '/queue/createfrom/:eId?ctx='+$rootScopeProvider.ctx,
+        templateUrl: 'static/nmpi/queue/resubmit.tpl.html', 
+        controller: 'ReSubmitJob'
+      })
     }
   )
   .filter('extractInitialComment', function() {
@@ -55,7 +65,53 @@
             return output;
         }
   })
+  .run(function($rootScope, $location, $state) {
+        $rootScope.$on('$stateChangeStart', function(e, toState, toParams, fromState, fromParams) {
+            if( $location.search().ctx ) {
+                $rootScope.ctx = $location.search().ctx;
+                $rootScope.with_ctx = true;
+            }
+            var contextState = $location.search().ctxstate;
+            if (contextState && contextState.startsWith('job')) {
+                var job_id = contextState.slice(4);
+                // don't redirect if we're already heading to the correct state
+                if (toState.name === 'job_detail' && toParams.eId == job_id) {
+                    return;
+                }
 
+                e.preventDefault();
+                $state.go('job_detail', { eId: job_id });
+            }
+        });
+  })
+  .directive('jsonText', function() {
+      return {
+          restrict: 'A',
+          require: 'ngModel',
+          link: function(scope, element, attr, ngModel) {
+              function into(input) {
+                  if (input.length > 0) {
+                      try {
+                          return JSON.parse(input);
+                      } catch(e) {
+                          return false;  // JSON is invalid
+                      }
+                  } else {  // empty textarea implies an empty object
+                     return {};
+                  }
+              }
+              function out(data) {
+                  if (Object.getOwnPropertyNames(data).length > 0) {  // non-empty
+                      return JSON.stringify(data, undefined, 2);
+                  } else {  // empty object
+                      return "";
+                  }
+              }
+              ngModel.$parsers.push(into);
+              ngModel.$formatters.push(out);
+          }
+      };
+  })
 
  // Bootstrap function
  angular.bootstrap().invoke(function($http, $log) {

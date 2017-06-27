@@ -107,7 +107,6 @@ def copy_datafiles_to_storage(request, target, job_id):
 
     return HttpResponse(json.dumps(target_paths), content_type='application/json')
 
-
 def copy_datafiles_to_collab_storage(request, job, local_dir, relative_paths):
 
     # upload local files to collab storage

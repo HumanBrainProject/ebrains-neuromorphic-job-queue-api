@@ -189,6 +189,10 @@ HBP_ENV_URL = 'https://collab.humanbrainproject.eu/config.json'
 HBP_COLLAB_SERVICE_URL = 'https://services.humanbrainproject.eu/collab/v0'
 HBP_IDENTITY_SERVICE_URL = 'https://services.humanbrainproject.eu/idm/v1/api'
 
+TMP_FILE_URL = "/tmp_download/"
+TMP_FILE_ROOT = "%s/tmp_download/" % BASE_DIR
+
+
 ################################################
 # TASTYPIE
 # to add jsonp, used in cross-site requests

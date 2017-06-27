@@ -19,13 +19,11 @@
         <a class="nav" href="app/#/queue" ng-click="msg.show=false" ng-if="!with_ctx">back</a>
       </span>
       <div class="panel-body">
-      <dl class="dl-horizontal">
-        <dt>Status</dt><dd><span ng-class="{'label label-info':job.status=='submitted', 'label label-success':job.status=='finished', 'label label-warning':job.status=='error'}">{{job.status}}</span></dd>
-        <dt>Submitted</dt><dd>{{job.timestamp_submission | date : "yyyy-MM-dd HH:mm:ss" }}</dd>
-        <dt data-ng-show="job.status != 'submitted'">Completed</dt><dd data-ng-show="job.status != 'submitted'">{{job.timestamp_completion | date : "yyyy-MM-dd HH:mm:ss" }}</dd>
-        <dt>Collaboratory</dt><dd>{{job.collab.title}}</dd>
-        <dt>Platform</dt><dd>{{job.hardware_platform}}</dd>
-      </dl>
+        <p><span ng-class="{'label label-info':job.status=='submitted', 'label label-success':job.status=='finished', 'label label-warning':job.status=='error'}">{{job.status}}</span></p>
+        <p><small>Submitted {{job.timestamp_submission | date : "yyyy-MM-dd HH:mm:ss" }}
+                  by {{job.user.displayName}}
+                  to <strong>{{job.hardware_platform}}</strong></small></p>
+        <p data-ng-show="job.status != 'submitted'"><small>Completed {{job.timestamp_completion | date : "yyyy-MM-dd HH:mm:ss" }}</small></p>
       </div>
     </div>
   </div>
@@ -58,8 +56,10 @@
     </div>
     <ul class="list-group">
         <li class="list-group-item" ng-repeat="file in job.output_data">
-          <a href="{{file.url}}" target="_blank"><span class="label label-default">{{file.url}}</span></a><br/>
-          <img ng-src="{{file.url}}" err-src="queue/document.png" style="margin-top:5px">
+          <a href="{{file.url}}" target="_blank">
+            <img ng-if="isImage(file.url)" ng-src="{{file.url}}" err-src="queue/document.png" style="margin-top:5px">
+            <br/><span class="glyphicon glyphicon-file" aria-hidden="true"></span>&nbsp;{{file.url}}
+          </a>
         </li>
     </ul>
     <div class="panel-footer"><small>These files are in temporary storage, and may be deleted after 3 months. For longer-term preservation or further analysis, we recommend copying the files to the Collab storage.</small></div>
@@ -107,8 +107,11 @@
       <pre>{{log.content}}</pre>
     </div>
   </div>
-  <div class="panel-body" style="float:right; ">
+  <div class="panel-body" style="float:right;">
     <button type="button" class="btn btn-danger" ng-click="del_job({eId:job.id})" ng-if="job.user_id === user.id">Delete</button>
+  </div>
+  <div class="panel-body" style="float:right;">
+    <button type="button" class="btn btn-info" ui-sref="job_resubmit({eId:job.id})">Edit &amp; Resubmit</button>
   </div>
   <div class="panel-body" style="float:right; ">
     <a class="nav" href="app/#/queue?ctx={{ctx}}" ng-click="msg.show=false" ng-if="with_ctx">back</a>
