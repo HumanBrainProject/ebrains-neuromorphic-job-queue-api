@@ -19,13 +19,11 @@
         <a class="nav" href="app/#/queue" ng-click="msg.show=false" ng-if="!with_ctx">back</a>
       </span>
       <div class="panel-body">
-      <dl class="dl-horizontal">
-        <dt>Status</dt><dd><span ng-class="{'label label-info':job.status=='submitted', 'label label-success':job.status=='finished', 'label label-warning':job.status=='error'}">{{job.status}}</span></dd>
-        <dt>Submitted</dt><dd>{{job.timestamp_submission | date : "yyyy-MM-dd HH:mm:ss" }}</dd>
-        <dt data-ng-show="job.status != 'submitted'">Completed</dt><dd data-ng-show="job.status != 'submitted'">{{job.timestamp_completion | date : "yyyy-MM-dd HH:mm:ss" }}</dd>
-        <dt>Collab</dt><dd>{{job.collab.title}}</dd>
-        <dt>Platform</dt><dd>{{job.hardware_platform}}</dd>
-      </dl>
+        <p><span ng-class="{'label label-info':job.status=='submitted', 'label label-success':job.status=='finished', 'label label-warning':job.status=='error'}">{{job.status}}</span></p>
+        <p><small>Submitted {{job.timestamp_submission | date : "yyyy-MM-dd HH:mm:ss" }}
+                  by {{job.user.displayName}}
+                  to <strong>{{job.hardware_platform}}</strong></small></p>
+        <p data-ng-show="job.status != 'submitted'"><small>Completed {{job.timestamp_completion | date : "yyyy-MM-dd HH:mm:ss" }}</small></p>
       </div>
     </div>
   </div>

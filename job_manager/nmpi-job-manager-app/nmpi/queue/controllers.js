@@ -139,8 +139,8 @@ angular.module('nmpi')
 
 
 .controller( 'DetailQueue', 
-            ['$scope', '$location', '$http', '$rootScope', '$stateParams', 'Queue', 'Results', 'Collab', 'Log',
-    function( $scope,   $location,   $http,   $rootScope,   $stateParams,   Queue,   Results,   Collab,   Log)
+            ['$scope', '$location', '$http', '$rootScope', '$stateParams', 'Queue', 'Results', 'Collab', 'Log', 'User',
+    function( $scope,   $location,   $http,   $rootScope,   $stateParams,   Queue,   Results,   Collab,   Log,   User)
     {
         $scope.msg = {text: "", css: "", show: false};
         $scope.hpcSite = null;
@@ -173,6 +173,7 @@ angular.module('nmpi')
             function(job) {
                 $scope.job = job;
                 $scope.job.collab = Collab.get({cid:$scope.job.collab_id}, function(data){});
+                $scope.job.user = User.get({id:job.user_id}, function(data){});
             },
             // if it's not there we try the Queue endpoint
             function(error) {
@@ -181,6 +182,7 @@ angular.module('nmpi')
                     function(job){
                         $scope.job = job;
                         $scope.job.collab = Collab.get({cid:$scope.job.collab_id}, function(data){});
+                        $scope.job.user = User.get({id:job.user_id}, function(data){});
                     }
                 );
             }
