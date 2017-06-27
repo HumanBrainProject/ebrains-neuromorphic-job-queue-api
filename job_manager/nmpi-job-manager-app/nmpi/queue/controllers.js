@@ -245,7 +245,6 @@ angular.module('nmpi')
         $scope.job.output_data = []; 
         $scope.job.resource_uri = ""; 
         $scope.inputs = [];
-        $scope.dataitem = DataItem.get({id:'last'});
 
         $scope.msg_panel = "Code";
         $scope.msg_required = "Please enter your code in the textarea.";
@@ -358,7 +357,7 @@ angular.module('nmpi')
             }
             if(id_tab == "upload_script"){
                 $scope.msg_panel = "ID of selected file";
-                $scope.msg_required = "Please select a file below to load and upload an existing script.";
+                $scope.msg_required = "Please select a file or folder below to submit an existing script.";
                 document.getElementById(id_tab).style.display="block";
                 // document.getElementById("code").readOnly = true;
                 // $scope.create_job.$setValidity("code", true);
@@ -421,7 +420,6 @@ angular.module('nmpi')
             $scope.job.hardware_platform = former_job.hardware_platform;
 
             $scope.inputs = [];
-            $scope.dataitem = DataItem.get({id:'last'});
 
             // User
             User.get({id:'me'}, function(user){
