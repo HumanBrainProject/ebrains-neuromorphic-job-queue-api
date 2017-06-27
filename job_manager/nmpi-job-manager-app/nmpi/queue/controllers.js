@@ -199,7 +199,13 @@ angular.module('nmpi')
             response.error(function (data, status, headers, config) {
                 $scope.msg = {text: "Data could not be copied.", css: "danger", show: true};
             });
-        }
+        };
+
+        $scope.isImage = function(url) {
+            var filename = url.split('/').pop();
+            var extension = filename.split('.').pop().toLowerCase()
+            return ['jpg', 'jpeg', 'gif', 'png', 'svg'].includes(extension);
+        };
 
         sendState("detail", $stateParams.eId);
     }
