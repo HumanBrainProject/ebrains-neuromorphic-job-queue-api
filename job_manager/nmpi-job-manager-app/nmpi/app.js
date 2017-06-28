@@ -13,7 +13,8 @@
     'clb-error',
     'clb-ui-error',
     'clb-env',
-    'clb-app'
+    'clb-app',
+    'ui.codemirror'
   ])
 
   .config(

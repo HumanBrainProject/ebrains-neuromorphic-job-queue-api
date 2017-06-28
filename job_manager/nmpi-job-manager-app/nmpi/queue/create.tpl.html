@@ -13,17 +13,6 @@
       <h3>Create Job</h3>
       <form name="create_job" novalidate role="form" class="form-horizontal" ng-controller="AddJob">
         <input type="hidden" id="selected_tab" name="selected_tab" ng-model="job.selected_tab">
-        <ul class="nav nav-tabs">
-          <li id="li_code_editor" class="nav-item active">
-            <a class="nav-link" ng-click="toggleTabs('code_editor')" >Code Editor</a>
-          </li>
-          <li id="li_upload_link" class="nav-item">
-            <a class="nav-link" ng-click="toggleTabs('upload_link')" >Code from Git repository or zip archive</a>
-          </li>
-          <li id="li_upload_script" class="nav-item">
-            <a class="nav-link" ng-click="toggleTabs('upload_script')" >Code from Collab storage</a>
-          </li>
-        </ul>
 
         <div class="control-group">
             <label class="control-label" for="hardware_platform">Hardware Platform</label>
@@ -33,16 +22,32 @@
             </div>
         </div>
 
-        <div class="control-group" id="code_editor_upload_link" style="display:block;" aria-expanded="true">
-            <label class="control-label" for="code">{{msg_panel}}</label>
-            <div name="code" class="controls">
-              <textarea id="code" name="code" rows="{{number_rows}}" ng-model="job.code" required style="width:100%"></textarea>
-              <span class="badge" ng-show="create_job.code.$error.required">{{msg_required}}</span>
-            </div>
-        </div>
 
-        <div class="control-group" id="upload_script" style="display:none;" aria-expanded="false">
-            <div class="controls">
+
+        <div class="control-group">
+            <label class="control-label" for="code">Code</label>
+
+            <ul class="nav nav-tabs">
+              <li id="li_code_editor" class="nav-item active">
+                <a class="nav-link" ng-click="toggleTabs('code_editor')" >Editor</a>
+              </li>
+              <li id="li_upload_link" class="nav-item">
+                <a class="nav-link" ng-click="toggleTabs('upload_link')" >From Git repository or zip archive</a>
+              </li>
+              <li id="li_upload_script" class="nav-item">
+                <a class="nav-link" ng-click="toggleTabs('upload_script')" >From Collab storage</a>
+              </li>
+            </ul>
+
+            <div ng-if="job.selected_tab == 'code_editor'" id="code_editor" name="code" class="controls" style="border: 1px solid #ccc;">
+              <textarea ui-codemirror ui-codemirror-opts="editorOptions" name="code" rows="{{number_rows}}" ng-model="job.code" required style="border: 1px solid #eee;"></textarea>
+            </div>
+
+            <div ng-if="job.selected_tab == 'upload_link'" id="upload_link" name="code" class="controls">
+              <textarea name="code" rows="{{number_rows}}" ng-model="job.code" style="width: 100%" required></textarea>
+            </div>
+
+            <div ng-if="job.selected_tab == 'upload_script'" id="upload_script" class="controls">
               <div class="panel panel-default">
                 <div class="panel-heading">
                   <h4>Collab Storage Browser</h4>
@@ -67,7 +72,8 @@
                 </div>
               </div>
             </div>
-            <div>Selected file : {{UiStorageGetData.selectedFile}}</div>
+
+            <span class="badge" ng-show="create_job.code.$error.required">{{msg_required}}</span>
         </div>
 
         <div class="control-group">
