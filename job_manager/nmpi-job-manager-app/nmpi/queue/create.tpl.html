@@ -43,7 +43,7 @@
               <textarea ui-codemirror ui-codemirror-opts="editorOptions" name="code" rows="{{number_rows}}" ng-model="job.code" required style="border: 1px solid #eee;"></textarea>
             </div>
 
-            <div ng-if="job.selected_tab == 'upload_link'" id="upload_link" name="code" class="controls" style="border: 1px solid #ccc;">
+            <div ng-if="job.selected_tab == 'upload_link'" id="upload_link" name="code" class="controls">
               <textarea name="code" rows="{{number_rows}}" ng-model="job.code" style="width: 100%" required></textarea>
             </div>
 

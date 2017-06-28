@@ -509,6 +509,15 @@ angular.module('nmpi')
             $location.path( '/queue').search({ctx:$rootScope.ctx});
         };
 
+        $scope.editorOptions = {
+            lineWrapping : false,
+            lineNumbers: false,
+            readOnly: false,
+            mode: {name: "python", version: 2},
+            theme: "elegant",
+            viewportMargin: Infinity
+        };
+
     }
 ])
 
