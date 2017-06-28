@@ -425,7 +425,8 @@ angular.module('nmpi')
         Results.get({id:job_id}, function(former_job){
             $scope.job.code = former_job.code;
             $scope.job.command = former_job.command;
-            $scope.job.hardware_config = former_job.hardware_config;  // todo: remove resource_allocation_id
+            $scope.job.hardware_config = former_job.hardware_config;
+            delete $scope.job.hardware_config["resource_allocation_id"];
             $scope.job.hardware_platform = former_job.hardware_platform;
 
             $scope.inputs = [];
