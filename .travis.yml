@@ -7,6 +7,7 @@ install:
 - pip-sync deployment/requirements-deploy.txt
 - pip download -i https://bbpteam.epfl.ch/repository/devpi/simple --pre -r deployment/requirements-bbp.txt
   -d packages
+- ls -R packages/
 - unzip packages/hbp-app-python-auth-master.zip -d packages/
 - pip install -f packages -r deployment/requirements-deploy.txt
 - pip install -f packages -r job_manager/requirements.txt
