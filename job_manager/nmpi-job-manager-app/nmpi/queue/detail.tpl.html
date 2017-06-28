@@ -66,10 +66,9 @@
   </div>
 
   <div class="panel panel-default">
-    <div class="panel-heading">Experiment</div>
-    <div class="panel-body">
-      <pre>{{job.code}}</pre>
-    </div>
+    <div class="panel-heading">Code</div>
+    <div ng-if="!job.code.startsWith('http')" class="panel-body" ui-codemirror ui-codemirror-opts="editorOptions" id="code" name="code" ng-model="job.code" required>{{job.code}}</div>
+    <div ng-if="job.code.startsWith('http')" class="panel-body" id="code" name="code" ng-model="job.code" required><a href="{{job.code}}">{{job.code}}</a></div>
   </div>
 
   <div class="panel panel-default" ng-show="job.command">

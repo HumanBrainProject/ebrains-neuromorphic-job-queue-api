@@ -23,9 +23,11 @@
 
       <div class="control-group">
           <label class="control-label" for="code">Code</label>
-          <div name="code" class="controls">
-            <textarea id="code" name="code" rows="5" ng-model="job.code" value="job.code" required style="width:100%"></textarea>
-            <span class="badge" ng-show="create_job.code.$error.required">Please enter PyNN code, a Git repository URL or the URL of a zip archive containing your code.</span>
+          <div ng-if="job.code.startsWith('http')" name="code" class="controls">
+            <textarea id="code" name="code" rows="1" ng-model="job.code" value="job.code" required style="width:100%"></textarea>
+          </div>
+          <div ng-if="!job.code.startsWith('http')" name="code" class="controls" style="border: 1px solid #ccc;">
+            <textarea ui-codemirror ui-codemirror-opts="editorOptions" name="code" rows="{{number_rows}}" ng-model="job.code" required style="border: 1px solid #eee;"></textarea>
           </div>
       </div>
 

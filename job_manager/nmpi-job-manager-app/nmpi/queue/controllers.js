@@ -209,6 +209,15 @@ angular.module('nmpi')
             return ['jpg', 'jpeg', 'gif', 'png', 'svg'].includes(extension);
         };
 
+        $scope.editorOptions = {
+            lineWrapping : false,
+            lineNumbers: false,
+            readOnly: true,
+            mode: {name: "python", version: 2},
+            theme: "elegant",
+            viewportMargin: Infinity
+        };
+
         sendState("detail", $stateParams.eId);
     }
 ])
@@ -241,8 +250,8 @@ angular.module('nmpi')
         $scope.job.code = "";
         $scope.job.command = "";
         $scope.job.hardware_config = {};
-        $scope.job.hardware_platform = "code_editor";
-        $scope.job.selected_tab = "";
+        $scope.job.hardware_platform = "";
+        $scope.job.selected_tab = "code_editor";
         $scope.job.input_data = [];
         $scope.job.output_data = []; 
         $scope.job.resource_uri = ""; 
@@ -336,7 +345,7 @@ angular.module('nmpi')
 
         //toggle code tabs
         $scope.toggleTabs = function(id_tab){
-             console.log("tab" + id_tab);
+            console.log("tab " + id_tab);
             $scope.job.selected_tab = id_tab;
 
             $scope.number_rows = 5;
@@ -344,25 +353,14 @@ angular.module('nmpi')
               $scope.number_rows = 1;
             }
 
-            document.getElementById("code_editor_upload_link").style.display="none";
-            document.getElementById("upload_script").style.display="none";
-
-            document.getElementById("code_editor_upload_link").style.display="block";
-            // document.getElementById("code").readOnly = false;
             if(id_tab == "code_editor"){
-                $scope.msg_panel = "Code";
-                $scope.msg_required = "Please enter your code in the textarea.";
+                $scope.msg_required = "Please enter your code in the text area.";
             }
             if(id_tab == "upload_link"){
-                $scope.msg_panel = "URL of zip file or Git repository";
                 $scope.msg_required = "Please enter a Git repository URL or the URL of a zip archive containing your code.";
             }
             if(id_tab == "upload_script"){
-                $scope.msg_panel = "ID of selected file";
-                $scope.msg_required = "Please select a file or folder below to submit an existing script.";
-                document.getElementById(id_tab).style.display="block";
-                // document.getElementById("code").readOnly = true;
-                // $scope.create_job.$setValidity("code", true);
+                $scope.msg_required = "Please select a file or folder to submit an existing script.";
             }
 
             var a = document.getElementById("li_code_editor");
@@ -371,6 +369,15 @@ angular.module('nmpi')
             a.className = b.className = c.className = "nav-link";
             var d = document.getElementById("li_"+id_tab);
             d.className += " active";
+        };
+
+        $scope.editorOptions = {
+            lineWrapping : false,
+            lineNumbers: false,
+            readOnly: false,
+            mode: {name: "python", version: 2},
+            theme: "elegant",
+            viewportMargin: Infinity
         };
     }
 ])
@@ -418,7 +425,7 @@ angular.module('nmpi')
         Results.get({id:job_id}, function(former_job){
             $scope.job.code = former_job.code;
             $scope.job.command = former_job.command;
-            $scope.job.hardware_config = former_job.hardware_config;
+            $scope.job.hardware_config = former_job.hardware_config;  // todo: remove resource_allocation_id
             $scope.job.hardware_platform = former_job.hardware_platform;
 
             $scope.inputs = [];
@@ -500,6 +507,15 @@ angular.module('nmpi')
         $scope.reset = function(){
             $scope.msg.show = false;
             $location.path( '/queue').search({ctx:$rootScope.ctx});
+        };
+
+        $scope.editorOptions = {
+            lineWrapping : false,
+            lineNumbers: false,
+            readOnly: false,
+            mode: {name: "python", version: 2},
+            theme: "elegant",
+            viewportMargin: Infinity
         };
 
     }

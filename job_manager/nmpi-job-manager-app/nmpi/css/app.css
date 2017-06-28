@@ -54,3 +54,7 @@ td code {
     color: #dddddd;
     font-size: 50%;
 }
+
+.CodeMirror {
+  height: auto;
+}
