@@ -19,7 +19,7 @@ install:
 script:
 - sleep 1m
 - cd job_manager
-- python manage.py migrate --noinput
+- python manage.py migrate
 before_install:
 - openssl aes-256-cbc -K $encrypted_f930a91c198a_key -iv $encrypted_f930a91c198a_iv
   -in packages/hbp-app-python-auth-master.zip.enc -out packages/hbp-app-python-auth-master.zip -d
