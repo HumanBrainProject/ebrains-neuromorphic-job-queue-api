@@ -18,6 +18,7 @@ install:
 script:
 - sleep 1m
 - cd job_manager
+- chmod 775 /var/log/django.log
 - python manage.py test quotas
 - python manage.py test simqueue
 before_install:
