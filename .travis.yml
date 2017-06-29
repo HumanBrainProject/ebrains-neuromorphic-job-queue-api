@@ -17,10 +17,10 @@ install:
 - pip install numpy
 script:
 - sleep 1m
+- pytest
 - cd job_manager
 - chmod 775 /var/log/django.log
-- python manage.py test quotas
-- python manage.py test simqueue
+- python manage.py migrate --noinput
 before_install:
 - openssl aes-256-cbc -K $encrypted_f930a91c198a_key -iv $encrypted_f930a91c198a_iv
   -in packages/hbp-app-python-auth-master.zip.enc -out packages/hbp-app-python-auth-master.zip -d
