@@ -21,7 +21,6 @@ install:
 before_script:
 - export PYTHONPATH=$PYTHONPATH:$(pwd)
 script:
-- $(shell export PYTHONPATH=$PYTHONPATH:$(pwd))
 # - sleep 1m
 - cd job_manager
 - sudo python manage.py migrate --noinput
