@@ -11,6 +11,7 @@ install:
   -d packages
 - ls -R packages/
 - unzip packages/hbp-app-python-auth-master.zip -d packages/
+- pip install django
 - pip install -f packages -r deployment/requirements-deploy.txt
 - pip install -f packages -r job_manager/requirements.txt
 - pip install -f packages -r resource_manager/requirements.txt
@@ -21,7 +22,7 @@ before_script:
 - export PYTHONPATH=$PYTHONPATH:$(pwd)
 script:
 - $(shell export PYTHONPATH=$PYTHONPATH:$(pwd))
-- sleep 1m
+# - sleep 1m
 - cd job_manager
 - sudo python manage.py migrate --noinput
 - sudo python manage.py runserver 0.0.0.0:8000 &
