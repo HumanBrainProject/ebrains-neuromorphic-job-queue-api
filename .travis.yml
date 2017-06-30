@@ -22,6 +22,7 @@ install:
 before_script:
 - export PYTHONPATH=$PYTHONPATH:$(pwd)
 - python -c "import django; print(django.get_version())"
+- export NMPI_ENV=travis
 script:
 # - sleep 1m
 - cd job_manager

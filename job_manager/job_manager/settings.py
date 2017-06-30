@@ -229,7 +229,7 @@ LOGGING = {
         },
     },
 }
-if ENV == "dev":
+if ENV in ('dev', 'travis'):
     LOGGING['handlers']['file']['filename'] = 'django.log'
 
 if os.path.exists(os.path.join(BASE_DIR, "build_info.json")):
