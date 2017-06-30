@@ -21,6 +21,7 @@ install:
 - pip install numpy
 before_script:
 - export PYTHONPATH=$PYTHONPATH:$(pwd)
+- python -c "import django; print(django.get_version())"
 script:
 # - sleep 1m
 - cd job_manager
