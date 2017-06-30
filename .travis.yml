@@ -4,6 +4,7 @@ python:
 - 3.5
 env:
 - DJANGO="django==1.9.6"
+- DJANGO_VERSION=1.9.6
 install:
 - pip install pip-tools
 - pip-sync deployment/requirements-deploy.txt
@@ -11,7 +12,7 @@ install:
   -d packages
 - ls -R packages/
 - unzip packages/hbp-app-python-auth-master.zip -d packages/
-- pip install django
+# - pip install django
 - pip install -f packages -r deployment/requirements-deploy.txt
 - pip install -f packages -r job_manager/requirements.txt
 - pip install -f packages -r resource_manager/requirements.txt
