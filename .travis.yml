@@ -25,7 +25,7 @@ before_script:
 script:
 # - sleep 1m
 - cd job_manager
-# - python manage.py migrate --noinput
+- python manage.py migrate --noinput
 - python manage.py test simqueue
 # - python manage.py runserver 0.0.0.0:8000 &
 before_install:
