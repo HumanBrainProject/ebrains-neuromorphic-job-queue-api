@@ -87,7 +87,7 @@ WSGI_APPLICATION = 'job_manager.wsgi.application'
 
 # Database
 
-if ENV == "dev" and LOCAL_DB:
+if ENV in ('dev', 'travis') and LOCAL_DB:  
     DATABASES = {
         'default': {
             'ENGINE': 'django.db.backends.sqlite3',
