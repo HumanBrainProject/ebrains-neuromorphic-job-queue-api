@@ -5,10 +5,6 @@ python:
 env:
 - DJANGO_VERSION=1.9.6
 install:
-# - pip install pip-tools
-# - pip-sync deployment/requirements-deploy.txt
-# - pip download -i https://bbpteam.epfl.ch/repository/devpi/simple --pre -r deployment/requirements-bbp.txt
-#   -d packages
 - ls -R packages/
 - unzip packages/hbp-app-python-auth-master.zip -d packages/
 # - pip install django
@@ -23,7 +19,6 @@ before_script:
 - python -c "import django; print(django.get_version())"
 - export NMPI_ENV=travis
 script:
-# - sleep 1m
 - cd job_manager
 - python manage.py migrate --noinput
 - python manage.py test simqueue
