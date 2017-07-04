@@ -1,0 +1,28 @@
+language: python
+python:
+- 2.7
+- 3.5
+env:
+- DJANGO_VERSION=1.9.6
+install:
+- ls -R packages/
+- unzip packages/hbp-app-python-auth-master.zip -d packages/
+# - pip install django
+- pip install -f packages -r deployment/requirements-deploy.txt
+- pip install -f packages -r job_manager/requirements.txt
+- pip install -f packages -r resource_manager/requirements.txt
+- sudo apt-get install libpq-dev python-dev
+- pip install psycopg2
+- pip install numpy
+before_script:
+- export PYTHONPATH=$PYTHONPATH:$(pwd)
+- python -c "import django; print(django.get_version())"
+- export NMPI_ENV=travis
+script:
+- cd job_manager
+- python manage.py migrate --noinput
+- python manage.py test simqueue
+- python manage.py runserver 0.0.0.0:8000 &
+before_install:
+- openssl aes-256-cbc -K $encrypted_f930a91c198a_key -iv $encrypted_f930a91c198a_iv
+  -in packages/hbp-app-python-auth-master.zip.enc -out packages/hbp-app-python-auth-master.zip -d

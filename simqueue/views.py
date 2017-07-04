@@ -110,33 +110,56 @@ def copy_datafiles_to_storage(request, target, job_id):
 def copy_datafiles_to_collab_storage(request, job, local_dir, relative_paths):
 
     # upload local files to collab storage
-    from bbp_client.oidc.client import BBPOIDCClient
-    from bbp_client.document_service.client import Client as DocClient
-    import bbp_services.client as bsc
-    services = bsc.get_services()
+    #from bbp_client.oidc.client import BBPOIDCClient
+    #from bbp_client.document_service.client import Client as DocClient
+    #import bbp_services.client as bsc
+    import hbp_service_client.document_service.client as doc_service_client
 
+    #services = bsc.get_services()
     access_token = get_access_token(request.user.social_auth.get())
-    oidc_client = BBPOIDCClient.bearer_auth(services['oidc_service']['prod']['url'], access_token)
-    doc_client = DocClient(services['document_service']['prod']['url'], oidc_client)
+    #oidc_client = BBPOIDCClient.bearer_auth(services['oidc_service']['prod']['url'], access_token)
+    #doc_client = DocClient(services['document_service']['prod']['url'], oidc_client)
+    #dsc = doc_service_client.Client.__init__()
+    dsc = doc_service_client.Client.new(access_token)
 
-    project = doc_client.get_project_by_collab_id(job.collab_id)
-    root = doc_client.get_path_by_id(project["_uuid"])
+    #project = doc_client.get_project_by_collab_id(job.collab_id)
+    project_dict = dsc.list_projects(None, None, None, job.collab_id)
+    project = project_dict['results']
+    #root = doc_client.get_path_by_id(project["_uuid"])
+    root = dsc.get_entity_path(project[0]['uuid'])
     collab_folder = root + "/job_{}".format(job.pk)
-    folder_id = doc_client.mkdir(collab_folder)
+    collab_folder_2 = "job_{}".format(job.pk)
+    #folder_id = doc_client.mkdir(collab_folder)
+    folder = dsc.create_folder(collab_folder_2, str(project[0]['uuid']))
+    folder_id = folder['uuid']
 
     collab_paths = []
     for relative_path in relative_paths:
         collab_path = os.path.join(collab_folder, relative_path)
+        cps = collab_path.split('/')
+        collab_path_2 = cps[3]
         if os.path.dirname(relative_path):  # if there are subdirectories...
-            doc_client.makedirs(os.path.dirname(collab_path))
+            #doc_client.makedirs(os.path.dirname(collab_path))
+            collab_path_id = dsc.create_folder(collab_path_2, folder_id)
         local_path = os.path.join(local_dir, relative_path)
-        id = doc_client.upload_file(local_path, collab_path)
+
+        #id = doc_client.upload_file(local_path, collab_path)
+        #file = dsc.create_file("file_to_upload", "plain/text", collab_path_id['uuid'])
+        file = dsc.create_file(relative_path, "plain/text", folder_id)
+        with open(local_path, 'rb') as fp:
+            file_contents = fp.read()
+
+        id = dsc.upload_file_content(file['uuid'], None, None, file_contents)
+        #logging.warning("successful upload content")
+
         collab_paths.append(collab_path)
         content_type = mimetypes.guess_type(local_path)[0]
         if content_type:
-            doc_client.set_standard_attr(collab_path, {'_contentType': content_type})
-
+            #doc_client.set_standard_attr(collab_path, {'_contentType': content_type})
+            os.path.normpath(os.path.join('/', str(collab_path)))
     return collab_paths
+
+
 
 
 def copy_datafiles_with_unicore(request, target, job, local_dir, relative_paths):

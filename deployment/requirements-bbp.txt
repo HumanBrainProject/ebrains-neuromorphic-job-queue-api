@@ -7,20 +7,20 @@
 --index-url https://bbpteam.epfl.ch/repository/devpi/simple
 
 
-argparse==1.2.1           # via bbp-client
-bbp-client==0.4.3
-bbp-services==0.0.15
-hbp-app-python-auth==0.1.0
-httplib2==0.9.2           # via bbp-client
-mechanize==0.2.5          # via bbp-client
-oauthlib==1.1.2           # via python-social-auth, requests-oauthlib
-ordereddict==1.1          # via bbp-client
-PyJWT==1.4.0              # via hbp-app-python-auth, python-social-auth
-python-dateutil==2.5.3    # via bbp-client
-python-openid==2.2.5      # via python-social-auth
-python-social-auth==0.2.14
-PyYAML==3.10              # via bbp-client, bbp-services, task-types
-requests-oauthlib==0.6.2  # via python-social-auth
-requests==2.10.0          # via bbp-client, python-social-auth, requests-oauthlib
-six==1.10.0               # via python-dateutil, python-social-auth
-task-types==0.0.10        # via bbp-client
+--allow-external argparse==1.2.1           # via bbp-client
+--allow-external bbp-client==0.4.3
+--allow-external bbp-services==0.0.15
+--allow-external hbp-app-python-auth==0.1.0
+--allow-external httplib2==0.9.2           # via bbp-client
+--allow-external mechanize==0.2.5          # via bbp-client
+--allow-external oauthlib==1.1.2           # via python-social-auth, requests-oauthlib
+--allow-external ordereddict==1.1          # via bbp-client
+--allow-external PyJWT==1.4.0              # via hbp-app-python-auth, python-social-auth
+--allow-external python-dateutil==2.5.3    # via bbp-client
+--allow-external python-openid==2.2.5      # via python-social-auth
+--allow-external python-social-auth==0.2.14
+--allow-external PyYAML==3.10              # via bbp-client, bbp-services, task-types
+--allow-external requests-oauthlib==0.6.2  # via python-social-auth
+--allow-external requests==2.10.0          # via bbp-client, python-social-auth, requests-oauthlib
+--allow-external six==1.10.0               # via python-dateutil, python-social-auth
+--allow-external task-types==0.0.10        # via bbp-client

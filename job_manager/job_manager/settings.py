@@ -87,7 +87,7 @@ WSGI_APPLICATION = 'job_manager.wsgi.application'
 
 # Database
 
-if ENV == "dev" and LOCAL_DB:
+if ENV in ('dev', 'travis') and LOCAL_DB:  
     DATABASES = {
         'default': {
             'ENGINE': 'django.db.backends.sqlite3',
@@ -229,7 +229,7 @@ LOGGING = {
         },
     },
 }
-if ENV == "dev":
+if ENV in ('dev', 'travis'):
     LOGGING['handlers']['file']['filename'] = 'django.log'
 
 if os.path.exists(os.path.join(BASE_DIR, "build_info.json")):
