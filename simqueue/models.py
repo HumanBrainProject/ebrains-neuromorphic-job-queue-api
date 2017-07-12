@@ -2,6 +2,7 @@ from datetime import datetime
 from django.db import models
 import jsonfield
 import pytz
+from taggit.managers import TaggableManager
 
 
 def now_in_utc():
@@ -36,6 +37,7 @@ class Job(models.Model):
     timestamp_completion = models.DateTimeField(null=True, blank=True)
     provenance = jsonfield.JSONField(null=True, blank=True)
     resource_usage = models.FloatField(null=True, blank=True)
+    tags = TaggableManager(blank=True)
 
     def __str__(self):
         return "Job #%d" % self.pk
@@ -57,6 +59,7 @@ class Job(models.Model):
             'timestamp_completion': self.timestamp_completion,
             'provenance': self.provenance,
             'resource_usage': self.resource_usage,
+            'tags': [tag.name for tag in self.tags.get_query_set()],
         }
         
     def __unicode__(self):

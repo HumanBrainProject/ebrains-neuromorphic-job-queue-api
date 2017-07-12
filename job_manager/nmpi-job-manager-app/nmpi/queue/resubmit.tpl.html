@@ -47,6 +47,13 @@
       </div>
 
       <div class="control-group">
+          <label class="control-label" for="tags">Tags</label>
+          <div name="tags" class="controls">
+            <input class="form-control" id="tags" name="tags" ng-model="job.tags" value="job.tags" ng-list>
+          </div>
+      </div>
+
+      <div class="control-group">
           <label class="control-label" for="inputs">
             Input Files 
             <a href="" ng-click="addInput()" class="glyphicon glyphicon-plus"></a>

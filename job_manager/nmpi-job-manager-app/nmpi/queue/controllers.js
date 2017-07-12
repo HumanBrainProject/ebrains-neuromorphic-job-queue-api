@@ -252,6 +252,7 @@ angular.module('nmpi')
         $scope.job.hardware_config = {};
         $scope.job.hardware_platform = "";
         $scope.job.selected_tab = "code_editor";
+        $scope.job.tags = [];
         $scope.job.input_data = [];
         $scope.job.output_data = []; 
         $scope.job.resource_uri = ""; 
@@ -417,7 +418,7 @@ angular.module('nmpi')
         $scope.job.timestamp_submission = curdate.toUTCString();
         $scope.job.timestamp_completion = curdate.toUTCString(); 
         $scope.job.collab_id = $scope.collab_id;
-
+        $scope.job.tags = [];
         $scope.job.input_data = [];
         $scope.job.output_data = []; 
         $scope.job.resource_uri = ""; 
@@ -428,6 +429,7 @@ angular.module('nmpi')
             $scope.job.hardware_config = former_job.hardware_config;
             delete $scope.job.hardware_config["resource_allocation_id"];
             $scope.job.hardware_platform = former_job.hardware_platform;
+            $scope.job.tags = former_job.tags;
 
             $scope.inputs = [];
 

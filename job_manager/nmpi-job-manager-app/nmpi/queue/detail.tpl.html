@@ -19,6 +19,11 @@
         <a class="nav" href="app/#/queue" ng-click="msg.show=false" ng-if="!with_ctx">back</a>
       </span>
       <div class="panel-body">
+        <div ng-repeat="tag in job.tags">
+            <span style="float:left" class="label label-info">{{tag}}</span><span style="float:left">&nbsp;</span>
+        </div>
+        <br>
+        <br>
         <p><span ng-class="{'label label-info':job.status=='submitted', 'label label-success':job.status=='finished', 'label label-warning':job.status=='error'}">{{job.status}}</span></p>
         <p><small>Submitted {{job.timestamp_submission | date : "yyyy-MM-dd HH:mm:ss" }}
                   by {{job.user.displayName}}
@@ -110,7 +115,7 @@
     <button type="button" class="btn btn-danger" ng-click="del_job({eId:job.id})" ng-if="job.user_id === user.id">Delete</button>
   </div>
   <div class="panel-body" style="float:right;">
-    <button type="button" class="btn btn-info" ui-sref="job_resubmit({eId:job.id})">Edit &amp; Resubmit</button>
+    <button type="button" class="btn btn-info" ui-sref="job_resubmit({eId:job.id})" ng-if="job.status == 'finished' || job.status == 'error'">Edit &amp; Resubmit</button>
   </div>
   <div class="panel-body" style="float:right; ">
     <a class="nav" href="app/#/queue?ctx={{ctx}}" ng-click="msg.show=false" ng-if="with_ctx">back</a>

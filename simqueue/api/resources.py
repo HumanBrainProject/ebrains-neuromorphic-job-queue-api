@@ -21,7 +21,7 @@ from django.contrib.auth.models import User
 from django.db.models import DurationField, F, ExpressionWrapper
 from django.conf import settings
 
-from tastypie.resources import Resource, ModelResource
+from tastypie.resources import Resource, ModelResource, ALL
 from tastypie import fields
 from tastypie.authentication import MultiAuthentication, Authentication
 from tastypie.authorization import Authorization
@@ -116,6 +116,7 @@ class QuotaAbsentError(ErrorWithHttpResponse):
 
 
 class BaseJobResource(ModelResource):
+    tags = fields.ListField()
 
     def obj_delete(self, bundle, **kwargs):
         bundle.data['status'] = 'removed'
@@ -160,6 +161,20 @@ class BaseJobResource(ModelResource):
 
         return auth_result
 
+    def dehydrate_tags(self, bundle):
+        """
+        Extract tags to display them as a list of strings
+        """
+        return [tag.name for tag in bundle.obj.tags.all()]
+
+    def save_m2m(self, bundle):
+        """
+        Save tags
+        """
+        tags = bundle.data.get('tags', [])
+        bundle.obj.tags.set(*tags)
+        return super(BaseJobResource, self).save_m2m(bundle)
+
 
 # QUEUE contains unfinished jobs (jobs whose status is not 'finished', 'error' or 'removed')
 # You can only put, get and patch (to another status) jobs using this view
@@ -180,6 +195,7 @@ class QueueResource(BaseJobResource):
         list_allowed_methods = ['get', 'post'] # you can retrieve all items and add item
         detail_allowed_methods = ['get', 'put', 'patch', 'delete'] # you can retrieve and modify each item
         filtering = {
+            'tags': ALL,
             'status': ['exact'],
             'id': ['exact'],
             'collab_id': ['exact'],
@@ -416,6 +432,7 @@ class ResultsResource(BaseJobResource):
         detail_allowed_methods = ['get', 'put', 'patch', 'delete']
         always_return_data = False
         filtering = {
+            'tags': ALL,
             'status': ['exact'],
             'id': ['exact'],
             'collab_id': ['exact'],
