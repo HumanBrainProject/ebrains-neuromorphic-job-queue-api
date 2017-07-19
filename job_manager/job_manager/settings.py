@@ -100,8 +100,8 @@ else:
             'ENGINE': 'django.db.backends.postgresql_psycopg2',
             'NAME': 'nmpi',
             'USER': 'nmpi_dbadmin',
-            'PASSWORD': os.environ.get("NMPI_DATABASE_PASSWORD"),
-            'HOST': os.environ.get("NMPI_DATABASE_HOST"),
+            'PASSWORD': os.environ.get("NMPI_DATABASE_PASSWORD", "nmpi_pass_dbad05"),
+            'HOST': os.environ.get("NMPI_DATABASE_HOST", "172.17.0.2"),
             'PORT': os.environ.get("NMPI_DATABASE_PORT", "5432"),
         },
     }
@@ -146,6 +146,7 @@ STATIC_URL = '/static/'
 
 STATICFILES_DIRS = [
     os.path.join(BASE_DIR, "lib"),
+    os.path.join(BASE_DIR, "lib/angular-hbp-collaboratory/src/"),
     os.path.join(BASE_DIR, "nmpi-job-manager-app"),
     os.path.join(BASE_DIR, "nmpi-dashboard-app"),
 ]
