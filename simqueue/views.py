@@ -205,4 +205,4 @@ def get_notebook_content(request, file_uuid):
     tuple_file_content = dsc.download_file_content(file_uuid)
     logging.debug("file content : " + str(tuple_file_content[1]))
 
-    return HttpResponse(json.dumps("toto"), content_type='application/json')
+    return HttpResponse(json.dumps(tuple_file_content[1]), content_type='application/json')
