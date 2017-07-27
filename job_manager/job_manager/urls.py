@@ -36,6 +36,8 @@ api.register(CumulativeUserCountResource())
 api.register(QueueLength())
 api.register(JobDuration())
 
+uuid_pattern = "[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}"
+
 urlpatterns = (
     url(r'^admin/', include(admin.site.urls)),
     url(r'', include('social.apps.django_app.urls', namespace='social')),
@@ -43,5 +45,7 @@ urlpatterns = (
     url(r'^api/', include(api.urls)),
     url(r'^config.json$', views.config, name='config'),
     url(r'^copydata/(?P<target>\w+)/(?P<job_id>\d+)$', views.copy_datafiles_to_storage, name="copydata"),
+    # url(r'^getnotebookcontent/(?P<file_uuid>\d+)$', views.get_notebook_content, name="getnotebookcontent"),
+    url(r'^getnotebookcontent/(?P<file_uuid>{})$'.format(uuid_pattern), views.get_notebook_content, name="getnotebookcontent"),
     url(r'^dashboard/', TemplateView.as_view(template_name='dashboard.html')),
 )
