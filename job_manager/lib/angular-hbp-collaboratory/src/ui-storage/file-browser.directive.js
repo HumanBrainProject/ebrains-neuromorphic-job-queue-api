@@ -169,14 +169,10 @@ function clbFileBrowser(lodash) {
      */
 
     function browseToEntityEvent(file){
-      // console.log("file name : " + file._name);
-      // console.log($rootScope.ctx);
       UiStorageGetData.selectedFile = file._name;
       var file_ext_0 = file._name.split(".");
       var file_ext = file_ext_0[file_ext_0.length-1]
-      // console.log("file extension : " + file_ext)
       if(file_ext == "ipynb"){
-        //var response = $http.get('/copydata/' + target + '/' + $stateParams.eId);
         var response = $http.get('/getnotebookcontent/' + file._uuid)
         .then(
           function succes(response){
@@ -186,8 +182,9 @@ function clbFileBrowser(lodash) {
               if(value.cell_type == "code"){
                 t_response.push(value.source);
               }
-              // console.log("t_response : " + t_response.toString());
             });
+            t_response = t_response.toString();
+            t_response = t_response.replace(/\n,/g, '\n');
             UiStorageGetData.job.code = t_response.toString();
           }, function errorCallBack(response){
             console.log("error response json : " + response);
