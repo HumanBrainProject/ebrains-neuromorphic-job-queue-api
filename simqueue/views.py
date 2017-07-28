@@ -195,14 +195,14 @@ def copy_datafiles_with_unicore(request, target, job, local_dir, relative_paths)
 def get_notebook_content(request, file_uuid):
     import hbp_service_client.document_service.client as doc_service_client
 
-    import logging
-    logger = logging.getLogger()
-    logger.setLevel(logging.DEBUG)
+    # import logging
+    # logger = logging.getLogger()
+    # logger.setLevel(logging.DEBUG)
 
     access_token = get_access_token(request.user.social_auth.get())
     dsc = doc_service_client.Client.new(access_token)
 
     tuple_file_content = dsc.download_file_content(file_uuid)
-    logging.debug("file content : " + str(tuple_file_content[1]))
+    # logging.debug("file content : " + str(tuple_file_content[1]))
 
     return HttpResponse(json.dumps(tuple_file_content[1]), content_type='application/json')
