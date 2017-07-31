@@ -59,7 +59,7 @@ class Job(models.Model):
             'timestamp_completion': self.timestamp_completion,
             'provenance': self.provenance,
             'resource_usage': self.resource_usage,
-            'tags': [tag.name for tag in self.tags.get_query_set()],
+            'tags': [tag.name for tag in self.tags.all()],
         }
         
     def __unicode__(self):

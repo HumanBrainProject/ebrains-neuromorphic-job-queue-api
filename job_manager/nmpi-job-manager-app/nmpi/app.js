@@ -14,7 +14,8 @@
     'clb-ui-error',
     'clb-env',
     'clb-app',
-    'ui.codemirror'
+    'ui.codemirror',
+    'ngTagsInput'
   ])
 
   .config(
@@ -101,6 +102,8 @@
                   }
               }
               function out(data) {
+                  // ensure to pass valid object
+                  data = data || {};
                   if (Object.getOwnPropertyNames(data).length > 0) {  // non-empty
                       return JSON.stringify(data, undefined, 2);
                   } else {  // empty object

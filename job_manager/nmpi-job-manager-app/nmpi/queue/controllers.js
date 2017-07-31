@@ -139,14 +139,24 @@ angular.module('nmpi')
 
 
 .controller( 'DetailQueue', 
-            ['$scope', '$location', '$http', '$rootScope', '$stateParams', 'Queue', 'Results', 'Collab', 'Log', 'User',
-    function( $scope,   $location,   $http,   $rootScope,   $stateParams,   Queue,   Results,   Collab,   Log,   User)
+            ['$scope', '$location', '$http', '$rootScope', '$stateParams', 'Queue', 'Results', 'Collab', 'Log', 'hbpCollabStore', 'User',
+    function( $scope,   $location,   $http,   $rootScope,   $stateParams,   Queue,   Results,   Collab,   Log, hbpCollabStore,  User)
     {
         $scope.msg = {text: "", css: "", show: false};
         $scope.hpcSite = null;
         $scope.showHPCsites = false;
 
         console.log('context:'+$rootScope.ctx);
+
+        // only members of the collab should see the tags edit button
+        $scope.inTeam = false;
+        hbpCollabStore.context.get($rootScope.ctx).then(function (context) {
+            $rootScope.collab_id = context.collab.id;
+            hbpCollabStore.team.userInTeam(context.collab.id).then(function(response) {
+                    $scope.inTeam = response;
+                });
+            });
+
         $scope.del_job = function(id){
             $scope.job.$del({id:id.eId}, function(data){
                 // on success, return to job list
@@ -155,6 +165,23 @@ angular.module('nmpi')
                 } else {
                     window.location.href = "app/#/queue";
                 }
+            });
+        };
+
+        $scope.removeTag = function(tag, id){
+            var job = Queue.get({id:id.eId}, function() {
+                var index = job.tags.indexOf(tag.name);
+                if (index > -1) {
+                    job.tags.splice(index, 1);
+                }
+                Queue.update({id:id.eId}, job);
+            });
+        };
+
+        $scope.addTag = function(tag, id){
+            var job = Queue.get({id:id.eId}, function() {
+                job.tags.push(tag.name);
+                Queue.update({id:id.eId}, job);
             });
         };
 

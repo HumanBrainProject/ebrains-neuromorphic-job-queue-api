@@ -19,16 +19,22 @@
         <a class="nav" href="app/#/queue" ng-click="msg.show=false" ng-if="!with_ctx">back</a>
       </span>
       <div class="panel-body">
-        <div ng-repeat="tag in job.tags">
-            <span style="float:left" class="label label-info">{{tag}}</span><span style="float:left">&nbsp;</span>
-        </div>
-        <br>
-        <br>
         <p><span ng-class="{'label label-info':job.status=='submitted', 'label label-success':job.status=='finished', 'label label-warning':job.status=='error'}">{{job.status}}</span></p>
         <p><small>Submitted {{job.timestamp_submission | date : "yyyy-MM-dd HH:mm:ss" }}
                   by {{job.user.displayName}}
                   to <strong>{{job.hardware_platform}}</strong></small></p>
         <p data-ng-show="job.status != 'submitted'"><small>Completed {{job.timestamp_completion | date : "yyyy-MM-dd HH:mm:ss" }}</small></p>
+        <div class="p_container">
+          <a href style="float:right" ng-click="show=!show" ng-show="inTeam && job.status=='submitted' || job.status=='running'">
+              <i ng-class="{'glyphicon glyphicon-remove': show, 'glyphicon glyphicon-cog': !show}"></i>
+          </a>
+          <div class="p_table" ng-repeat="tag in job.tags" ng-class="{hidden:show,chaldean:!show}">
+            <span style="float:left" class="label label-info">{{tag}}</span><span style="float:left">&nbsp;</span>
+          </div>
+          <form name="edit_tags" style="width:400px;" class="p_table" ng-class="{hidden:!show,chaldean:show}">
+            <tags-input ng-model="job.tags" display-property="name" use-strings="true" on-tag-added="addTag($tag, {eId:job.id})" on-tag-removed="removeTag($tag, {eId:job.id})"></tags-input>
+          </form>
+        </div>
       </div>
     </div>
   </div>
