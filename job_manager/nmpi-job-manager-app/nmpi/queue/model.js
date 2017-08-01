@@ -23,6 +23,7 @@ angular.module( 'nmpi' )
         {
             get: { method: 'GET', params:{ format:'json' }, isArray: false },
             del: { method: 'DELETE', params:{ format:'json' }, headers:{ 'Content-Type':'application/json' } },
+            update: { method: 'PUT', params:{ format:'json' }, headers:{ 'Content-Type':'application/json' } },
         });
     }
 )

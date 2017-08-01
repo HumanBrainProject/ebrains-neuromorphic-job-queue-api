@@ -168,21 +168,17 @@ angular.module('nmpi')
             });
         };
 
-        $scope.removeTag = function(tag, id){
-            var job = Queue.get({id:id.eId}, function() {
-                var index = job.tags.indexOf(tag.name);
-                if (index > -1) {
-                    job.tags.splice(index, 1);
-                }
-                Queue.update({id:id.eId}, job);
-            });
+        $scope.removeTag = function(job, tag, id){
+            var index = job.tags.indexOf(tag.name);
+            if (index > -1) {
+                job.tags.splice(index, 1);
+            }
+            job.$update({id:id.eId});
         };
 
-        $scope.addTag = function(tag, id){
-            var job = Queue.get({id:id.eId}, function() {
-                job.tags.push(tag.name);
-                Queue.update({id:id.eId}, job);
-            });
+        $scope.addTag = function(job, tag, id){
+            job.tags.push(tag.name);
+            job.$update({id:id.eId});
         };
 
         var sendState = function(state, job_id){
