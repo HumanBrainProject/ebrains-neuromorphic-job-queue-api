@@ -25,7 +25,7 @@
                   to <strong>{{job.hardware_platform}}</strong></small></p>
         <p data-ng-show="job.status != 'submitted'"><small>Completed {{job.timestamp_completion | date : "yyyy-MM-dd HH:mm:ss" }}</small></p>
         <div class="p_container">
-          <a href style="float:right" ng-click="show=!show" ng-show="inTeam && ['submitted','running','finished','error'].indexOf(job.status)>-1">
+          <a href style="float:right" ng-click="show=!show" ng-show="inTeam">
               <i ng-class="{'glyphicon glyphicon-remove': show, 'glyphicon glyphicon-cog': !show}"></i>
           </a>
           <div class="p_table" ng-repeat="tag in job.tags" ng-class="{hidden:show,chaldean:!show}">
