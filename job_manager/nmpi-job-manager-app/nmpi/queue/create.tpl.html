@@ -89,7 +89,12 @@
             <span class="badge" ng-show="!job.hardware_config">Please enter valid JSON.</span>
             </div>
         </div>
-
+      <div class="control-group">
+          <label class="control-label" for="tags">Tags</label>
+          <div name="tags" class="controls">
+            <input class="form-control" id="tags" name="tags" ng-model="job.tags" ng-list>
+          </div>
+      </div>
         <div class="control-group">
             <label class="control-label" for="inputs">
               Input Files 

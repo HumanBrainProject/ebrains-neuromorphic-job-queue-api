@@ -49,6 +49,7 @@ INSTALLED_APPS = [
     'tastypie',
     'social.apps.django_app.default',
     'quotas',
+    'taggit',
 ]
 if ENV == "dev":
     INSTALLED_APPS.append('sslserver')

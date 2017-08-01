@@ -139,14 +139,24 @@ angular.module('nmpi')
 
 
 .controller( 'DetailQueue', 
-            ['$scope', '$location', '$http', '$rootScope', '$stateParams', 'Queue', 'Results', 'Collab', 'Log', 'User',
-    function( $scope,   $location,   $http,   $rootScope,   $stateParams,   Queue,   Results,   Collab,   Log,   User)
+            ['$scope', '$location', '$http', '$rootScope', '$stateParams', 'Queue', 'Results', 'Collab', 'Log', 'hbpCollabStore', 'User',
+    function( $scope,   $location,   $http,   $rootScope,   $stateParams,   Queue,   Results,   Collab,   Log, hbpCollabStore,  User)
     {
         $scope.msg = {text: "", css: "", show: false};
         $scope.hpcSite = null;
         $scope.showHPCsites = false;
 
         console.log('context:'+$rootScope.ctx);
+
+        // only members of the collab should see the tags edit button
+        $scope.inTeam = false;
+        hbpCollabStore.context.get($rootScope.ctx).then(function (context) {
+            $rootScope.collab_id = context.collab.id;
+            hbpCollabStore.team.userInTeam(context.collab.id).then(function(response) {
+                    $scope.inTeam = response;
+                });
+            });
+
         $scope.del_job = function(id){
             $scope.job.$del({id:id.eId}, function(data){
                 // on success, return to job list
@@ -156,6 +166,19 @@ angular.module('nmpi')
                     window.location.href = "app/#/queue";
                 }
             });
+        };
+
+        $scope.removeTag = function(job, tag, id){
+            var index = job.tags.indexOf(tag.name);
+            if (index > -1) {
+                job.tags.splice(index, 1);
+            }
+            job.$update({id:id.eId});
+        };
+
+        $scope.addTag = function(job, tag, id){
+            job.tags.push(tag.name);
+            job.$update({id:id.eId});
         };
 
         var sendState = function(state, job_id){
@@ -252,6 +275,7 @@ angular.module('nmpi')
         $scope.job.hardware_config = {};
         $scope.job.hardware_platform = "";
         $scope.job.selected_tab = "code_editor";
+        $scope.job.tags = [];
         $scope.job.input_data = [];
         $scope.job.output_data = []; 
         $scope.job.resource_uri = ""; 
@@ -417,7 +441,7 @@ angular.module('nmpi')
         $scope.job.timestamp_submission = curdate.toUTCString();
         $scope.job.timestamp_completion = curdate.toUTCString(); 
         $scope.job.collab_id = $scope.collab_id;
-
+        $scope.job.tags = [];
         $scope.job.input_data = [];
         $scope.job.output_data = []; 
         $scope.job.resource_uri = ""; 
@@ -428,6 +452,7 @@ angular.module('nmpi')
             $scope.job.hardware_config = former_job.hardware_config;
             delete $scope.job.hardware_config["resource_allocation_id"];
             $scope.job.hardware_platform = former_job.hardware_platform;
+            $scope.job.tags = former_job.tags;
 
             $scope.inputs = [];
 
