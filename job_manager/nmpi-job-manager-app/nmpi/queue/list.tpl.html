@@ -35,7 +35,10 @@
                     <td>{{job.id}}</td>
                     <td><span ng-class="{'label label-info':job.status=='submitted', 'label label-primary':job.status=='running'}">{{job.status}}</span></td>
                     <td>{{job.hardware_platform}}</td>
-                    <td><code>{{job.code | extractInitialComment: 50 }}{{job.code.length > 47 ? '...' : ''}}</code></td>
+                    <td>
+                        <code ng-if="!job.code.startsWith('http')">{{job.code | extractInitialComment: 79 }}{{job.code.length > 76 ? '...' : ''}}</code>
+                        <a ng-if="job.code.startsWith('http')" href="{{job.code}}">{{job.code}}</a>
+                    </td>
                     <td ng-show="!with_ctx">{{job.collab.title | limitTo: 50}}{{job.collab.title.length > 47 ? '...' : ''}}</td>
                     <td>{{job.timestamp_submission | date : "yyyy-MM-dd HH:mm:ss" }}</td>
                     <td>{{job.user.displayName}}</td>
@@ -46,7 +49,10 @@
                     <td>{{job.id}}</td>
                     <td><span ng-class="{'label label-success':job.status=='finished', 'label label-danger':job.status=='error'}">{{job.status}}</span></td>
                     <td>{{job.hardware_platform}}</td>
-                    <td><code>{{job.code | extractInitialComment: 50 }}{{job.code.length > 47 ? '...' : ''}}</code></td>
+                    <td>
+                        <code ng-if="!job.code.startsWith('http')">{{job.code | extractInitialComment: 79 }}{{job.code.length > 76 ? '...' : ''}}</code>
+                        <a ng-if="job.code.startsWith('http')" href="{{job.code}}">{{job.code}}</a>
+                    </td>
                     <td ng-show="!with_ctx">{{job.collab.title | limitTo: 50}}{{job.collab.title.length > 47 ? '...' : ''}}</td>
                     <td>{{job.timestamp_submission | date : "yyyy-MM-dd HH:mm:ss" }}</td>
                     <td>{{job.user.displayName}}</td>
