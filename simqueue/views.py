@@ -114,7 +114,7 @@ def copy_datafiles_to_collab_storage(request, job, local_dir, relative_paths):
     #from bbp_client.document_service.client import Client as DocClient
     #import bbp_services.client as bsc
     import hbp_service_client.document_service.client as doc_service_client
-
+    logging.warning("copy_datafiles_to_collab_storage")
     #services = bsc.get_services()
     access_token = get_access_token(request.user.social_auth.get())
     #oidc_client = BBPOIDCClient.bearer_auth(services['oidc_service']['prod']['url'], access_token)

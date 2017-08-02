@@ -218,6 +218,7 @@ class QueueResource(BaseJobResource):
     def obj_create(self, bundle, **kwargs):
         # todo: check user is either an HBP member or has permission to use the platform
         selected_tab = str(bundle.data.get('selected_tab'))
+        logger.debug("selected_tab : " + selected_tab)
         if selected_tab == "upload_script" :
             bundle.data["code"] = self.copy_code_file_from_collab_storage(bundle)
             # putting the temporary download path in the code field is not ideal.
@@ -236,8 +237,23 @@ class QueueResource(BaseJobResource):
         access_token = get_access_token(bundle.request.user.social_auth.get())
         doc_client = DocClient.new(access_token)
 
+        logger.debug("code copy_code_file_from_collab_storage ")
         entity_id = bundle.data.get("code")
-        metadata = doc_client.get_entity_details(entity_id)
+        logger.debug("entity_id : " + entity_id)
+        entity_uuid_list = entity_id.split('/')
+        entity_uuid = entity_uuid_list[-1]
+        logger.debug("entity_uuid : " + entity_uuid)
+        metadata = doc_client.get_entity_details(entity_uuid)
+        logger.debug("metadata : " + str(metadata))
+        logger.debug("name : " + metadata['name'])
+        name = metadata['name'].split('.')
+        ext = name[-1]
+        logger.debug("ext : " + ext)
+        if ext == 'ipynb' :
+            logger.debug("jupyter notebook")
+        else :
+            logger.debug("ext : " + ext)
+
         entity_name = "{}_{}".format(entity_id, metadata["name"])
         entity_type = metadata["entity_type"]
         local_dir = settings.TMP_FILE_ROOT
