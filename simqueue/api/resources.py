@@ -34,6 +34,8 @@ from ..models import DataItem, Job, Log
 from .auth import CollabAuthorization, HBPAuthentication, ProviderAuthentication
 from quotas.models import Quota
 
+from pprint import pprint
+
 from hbp_app_python_auth.auth import get_access_token
 
 
@@ -237,29 +239,21 @@ class QueueResource(BaseJobResource):
         access_token = get_access_token(bundle.request.user.social_auth.get())
         doc_client = DocClient.new(access_token)
 
-        logger.debug("code copy_code_file_from_collab_storage ")
         entity_id = bundle.data.get("code")
-        logger.debug("entity_id : " + entity_id)
         entity_uuid_list = entity_id.split('/')
         entity_uuid = entity_uuid_list[-1]
-        logger.debug("entity_uuid : " + entity_uuid)
         metadata = doc_client.get_entity_details(entity_uuid)
-        logger.debug("metadata : " + str(metadata))
-        logger.debug("name : " + metadata['name'])
         name = metadata['name'].split('.')
         ext = name[-1]
-        logger.debug("ext : " + ext)
-        if ext == 'ipynb' :
-            logger.debug("jupyter notebook")
-        else :
-            logger.debug("ext : " + ext)
 
         entity_name = "{}_{}".format(entity_id, metadata["name"])
         entity_type = metadata["entity_type"]
         local_dir = settings.TMP_FILE_ROOT
         if entity_type == 'file':
             # put the file content into the "code" field directly
-            etag, content = doc_client.download_file_content(entity_id)
+            content = doc_client.download_file_content(entity_uuid)
+            if ext == 'ipynb':
+                content = self.filter_ipynb_content(content)
             return content
         elif entity_type == 'folder':
             # create a zip archive and put its url into the "code" field
@@ -271,7 +265,7 @@ class QueueResource(BaseJobResource):
                     entity_type = child["entity_type"]
                     if entity_type == 'file':
                         with open(joinp(sub_dir, child["name"]), "wb") as fp:
-                            etag, content = doc_client.download_file_content(child["uuid"])
+                            content = doc_client.download_file_content(child["uuid"])
                             fp.write(content)
                     elif entity_type == 'folder':
                         download_folder(child, sub_dir)
@@ -289,6 +283,16 @@ class QueueResource(BaseJobResource):
             return temporary_url
         else:
             raise ValueError("Can't handle entity type '{}'".format(entity_type))
+    def filter_ipynb_content(self, content_in):
+        content_2 = json.loads(content_in[1])
+        content_out = " "
+        for i in content_2:
+            if i == "cells":
+                for j in content_2[i]:
+                    if j["cell_type"] == "code":
+                        content_out = content_out + str(j["source"])
+        logger.debug(content_out)
+        return content_out
 
     def _check_quotas(self, bundle):
         collab = bundle.data.get('collab_id', None)
