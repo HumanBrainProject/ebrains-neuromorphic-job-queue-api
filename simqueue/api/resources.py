@@ -34,8 +34,6 @@ from ..models import DataItem, Job, Log
 from .auth import CollabAuthorization, HBPAuthentication, ProviderAuthentication
 from quotas.models import Quota
 
-from pprint import pprint
-
 from hbp_app_python_auth.auth import get_access_token
 
 
@@ -220,7 +218,6 @@ class QueueResource(BaseJobResource):
     def obj_create(self, bundle, **kwargs):
         # todo: check user is either an HBP member or has permission to use the platform
         selected_tab = str(bundle.data.get('selected_tab'))
-        logger.debug("selected_tab : " + selected_tab)
         if selected_tab == "upload_script" :
             bundle.data["code"] = self.copy_code_file_from_collab_storage(bundle)
             # putting the temporary download path in the code field is not ideal.
