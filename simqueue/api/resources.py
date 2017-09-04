@@ -254,6 +254,7 @@ class QueueResource(BaseJobResource):
             content = doc_client.download_file_content(entity_uuid)
             if ext == 'ipynb':
                 content = self.filter_ipynb_content(content)
+            # logger.debug(content)
             return content
         elif entity_type == 'folder':
             # create a zip archive and put its url into the "code" field
@@ -290,8 +291,8 @@ class QueueResource(BaseJobResource):
             if i == "cells":
                 for j in content_2[i]:
                     if j["cell_type"] == "code":
-                        content_out = content_out + str(j["source"])
-        logger.debug(content_out)
+                        content_out = content_out + '\r\n' + str(j["source"])
+        # logger.debug(content_out)
         return content_out
 
     def _check_quotas(self, bundle):
