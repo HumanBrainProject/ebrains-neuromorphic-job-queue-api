@@ -146,7 +146,7 @@ angular.module('nmpi')
         $scope.hpcSite = null;
         $scope.showHPCsites = false;
 
-        console.log('context:'+$rootScope.ctx);
+        console.log('context detail :'+$rootScope.ctx);
 
         // only members of the collab should see the tags edit button
         $scope.inTeam = false;
@@ -181,6 +181,17 @@ angular.module('nmpi')
             job.$update({id:id.eId});
         };
 
+        $scope.convertJsonProvenanceToTable = function(provenance_in){
+            console.log("json provenance : " + provenance_in);
+            var provenance_out = "<table>";
+            provenance_out += "<tr><td>Field</td><td>Value</td></tr>";
+            angular.forEach(provenance_in, function(value, key){
+                provenance_out += "<tr><td>" + key + "</td><td>" + value + "</td></tr>";
+            });
+            provenance_out += "</table>"
+            return provenance_out;
+        };
+
         var sendState = function(state, job_id){
             window.parent.postMessage({
                 eventName: 'workspace.context',
@@ -194,18 +205,22 @@ angular.module('nmpi')
             {id: $stateParams.eId},
             // first we try to get the job from the Results endpoint
             function(job) {
+                console.log("result get 1");
                 $scope.job = job;
                 $scope.job.collab = Collab.get({cid:$scope.job.collab_id}, function(data){});
                 $scope.job.user = User.get({id:job.user_id}, function(data){});
+                //$scope.job.provenance = $scope.convertJsonProvenanceToTable($scope.job.provenance);
             },
             // if it's not there we try the Queue endpoint
             function(error) {
                 Queue.get(
                     {id: $stateParams.eId},
                     function(job){
+                        console.log("result get 2");
                         $scope.job = job;
                         $scope.job.collab = Collab.get({cid:$scope.job.collab_id}, function(data){});
                         $scope.job.user = User.get({id:job.user_id}, function(data){});
+                        //$scope.job.provenance = $scope.convertJsonProvenanceToTable($scope.job.provenance);
                     }
                 );
             }

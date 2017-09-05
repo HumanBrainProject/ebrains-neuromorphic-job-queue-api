@@ -117,6 +117,23 @@
       <pre>{{log.content}}</pre>
     </div>
   </div>
+
+  <div class="panel panel-default"  ng-show="job.provenance">
+    <div class="panel-heading">Provenance</div>
+    <div class="panel-body">
+      <table>
+        <tr>
+          <td>Field</td>
+          <td>Value</td>
+        </tr>
+        <tr ng-repeat="(key, value) in job.provenance">
+          <td>{{key}}</td>
+          <td>{{value}}</td>
+        </tr>
+      </table>
+    </div>
+  </div>
+
   <div class="panel-body" style="float:right;">
     <button type="button" class="btn btn-danger" ng-click="del_job({eId:job.id})" ng-if="job.user_id === user.id">Delete</button>
   </div>
