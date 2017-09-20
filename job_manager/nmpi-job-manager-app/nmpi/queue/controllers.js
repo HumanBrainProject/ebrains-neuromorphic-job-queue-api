@@ -283,7 +283,6 @@ angular.module('nmpi')
 
         $scope.msg_panel = "Code";
         $scope.msg_required = "Please enter your code in the textarea.";
-        $scope.number_rows = 5;
 
         $scope.UiStorageGetData = UiStorageGetData;
 

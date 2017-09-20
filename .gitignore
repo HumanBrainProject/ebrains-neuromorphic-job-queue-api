@@ -12,9 +12,10 @@ job_manager/lib
 job_manager/static
 resource_manager/lib
 resource_manager/static
+documentation/splash/bower_components
 
 # ensure these are not tracked by git
 *secrets.yml
 job_manager/deployment/ssl
 resource_manager/deployment/ssl
-documentation/letsencrypt
+letsencrypt

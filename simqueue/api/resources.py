@@ -253,18 +253,15 @@ class QueueResource(BaseJobResource):
         doc_client = DocClient.new(access_token)
 
         entity_id = bundle.data.get("code")
-        entity_uuid_list = entity_id.split('/')
-        entity_uuid = entity_uuid_list[-1]
-        metadata = doc_client.get_entity_details(entity_uuid)
-        name = metadata['name'].split('.')
-        ext = name[-1]
+        metadata = doc_client.get_entity_details(entity_id)
+        ext = metadata['name'].split('.')[-1]
 
         entity_name = "{}_{}".format(entity_id, metadata["name"])
         entity_type = metadata["entity_type"]
         local_dir = settings.TMP_FILE_ROOT
         if entity_type == 'file':
             # put the file content into the "code" field directly
-            content = doc_client.download_file_content(entity_uuid)
+            etag, content = doc_client.download_file_content(entity_id)
             if ext == 'ipynb':
                 content = self.filter_ipynb_content(content)
             # logger.debug(content)
@@ -297,15 +294,18 @@ class QueueResource(BaseJobResource):
             return temporary_url
         else:
             raise ValueError("Can't handle entity type '{}'".format(entity_type))
+
     def filter_ipynb_content(self, content_in):
-        content_2 = json.loads(content_in[1])
-        content_out = " "
-        for i in content_2:
-            if i == "cells":
-                for j in content_2[i]:
-                    if j["cell_type"] == "code":
-                        content_out = content_out + '\r\n' + str(j["source"])
-        # logger.debug(content_out)
+        cells = json.loads(content_in)["cells"]
+        logger.debug(content_in)
+        sections = []
+        for cell in cells:
+            if cell["cell_type"] == "code":
+                sections.append("".join(cell["source"]))
+            elif cell["cell_type"] == "markdown":
+                sections.append('"""\n' + "".join(cell["source"]) + '\n"""')
+        content_out = "\n\n".join(sections)
+        logger.debug(content_out)
         return content_out
 
     def _check_quotas(self, bundle):
