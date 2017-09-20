@@ -147,6 +147,8 @@ STATIC_URL = '/static/'
 
 STATICFILES_DIRS = [
     os.path.join(BASE_DIR, "lib"),
+    os.path.join(BASE_DIR, "job_manager/lib"),
+    os.path.join(BASE_DIR, "lib/angular-hbp-collaboratory/src"),
     os.path.join(BASE_DIR, "nmpi-job-manager-app"),
     os.path.join(BASE_DIR, "nmpi-dashboard-app"),
 ]

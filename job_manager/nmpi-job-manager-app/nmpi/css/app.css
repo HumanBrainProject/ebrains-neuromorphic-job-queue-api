@@ -58,3 +58,18 @@ td code {
 .CodeMirror {
   height: auto;
 }
+
+.tab_provenance {
+  border-collapse: collapse;
+}
+
+.tab_provenance th, .tab_provenance td {
+    border: 1px solid black;
+    word-break: break-all;
+    padding : 2px;
+    min-width: 120px;
+}
+
+.tab_provenance_head {
+  font-weight: bold;
+}

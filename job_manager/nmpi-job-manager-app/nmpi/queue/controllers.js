@@ -146,7 +146,7 @@ angular.module('nmpi')
         $scope.hpcSite = null;
         $scope.showHPCsites = false;
 
-        console.log('context:'+$rootScope.ctx);
+        console.log('context detail :'+$rootScope.ctx);
 
         // only members of the collab should see the tags edit button
         $scope.inTeam = false;
