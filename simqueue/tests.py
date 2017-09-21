@@ -13,8 +13,10 @@ from uuid import uuid4
 
 from django.test import TestCase, Client
 from django.contrib.auth.models import User
+from django.core import mail
 from tastypie.authentication import Authentication
 from tastypie.models import ApiKey
+from social.apps.django_app.default.models import UserSocialAuth
 
 from .models import Job, DataItem
 from .api.resources import QueueResource, ResultsResource
@@ -128,13 +130,13 @@ def generate_job(status):
         'hardware_platform': random.sample(['SpiNNaker', 'BrainScaleS'], 1)[0],
         'input_data': [generate_data_file() for i in range(random.randint(0, 2))],
         'user_id': random.sample(TEST_USERS[collab_id], 1)[0],
+        'provenance': {'collaboratory': {'nav_item': '4567'}}
     }
     if status != "new":
         job["id"] = random.randint(90000000, 99999999)
         job["status"] = status
         job["timestamp_submission"] = datetime.fromtimestamp(timestamp, pytz.UTC)
     if status in ("finished", "error", "removed"):
-        job['provenance'] = {}
         job['resource_usage'] = random.uniform(0.0, 100.0)
         job['timestamp_completion'] = datetime.fromtimestamp(timestamp + random.randint(10, 10000),
                                                              pytz.UTC)
@@ -350,7 +352,7 @@ class TestAPI_NoCollab_AsUser(TestCase):
         response1 = self.alice.get(resource_uri)
         job = response1.json()
         job['status'] = "running"
-        job["provenance"] = {"version": 123}
+        job["provenance"]["version"] = 123
         # Alice is now allowed to modify jobs, because of tags
         #response2 = self.alice.put(resource_uri, data=json.dumps(job), content_type="application/json")
         #self.assertEqual(response2.status_code, 403)  # Alice knows the job exists, so we say "Not allowed"
@@ -662,18 +664,72 @@ class TestAPI_AsProvider(TestCase):
         data = response.json()
         self.assertEqual(data["meta"]["total_count"], len(brainscales_jobs))
 
-    def test__update_status(self):
+    def test__update_status_to_running(self):
         next_job_uri = "/api/v2/queue/submitted/next/SpiNNaker/"
         response = self.client.get(next_job_uri)
         job = response.json()
         job['status'] = "running"
-        job["provenance"] = {"version": 123}
+        job["provenance"]["version"] = 123
         resource_uri = "/api/v2/queue/{}".format(job["id"])
         response2 = self.client.put(resource_uri, data=json.dumps(job), content_type="application/json")
         self.assertEqual(response2.status_code, 204)
         response3 = self.client.get(resource_uri)
         job2 = response3.json()
         self.assertDictEqual(job, job2)
+
+
+class TestEmail(TestCase):
+    """
+
+    """
+
+    def setUp(self):
+        _create_test_jobs()
+        if not USE_MOCKS:
+            nmpi_user = User.objects.create(username="nmpi")
+            key = ApiKey.objects.create(user=nmpi_user)
+            tokens["nmpi"] = 'ApiKey nmpi:{}'.format(key.key)
+        self.client = Client(HTTP_AUTHORIZATION=tokens["nmpi"])
+        self.maxDiff = None
+
+    def test__email(self):
+        job = running_jobs.pop(0)
+        test_project = Project(collab=job["collab_id"], context=uuid4())
+        test_project.save()
+        test_quota = Quota(project=test_project, platform=job["hardware_platform"],
+                           usage=0, limit=1000, units="foo-hours")
+        test_quota.save()
+        if USE_MOCKS:
+            user = User(username="testuser", email="testuser@example.com")
+            user.save()
+            sa = UserSocialAuth(user=user, uid=job['user_id'])
+            sa.save()
+
+        log = "\n".join(str(x) for x in range(25))
+        log_response = self.client.put("/api/v2/log/{}".format(job["id"]),
+                                       data=json.dumps({"content": log}),
+                                       content_type="application/json")
+        self.assertEqual(log_response.status_code, 201)
+
+        job['timestamp_submission'] = job['timestamp_submission'].isoformat()
+        job['status'] = "finished"
+        job["provenance"]["version"] = 123
+        job["resource_usage"] = 23
+        job['hardware_config']["resource_allocation_id"] = test_quota.pk
+        resource_uri = "/api/v2/queue/{}".format(job["id"])
+        response = self.client.put(resource_uri, data=json.dumps(job), content_type="application/json")
+        self.assertEqual(response.status_code, 204)
+
+        message = mail.outbox[0]
+        self.assertEqual(message.to, ["testuser@example.com"])
+        self.assertEqual(message.subject, "[HBP Neuromorphic] job {} finished".format(job["id"]))
+        self.assertIn("Job {} finished".format(job["id"]), message.body)
+        self.assertIn("0\n1\n2\n3\n4\n5\n6\n7\n8\n9\n\n.  .  .\n\n15\n16\n17\n18\n19\n20\n21\n22\n23\n24",
+                      message.body)
+        self.assertIn("https://collab.humanbrainproject.eu/#/collab/{}/nav/{}?state=job.{}".format(job["collab_id"],
+                                                                                                   job["provenance"]["collaboratory"]["nav_item"],
+                                                                                                   job["id"]),
+                      message.body)
 
 
 class TestAPI_AsAnonymous(TestCase):
