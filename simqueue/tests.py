@@ -193,7 +193,21 @@ class TestAPI_NoCollab_AsUser(TestCase):
                               "log": {"list_endpoint": "/api/v2/log", "schema": "/api/v2/log/schema"},
                               "queue": {"list_endpoint": "/api/v2/queue", "schema": "/api/v2/queue/schema"},
                               "results": {"list_endpoint": "/api/v2/results", "schema": "/api/v2/results/schema"},
-                              "statistics": {"list_endpoint": "/api/v2/statistics","schema": "/api/v2/statistics/schema"}})
+                              "statistics/cumulative-job-count": {
+                                  "list_endpoint": "/api/v2/statistics/cumulative-job-count",
+                                  "schema": "/api/v2/statistics/cumulative-job-count/schema"},
+                              "statistics/cumulative-user-count": {
+                                  "list_endpoint": "/api/v2/statistics/cumulative-user-count",
+                                  "schema": "/api/v2/statistics/cumulative-user-count/schema"},
+                              "statistics/job-count": {
+                                  "list_endpoint": "/api/v2/statistics/job-count",
+                                  "schema": "/api/v2/statistics/job-count/schema"},
+                              "statistics/job-duration": {
+                                  "list_endpoint": "/api/v2/statistics/job-duration",
+                                  "schema": "/api/v2/statistics/job-duration/schema"},
+                              "statistics/queue-length": {
+                                  "list_endpoint": "/api/v2/statistics/queue-length",
+                                  "schema": "/api/v2/statistics/queue-length/schema"}})
 
     def test__queue_endpoint(self):
         """The queue endpoint with no filtering should return all jobs submitted by the user
@@ -220,7 +234,7 @@ class TestAPI_NoCollab_AsUser(TestCase):
         submitted_SpiNNaker_jobs = [job for job in submitted_jobs
                                    if (job["user_id"] == Alice and job["hardware_platform"] == "SpiNNaker")]
         self.assertEqual(data2["meta"]["total_count"], len(submitted_SpiNNaker_jobs))
-        self.assertEqual(set(job["hardware_platform"] for job in data2["objects"]), set(["SpiNNaker"]))
+        self.assertEqual(set(job["hardware_platform"] for job in data2["objects"]), set(["SpiNNaker"]))  # maybe occasionally fail due to randomness in job generation
 
     def test__queue_endpoint_get_individual_job(self):
         """In the absence of filtering by collab, a user should be able to access only jobs they submitted"""
@@ -337,8 +351,9 @@ class TestAPI_NoCollab_AsUser(TestCase):
         job = response1.json()
         job['status'] = "running"
         job["provenance"] = {"version": 123}
-        response2 = self.alice.put(resource_uri, data=json.dumps(job), content_type="application/json")
-        self.assertEqual(response2.status_code, 403)  # Alice knows the job exists, so we say "Not allowed"
+        # Alice is now allowed to modify jobs, because of tags
+        #response2 = self.alice.put(resource_uri, data=json.dumps(job), content_type="application/json")
+        #self.assertEqual(response2.status_code, 403)  # Alice knows the job exists, so we say "Not allowed"
         response3 = self.bob.put(resource_uri, data=json.dumps(job), content_type="application/json")
         self.assertEqual(response3.status_code, 404)  # Bob doesn't a priori know the job exists, so we say "Not found"
 
