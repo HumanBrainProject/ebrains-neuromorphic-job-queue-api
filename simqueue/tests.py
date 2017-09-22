@@ -188,7 +188,7 @@ class TestAPI_NoCollab_AsUser(TestCase):
 
     def test__schema_at_api_root(self):
         response = self.alice.get("/api/v2/")
-        self.assertJSONEqual(response.content,
+        self.assertJSONEqual(response.content.decode('utf-8'),
                              {"dataitem": {"list_endpoint": "/api/v2/dataitem", "schema": "/api/v2/dataitem/schema"},
                               "log": {"list_endpoint": "/api/v2/log", "schema": "/api/v2/log/schema"},
                               "queue": {"list_endpoint": "/api/v2/queue", "schema": "/api/v2/queue/schema"},
