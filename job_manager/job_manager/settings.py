@@ -52,18 +52,21 @@ INSTALLED_APPS = [
     'taggit',
 ]
 if ENV == "dev":
+    INSTALLED_APPS.insert(0, 'django_pdb')
     INSTALLED_APPS.append('sslserver')
     sys.path.append("..")
 
-MIDDLEWARE_CLASSES = (
+MIDDLEWARE_CLASSES = [
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.auth.middleware.SessionAuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.security.SecurityMiddleware',
-    'social.apps.django_app.middleware.SocialAuthExceptionMiddleware',
-)
+    'social.apps.django_app.middleware.SocialAuthExceptionMiddleware'
+]
+if ENV == "dev":
+    MIDDLEWARE_CLASSES.append('django_pdb.middleware.PdbMiddleware')
 
 ROOT_URLCONF = 'job_manager.urls'
 
