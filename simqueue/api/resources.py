@@ -271,6 +271,8 @@ class QueueResource(BaseJobResource):
             def download_folder(entity, local_dir):
                 folder_content = doc_client.list_folder_content(entity["uuid"])
                 sub_dir = joinp(local_dir, entity["name"])
+                if os.path.exists(sub_dir):
+                    shutil.rmtree(sub_dir)
                 os.mkdir(sub_dir)
                 for child in folder_content['results']:
                     entity_type = child["entity_type"]
