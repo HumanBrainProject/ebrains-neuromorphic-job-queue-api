@@ -37,7 +37,7 @@
                     <td>{{job.hardware_platform}}</td>
                     <td>
                         <code ng-if="!job.code.startsWith('http')">{{job.code | extractInitialComment: 79 }}{{job.code.length > 76 ? '...' : ''}}</code>
-                        <a ng-if="job.code.startsWith('http')" href="{{job.code}}">{{job.code}}</a>
+                        <a ng-if="job.code.startsWith('http')" href="{{job.code}}" target="_blank">{{job.code}}</a>
                     </td>
                     <td ng-show="!with_ctx">{{job.collab.title | limitTo: 50}}{{job.collab.title.length > 47 ? '...' : ''}}</td>
                     <td>{{job.timestamp_submission | date : "yyyy-MM-dd HH:mm:ss" }}</td>
