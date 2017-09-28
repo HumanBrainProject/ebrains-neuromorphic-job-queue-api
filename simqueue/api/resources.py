@@ -283,7 +283,7 @@ class QueueResource(BaseJobResource):
                     entity_type = child["entity_type"]
                     if entity_type == 'file':
                         with open(joinp(sub_dir, child["name"]), "wb") as fp:
-                            content = doc_client.download_file_content(child["uuid"])
+                            etag, content = doc_client.download_file_content(child["uuid"])
                             fp.write(content)
                     elif entity_type == 'folder':
                         download_folder(child, sub_dir)
