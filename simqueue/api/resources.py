@@ -264,6 +264,11 @@ class QueueResource(BaseJobResource):
             etag, content = doc_client.download_file_content(entity_id)
             if ext == 'ipynb':
                 content = self.filter_ipynb_content(content)
+            elif ext in ('zip', 'tgz', 'gz'):
+                with open(os.path.join(local_dir, entity_name), 'wb') as fp:
+                    fp.write(content)
+                temporary_url = bundle.request.build_absolute_uri(settings.TMP_FILE_URL + entity_name)
+                content = temporary_url
             # logger.debug(content)
             return content
         elif entity_type == 'folder':
