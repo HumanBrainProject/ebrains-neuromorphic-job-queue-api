@@ -295,6 +295,7 @@ angular.module('nmpi')
         Context.get({ctx: $rootScope.ctx}, function(context){
             //console.log("create collab id: "+context.collab.id);
             $scope.job.collab_id = context.collab.id;
+            $scope.job.provenance = {'collaboratory': {'nav_item': context.id}}
         });
         UiStorageGetData.job = $scope.job;
 
@@ -464,6 +465,7 @@ angular.module('nmpi')
             Context.get({ctx: $rootScope.ctx}, function(context){
                 //console.log("create collab id: "+context.collab.id);
                 $scope.job.collab_id = context.collab.id;
+                $scope.job.provenance = {'collaboratory': {'nav_item': context.id}}
             });
         });
 

@@ -346,7 +346,7 @@ class QueueResource(BaseJobResource):
             if len(users) > 1:
                 logger.warning("Multiple users found with the same oidc id.")
             if email:
-                logger.info("Sending e-mail about job #{} to {}".format(str(bundle.data['id']), bundle.request.user.email))
+                logger.info("Sending e-mail about job #{} to {}".format(str(bundle.data['id']), email))
                 log_list = Log.objects.filter(pk=bundle.data['id'])
                 if log_list.count() == 0:
                     log_content = ""
@@ -362,7 +362,11 @@ class QueueResource(BaseJobResource):
                 subject = '[HBP Neuromorphic] job ' + str(bundle.data['id']) + ' ' + bundle.data['status']
                 content = 'HBP Neuromorphic Computing Platform: Job {} {}\n\n'.format(bundle.data['id'],
                                                                                       bundle.data['status'])
-                content += "https://collab.humanbrainproject.eu/#/collab/{}\n\n".format(bundle.data['collab_id'])
+                target_url = "https://collab.humanbrainproject.eu/#/collab/{}".format(bundle.data['collab_id'])
+                if bundle.data['provenance'] and 'collaboratory' in bundle.data['provenance']:
+                    target_url += "/nav/{}?state=job.{}".format(bundle.data['provenance']['collaboratory'].get('nav_item', 'unknown'),
+                                                                bundle.data['id'])
+                content += target_url + "\n\n"
                 content += log_content
                 try:
                     send_mail(
