@@ -20,7 +20,10 @@ from simqueue.api.resources import (JobCountResource,
                                     CumulativeJobCountResource,
                                     CumulativeUserCountResource,
                                     QueueLength,
-                                    JobDuration)
+                                    JobDuration,
+                                    ActiveUserCountResource,
+                                    ProjectCountResource,
+                                    QuotaUsageResource)
 
 admin.autodiscover()
 
@@ -35,6 +38,10 @@ api.register(CumulativeJobCountResource())
 api.register(CumulativeUserCountResource())
 api.register(QueueLength())
 api.register(JobDuration())
+api.register(ActiveUserCountResource())
+api.register(ProjectCountResource())
+api.register(QuotaUsageResource())
+
 
 urlpatterns = (
     url(r'^admin/', include(admin.site.urls)),
