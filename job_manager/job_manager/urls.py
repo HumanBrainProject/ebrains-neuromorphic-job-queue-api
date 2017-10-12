@@ -16,6 +16,7 @@ from simqueue.api.resources import ResultsResource
 from simqueue.api.resources import QueueResource
 from simqueue.api.resources import DataItemResource
 from simqueue.api.resources import LogResource
+from simqueue.api.resources import CommentResource
 from simqueue.api.resources import (JobCountResource,
                                     CumulativeJobCountResource,
                                     CumulativeUserCountResource,
@@ -30,6 +31,7 @@ api.register(ResultsResource())
 api.register(QueueResource())
 api.register(DataItemResource())
 api.register(LogResource())
+api.register(CommentResource())
 api.register(JobCountResource())
 api.register(CumulativeJobCountResource())
 api.register(CumulativeUserCountResource())

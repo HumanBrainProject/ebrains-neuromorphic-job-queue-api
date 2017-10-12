@@ -1,5 +1,5 @@
 from django.contrib import admin
-from simqueue.models import Job, DataItem, Log
+from simqueue.models import Job, DataItem, Log, Comment
 
 
 @admin.register(Job)
@@ -14,3 +14,5 @@ class JobAdmin(admin.ModelAdmin):
 admin.site.register(DataItem)
 
 admin.site.register(Log)
+
+admin.site.register(Comment)

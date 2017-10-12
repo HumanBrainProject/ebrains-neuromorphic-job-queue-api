@@ -140,7 +140,31 @@
     <a class="nav" href="app/#/queue?ctx={{ctx}}" ng-click="msg.show=false" ng-if="with_ctx">back</a>
     <a class="nav" href="app/#/queue" ng-click="msg.show=false" ng-if="!with_ctx">back</a>
   </div>
-
+    <br>
+    <br>
+    <br>
+  <div id="comments" ng-if="job.status == 'finished' || job.status == 'error'">
+    <form name="create_comment" ng-submit="submit_comment(comment, job)">
+      <textarea id="comment_content" style="width:100%" rows="5" placeholder="Leave a comment" ng-model="comment.content"></textarea>
+      <br>
+      <button type= "submit" style="float: right" >Submit</button>
+    </form>
+    <br>
+    <br>
+    <br>
+    <div ng-repeat="c in job.comments" >
+      <div class="panel panel-default">
+        <div class="panel-heading">
+          Commented
+          <span >{{c.created_time | date : "yyyy-MM-dd HH:mm:ss"}}</span>
+          by <span ><strong>{{c.user}}</strong></span>
+        </div>
+          <div class="panel-body">
+            <span>{{c.content}}</span>
+          </div>
+      </div>
+    </div>
+  </div>
 </div>
 
 <!-- {"experiment_description": "import pyNN.nest as sim\n\nsim.setup()\n\np = sim.Population(100000, sim.IF_cond_exp())\n\nsim.run(10.0)\n\np.write_data(\"output_data100000.pkl\")\n\nsim.end()\n", "hardware_config": "nest", "hardware_platform": "localhost", "id": 2, "input_data": [{"resource_uri": "", "uri": "http://photoblog.estreme.net/images/20100307002550_20100220-005.jpg"}], "log": " ", "output_data": [{"resource_uri": "", "uri": "/home/do/localhost/nmpi/job_2/job_2.zip"}], "project": "/api/v1/project/1", "resource_uri": "/api/v1/queue/2", "status": "submitted", "timestamp_completion": "2014-07-10T13:49:24", "timestamp_submission": "2014-07-10T13:49:15", "user": "/api/v1/user/do"} -->

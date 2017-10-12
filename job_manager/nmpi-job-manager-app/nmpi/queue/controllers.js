@@ -139,14 +139,20 @@ angular.module('nmpi')
 
 
 .controller( 'DetailQueue', 
-            ['$scope', '$location', '$http', '$rootScope', '$stateParams', 'Queue', 'Results', 'Collab', 'Log', 'hbpCollabStore', 'User',
-    function( $scope,   $location,   $http,   $rootScope,   $stateParams,   Queue,   Results,   Collab,   Log, hbpCollabStore,  User)
+            ['$scope', '$location', '$http', '$rootScope', '$stateParams', 'Queue', 'Results', 'Comment', 'Collab', 'Log', 'hbpCollabStore', 'User',
+    function( $scope,   $location,   $http,   $rootScope,   $stateParams,   Queue,   Results, Comment, Collab,   Log, hbpCollabStore,  User)
     {
         $scope.msg = {text: "", css: "", show: false};
         $scope.hpcSite = null;
         $scope.showHPCsites = false;
 
         console.log('context detail :'+$rootScope.ctx);
+        $scope.comment = new Comment();
+        $scope.comment.content = "";
+        // add user to comment
+        User.get({id:'me'}, function(user){
+            $scope.comment.user = user.displayName;
+        });
 
         // only members of the collab should see the tags edit button
         $scope.inTeam = false;
@@ -179,6 +185,30 @@ angular.module('nmpi')
         $scope.addTag = function(job, tag, id){
             job.tags.push(tag.name);
             job.$update({id:id.eId});
+        };
+
+        // create a new comment
+        $scope.submit_comment = function(comment, job){
+            // add related job
+            $scope.comment.job = job;
+            $scope.comment.$save({},
+                function(data){  // success
+                    $scope.$parent.msg = {
+                        text: "Your comment has been submitted.",
+                        css: "success",
+                        show: true
+                    };
+                    location.reload();
+                },
+                function(err) { // error
+                    console.log(err.status + ": " + err.data);
+                    $scope.$parent.msg = {
+                        text: "Your comment has not been submitted. " + err.data,
+                        css: "danger",
+                        show: true
+                    };
+                }
+            );
         };
 
         var sendState = function(state, job_id){
