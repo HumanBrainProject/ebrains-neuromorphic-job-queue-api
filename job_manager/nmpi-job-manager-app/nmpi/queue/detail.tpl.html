@@ -39,6 +39,7 @@
     </div>
   </div>
 
+  <div class="row-fluid">
   <div class="panel panel-default" ng-show="job.output_data.length">
     <div class="panel-heading">Output files</div>
     <div class="panel-body">
@@ -75,20 +76,26 @@
     </ul>
     <div class="panel-footer"><small>These files are in temporary storage, and may be deleted after 3 months. For longer-term preservation or further analysis, we recommend copying the files to the Collab storage.</small></div>
   </div>
+  </div>
 
+  <div class="row-fluid">
   <div class="panel panel-default">
     <div class="panel-heading">Code</div>
     <div ng-if="!job.code.startsWith('http')" class="panel-body" ui-codemirror ui-codemirror-opts="editorOptions" id="code" name="code" ng-model="job.code" required>{{job.code}}</div>
     <div ng-if="job.code.startsWith('http')" class="panel-body" id="code" name="code" ng-model="job.code" required><a href="{{job.code}}">{{job.code}}</a></div>
   </div>
+  </div>
 
+  <div class="row-fluid">
   <div class="panel panel-default" ng-show="job.command">
     <div class="panel-heading">Command</div>
     <div class="panel-body">
       <pre>{{job.command}}</pre>
     </div>
   </div>
+  </div>
 
+  <div class="row-fluid">
   <div class="panel panel-default" ng-show="job.input_data.length">
     <div class="panel-heading">Input files</div>
     <ul class="list-group">
@@ -98,14 +105,18 @@
       </li>
     </ul>
   </div>
+  </div>
 
+  <div class="row-fluid">
   <div class="panel panel-default"  ng-show="job.hardware_config">
     <div class="panel-heading">Hardware config</div>
     <div class="panel-body">
       <pre>{{job.hardware_config}}</pre>
     </div>
   </div>
+  </div>
 
+  <div class="row-fluid">
   <div class="panel panel-default"  ng-show="job.provenance">
     <div class="panel-heading">Provenance</div>
     <div class="panel-body">
@@ -117,7 +128,9 @@
       </table>
     </div>
   </div>
+  </div>
 
+  <div class="row-fluid">
   <div class="panel panel-default">
     <div class="panel-heading">
       Log
@@ -129,41 +142,42 @@
       <pre>{{log.content}}</pre>
     </div>
   </div>
+  </div>
 
-  <div class="panel-body" style="float:right;">
-    <button type="button" class="btn btn-danger" ng-click="del_job({eId:job.id})" ng-if="job.user_id === user.id">Delete</button>
+  <div class="row-fluid">
+    <div class="btn-group pull-right" role="group">
+      <a class="btn btn-link" href="app/#/queue?ctx={{ctx}}" ng-click="msg.show=false" ng-if="with_ctx">back</a>
+      <a class="btn btn-link" href="app/#/queue" ng-click="msg.show=false" ng-if="!with_ctx">back</a>
+      <button type="button" class="btn btn-danger" ng-click="del_job({eId:job.id})" ng-if="job.user_id === user.id">Delete</button>
+      <button type="button" class="btn btn-info" ui-sref="job_resubmit({eId:job.id})" ng-if="job.status == 'finished' || job.status == 'error'">Edit &amp; Resubmit</button>
+    </div>
   </div>
-  <div class="panel-body" style="float:right;">
-    <button type="button" class="btn btn-info" ui-sref="job_resubmit({eId:job.id})" ng-if="job.status == 'finished' || job.status == 'error'">Edit &amp; Resubmit</button>
+
+  <div class="clearfix">
   </div>
-  <div class="panel-body" style="float:right; ">
-    <a class="nav" href="app/#/queue?ctx={{ctx}}" ng-click="msg.show=false" ng-if="with_ctx">back</a>
-    <a class="nav" href="app/#/queue" ng-click="msg.show=false" ng-if="!with_ctx">back</a>
+
+  <div class="row-fluid">
+    <hr/>
   </div>
-    <br>
-    <br>
-    <br>
+
+  <div class="row-fluid">
   <div id="comments" ng-if="job.status == 'finished' || job.status == 'error'">
-    <form name="create_comment" ng-submit="submit_comment(comment, job)">
-      <textarea id="comment_content" style="width:100%" rows="5" placeholder="Leave a comment" ng-model="comment.content"></textarea>
-      <br>
-      <button type= "submit" style="float: right" >Submit</button>
-    </form>
-    <br>
-    <br>
-    <br>
     <div ng-repeat="c in job.comments" >
       <div class="panel panel-default">
         <div class="panel-heading">
-          Commented
-          <span >{{c.created_time | date : "yyyy-MM-dd HH:mm:ss"}}</span>
-          by <span ><strong>{{c.user}}</strong></span>
+          <strong>{{c.user}}</strong> commented <span ng-if="c.created_time">on {{c.created_time | date : "yyyy-MM-dd HH:mm:ss"}}</span>
         </div>
           <div class="panel-body">
             <span>{{c.content}}</span>
           </div>
       </div>
     </div>
+    <form name="create_comment" ng-submit="submit_comment(comment, job)">
+      <textarea id="comment_content" style="width:100%" rows="5" placeholder="Leave a comment" ng-model="comment.content"></textarea>
+      <br>
+      <button type="submit" class="btn btn-info" style="float: right">Comment</button>
+    </form>
+  </div>
   </div>
 </div>
 
