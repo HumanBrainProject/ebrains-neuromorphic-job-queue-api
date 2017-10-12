@@ -482,7 +482,7 @@ class ResultsResource(BaseJobResource):
 class CommentResource(ModelResource):
     content = fields.CharField(attribute="content", blank=True, null=True)
     user = fields.CharField(attribute="user", blank=False, null=False)
-    job = fields.ToOneField(ResultsResource, 'job', blank=True, null=True)
+    job = fields.ToOneField(ResultsResource, 'job', blank=True, null=True, full=False)
 
     class Meta:
         queryset = Comment.objects.all()

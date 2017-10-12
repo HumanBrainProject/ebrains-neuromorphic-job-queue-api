@@ -81,6 +81,9 @@ class Comment(models.Model):
     def __unicode__(self):
         return self.content
 
+    class Meta:
+        ordering = ['created_time']
+
 
 class DataItem(models.Model):
     """

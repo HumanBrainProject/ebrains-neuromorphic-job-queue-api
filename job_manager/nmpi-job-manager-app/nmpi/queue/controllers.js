@@ -147,11 +147,12 @@ angular.module('nmpi')
         $scope.showHPCsites = false;
 
         console.log('context detail :'+$rootScope.ctx);
+
         $scope.comment = new Comment();
         $scope.comment.content = "";
         // add user to comment
         User.get({id:'me'}, function(user){
-            $scope.comment.user = user.displayName;
+            $scope.currentUser = user;
         });
 
         // only members of the collab should see the tags edit button
@@ -190,7 +191,8 @@ angular.module('nmpi')
         // create a new comment
         $scope.submit_comment = function(comment, job){
             // add related job
-            $scope.comment.job = job;
+            $scope.comment.user = $scope.currentUser.displayName;  // would be better to save user id
+            $scope.comment.job = job.resource_uri;
             $scope.comment.$save({},
                 function(data){  // success
                     $scope.$parent.msg = {
@@ -198,7 +200,10 @@ angular.module('nmpi')
                         css: "success",
                         show: true
                     };
-                    location.reload();
+                    $scope.job.comments.push($scope.comment);
+                    $scope.comment = new Comment();
+                    $scope.comment.content = "";
+                    console.log(data);
                 },
                 function(err) { // error
                     console.log(err.status + ": " + err.data);
