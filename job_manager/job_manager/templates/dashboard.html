@@ -24,7 +24,18 @@
 <div id="chart-cumulative-job-count" class="row"></div>
 
 <h3>Platform users</h3>
+<p>Number of users who have submitted at least one job</p>
 <div id="chart-cumulative-user-count" class="row"></div>
+
+<h3>Active users</h3>
+<p>Number of users who have submitted a job within the last 90 days</p>
+<div id="chart-active-user-count" class="row"></div>
+
+<h3>Projects (cumulative)</h3>
+<div id="chart-cumulative-project-count" class="row"></div>
+
+<h3>Quota usage (cumulative)</h3>
+<div id="chart-resource-usage" class="row"></div>
 
 <h3>Job duration</h3>
 <div class="row">
@@ -52,6 +63,9 @@
 <script src="{% static 'nmpi-dashboard/cumulative-job-count.js' %}"></script>
 <script src="{% static 'nmpi-dashboard/cumulative-user-count.js' %}"></script>
 <script src="{% static 'nmpi-dashboard/job-duration.js' %}"></script>
+<script src="{% static 'nmpi-dashboard/active-user-count.js' %}"></script>
+<script src="{% static 'nmpi-dashboard/cumulative-project-count.js' %}"></script>
+<script src="{% static 'nmpi-dashboard/quota-usage.js' %}"></script>
 
 </body>
 </html>

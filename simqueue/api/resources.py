@@ -18,7 +18,7 @@ from django.conf.urls import url
 from django.core.mail import send_mail
 from django.http import HttpResponseForbidden, HttpResponseNotFound
 from django.contrib.auth.models import User
-from django.db.models import DurationField, F, ExpressionWrapper
+from django.db.models import DurationField, F, ExpressionWrapper, Sum
 from django.conf import settings
 
 from tastypie.resources import Resource, ModelResource, ALL
@@ -32,7 +32,7 @@ import numpy as np
 
 from ..models import DataItem, Job, Log, Comment
 from .auth import CollabAuthorization, HBPAuthentication, ProviderAuthentication
-from quotas.models import Quota
+from quotas.models import Quota, Project
 
 from hbp_app_python_auth.auth import get_access_token
 
@@ -535,6 +535,13 @@ class TimeSeries(object):
         self.values = values
 
 
+class GenericContainer(object):
+
+    def __init__(self, **kwargs):
+        for key, val in kwargs.items():
+            setattr(self, key, val)
+
+
 class QueueStatus(object):
 
     def __init__(self, name, submitted, running):
@@ -595,20 +602,34 @@ class JobCountResource(StatisticsResource):
             today = date.today()
             period_end = datetime(today.year, today.month, today.day, tzinfo=pytz.UTC)
             period_start = period_end - timedelta(30)
-        interval = int(request.GET.get("interval", 1))
+        interval = int(request.GET.get("interval", 7))
 
-        date_list = list(daterange(period_start, period_end, interval))
-        date_list.append(period_end)
+        assert isinstance(period_start, datetime)
+        assert isinstance(period_end, datetime)
+        assert isinstance(interval, int)
+
         results = []
-        for start, end in zip(date_list[:-1], date_list[1:]):
-            job_counts = {}
-            for platform in STANDARD_QUEUES:
-                job_counts[platform] = Job.objects.filter(status__in=('finished', 'error'),
-                                                          hardware_platform=platform,
-                                                          timestamp_completion__range=(start, end)).count()
-            new_obj = DateRangeCount(start, end, job_counts)
+        counts = defaultdict(lambda: 0)
+        for platform in STANDARD_QUEUES:
+            jobs = Job.objects.filter(status__in=('finished', 'error'),
+                                      hardware_platform=platform,
+                                      timestamp_completion__range=(period_start, period_end)
+                                     ).values('timestamp_completion')
+            completed = np.array([(job['timestamp_completion'] - period_start).days
+                                  for job in jobs])
+            counts[platform], bin_edges = np.histogram(completed,
+                                                       bins=np.arange(0, (period_end - period_start).days, interval))
+
+        for i, days in enumerate(bin_edges[:-1]):
+            count = {}
+            start = period_start + timedelta(days)
+            end = start + timedelta(interval)
+            for platform in counts:
+                count[platform] = counts[platform][i]
+            new_obj = DateRangeCount(start, end, count)
             results.append(new_obj)
         return results
+
 
 
 class CumulativeJobCountResource(StatisticsResource):
@@ -632,18 +653,31 @@ class CumulativeJobCountResource(StatisticsResource):
             today = date.today()
             period_end = datetime(today.year, today.month, today.day, tzinfo=pytz.UTC)
             period_start = period_end - timedelta(30)
-        interval = int(request.GET.get("interval", 1))
+        interval = int(request.GET.get("interval", 7))
 
-        date_list = list(daterange(period_start, period_end, interval))
-        date_list.append(period_end)
+        assert isinstance(period_start, datetime)
+        assert isinstance(period_end, datetime)
+        assert isinstance(interval, int)
+
         results = []
-        job_counts = Counter()
-        for start, end in zip(date_list[:-1], date_list[1:]):
-            for platform in STANDARD_QUEUES:
-                job_counts[platform] += Job.objects.filter(status__in=('finished', 'error'),
-                                                           hardware_platform=platform,
-                                                           timestamp_completion__range=(start, end)).count()
-            new_obj = DateRangeCount(start, end, job_counts)
+        counts = defaultdict(lambda: 0)
+        for platform in STANDARD_QUEUES:
+            jobs = Job.objects.filter(status__in=('finished', 'error'),
+                                      hardware_platform=platform,
+                                      timestamp_completion__range=(period_start, period_end)
+                                     ).values('timestamp_completion')
+            completed = np.array([(job['timestamp_completion'] - period_start).days
+                                  for job in jobs])
+            counts[platform], bin_edges = np.histogram(completed,
+                                                       bins=np.arange(0, (period_end - period_start).days, interval))
+
+        count_cumul = defaultdict(lambda: 0)
+        for i, days in enumerate(bin_edges[:-1]):
+            start = period_start + timedelta(days)
+            end = start + timedelta(interval)
+            for platform in counts:
+                count_cumul[platform] += counts[platform][i]
+            new_obj = DateRangeCount(start, end, count_cumul)
             results.append(new_obj)
         return results
 
@@ -676,6 +710,46 @@ class CumulativeUserCountResource(StatisticsResource):
         return [
             url(r"^(?P<resource_name>%s)/$" % self._meta.resource_name, self.wrap_view('dispatch_detail'), name="api_dispatch_detail"),
         ]
+
+
+class ActiveUserCountResource(StatisticsResource):
+    """
+    Number of platform users who have submitted at least one job in the last 90 days
+    """
+    start_date = fields.DateField(attribute="start_date")
+    end_date = fields.DateField(attribute="end_date")
+    counts = fields.DictField(attribute="counts")
+
+    class Meta:
+        resource_name = "statistics/active-user-count"
+        list_allowed_methods = ['get']
+        detail_allowed_methods = []
+
+    def get_object_list(self, request):
+        if "start" in request.GET:
+            period_start = datetime(*map(int, request.GET["start"].split("-")), tzinfo=pytz.UTC)
+            period_end = datetime(*map(int, request.GET["end"].split("-")), tzinfo=pytz.UTC)
+        else:
+            today = date.today()
+            period_end = datetime(today.year, today.month, today.day, tzinfo=pytz.UTC)
+            period_start = period_end - timedelta(30)
+        interval = int(request.GET.get("interval", 7))
+
+        date_list = list(daterange(period_start, period_end, interval))
+        date_list.append(period_end)
+        results = []
+        for end in date_list[:-1]:
+            start = end - timedelta(90)
+            active_users = {}
+            for platform in STANDARD_QUEUES:
+                active_users[platform] = Job.objects.filter(hardware_platform=platform,
+                                                            timestamp_completion__range=(start, end)).values("user_id").distinct().count()
+            # note that the "total" value may be less than the sum of the per-platform values, since some users use multiple platforms
+            #active_users["total"] = Job.objects.filter(timestamp_completion__range=(start, end)).values("user_id").distinct().count()
+            new_obj = DateRangeCount(start, end, active_users)
+            results.append(new_obj)
+        return results
+
 
 
 class QueueLength(StatisticsResource):
@@ -760,17 +834,120 @@ class JobDuration(StatisticsResource):
         return job_durations
 
 
+class ProjectCountResource(StatisticsResource):
+    """
+    Cumulative number of collabs for which at least one resource allocation request has been made and accepted
+    """
+    submitted = fields.DictField(attribute="submitted")
+    accepted = fields.DictField(attribute="accepted")
+    rejected = fields.DictField(attribute="rejected")
+
+    class Meta:
+        resource_name = "statistics/cumulative-project-count"
+        list_allowed_methods = []
+        detail_allowed_methods = ['get']
+
+    def obj_get(self, bundle, **kwargs):
+        projects = Project.objects.all().order_by('submission_date')
+        dates = {
+            "submitted": [],
+            "accepted": [],
+            "rejected": []
+        }
+        counts = {"submitted": [0],
+                  "accepted": [0],
+                  "rejected": [0]}
+        for project in projects:
+            counts["submitted"].append(counts["submitted"][-1] + 1)
+            dates["submitted"].append(project.submission_date)
+            if project.decision_date:
+                if project.accepted:
+                    counts["accepted"].append(counts["accepted"][-1] + 1)
+                    dates["accepted"].append(project.submission_date)
+                else:
+                    counts["rejected"].append(counts["rejected"][-1] + 1)
+                    dates["rejected"].append(project.submission_date)
+
+        return GenericContainer(**{
+            "submitted": dict(dates=dates["submitted"], values=counts["submitted"][1:]),
+            "accepted": dict(dates=dates["accepted"], values=counts["accepted"][1:]),
+            "rejected": dict(dates=dates["rejected"], values=counts["rejected"][1:]),
+        })
+
+    def prepend_urls(self):
+        return [
+            url(r"^(?P<resource_name>%s)/$" % self._meta.resource_name, self.wrap_view('dispatch_detail'), name="api_dispatch_detail"),
+        ]
+
+
+class QuotaUsageResource(StatisticsResource):
+    """
+    Cumulative quota usage
+    """
+
+    start_date = fields.DateField(attribute="start_date")
+    end_date = fields.DateField(attribute="end_date")
+    counts = fields.DictField(attribute="counts")
+
+    class Meta:
+        resource_name = "statistics/resource-usage"
+        list_allowed_methods = ['get']
+        detail_allowed_methods = []
+
+    def get_object_list(self, request):
+        if "start" in request.GET:
+            period_start = datetime(*map(int, request.GET["start"].split("-")), tzinfo=pytz.UTC)
+            period_end = datetime(*map(int, request.GET["end"].split("-")), tzinfo=pytz.UTC)
+        else:
+            today = date.today()
+            period_end = datetime(today.year, today.month, today.day, tzinfo=pytz.UTC)
+            period_start = period_end - timedelta(30)
+        interval = int(request.GET.get("interval", 7))
+
+        assert isinstance(period_start, datetime)
+        assert isinstance(period_end, datetime)
+        assert isinstance(interval, int)
+
+        results = []
+        counts = defaultdict(lambda: 0.0)
+        n_bins = (period_end - period_start).days//interval + 1
+        for platform in STANDARD_QUEUES:
+            jobs = Job.objects.filter(status__in=('finished', 'error'),
+                                      hardware_platform=platform,
+                                      timestamp_completion__range=(period_start, period_end)
+                                     ).values('timestamp_completion', 'resource_usage')
+            completed = np.array([(job['timestamp_completion'] - period_start).days
+                                  for job in jobs])
+            #counts[platform], bin_edges = np.histogram(completed,
+            #                                           bins=np.arange(0, (period_end - period_start).days, interval))
+            resource_usage = np.array([job['resource_usage'] for job in jobs])
+            index = completed//interval
+            counts[platform] = np.zeros((n_bins,))
+            for i, usage in zip(index, resource_usage):
+                if usage is not None:
+                    counts[platform][i] += usage
+
+        count_cumul = defaultdict(lambda: 0.0)
+        for i in range(n_bins):
+            start = period_start + timedelta(i * interval)
+            end = start + timedelta(interval)
+            for platform in STANDARD_QUEUES:
+                count_cumul[platform] += counts[platform][i]
+            new_obj = DateRangeCount(start, end, count_cumul)
+            results.append(new_obj)
+        return results
+
 # timeseries
 #    [x] job counts
 #    [x] cumulative job counts
 #    [x] users
-#    [ ] resources
+#    [x] resources
 
 
 # instantaneous
 #    [x] queue-size
 
 # histograms
-#    [ ] job duration
+#    [x] job duration
 #    [ ] log size (!)
 #    [ ] code size (?)
