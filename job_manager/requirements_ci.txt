@@ -9,7 +9,7 @@ mechanize==0.2.5
 numpy==1.11.0             # comment this out if provided by system package
 oauthlib==1.1.1           # via python-social-auth, requests-oauthlib
 ordereddict==1.1
-psycopg2==2.6.1           # comment this out if provided by system package
+psycopg2                  # comment this out if provided by system package
 PyJWT==1.4                # via python-social-auth
 python-dateutil==2.2      # via django-tastypie
 python-mimeparse==1.5.2   # via django-tastypie
