@@ -191,13 +191,20 @@ class TestAPI_NoCollab_AsUser(TestCase):
     def test__schema_at_api_root(self):
         response = self.alice.get("/api/v2/")
         self.assertJSONEqual(response.content.decode('utf-8'),
-                             {"dataitem": {"list_endpoint": "/api/v2/dataitem", "schema": "/api/v2/dataitem/schema"},
+                             {"comment": {"list_endpoint": "/api/v2/comment", "schema": "/api/v2/comment/schema"},
+                              "dataitem": {"list_endpoint": "/api/v2/dataitem", "schema": "/api/v2/dataitem/schema"},
                               "log": {"list_endpoint": "/api/v2/log", "schema": "/api/v2/log/schema"},
                               "queue": {"list_endpoint": "/api/v2/queue", "schema": "/api/v2/queue/schema"},
                               "results": {"list_endpoint": "/api/v2/results", "schema": "/api/v2/results/schema"},
+                              "statistics/active-user-count": {
+                                  "list_endpoint": "/api/v2/statistics/active-user-count",
+                                  "schema": "/api/v2/statistics/active-user-count/schema"},
                               "statistics/cumulative-job-count": {
                                   "list_endpoint": "/api/v2/statistics/cumulative-job-count",
                                   "schema": "/api/v2/statistics/cumulative-job-count/schema"},
+                              "statistics/cumulative-project-count": {
+                                  "list_endpoint": "/api/v2/statistics/cumulative-project-count",
+                                  "schema": "/api/v2/statistics/cumulative-project-count/schema"},
                               "statistics/cumulative-user-count": {
                                   "list_endpoint": "/api/v2/statistics/cumulative-user-count",
                                   "schema": "/api/v2/statistics/cumulative-user-count/schema"},
@@ -209,7 +216,10 @@ class TestAPI_NoCollab_AsUser(TestCase):
                                   "schema": "/api/v2/statistics/job-duration/schema"},
                               "statistics/queue-length": {
                                   "list_endpoint": "/api/v2/statistics/queue-length",
-                                  "schema": "/api/v2/statistics/queue-length/schema"}})
+                                  "schema": "/api/v2/statistics/queue-length/schema"},
+                              "statistics/resource-usage": {
+                                  "list_endpoint": "/api/v2/statistics/resource-usage",
+                                  "schema": "/api/v2/statistics/resource-usage/schema"}})
 
     def test__queue_endpoint(self):
         """The queue endpoint with no filtering should return all jobs submitted by the user
