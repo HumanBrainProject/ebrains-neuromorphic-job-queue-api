@@ -30,7 +30,7 @@ from tastypie.exceptions import NotFound, Unauthorized, ImmediateHttpResponse
 
 import numpy as np
 
-from ..models import DataItem, Job, Log
+from ..models import DataItem, Job, Log, Comment
 from .auth import CollabAuthorization, HBPAuthentication, ProviderAuthentication
 from quotas.models import Quota
 
@@ -445,6 +445,7 @@ class QueueResource(BaseJobResource):
 # RESULTS contains finished jobs (jobs whose status is either 'finished' or 'error')
 # You can only get and patch (to another status) jobs using this view
 class ResultsResource(BaseJobResource):
+    comments = fields.ToManyField('simqueue.api.resources.CommentResource', 'comments', null=True, full=True)
     input_data = fields.ToManyField(DataItemResource, "input_data", full=True, null=True, use_in="detail")
     output_data = fields.ToManyField(DataItemResource, "output_data", full=True, null=True, use_in="detail")
     hardware_config = fields.DictField(attribute="hardware_config", blank=True, null=True, use_in="detail")
@@ -462,6 +463,7 @@ class ResultsResource(BaseJobResource):
         always_return_data = False
         filtering = {
             'tags': ALL,
+            'comments': ALL,
             'status': ['exact'],
             'id': ['exact'],
             'collab_id': ['exact'],
@@ -474,6 +476,21 @@ class ResultsResource(BaseJobResource):
             return bundle.data['code'][:CODE_MAX_LENGTH] + "\n\n...truncated..."
         else:
             return bundle.data['code']
+
+
+# Comments for the Results resource
+class CommentResource(ModelResource):
+    content = fields.CharField(attribute="content", blank=True, null=True)
+    user = fields.CharField(attribute="user", blank=False, null=False)
+    job = fields.ToOneField(ResultsResource, 'job', blank=True, null=True)
+
+    class Meta:
+        queryset = Comment.objects.all()
+        resource_name = 'comment'
+        list_allowed_methods = ['get', 'post']  # you can retrieve all items and add item
+        detail_allowed_methods = ['get', 'put', 'patch', 'delete']  # you can retrieve and modify each item
+        authentication = Authentication()
+        authorization = Authorization()
 
 
 class LogResource(ModelResource):

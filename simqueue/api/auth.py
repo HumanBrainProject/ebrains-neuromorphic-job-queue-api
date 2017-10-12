@@ -154,7 +154,7 @@ class CollabAuthorization(Authorization):
         if self._is_provider(bundle.request):
             return True
         else:
-            if (bundle.request.method == "PUT" and
+            if ((bundle.request.method == "PUT" or bundle.request.method == "POST") and
                     self.collab_service.is_team_member(bundle.request, bundle.data["collab_id"])
                     and self.identity_service.can_use_platform(bundle.request)):
                 return True

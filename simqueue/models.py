@@ -60,10 +60,26 @@ class Job(models.Model):
             'provenance': self.provenance,
             'resource_usage': self.resource_usage,
             'tags': [tag.name for tag in self.tags.all()],
+            'comments': self.comments.all(),
         }
         
     def __unicode__(self):
         return "Job #%d - %s" % (self.pk, str(self.collab_id))
+
+
+class Comment(models.Model):
+    """
+    Comment
+
+    Comments model for jobs, with content, user and creation time fields.
+    """
+    job = models.ForeignKey(Job, related_name="comments", null=True, blank=True)
+    content = models.TextField(null=True)
+    created_time = models.DateTimeField(default=now_in_utc, blank=True)
+    user = models.CharField(default="me", max_length=25)
+
+    def __unicode__(self):
+        return self.content
 
 
 class DataItem(models.Model):
