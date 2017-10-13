@@ -1,7 +1,7 @@
 'use strict';
 
 /* Controllers */
-angular.module('nmpi')
+angular.module('nmpi', [])
 
 
 .controller('ListQueue', 
