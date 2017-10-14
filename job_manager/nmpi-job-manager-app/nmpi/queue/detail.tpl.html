@@ -165,7 +165,7 @@
     <div ng-repeat="c in job.comments" >
       <div class="panel panel-default">
         <div class="panel-heading">
-          <strong>{{c.user}}</strong> commented <span ng-if="c.created_time">on {{c.created_time | date : "yyyy-MM-dd HH:mm:ss"}}</span>
+          <strong>{{c.user_obj.displayName}}</strong> commented <span ng-if="c.created_time">on {{c.created_time | date : "yyyy-MM-dd HH:mm:ss"}}</span>
         </div>
           <div class="panel-body">
             <span>{{c.content}}</span>

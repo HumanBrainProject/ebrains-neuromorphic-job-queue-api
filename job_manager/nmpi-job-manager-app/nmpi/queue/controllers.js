@@ -191,7 +191,7 @@ angular.module('nmpi')
         // create a new comment
         $scope.submit_comment = function(comment, job){
             // add related job
-            $scope.comment.user = $scope.currentUser.displayName;  // would be better to save user id
+            $scope.comment.user = $scope.currentUser.id;
             $scope.comment.job = job.resource_uri;
             $scope.comment.$save({},
                 function(data){  // success
@@ -200,6 +200,7 @@ angular.module('nmpi')
                         css: "success",
                         show: true
                     };
+                    $scope.comment.user_obj = $scope.currentUser;
                     $scope.job.comments.push($scope.comment);
                     $scope.comment = new Comment();
                     $scope.comment.content = "";
@@ -232,6 +233,9 @@ angular.module('nmpi')
                 $scope.job = job;
                 $scope.job.collab = Collab.get({cid:$scope.job.collab_id}, function(data){});
                 $scope.job.user = User.get({id:job.user_id}, function(data){});
+                $scope.job.comments.forEach( function( comment, key ){
+                    $scope.job.comments[key].user_obj = User.get({id:comment.user}, function(data){});
+                });
             },
             // if it's not there we try the Queue endpoint
             function(error) {
