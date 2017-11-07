@@ -41,7 +41,7 @@ d3.json("/api/v2/statistics/active-user-count/?start=2015-06-22&end=" + today + 
                 y: {
                     label: {
                         position: 'outer-middle',
-                        text: 'Number of active users'
+                        text: 'Number of active users (total over all systems)'
                     },
                     min: 0,
                     padding: {top: 0, bottom: 0}
