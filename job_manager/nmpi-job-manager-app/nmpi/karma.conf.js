@@ -154,8 +154,9 @@ module.exports = function(config) {
         'collab/model.js',
         'collab/model.spec.js',
         'dataitem/model.js',
+        'dataitem/model.spec.js',
         'queue/model.js',
-        'user/model.js'
+        'queue/model.spec.js'
         // 'tests/tests.js'
       ],
   
