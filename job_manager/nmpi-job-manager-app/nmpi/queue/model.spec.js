@@ -4,7 +4,15 @@ describe('Queue factory', function() {
     var Results;
     var Comment;
     var Log;
-    
+
+    var testComment = {
+        id: '1',
+        content: 'toto',
+        created_time: '2017-11-14 15:41:49',
+        user: 'me',
+        job_id: '1',
+    }; 
+
     // Before each test load our api.users module
     beforeEach(angular.mock.module('nmpi'));
   
@@ -87,6 +95,10 @@ describe('Queue factory', function() {
 
     it('should exist Log.get', function() {
         expect(Log.get).toBeDefined();
+    });
+
+    it('test result Comment.get', function() {
+        expect(Comment.get(1)).toEqual(testComment);
     });
 
   });

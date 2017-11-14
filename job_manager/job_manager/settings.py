@@ -50,6 +50,7 @@ INSTALLED_APPS = [
     'social.apps.django_app.default',
     'quotas',
     'taggit',
+    # 'social_django',
 ]
 if ENV == "dev":
     INSTALLED_APPS.insert(0, 'django_pdb')

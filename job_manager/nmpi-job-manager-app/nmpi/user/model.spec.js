@@ -6,8 +6,13 @@ describe('User factory', function() {
   // });
 
   var User;
-  //var nmpi;
-  
+
+  //The single user we expect to receive when calling findById('2')
+  // var singleUser = {
+  //   id: '2',
+  //   username: 'jo',
+  //   is_superuser: '1',
+  // };  
   // Before each test load our api.users module
   beforeEach(angular.mock.module('nmpi'));
 
@@ -24,5 +29,10 @@ describe('User factory', function() {
   it('should exist User.get', function() {
     expect(User.get).toBeDefined();
   });
+
+  // it('test result User.get', function() {
+  //   expect(User.get(2)).toEqual(singleUser);
+  // });
+
 
 });
