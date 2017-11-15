@@ -25,7 +25,7 @@ module.exports = function(config) {
         './app/mocks/angular-hbp-common.js',
         //'./lib/marked-hbp/marked.js',
         './node_modules/angular-mocks/angular-mocks.js',           // loads our modules for tests
-        './app/app.js',                                            // our angular app
+        './app/module.js',                                         // our angular app
         './app/services.spec.js',                                  // our test files
         './app/controllers.spec.js'
     ],
@@ -39,7 +39,7 @@ module.exports = function(config) {
     // preprocess matching files before serving them to the browser
     // available preprocessors: https://npmjs.org/browse/keyword/karma-preprocessor
     preprocessors: {
-       'app/app.js': ['coverage']
+       'app/module.js': ['coverage']
     },
 
 
