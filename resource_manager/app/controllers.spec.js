@@ -26,22 +26,19 @@ describe('ViewProjectCtrl', function() {
 
       mockUserDirectory = {
           getCurrentUser: function() {
-            return {
-                then: function () {
-                        return 'foo';
-                      }
-                };
-            }
-      };
+                              return $q(function(resolve, reject) {
+                                            resolve("this_is_the_current_user");
+                                     });
+                          }
+      }
 
       mockCollabStore = {
           context: {
-              get: function(context) {
-                  return {
-                      then: function() {
-                        return 'bar';
-                      }
-                  }
+              get: function(ctx) {
+                       return $q(function(resolve, reject) {
+                                     resolve({'id': ctx})
+                                 }
+                       );
               }
           }
       }
@@ -112,6 +109,14 @@ describe('ViewProjectCtrl', function() {
       expect(scope.partial).toEqual('static/templates/inpreparation.tpl.html');
     });
 
+    it('should retrieve and set the current user', function() {
+        expect(scope.current_user).toEqual("this_is_the_current_user");
+    });
+
+    it('should retrieve and set the context object', function() {
+        expect(scope.contextObj).toEqual({'id': TEST_CONTEXT});
+    });
+
   });
 
   describe('with invalid context', function() {
@@ -142,6 +147,10 @@ describe('ViewProjectCtrl', function() {
 
     it('should set the correct partial template', function() {
       expect(scope.partial).toEqual('static/templates/intro.tpl.html');
+    });
+
+    it('should retrieve and set the current user', function() {
+        expect(scope.current_user).toEqual("this_is_the_current_user");
     });
 
   });
