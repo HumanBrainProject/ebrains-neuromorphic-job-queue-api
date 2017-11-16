@@ -1,8 +1,8 @@
-=====================
-Platform architecture
-=====================
+=========================
+Web platform architecture
+=========================
 
-The platform provides the following components:
+The web platform provides the following components:
 
 * Running on nmpi.hbpneuromorphic.eu:
     * Job queue REST service

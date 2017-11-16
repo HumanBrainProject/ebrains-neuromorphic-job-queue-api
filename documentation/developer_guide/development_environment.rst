@@ -98,8 +98,8 @@ Next you should `create a local SSL certificate`_; now you can run the developme
     $ python manage.py runsslserver --certificate ~/.ssl/server.crt --key ~/.ssl/server.key 127.0.0.1:8001
 
 
-Running the tests
------------------
+Running the Django tests
+------------------------
 
 Unit tests are run as follows. In the :file:`job_manager` directory::
 
@@ -110,6 +110,31 @@ In the :file:`resource_manager` directory::
     $ python manage.py test quotas
 
 
+Running the Javascript tests
+----------------------------
+
+To set up a testing environment using nvm_, in the :file:`resource_manager` directory::
+
+    $ nvm install 5.0
+    $ nvm use 5.0
+    $ npm init
+    $ npm install karma karma-jasmine jasmine-core karma-chrome-launcher karma-spec-reporter karma-coverage --save-dev
+    $ npm install -g karma-cli
+    $ npm install angular-mocks@1.4.12
+
+To run the tests, in the same directory::
+
+    $ karma start
+
+Code coverage reports will be available as HTML files in the `coverage` subdirectory.
+
+A similar procedure should be followed in the :file:`job_manager` directory.
+
+To understand the general testing approach for Angular `this tutorial`_ is helpful.
+
+
 .. _`pip-tools`: https://github.com/nvie/pip-tools
 .. _`register an OpenID Connect client`: https://collab.humanbrainproject.eu/#/collab/54/nav/1051
 .. _`create a local SSL certificate`: https://developer.humanbrainproject.eu/docs/projects/HBP%20Collaboratory%20Documentation/1.7/app-developer-manual/quickstart/setup/ssl-certificate.html
+.. _nvm: https://github.com/creationix/nvm
+.. _`_this tutorial`: https://scotch.io/tutorials/testing-angularjs-with-jasmine-and-karma-part-1
