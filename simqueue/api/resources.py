@@ -31,6 +31,7 @@ from tastypie.exceptions import NotFound, Unauthorized, ImmediateHttpResponse
 import numpy as np
 
 from ..models import DataItem, Job, Log, Comment
+from taggit.models import Tag
 from .auth import CollabAuthorization, HBPAuthentication, ProviderAuthentication
 from quotas.models import Quota, Project
 
@@ -502,6 +503,19 @@ class LogResource(ModelResource):
         # todo: authentication = MultiAuthentication(ProviderAuthentication(), HBPAuthentication())
         # todo: authorization = CollabAuthorization()
         list_allowed_methods = ['post']
+        # you can retrieve and modify each item
+        detail_allowed_methods = ['get', 'put', 'patch', 'delete']
+        always_return_data = False
+
+
+# Resource for tags (django-taggit app)
+class TagsResource(ModelResource):
+    class Meta:
+        queryset = Tag.objects.all()
+        resource_name = 'tags'
+        authentication = Authentication()
+        authorization = Authorization()
+        list_allowed_methods = ['get']  # you can only retrieve the list
         # you can retrieve and modify each item
         detail_allowed_methods = ['get', 'put', 'patch', 'delete']
         always_return_data = False

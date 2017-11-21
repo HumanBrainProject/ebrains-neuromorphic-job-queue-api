@@ -49,5 +49,15 @@ angular.module( 'nmpi' )
         );
     }
 )
+.factory(
+    'Tags',
+    function( $resource ){
+        return $resource( window.base_url + window.ver_api + 'tags/:id/', { id:'@eId' },
+            {
+                get: { method: 'GET', params:{ format:'json' }, isArray: false }
+            }
+        );
+    }
+)
 
 ;

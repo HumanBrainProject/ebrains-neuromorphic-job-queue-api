@@ -5,8 +5,8 @@ angular.module('nmpi')
 
 
 .controller('ListQueue', 
-            ['$scope', '$rootScope', '$http', '$location', 'Queue', 'Results', 'Context', 'Collab', 'User', 'hbpCollabStore', 'hbpIdentityUserDirectory',
-    function( $scope,   $rootScope,   $http,   $location,   Queue,   Results,   Context,   Collab,   User,   hbpCollabStore,   hbpIdentityUserDirectory)
+            ['$scope', '$rootScope', '$http', '$location', 'Queue', 'Results', 'Context', 'Collab', 'User', 'Tags', 'hbpCollabStore', 'hbpIdentityUserDirectory',
+    function( $scope,   $rootScope,   $http,   $location,   Queue,   Results,   Context,   Collab,   User,   Tags, hbpCollabStore,   hbpIdentityUserDirectory)
     {
 
         // pagination server-side
@@ -16,6 +16,13 @@ angular.module('nmpi')
         $scope.curPage = 0;
         $scope.pageSize = 20;
         $rootScope.with_ctx = true;
+
+        $scope.tags_list = {};
+        $scope.status_list = {};
+        $scope.hardware_list = {};
+        $scope.tags = Tags.get();
+        $scope.hardware_choices = ["BrainScaleS", "SpiNNaker", "BrainScaleS-ESS", "Spikey"];
+        $scope.status_choices = ["submitted", "validated", "running", "mapped", "finished", "error", "removed"];
 
         var sendState = function(state, page) {
             var displayPage = page + 1; // in the UI, pages are numbered from 1
@@ -136,6 +143,23 @@ angular.module('nmpi')
     };
 })
 
+// filter job list with selected tags
+.filter( 'tagsFilter', function(){
+        return function(jobs, tags) {
+            if (typeof tags === "undefined" || tags.length === 0)  {
+                return jobs;
+            } else {
+                return jobs.filter(function (job) {
+                    for (var i in job.tags) {
+                        if (tags.indexOf(job.tags[i]) !== -1) {
+                            return true;
+                        }
+                    }
+                    return false;
+                });
+            }
+        };
+    })
 
 
 .controller( 'DetailQueue', 

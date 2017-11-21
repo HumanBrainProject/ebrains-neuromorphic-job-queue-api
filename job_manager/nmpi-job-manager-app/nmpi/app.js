@@ -15,7 +15,9 @@
     'clb-env',
     'clb-app',
     'ui.codemirror',
-    'ngTagsInput'
+    'ngTagsInput',
+    'ngSanitize',
+    'ui.select'
   ])
 
   .config(
