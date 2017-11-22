@@ -341,8 +341,8 @@ class QueueResource(BaseJobResource):
                     raise QuotaInsufficientError("Insufficient quota")  # --> 403
             else:
                 logger.info("No quotas")
-                msg = "You do not have a compute time allocation for the {} platform. Please submit a resource request.".format(
-                    platform)
+                msg = "You do not have a compute time allocation for the {} platform in collab {}. Please submit a resource request.".format(
+                    platform, collab)
                 raise QuotaAbsentError(msg)  # --> 403
 
     def _send_email(self, bundle):
