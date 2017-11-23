@@ -12,6 +12,7 @@ job_manager/lib
 job_manager/static
 resource_manager/lib
 resource_manager/static
+resource_manager/node_modules
 documentation/splash/bower_components
 
 # ensure these are not tracked by git
