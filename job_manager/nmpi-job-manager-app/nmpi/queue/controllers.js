@@ -22,7 +22,7 @@ angular.module('nmpi')
         $scope.hardware_list = {};
         $scope.tags = Tags.get();
         $scope.hardware_choices = ["BrainScaleS", "SpiNNaker", "BrainScaleS-ESS", "Spikey"];
-        $scope.status_choices = ["submitted", "validated", "running", "mapped", "finished", "error", "removed"];
+        $scope.status_choices = ["submitted", "running", "finished", "error"];
 
         var sendState = function(state, page) {
             var displayPage = page + 1; // in the UI, pages are numbered from 1
