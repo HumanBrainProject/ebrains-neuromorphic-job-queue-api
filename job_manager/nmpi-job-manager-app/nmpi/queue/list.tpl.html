@@ -6,7 +6,25 @@
     </div>
 
     <div class="row-fluid">
-
+        <ui-select multiple ng-model="tags_list.selected" theme="bootstrap" ng-disabled="disabled" style="min-height: 33px;width: 250px;float: left;" title="Choose a tag">
+            <ui-select-match placeholder="Select tags to filter jobs">{{$item.name}}</ui-select-match>
+            <ui-select-choices repeat="tag.name as tag in tags.objects | filter: {name: $select.search} | orderBy:'name'">
+                <span ng-bind-html="tag.name | highlight: $select.search"></span>
+            </ui-select-choices>
+        </ui-select>
+        <ui-select ng-model="status_list.selected" theme="bootstrap" ng-disabled="disabled" style="width: 250px;float: left;margin-left: 50px;" title="Choose a status">
+            <ui-select-match allow-clear="true" placeholder="Select a status to filter jobs">{{$select.selected}}</ui-select-match>
+            <ui-select-choices repeat="status in status_choices | filter: $select.search">
+                <span ng-bind-html="status | highlight: $select.search"></span>
+            </ui-select-choices>
+        </ui-select>
+        <ui-select ng-model="hardware_list.selected" theme="bootstrap" ng-disabled="disabled" style="width: 250px;float: left;margin-left: 50px;" title="Choose a hardware">
+            <ui-select-match allow-clear="true" placeholder="Select a hardware to filter jobs">{{$select.selected}}</ui-select-match>
+            <ui-select-choices repeat="hardware in hardware_choices | filter: $select.search">
+                <span ng-bind-html="hardware | highlight: $select.search"></span>
+            </ui-select-choices>
+        </ui-select>
+        <br>
         <!--Body-->
         <div class="span12">
 
@@ -28,7 +46,11 @@
                     </tr>
                 </thead>
 
-                <tr ng-if="curPage == 0" ng-repeat="job in queue.objects | filter:query | orderBy:orderProp">
+                <tr ng-if="curPage == 0" ng-repeat="job in queue.objects | filter:query |
+                        tagsFilter:tags_list.selected |
+                        filter:(!!status_list.selected || undefined) && { status: status_list.selected } |
+                        filter:(!!hardware_list.selected || undefined) && { hardware_platform: hardware_list.selected }: true |
+                        orderBy:orderProp">
                     <td style="width: 18px">
                         <a class="glyphicon glyphicon-search" ui-sref="job_detail({eId:job.id})"></a>
                     </td>
@@ -44,7 +66,11 @@
                     <td>{{job.user.displayName}}</td>
                 </tr>
 
-                <tr ng-repeat="job in results.objects | filter:query | orderBy:orderProp | pagination: curPage * pageSize | limitTo: pageSize">
+                <tr ng-repeat="job in results.objects | filter:query |
+                        tagsFilter:tags_list.selected |
+                        filter:(!!status_list.selected || undefined) && { status: status_list.selected } |
+                        filter:(!!hardware_list.selected || undefined) && { hardware_platform: hardware_list.selected }: true |
+                        orderBy:orderProp | pagination: curPage * pageSize | limitTo: pageSize">
                     <td style="width: 18px"><a class="glyphicon glyphicon-search" ui-sref="job_detail({eId:job.id})"></a></td>
                     <td>{{job.id}}</td>
                     <td><span ng-class="{'label label-success':job.status=='finished', 'label label-danger':job.status=='error'}">{{job.status}}</span></td>

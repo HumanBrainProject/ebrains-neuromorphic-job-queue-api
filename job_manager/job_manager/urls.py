@@ -15,7 +15,7 @@ from tastypie.api import Api
 from simqueue.api.resources import ResultsResource
 from simqueue.api.resources import QueueResource
 from simqueue.api.resources import DataItemResource
-from simqueue.api.resources import LogResource
+from simqueue.api.resources import LogResource, TagsResource
 from simqueue.api.resources import CommentResource
 from simqueue.api.resources import (JobCountResource,
                                     CumulativeJobCountResource,
@@ -43,6 +43,7 @@ api.register(JobDuration())
 api.register(ActiveUserCountResource())
 api.register(ProjectCountResource())
 api.register(QuotaUsageResource())
+api.register(TagsResource())
 
 
 urlpatterns = (
