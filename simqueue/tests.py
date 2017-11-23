@@ -219,7 +219,10 @@ class TestAPI_NoCollab_AsUser(TestCase):
                                   "schema": "/api/v2/statistics/queue-length/schema"},
                               "statistics/resource-usage": {
                                   "list_endpoint": "/api/v2/statistics/resource-usage",
-                                  "schema": "/api/v2/statistics/resource-usage/schema"}})
+                                  "schema": "/api/v2/statistics/resource-usage/schema"},
+                              "tags": {
+                                  "list_endpoint": "/api/v2/tags",
+                                  "schema": "/api/v2/tags/schema"}})
 
     def test__queue_endpoint(self):
         """The queue endpoint with no filtering should return all jobs submitted by the user
