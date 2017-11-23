@@ -49,7 +49,7 @@
                 <tr ng-if="curPage == 0" ng-repeat="job in queue.objects | filter:query |
                         tagsFilter:tags_list.selected |
                         filter:(!!status_list.selected || undefined) && { status: status_list.selected } |
-                        filter:(!!hardware_list.selected || undefined) && { hardware_platform: hardware_list.selected } |
+                        filter:(!!hardware_list.selected || undefined) && { hardware_platform: hardware_list.selected }: true |
                         orderBy:orderProp">
                     <td style="width: 18px">
                         <a class="glyphicon glyphicon-search" ui-sref="job_detail({eId:job.id})"></a>
@@ -69,7 +69,7 @@
                 <tr ng-repeat="job in results.objects | filter:query |
                         tagsFilter:tags_list.selected |
                         filter:(!!status_list.selected || undefined) && { status: status_list.selected } |
-                        filter:(!!hardware_list.selected || undefined) && { hardware_platform: hardware_list.selected } |
+                        filter:(!!hardware_list.selected || undefined) && { hardware_platform: hardware_list.selected }: true |
                         orderBy:orderProp | pagination: curPage * pageSize | limitTo: pageSize">
                     <td style="width: 18px"><a class="glyphicon glyphicon-search" ui-sref="job_detail({eId:job.id})"></a></td>
                     <td>{{job.id}}</td>
