@@ -9,7 +9,11 @@ angular.module( 'nmpi' )
     function( $resource ){
         return $resource( 'https://services.humanbrainproject.eu/idm/v1/api/user/:id', { id:'@id' },
         {
-            get: { method: 'GET', isArray: false },
+            get: {
+                method: 'GET',
+                cache: true,
+                isArray: false
+            },
         });
     }
 )
