@@ -50,11 +50,12 @@
                     </tr>
                 </thead>
 
-                <tr ng-if="curPage == 0" ng-repeat="job in queue.objects | filter:query |
-                        tagsFilter:tags_list.selected |
-                        filter:(!!status_list.selected || undefined) && { status: status_list.selected } |
-                        filter:(!!hardware_list.selected || undefined) && { hardware_platform: hardware_list.selected }: true |
-                        orderBy:orderProp">
+                <tr ng-if="curPage == 0" ng-repeat="job in queue.objects |
+                                                        filter:query |
+                                                        tagsFilter:tags_list.selected |
+                                                        filter:(!!status_list.selected || undefined) && { status: status_list.selected } |
+                                                        filter:(!!hardware_list.selected || undefined) && { hardware_platform: hardware_list.selected }: true |
+                                                        orderBy:orderProp track by job.id">
                     <td style="width: 18px">
                         <a class="glyphicon glyphicon-search" ui-sref="job_detail({eId:job.id})"></a>
                     </td>
@@ -70,11 +71,16 @@
                     <td>{{job.user.displayName}}</td>
                 </tr>
 
-                <tr ng-repeat="job in results.objects | filter:query |
-                        tagsFilter:tags_list.selected |
-                        filter:(!!status_list.selected || undefined) && { status: status_list.selected } |
-                        filter:(!!hardware_list.selected || undefined) && { hardware_platform: hardware_list.selected }: true |
-                        orderBy:orderProp | pagination: curPage * pageSize | limitTo: pageSize">
+                <tr ng-repeat="job in filtered_jobs = (
+                                    results.objects |
+                                    filter:query |
+                                    tagsFilter:tags_list.selected |
+                                    filter:(!!status_list.selected || undefined) && { status: status_list.selected } |
+                                    filter:(!!hardware_list.selected || undefined) && { hardware_platform: hardware_list.selected }: true ) |
+                                    orderBy:orderProp |
+                                    pagination: curPage * pageSize |
+                                    limitTo: pageSize
+                                    track by job.id">
                     <td style="width: 18px"><a class="glyphicon glyphicon-search" ui-sref="job_detail({eId:job.id})"></a></td>
                     <td>{{job.id}}</td>
                     <td><span ng-class="{'label label-success':job.status=='finished', 'label label-danger':job.status=='error'}">{{job.status}}</span></td>
@@ -91,11 +97,10 @@
             </table>
             
         </div>
-
-        <div ng-show="results.objects.length">
     </div>
     <div class="row-fluid">
         <div class="col-md-12">
+        <div ng-show="filtered_jobs.length">
             <span hidden="True" >{{ numberOfPages() }}</span>
             <ul class="pagination-controle pagination">
                 <li ng-repeat="c in pages">
