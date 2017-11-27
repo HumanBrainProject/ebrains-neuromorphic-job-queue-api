@@ -5,7 +5,7 @@
 #-e packages/task-types-0.0.10
 #-e packages/bbp-services-0.0.14
 #-e packages/hbp-app-python-auth-0.0.7
--e packages/hbp-app-python-auth-0.1.5
+#-e packages/hbp-app-python-auth-0.1.5
 #-e packages/bbp-client-0.3.18
 
 hbp_service_client

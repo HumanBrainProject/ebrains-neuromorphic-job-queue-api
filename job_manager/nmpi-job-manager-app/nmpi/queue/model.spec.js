@@ -7,7 +7,7 @@ describe('Queue factory', function() {
 
     var testComment = {
         id: '1',
-        content: 'toto',
+        content: 'toto2',
         created_time: '2017-11-14 15:41:49',
         user: 'me',
         job_id: '1',
@@ -98,7 +98,15 @@ describe('Queue factory', function() {
     });
 
     it('test result Comment.get', function() {
-        expect(Comment.get(1)).toEqual(testComment);
+        // Comment.get({id:'1'}, function(comment){
+        //     expect(comment).toEqual(testComment);
+        // });
+        var comment;
+
+        Comment.get({id:'1'}), (function(res){
+            comment = res.success;
+        });
+        expect(comment.toEqual(testComment));
     });
 
   });
