@@ -4,35 +4,47 @@ describe('Queue factory', function() {
     var Results;
     var Comment;
     var Log;
+    var $httpBackend;
+    var $q;
+    var $location;
 
-    var testComment = {
-        id: '1',
-        content: 'toto2',
-        created_time: '2017-11-14 15:41:49',
-        user: 'me',
-        job_id: '1',
-    }; 
+    window.base_url = 'https://127.0.0.1:8000';
+    //window.base_url = '';
+    window.ver_api = '/api/v2/';
+
+    // var testComment = {
+    //     id: '1',
+    //     content: 'toto2',
+    //     created_time: '2017-11-14 15:41:49',
+    //     user: 'me',
+    //     job_id: '1',
+    // };
+    var testComment = {"content": "ffdfdfsfds", "created_time": "2017-11-30T16:17:21", "id": 1, "job": "/api/v2/results/1", "resource_uri": "/api/v2/comment/1", "user": "me"};
 
     // Before each test load our api.users module
     beforeEach(angular.mock.module('nmpi'));
-  
-    // Before each test set our injected User factory (_User_) to our local User variable
-    beforeEach(inject(function(_Queue_) {
+
+    beforeEach(inject(function(_Queue_, _Results_, _Comment_, _Log_, _$httpBackend_, _$q_, _$location_) {
         Queue = _Queue_;
-    }));
-
-    beforeEach(inject(function(_Results_) {
         Results = _Results_;
-    }));
-
-    beforeEach(inject(function(_Comment_) {
         Comment = _Comment_;
+        Log = _Log_;
+        $httpBackend = _$httpBackend_;
+        $q = _$q_;
+        $location = _$location_;
     }));
 
-    beforeEach(inject(function(_Log_) {
-        Log = _Log_;
-    }));
-  
+    beforeEach(function() {
+        // Initialize our local result object to an empty object before each test
+        result = {};
+        
+        // Spy and force the return value when UsersFactory.all() is called
+        spyOn(Comment, 'get').and.callThrough();
+        // spyOn($location, 'get').and.callFake(function() {
+        //    return {id: testComment}
+        // });
+    });
+
     it('should exist Queue Factory', function() {
         expect(Queue).toBeDefined();
     });
@@ -98,15 +110,25 @@ describe('Queue factory', function() {
     });
 
     it('test result Comment.get', function() {
-        // Comment.get({id:'1'}, function(comment){
-        //     expect(comment).toEqual(testComment);
-        // });
         var comment;
 
+        // Declare the endpoint we expect our service to hit and provide it with our mocked return values
+        //$httpBackend.whenGET(window.base_url + window.ver_api + "comment/1/").respond(200, $q.when(testComment));
+        //$httpBackend.when('GET', window.base_url + window.ver_api + "comment/1/").respond(testComment);
+        //$httpBackend.whenGET(window.base_url + window.ver_api + "comment/1/").respond(200, $q.when(testComment));
+        $httpBackend.whenGET(window.base_url + window.ver_api + "comment/1/").respond(testComment);
+        //$httpBackend.whenGET(window.base_url + window.ver_api + "comment/1/").passThrough();
+        //expect(Comment.get).not.toHaveBeenCalled();
+        
         Comment.get({id:'1'}), (function(res){
-            comment = res.success;
+            //comment = res.success;
+            comment = res;
         });
-        expect(comment.toEqual(testComment));
+  
+        // Flush pending HTTP requests
+        $httpBackend.flush();
+        //expect(Comment.get).toHaveBeenCalledWith(id);
+        expect(comment).toEqual(testComment);
     });
 
   });
