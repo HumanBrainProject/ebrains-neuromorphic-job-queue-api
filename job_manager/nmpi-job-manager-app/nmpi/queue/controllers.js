@@ -179,6 +179,15 @@ angular.module('nmpi')
             $scope.currentUser = user;
         });
 
+        // only members of the collab should see the tags edit button
+        $scope.inTeam = false;
+        hbpCollabStore.context.get($rootScope.ctx).then(function (context) {
+            $rootScope.collab_id = context.collab.id;
+            hbpCollabStore.team.userInTeam(context.collab.id).then(function(response) {
+                    $scope.inTeam = response;
+                });
+            });
+
         $scope.del_job = function(id){
             $scope.job.$del({id:id.eId}, function(data){
                 // on success, return to job list
@@ -241,40 +250,29 @@ angular.module('nmpi')
             }, 'https://collab.humanbrainproject.eu/');
         };
 
-        var get_job = function(job_id, collab_id) {
-            Results.get(
-                {id: job_id, collab_id: collab_id},
-                // first we try to get the job from the Results endpoint
-                function(job) {
-                    $scope.job = job;
-                    $scope.job.collab = Collab.get({cid:$scope.job.collab_id}, function(data){});
-                    $scope.job.user = User.get({id:job.user_id}, function(data){});
-                    $scope.job.comments.forEach( function( comment, key ){
-                        $scope.job.comments[key].user_obj = User.get({id:comment.user}, function(data){});
-                    });
-                },
-                // if it's not there we try the Queue endpoint
-                function(error) {
-                    Queue.get(
-                        {id: job_id, collab_id: collab_id},
-                        function(job){
-                            $scope.job = job;
-                            $scope.job.collab = Collab.get({cid:$scope.job.collab_id}, function(data){});
-                            $scope.job.user = User.get({id:job.user_id}, function(data){});
-                        }
-                    );
-                }
-            );
-        }
-
-        $scope.inTeam = false;
-        hbpCollabStore.context.get($rootScope.ctx).then(function (context) {
-            $rootScope.collab_id = context.collab.id;
-            get_job($stateParams.eId, context.collab.id);
-            hbpCollabStore.team.userInTeam(context.collab.id).then(function(response) {
-                    $scope.inTeam = response;
+        Results.get(
+            {id: $stateParams.eId},
+            // first we try to get the job from the Results endpoint
+            function(job) {
+                $scope.job = job;
+                $scope.job.collab = Collab.get({cid:$scope.job.collab_id}, function(data){});
+                $scope.job.user = User.get({id:job.user_id}, function(data){});
+                $scope.job.comments.forEach( function( comment, key ){
+                    $scope.job.comments[key].user_obj = User.get({id:comment.user}, function(data){});
                 });
-            });
+            },
+            // if it's not there we try the Queue endpoint
+            function(error) {
+                Queue.get(
+                    {id: $stateParams.eId},
+                    function(job){
+                        $scope.job = job;
+                        $scope.job.collab = Collab.get({cid:$scope.job.collab_id}, function(data){});
+                        $scope.job.user = User.get({id:job.user_id}, function(data){});
+                    }
+                );
+            }
+        );
 
         $scope.getLog = function() {
             $scope.log = Log.get({id: $stateParams.eId});
