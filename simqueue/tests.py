@@ -187,6 +187,7 @@ class TestAPI_NoCollab_AsUser(TestCase):
         _create_test_jobs()
         self.alice = Client(HTTP_AUTHORIZATION=tokens[Alice])
         self.bob = Client(HTTP_AUTHORIZATION=tokens[Bob])
+        self.charlie = Client(HTTP_AUTHORIZATION=tokens[Charlie])
 
     def test__schema_at_api_root(self):
         response = self.alice.get("/api/v2/")
@@ -252,18 +253,28 @@ class TestAPI_NoCollab_AsUser(TestCase):
         self.assertEqual(set(job["hardware_platform"] for job in data2["objects"]), set(["SpiNNaker"]))  # maybe occasionally fail due to randomness in job generation
 
     def test__queue_endpoint_get_individual_job(self):
-        """In the absence of filtering by collab, a user should be able to access only jobs they submitted"""
-        alices_submitted_job = [job for job in submitted_jobs if job["user_id"] == Alice][0].copy()
-        alices_submitted_job["timestamp_submission"] = alices_submitted_job["timestamp_submission"].isoformat()
-        response1 = self.alice.get("/api/v2/queue/{}".format(alices_submitted_job["id"]))
-        #import pdb; pdb.set_trace()
+        """In the absence of filtering by collab, a user should be able to access only jobs they submitted
+        and/or jobs belonging to collabs to which they have access"""
+        charlies_submitted_job_private = [job for job in submitted_jobs if job["user_id"] == Charlie and job["collab_id"] == PrivateCollab][0].copy()
+        charlies_submitted_job_public = [job for job in submitted_jobs if job["user_id"] == Charlie and job["collab_id"] == PublicCollab][0].copy()
+        charlies_submitted_job_private["timestamp_submission"] = charlies_submitted_job_private["timestamp_submission"].isoformat()
+        charlies_submitted_job_public["timestamp_submission"] = charlies_submitted_job_public["timestamp_submission"].isoformat()
+        response1 = self.charlie.get("/api/v2/queue/{}".format(charlies_submitted_job_private["id"]))
         data = response1.json()
-        data_files_submitted = alices_submitted_job.pop("input_data")
+        data_files_submitted = charlies_submitted_job_private.pop("input_data")
         data_files_retrieved = data.pop("input_data")
-        self.assertDictContainsSubset(alices_submitted_job, data)
+        self.assertDictContainsSubset(charlies_submitted_job_private, data)
         # todo: add a test of the data files
-        response2 = self.bob.get("/api/v2/queue/{}".format(alices_submitted_job["id"]))
+
+        # Alice can't access Charlie's private job
+        response2 = self.alice.get("/api/v2/queue/{}".format(charlies_submitted_job_private["id"]))
         self.assertEqual(response2.status_code, 404)  # we use 404 so as not to reveal the existence of the job to an unauthorized user
+        # but Bob can, as he is a member of the private collab
+        response3 = self.bob.get("/api/v2/queue/{}".format(charlies_submitted_job_private["id"]))
+        self.assertEqual(response3.status_code, 200)
+        # Alice can access Charlie's public job
+        response4 = self.alice.get("/api/v2/queue/{}".format(charlies_submitted_job_public["id"]))
+        self.assertEqual(response3.status_code, 200)
 
     def test__queue_endpoint_get_nonexistent_individual_job(self):
         """Trying to get a nonexistent job should return a 404 error."""
@@ -320,18 +331,33 @@ class TestAPI_NoCollab_AsUser(TestCase):
             self.assertEqual(set(platforms), set(["SpiNNaker"]))
 
     def test__results_endpoint_get_individual_job(self):
-        """In the absence of filtering by collab, a user should be able to access only jobs they submitted"""
-        alices_finished_job = [job for job in finished_jobs if job["user_id"] == Alice][0].copy()
-        alices_finished_job["timestamp_submission"] = alices_finished_job["timestamp_submission"].isoformat()
-        alices_finished_job["timestamp_completion"] = alices_finished_job["timestamp_completion"].isoformat()
-        response1 = self.alice.get("/api/v2/results/{}".format(alices_finished_job["id"]))
+        """In the absence of filtering by collab, a user should be able to access only jobs they submitted
+                and/or jobs belonging to collabs to which they have access"""
+        charlies_finished_job_private = \
+        [job for job in finished_jobs if job["user_id"] == Charlie and job["collab_id"] == PrivateCollab][0].copy()
+        charlies_finished_job_public = \
+        [job for job in finished_jobs if job["user_id"] == Charlie and job["collab_id"] == PublicCollab][0].copy()
+        for timestamp in ("timestamp_submission", "timestamp_completion"):
+            charlies_finished_job_private[timestamp] = charlies_finished_job_private[timestamp].isoformat()
+            charlies_finished_job_public[timestamp] = charlies_finished_job_public[timestamp].isoformat()
+
+        response1 = self.charlie.get("/api/v2/results/{}".format(charlies_finished_job_private["id"]))
         data = response1.json()
-        data_files_submitted = alices_finished_job.pop("input_data") + alices_finished_job.pop("output_data")
+        data_files_finished = charlies_finished_job_private.pop("input_data") + charlies_finished_job_private.pop("output_data")
         data_files_retrieved = data.pop("input_data") + data.pop("output_data")
-        self.assertDictContainsSubset(alices_finished_job, data)
+        self.assertDictContainsSubset(charlies_finished_job_private, data)
         # todo: add a test of the data files
-        response2 = self.bob.get("/api/v2/results/{}".format(alices_finished_job["id"]))
-        self.assertEqual(response2.status_code, 404)  # we use 404 so as not to reveal the existence of the job to an unauthorized user
+
+        # Alice can't access Charlie's private job
+        response2 = self.alice.get("/api/v2/results/{}".format(charlies_finished_job_private["id"]))
+        self.assertEqual(response2.status_code,
+                         404)  # we use 404 so as not to reveal the existence of the job to an unauthorized user
+        # but Bob can, as he is a member of the private collab
+        response3 = self.bob.get("/api/v2/results/{}".format(charlies_finished_job_private["id"]))
+        self.assertEqual(response3.status_code, 200)
+        # Alice can access Charlie's public job
+        response4 = self.alice.get("/api/v2/results/{}".format(charlies_finished_job_public["id"]))
+        self.assertEqual(response3.status_code, 200)
 
     def test__results_endpoint_get_nonexistent_individual_job(self):
         """Trying to get a nonexistent job should return a 404 error."""
