@@ -40,9 +40,14 @@ describe('Queue factory', function() {
         
         // Spy and force the return value when UsersFactory.all() is called
         spyOn(Comment, 'get').and.callThrough();
-        // spyOn($location, 'get').and.callFake(function() {
-        //    return {id: testComment}
-        // });
+        //  spyOn(Comment, 'get').and.callFake(function(arguments, callback) {
+        //     var fakeResult = arguments[0];
+        //     console.log('arguments : ' + JSON.stringify(arguments));
+        //     var callback = arguments[1];
+        //     console.log('callback : ' + callback);
+        //     //return callback(fakeResult);
+        //     return {id: testComment}
+        //  });
     });
 
     it('should exist Queue Factory', function() {
@@ -116,18 +121,40 @@ describe('Queue factory', function() {
         //$httpBackend.whenGET(window.base_url + window.ver_api + "comment/1/").respond(200, $q.when(testComment));
         //$httpBackend.when('GET', window.base_url + window.ver_api + "comment/1/").respond(testComment);
         //$httpBackend.whenGET(window.base_url + window.ver_api + "comment/1/").respond(200, $q.when(testComment));
-        $httpBackend.whenGET(window.base_url + window.ver_api + "comment/1/").respond(testComment);
+        //$httpBackend.whenGET(window.base_url + window.ver_api + "comment/1/").respond(testComment);
         //$httpBackend.whenGET(window.base_url + window.ver_api + "comment/1/").passThrough();
         //expect(Comment.get).not.toHaveBeenCalled();
-        
-        Comment.get({id:'1'}), (function(res){
+        //$httpBackend.expectGET(window.base_url + window.ver_api + "comment/1/?format=json").respond(testComment);
+        $httpBackend.expect('GET', window.base_url + window.ver_api + "comment/1/?format=json").respond(200, $q.when(testComment));
+        expect(Comment.get).not.toHaveBeenCalled();
+        expect(result).toEqual({});
+
+        var rs1;
+
+        rs1 = Comment.get({id:'1'}), (function(res){
             //comment = res.success;
+            console.log("toto");
             comment = res;
+            console.log('comment 1 : ' + comment);
         });
-  
+
+        // rs1 = Comment.get({id:'1'}).then(function(res){
+        //     //comment = res.success;
+        //     console.log("toto");
+        //     comment = res;
+        //     console.log('comment 1 : ' + comment);
+        // });
+
+        //rs1 = Comment.get({id:'1'});        
+        // rs1.then(function(languages){
+        // });
+
         // Flush pending HTTP requests
         $httpBackend.flush();
-        //expect(Comment.get).toHaveBeenCalledWith(id);
+        console.log('rs1 : ' + JSON.stringify(rs1));
+        console.log('comment 2 : ' + JSON.stringify(comment));
+        console.log('testComment : ' + JSON.stringify(testComment));
+        expect(Comment.get).toHaveBeenCalledWith({id:'1'});
         expect(comment).toEqual(testComment);
     });
 
