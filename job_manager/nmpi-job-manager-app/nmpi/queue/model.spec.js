@@ -124,14 +124,14 @@ describe('Queue factory', function() {
         //$httpBackend.whenGET(window.base_url + window.ver_api + "comment/1/").respond(testComment);
         //$httpBackend.whenGET(window.base_url + window.ver_api + "comment/1/").passThrough();
         //expect(Comment.get).not.toHaveBeenCalled();
-        //$httpBackend.expectGET(window.base_url + window.ver_api + "comment/1/?format=json").respond(testComment);
-        $httpBackend.expect('GET', window.base_url + window.ver_api + "comment/1/?format=json").respond(200, $q.when(testComment));
+        $httpBackend.expectGET(window.base_url + window.ver_api + "comment/1/?format=json").respond(testComment);
+        //$httpBackend.expect('GET', window.base_url + window.ver_api + "comment/1/?format=json").respond(200, $q.when(testComment));
         expect(Comment.get).not.toHaveBeenCalled();
         expect(result).toEqual({});
 
         var rs1;
 
-        rs1 = Comment.get({id:'1'}), (function(res){
+        rs1 = Comment.get({id:'1'}, function(res){
             //comment = res.success;
             console.log("toto");
             comment = res;
@@ -154,8 +154,10 @@ describe('Queue factory', function() {
         console.log('rs1 : ' + JSON.stringify(rs1));
         console.log('comment 2 : ' + JSON.stringify(comment));
         console.log('testComment : ' + JSON.stringify(testComment));
-        expect(Comment.get).toHaveBeenCalledWith({id:'1'});
-        expect(comment).toEqual(testComment);
+        expect(Comment.get).toHaveBeenCalledWith({id:'1'}, jasmine.any(Function));
+        expect(comment).toBeDefined();
+        expect(comment.content).toEqual("ffdfdfsfds");
+        //expect(comment).toEqual(testComment);
     });
 
   });
