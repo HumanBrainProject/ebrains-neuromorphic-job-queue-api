@@ -8,7 +8,31 @@ describe('User factory', function() {
   var User;
   var user_url = "https://services.humanbrainproject.eu/idm/v1/api/user/";
   var $httpBackend;
-  var testUser = "";
+  var testUser = {
+    "id" : "304621",
+    "updatedAt" : "2017-07-05T08:28:51",
+    "username" : "jduperrier02",
+    "givenName" : "DUPERRIER",
+    "familyName" : "Jonathan",
+    "displayName" : "DUPERRIER Jonathan",
+    "title" : null,
+    "profile" : null,
+    "picture" : null,
+    "emails" : [ {
+      "value" : "jonathan.duperrier@gmail.com",
+      "primary" : true,
+      "verified" : true
+    } ],
+    "phones" : [ ],
+    "institutions" : [ {
+      "name" : "Centre National de la Recherche Scientifique",
+      "department" : null,
+      "postalAddress" : null,
+      "title" : null,
+      "primary" : true
+    } ],
+    "ims" : [ ]
+  };
 
   //The single user we expect to receive when calling findById('2')
   var singleUser = {
@@ -30,7 +54,7 @@ describe('User factory', function() {
     result = {};
     
     // Spy and force the return value when UsersFactory.all() is called
-    //spyOn(User, 'get').and.callThrough();
+    spyOn(User, 'get').and.callThrough();
   });
 
   // A simple test to verify the nmpi module exists
@@ -42,21 +66,21 @@ describe('User factory', function() {
     expect(User.get).toBeDefined();
   });
 
-  // it('test result User.get', function() {
-  //   $httpBackend.expectGET(user_url + "2").respond(testUser);
+  it('test result User.get', function() {
+    console.log("user_url : " + user_url);
+    console.log("testuser : " + JSON.stringify(testUser));
+    $httpBackend.expectGET("https://services.humanbrainproject.eu/idm/v1/api/user/304621").respond(testUser);
 
-  //   expect(User.get).not.toHaveBeenCalled();
+    expect(User.get).not.toHaveBeenCalled();
 
-  //   User.get({id:'2'}, function(user){
-  //     console.log("User.get function")
-  //     usr = user;
-  //   });
-  //   $httpBackend.flush();
+    rs = User.get({id:'304621'}, function(result){
+      console.log("User.get function")
+      usr = result;
+    });
+    $httpBackend.flush();
 
-  //   expect(User.get).toHaveBeenCalledWith({id:'2'}, jasmine.any(Function));
-  //   expect(usr).toBeDefined();
-  // });
-
-
+    expect(User.get).toHaveBeenCalledWith({id:'304621'}, jasmine.any(Function));
+    expect(usr).toBeDefined();
+  });
 
 });

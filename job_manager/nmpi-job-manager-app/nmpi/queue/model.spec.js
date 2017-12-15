@@ -196,12 +196,13 @@ describe('Queue factory', function() {
         console.log("rs_save : " + rs_save.content);
         //expect(Comment.save).toHaveBeenCalledWith({id:'1'}, jasmine.any(Function));
         expect(Comment.save).toHaveBeenCalledWith( testPostComment );
-        //$httpBackend.flush();
+        $httpBackend.flush();
         
         // get posted comment
         rs_test_get = Comment.get( function(res){
             comment = res;
             console.log('comment 1 : ' + comment.content);
+            console.log('comment : ' + JSON.stringify(comment));
         });
         console.log("rs_test_get : " + JSON.stringify(rs_test_get));
         $httpBackend.flush();
