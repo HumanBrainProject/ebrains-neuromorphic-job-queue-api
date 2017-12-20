@@ -2,6 +2,7 @@
 describe('DataItem factory', function() {  
     var DataItem;
     var testDataItem = {"list_endpoint": "/api/v2/dataitem", "schema": "/api/v2/dataitem/schema"};
+    var testPostDataItem = {"url": "http://www.google.fr"};
     // Before each test load our api.users module
     beforeEach(angular.mock.module('nmpi'));
   
@@ -17,6 +18,7 @@ describe('DataItem factory', function() {
         
         // Spy and force the return value when UsersFactory.all() is called
         spyOn(DataItem, 'get').and.callThrough();
+        spyOn(DataItem, 'save').and.callThrough();
       });
 
     // A simple test to verify the nmpi module exists
@@ -49,5 +51,15 @@ describe('DataItem factory', function() {
         expect(result).toBeDefined();
         //console.log("result.content : " + result.content);
         expect(result.content).toEqual(testDataItem.content);        
+    });
+
+    it('test result DataItem.save', function() {
+        $httpBackend.expectPOST(window.base_url + window.ver_api + "dataitem/?format=json").respond(200);
+        expect(DataItem.save).toBeDefined();
+        //console.log('testPostDataItem : ' + JSON.stringify(testPostDataItem));
+        rs_save = DataItem.save(testPostDataItem);
+        //console.log("rs_save : " + JSON.stringify(rs_save));
+        expect(DataItem.save).toHaveBeenCalledWith( testPostDataItem );
+        $httpBackend.flush();
     });
   });
