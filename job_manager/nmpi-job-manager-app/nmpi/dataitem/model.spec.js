@@ -38,16 +38,13 @@ describe('DataItem factory', function() {
         $httpBackend.expectGET(window.base_url + window.ver_api + "dataitem/1/?format=json").respond(testDataItem);
         expect(DataItem.get).not.toHaveBeenCalled();
         expect(result).toEqual({});
-
         var rs1;
         rs1 = DataItem.get({id:'1'}, function(res){
             result = res;
             //console.log('result 1 : ' + result.content);
         });
-
         // Flush pending HTTP requests
         $httpBackend.flush();
-        //console.log('rs1 : ' + JSON.stringify(rs1));
         expect(DataItem.get).toHaveBeenCalledWith({id:'1'}, jasmine.any(Function));
         expect(result).toBeDefined();
         //console.log("result.content : " + result.content);

@@ -182,40 +182,16 @@ describe('Queue factory', function() {
     it('test result Comment.post', function() {
         var comment;
         // Declare the endpoint we expect our service to hit and provide it with our mocked return values
-        $httpBackend.expectPOST(window.base_url + window.ver_api + "comment/?format=json").respond(testPostComment);
-        $httpBackend.expectGET(window.base_url + window.ver_api + "comment/?format=json").respond(testComment);
+        $httpBackend.expectPOST(window.base_url + window.ver_api + "comment/?format=json").respond(200);
 
         // post new comment
-        //expect(Comment.save).toBeDefined();
+        expect(Comment.save).toBeDefined();
         
-        //expect(Comment.save).not.toHaveBeenCalled();
-        expect(Comment.get).not.toHaveBeenCalled();
-
-        console.log('testPostComment : ' + testPostComment.content);
+        console.log('testPostComment : ' + JSON.stringify(testPostComment));
         rs_save = Comment.save(testPostComment);
-        console.log("rs_save : " + rs_save.content);
+        console.log("rs_save : " + JSON.stringify(rs_save));
         //expect(Comment.save).toHaveBeenCalledWith({id:'1'}, jasmine.any(Function));
         expect(Comment.save).toHaveBeenCalledWith( testPostComment );
         $httpBackend.flush();
-        
-        // get posted comment
-        rs_test_get = Comment.get( function(res){
-            comment = res;
-            console.log('comment 1 : ' + comment.content);
-            console.log('comment : ' + JSON.stringify(comment));
-        });
-        console.log("rs_test_get : " + JSON.stringify(rs_test_get));
-        $httpBackend.flush();
-        expect(Comment.get).toHaveBeenCalledWith( jasmine.any(Function));
-        expect(comment.content).toEqual(testComment.content);
-
-        // delete posted comment
-
-        //expect(result).toEqual({});
-
     });
-
-    // it('test result Queue.get', function() {
-    //     var comment;
-    // });
   });
