@@ -1,0 +1,3 @@
+describe('Controllers test', function() {
+
+};
