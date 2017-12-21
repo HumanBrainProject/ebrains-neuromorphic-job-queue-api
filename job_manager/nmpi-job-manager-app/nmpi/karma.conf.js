@@ -158,8 +158,9 @@ module.exports = function(config) {
         'dataitem/model.js',
         'dataitem/model.spec.js',
         'queue/model.js',
-        'queue/model.spec.js'
-        // 'tests/tests.js'
+        'queue/model.spec.js',
+        'queue/controllers.js',
+        'queue/controllers.spec.js',
       ],
   
   
