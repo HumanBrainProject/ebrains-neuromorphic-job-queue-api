@@ -1,6 +1,7 @@
 describe('nmpi.ListQueue', function() {
     console.log("begining nmpi.ListQueue");
     var $controller, ListQueue;
+    beforeEach(angular.mock.module('ui.router'));
     beforeEach(angular.mock.module('nmpi'));
     console.log("before inject controller");
     beforeEach(inject(function( _$controller_) {
