@@ -1,7 +1,10 @@
 // Karma configuration
 // Generated on Fri Oct 13 2017 11:53:28 GMT+0200 (CEST)
-var PATH_MODULE = '/home/jonathan/node_modules';
+
 var URL_FILES = '/Users/jojo/Documents_2/hbp/hbp_neuromorphic_platform/job_manager/nmpi-job-manager-app';
+//var URL_FILES = '/Users/andrew/dev/nmpi-gh/job_manager/lib'
+
+
 module.exports = function(config) {
     config.set({
   
@@ -26,26 +29,15 @@ module.exports = function(config) {
   
       // list of files / patterns to load in the browser
       files: [
-        // PATH_MODULE + '/angular/angular.js',
         URL_FILES + '/angular/angular.js',
-        // PATH_MODULE + '/angular-mocks/angular-mocks.js',
         URL_FILES + '/angular-mocks/angular-mocks.js',
         URL_FILES + '/angular-ui-router/release/angular-ui-router.js',
-
-        'app.js',
-        
-        URL_FILES + '/nmpi/dataitem/model.js',
-        URL_FILES + '/nmpi/collab/model.js',
-        URL_FILES + '/nmpi/user/model.js',
-        URL_FILES + '/nmpi/queue/model.js',
-        URL_FILES + '/nmpi/queue/controllers.js',
 
         URL_FILES + '/hello/dist/hello.js',
         URL_FILES + '/hello/dist/hello.all.js',
     
         URL_FILES + '/jquery/dist/jquery.min.js',
         URL_FILES + '/lodash/lodash.min.js',
-        // URL_FILES + '/angular/angular.js',
     
         URL_FILES + '/angular-bootstrap/ui-bootstrap-tpls.min.js',
         URL_FILES + '/hbp-collaboratory-theme/dist/javascripts/bootstrap.min.js',
@@ -150,7 +142,8 @@ module.exports = function(config) {
         URL_FILES + '/angular-hbp-collaboratory/src/ui-stream/ui-stream.module.js',
         URL_FILES + '/angular-hbp-collaboratory/src/main.js',
         URL_FILES + '/angular-hbp-collaboratory/src/main.spec.js',
-        
+
+        './app.js',
         './user/model.js',
         './user/model.spec.js',
         './collab/model.js',
@@ -160,8 +153,7 @@ module.exports = function(config) {
         './queue/model.js',
         './queue/model.spec.js',
         './queue/controllers.js',
-        //'/Users/jojo/Documents_2/hbp/hbp_neuromorphic_platform/job_manager/nmpi-job-manager-app/nmpi/queue/controllers.js',
-        './queue/controllers.spec.js',
+        './queue/controllers.spec.js'
       ],
   
   

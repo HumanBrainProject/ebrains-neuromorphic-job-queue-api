@@ -40,7 +40,7 @@ describe('ListQueue', function() {
     it('change page', function() {
         console.log("controller ListQueue : " + controller );
         console.log("begining change page");
-        controller.changePage();
+        $scope.changePage();
     });
 });
 

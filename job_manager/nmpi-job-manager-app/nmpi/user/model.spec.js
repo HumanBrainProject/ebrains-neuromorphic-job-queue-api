@@ -46,7 +46,7 @@ describe('User factory', function() {
   // Before each test set our injected User factory (_User_) to our local User variable
   beforeEach(inject(function(_User_, _$httpBackend_) {
     User = _User_;
-    $httpBackend = $httpBackend;
+    $httpBackend = _$httpBackend_;
   }));
 
   beforeEach(function() {

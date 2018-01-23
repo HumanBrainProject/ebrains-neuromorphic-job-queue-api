@@ -6,13 +6,15 @@ _build
 packages
 *_old
 htmlcov
+coverage
 
-# javascript files managed by Bower
+# javascript files managed by Bower or NPM
 job_manager/lib
 job_manager/static
 resource_manager/lib
 resource_manager/static
 documentation/splash/bower_components
+node_modules
 
 # ensure these are not tracked by git
 *secrets.yml
