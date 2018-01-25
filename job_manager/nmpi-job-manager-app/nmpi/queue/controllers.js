@@ -5,10 +5,9 @@ angular.module('nmpi')
 
 
 .controller('ListQueue', 
-            ['$scope', '$rootScope', '$http', '$location', 'Queue', 'Results', 'Context', 'Collab', 'User', 'Tags', 'hbpCollabStore', 'hbpIdentityUserDirectory',
-    function( $scope,   $rootScope,   $http,   $location,   Queue,   Results,   Context,   Collab,   User,   Tags, hbpCollabStore,   hbpIdentityUserDirectory)
+            ['$scope', '$rootScope', '$http', '$location', 'Queue', 'Results', 'Context', 'Collab', 'User', 'hbpCollabStore', 'hbpIdentityUserDirectory',
+    function( $scope,  $rootScope,   $http,   $location,   Queue,   Results,   Context,   Collab,   User,   hbpCollabStore,   hbpIdentityUserDirectory)
     {
-
         // pagination server-side
         // http://stackoverflow.com/questions/17309955/angularjs-and-complex-json-returned-by-django-tastypie
         // pagination client-side

@@ -50,6 +50,7 @@ INSTALLED_APPS = [
     'social.apps.django_app.default',
     'quotas',
     'taggit',
+    # 'social_django',
 ]
 if ENV == "dev":
     INSTALLED_APPS.insert(0, 'django_pdb')
@@ -152,6 +153,9 @@ STATICFILES_DIRS = [
     os.path.join(BASE_DIR, "lib"),
     os.path.join(BASE_DIR, "nmpi-job-manager-app"),
     os.path.join(BASE_DIR, "nmpi-dashboard-app"),
+    os.path.join(BASE_DIR, "job_manager/nmpi-job-manager-app"),
+    os.path.join(BASE_DIR, "job_manager/nmpi-dashboard-app"),
+    os.path.join(BASE_DIR, "job_manager/static"),
 ]
 STATIC_ROOT = "%s/static/" % BASE_DIR
 
