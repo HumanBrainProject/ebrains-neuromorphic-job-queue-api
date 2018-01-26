@@ -22,7 +22,7 @@ module.exports = function(config) {
         require('karma-jasmine-html-reporter'),
         require('jasmine-core'),
         require('karma-phantomjs-launcher'),
-        require('karma-jasmine'),
+        //require('karma-jasmine'),
         require('karma-spec-reporter'),
         require('karma-junit-reporter'),
       ],
@@ -56,7 +56,10 @@ module.exports = function(config) {
         URL_FILES + '/codemirror/lib/codemirror.js',
         URL_FILES + '/codemirror/mode/python/python.js',
         URL_FILES + '/angular-ui-codemirror/ui-codemirror.js',
-    
+        
+        URL_FILES + '/angular-sanitize/angular-sanitize.js',
+        URL_FILES + '/angular-ui-select/dist/select.js',
+
         URL_FILES + '/angular-hbp-collaboratory/src/app/app.module.js',
         URL_FILES + '/angular-hbp-collaboratory/src/app/app.service.js',
         URL_FILES + '/angular-hbp-collaboratory/src/app/auth.provider.js',
@@ -135,7 +138,7 @@ module.exports = function(config) {
         URL_FILES + '/angular-hbp-collaboratory/src/ui-storage/file-browser-tooltip.tpl.js',
         URL_FILES + '/angular-hbp-collaboratory/src/ui-storage/file-browser.directive.js',
         URL_FILES + '/angular-hbp-collaboratory/src/ui-storage/file-upload.directive.js',
-    
+
         URL_FILES + '/angular-hbp-collaboratory/src/ui-stream/ui-stream.module.js',
         URL_FILES + '/angular-hbp-collaboratory/src/ui-stream/activity.directive.js',
         URL_FILES + '/angular-hbp-collaboratory/src/ui-stream/feed.directive.js',
