@@ -74,7 +74,7 @@ describe('User factory', function() {
     expect(User.get).not.toHaveBeenCalled();
 
     rs = User.get({id:'304621'}, function(result){
-      console.log("User.get function")
+      console.log("User.get function");
       usr = result;
     });
     $httpBackend.flush();
