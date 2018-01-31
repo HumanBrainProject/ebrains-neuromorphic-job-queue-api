@@ -11,7 +11,6 @@ module.exports = function(config) {
       // base path that will be used to resolve all patterns (eg. files, exclude)
       basePath: '',
   
-  
       // frameworks to use
       // available frameworks: https://npmjs.org/browse/keyword/karma-adapter
       frameworks: ['jasmine'],
@@ -25,6 +24,7 @@ module.exports = function(config) {
         //require('karma-jasmine'),
         require('karma-spec-reporter'),
         require('karma-junit-reporter'),
+        // require('karma-html'),
       ],
   
       // list of files / patterns to load in the browser
@@ -146,7 +146,14 @@ module.exports = function(config) {
         URL_FILES + '/angular-hbp-collaboratory/src/main.js',
         URL_FILES + '/angular-hbp-collaboratory/src/main.spec.js',
 
+        URL_FILES + '/Users/jojo/hbp/hbp_neuromorphic_platform/node_modules/karma-html/index.js',
+
+        //URL_FILES + '/karma-html-master/index.js',
+
+
         './app.js',
+        // authenfitication ?
+        //'./auth.js',
         './user/model.js',
         './user/model.spec.js',
         './collab/model.js',
