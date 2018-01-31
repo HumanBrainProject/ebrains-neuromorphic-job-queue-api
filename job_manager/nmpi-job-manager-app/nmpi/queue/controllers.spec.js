@@ -44,18 +44,10 @@ describe('AddJob', function() {
         $controller = _$controller_;
         controller = $controller('AddJob', { $scope: $scope });
     })));
-    beforeEach(function() {
-        $httpBackend.whenGET(window.base_url + "#/queue?ctx=" + ctx).respond(9999);
-        $httpBackend.whenGET(window.base_url + "#/queue/create?ctx=" + ctx).respond(8888);
-    });
 
     // Verify our controller exists
     it('AddJob should be defined', function() {
         expect(controller).toBeDefined();
-    });
-    
-    if('test User.get', function() {
-        User.get();
     });
 
     it('test $scope.toggleTabs', function() {
