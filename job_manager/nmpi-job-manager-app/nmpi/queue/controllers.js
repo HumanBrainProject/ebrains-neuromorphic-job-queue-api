@@ -4,7 +4,7 @@
 angular.module('nmpi')
 
 
-.controller('ListQueue', 
+.controller('ListQueue',
             ['$scope', '$rootScope', '$http', '$location', 'Queue', 'Results', 'Context', 'Collab', 'User', 'Tags', 'hbpCollabStore', 'hbpIdentityUserDirectory',
     function( $scope,  $rootScope,   $http,   $location,   Queue,   Results,   Context,   Collab,   User,  Tags,  hbpCollabStore,   hbpIdentityUserDirectory)
     {
@@ -41,7 +41,7 @@ angular.module('nmpi')
             $scope.curPage = page;
         };
 
-        var get_queue = function( cid ){
+        $scope.get_queue = function( cid ){
             // collab_id:cid will be passed as a GET variable and used by tastypie to retrieve only jobs from cid collab
             $scope.queue = Queue.get({collab_id:cid}, function(data){
                 $scope.queue.objects.forEach( function( job, key ){
@@ -54,7 +54,7 @@ angular.module('nmpi')
             $scope.queue.objects = new Array(); // init before the resource is answered by the server
         };
 
-        var get_results = function( cid ){
+        $scope.get_results = function( cid ){
             // collab_id:cid will be passed as a GET variable and used by tastypie to retrieve only jobs from cid collab
             $scope.results = Results.get({collab_id:cid}, function(data){
                 $scope.results.objects.forEach( function( job, key ){
@@ -69,7 +69,7 @@ angular.module('nmpi')
                 // will be slightly longer, as it also contains queued jobs
                 $scope.numberOfPages = function()
                 {
-                    var numPages = Math.ceil($scope.filtered_jobs.length / $scope.pageSize);
+                    $scope.numPages = Math.ceil($scope.filtered_jobs.length / $scope.pageSize);
                     $scope.pages = Array.apply(null, {length: numPages}).map(Number.call, Number);
                     return numPages
                 };
@@ -113,16 +113,16 @@ angular.module('nmpi')
                     console.log("User has access to the platform: " + response);
                 });
 
-                get_queue(context.collab.id);
-                get_results(context.collab.id);
+                $scope.get_queue(context.collab.id);
+                $scope.get_results(context.collab.id);
             });
         } else {
             // Stand-alone
             $rootScope.with_ctx = false;
             $rootScope.ctx = null;
             $rootScope.collab_id = null;
-            get_queue(null);
-            get_results(null);
+            $scope.get_queue(null);
+            $scope.get_results(null);
         }
 
         if( !$scope.msg ){ $scope.msg = {text:"", css:"", show:false} };
@@ -420,7 +420,7 @@ angular.module('nmpi')
                         show: true
                     };
                 }
-            );        
+            );
         }
 
         // reset
@@ -506,7 +506,8 @@ angular.module('nmpi')
         $scope.job.tags = [];
         $scope.job.input_data = [];
         $scope.job.output_data = []; 
-        $scope.job.resource_uri = ""; 
+        $scope.job.resource_uri = "";
+        $scope.inputs = [];
 
         Results.get({id:job_id}, function(former_job){
             $scope.job.code = former_job.code;
