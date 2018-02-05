@@ -34,14 +34,58 @@ describe('ListQueue', function() {
         // angular.forEach($scope.results.objects, function(value, key) {
         //     console.log(key + ': ' + value);
         // });
-        console.log("$scope.results : ");
-        console.dir($scope.results);
+        console.log("$scope.results : " + JSON.stringify($scope.results));
+        //console.dir($scope.results);
         //console.log("$scope.numberOfPages : " + $scope.numPages);
     });
 
     it('test $scope.get_queue', function(){
         $scope.get_queue(collab_id);
-        console.log("$scope.queue : " + $scope.queue);
+        console.log("$scope.queue : " + JSON.stringify($scope.queue));
+    });
+});
+
+describe('DetailQueue', function() {
+    console.log("begining nmpi.DetailQueue");
+    var $controller, $rootScope, controller;
+    beforeEach(angular.mock.module('ui.router'));
+    beforeEach(angular.mock.module('nmpi'));
+    
+    console.log("before inject controller");
+    beforeEach(inject(angular.mock.inject(function( _$controller_, _$rootScope_ ) {
+        $rootScope = _$rootScope_;
+        $scope = $rootScope.$new();
+        $controller = _$controller_;
+        controller = $controller('DetailQueue', { $scope: $scope });
+        console.log("injected controller : " + controller );
+    })));
+
+    // Verify our controller exists
+    it('DetailQueue controller should be defined', function() {
+        expect(controller).toBeDefined();
+    });
+
+    it('test $scope.addTag', function() {
+        //console.log(json.stringify())
+        
+    });
+    it('test $scope.removeTag', function() {
+        
+    });
+    it('test $scope.getLog', function() {
+        $scope.getLog();
+        console.log("log : " + JSON.stringify($scope.log));
+    });
+    it('test $scope.copyData', function() {
+
+    });
+    it('test $scope.isImage', function() {
+        var result_img = $scope.isImage("https://collab.humanbrainproject.eu/assets/hbp_diamond_120.png");
+        expect(result_img).toBe(true);
+        var result_img = $scope.isImage("toto.jpg");
+        expect(result_img).toBe(true);
+        var result_img = $scope.isImage("toto.tttt");
+        expect(result_img).toBe(false);
     });
 });
 

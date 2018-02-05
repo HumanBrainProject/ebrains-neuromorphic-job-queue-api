@@ -69,9 +69,9 @@ angular.module('nmpi')
                 // will be slightly longer, as it also contains queued jobs
                 $scope.numberOfPages = function()
                 {
-                    $scope.numPages = Math.ceil($scope.filtered_jobs.length / $scope.pageSize);
+                    var numPages = Math.ceil($scope.filtered_jobs.length / $scope.pageSize);
                     $scope.pages = Array.apply(null, {length: numPages}).map(Number.call, Number);
-                    return numPages
+                    return numPages;
                 };
             });
             $scope.results.objects = new Array(); // init before the resource is answered by the server
