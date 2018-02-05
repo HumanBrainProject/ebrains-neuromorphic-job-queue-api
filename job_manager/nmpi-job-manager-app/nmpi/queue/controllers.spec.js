@@ -90,17 +90,18 @@ describe('DetailQueue', function() {
 });
 
 describe('AddJob', function() {
-    var $controller, $rootScope, controller;
+    var $controller, $rootScope, controller, $location;
     beforeEach(angular.mock.module('ui.router'));
     beforeEach(angular.mock.module('nmpi'));
     var fixture = '<ul class="nav nav-tabs"><li id="li_code_editor" class="nav-link"><a class="nav-link" ng-click="toggleTabs(\'code_editor\')">Editor</a></li><li id="li_upload_link" class="nav-link"><a class="nav-link" ng-click="toggleTabs(\'upload_link\')">From Git repository or zip archive</a></li><li id="li_upload_script" class="nav-link active"><a class="nav-link" ng-click="toggleTabs(\'upload_script\')">From Collab storage</a></li></ul>';
 
     document.body.insertAdjacentHTML('afterbegin', fixture);
 
-    beforeEach(inject(angular.mock.inject(function( _$controller_, _$rootScope_ ) {
+    beforeEach(inject(angular.mock.inject(function( _$controller_, _$rootScope_, _$location_ ) {
         $rootScope = _$rootScope_;
         $scope = $rootScope.$new();
         $controller = _$controller_;
+        $location = _$location_;
         controller = $controller('AddJob', { $scope: $scope });
     })));
 
@@ -138,16 +139,23 @@ describe('AddJob', function() {
         var li = document.getElementById("li_upload_script");
         expect(li.className).toBe("nav-link active");
     });
+
+    it('test $scope.reset', function(){
+        $scope.reset();
+        expect($scope.msg.show).toBe(false);
+        expect($location.$$path).toBe("/queue");
+    });
 });
 
 describe('ReSubmitJob', function() {
     var $controller, $rootScope, controller;
     beforeEach(angular.mock.module('ui.router'));
     beforeEach(angular.mock.module('nmpi'));
-    beforeEach(inject(angular.mock.inject(function( _$controller_, _$rootScope_ ) {
+    beforeEach(inject(angular.mock.inject(function( _$controller_, _$rootScope_, _$location_ ) {
         $rootScope = _$rootScope_;
         $scope = $rootScope.$new();
         $controller = _$controller_;
+        $location = _$location_;
         controller = $controller('ReSubmitJob', { $scope: $scope });
     })));
     // Verify our controller exists
@@ -168,6 +176,11 @@ describe('ReSubmitJob', function() {
         expect($scope.inputs.length).toBe(test_length - 1);
     });
 
+    it('test $scope.reset', function(){
+        $scope.reset();
+        expect($scope.msg.show).toBe(false);
+        expect($location.$$path).toBe("/queue");
+    });
 });
 
 describe('UiStorageController', function() {
