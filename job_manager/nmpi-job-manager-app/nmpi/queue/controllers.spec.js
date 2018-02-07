@@ -1,6 +1,6 @@
 window.base_url = 'https://127.0.0.1:8000/app/';
 var ctx = "86c8aff9-89ed-4d04-a996-81c3987a52f7";
-var collab_id = '4293';
+var collab_id = 4293;
 
 describe('ListQueue', function() {
     console.log("begining nmpi.ListQueue");
@@ -41,7 +41,12 @@ describe('ListQueue', function() {
 
     it('test $scope.get_queue', function(){
         $scope.get_queue(collab_id);
+        // $httpBackend.flush();
+        // expect($scope.get_queue).toHaveBeenCalledWith({id:collab_id}, jasmine.any(Function));
+        // expect($scope.queue).toBeDefined();
+
         console.log("$scope.queue : " + JSON.stringify($scope.queue));
+
     });
 });
 
@@ -57,7 +62,7 @@ describe('DetailQueue', function() {
         $scope = $rootScope.$new();
         $controller = _$controller_;
         controller = $controller('DetailQueue', { $scope: $scope });
-        console.log("injected controller : " + controller );
+        //console.log("injected controller : " + controller );
     })));
 
     // Verify our controller exists
@@ -121,6 +126,34 @@ describe('AddJob', function() {
         var test_length = $scope.inputs.length;
         $scope.removeInput();
         expect($scope.inputs.length).toBe(test_length - 1);
+    });
+
+    // it('test $scope.submit', function() {
+    //     //console.log("$scope.job : " + JSON.stringify($scope.job));
+    //     $scope.job.hardware_platform = 'SpiNNaker';
+    //     $scope.job.code = 'https://github.com/HumanBrainProject/hbp_neuromorphic_platform.git';
+    //     $scope.job.command = '99';
+    //     $scope.job.hardware_config = {"menu":{"id":"file","popup":{"menuitem":[{"onclick":"CreateNewDoc()","value":"New"},{"onclick":"OpenDoc()","value":"Open"},{"onclick":"CloseDoc()","value":"Close"}]},"value":"File"}};
+    //     $scope.job.tags = 'toto';
+    //     $scope.submit($scope.job);
+    // });
+
+    it('test $scope.savejob', function() {
+        //console.log("$scope.job : " + JSON.stringify($scope.job));
+        $scope.job.code = 'https://github.com/HumanBrainProject/hbp_neuromorphic_platform.git';
+        $scope.job.hardware_platform = 'SpiNNaker';
+        $scope.job.status = "submitted";
+        $scope.job.command = '99';
+        $scope.job.hardware_config = {"menu":{"id":"file","popup":{"menuitem":[{"onclick":"CreateNewDoc()","value":"New"},{"onclick":"OpenDoc()","value":"Open"},{"onclick":"CloseDoc()","value":"Close"}]},"value":"File"}};
+        $scope.job.tags = 'toto';
+        $scope.job.user_id = '304621';
+        $scope.job.collab_id = 4293;
+        $scope.job.provanance ={
+                "collaboratory":{
+                    "nav_item":36930
+                }
+            };
+        $scope.savejob();
     });
 
     it('test $scope.toggleTabs', function() {

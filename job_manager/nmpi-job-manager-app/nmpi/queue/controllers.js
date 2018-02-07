@@ -114,6 +114,7 @@ angular.module('nmpi')
                 });
 
                 $scope.get_queue(context.collab.id);
+                console.log("$scope.queue : " + JSON.stringify($scope.queue));
                 $scope.get_results(context.collab.id);
             });
         } else {
@@ -401,16 +402,18 @@ angular.module('nmpi')
         };
 
         $scope.savejob = function(){
-            // console.log(JSON.stringify($scope.job));
-            $scope.job.$save({},
+            console.log("$scope.savejob execution");
+            console.log("$scope.job : " + JSON.stringify($scope.job));
+            var result = $scope.job.$save({},
                 function(data){  // success
-                    //console.log(JSON.stringify(data));
+                    console.log("submitting job");
+                    console.log(JSON.stringify(data));
                     $rootScope.msg = {
                         text: "Your job has been submitted. You will receive further updates by email.",
                         css: "success",
                         show: true
                     };
-                    $location.path( '/queue').search({ctx:$rootScope.ctx});
+                    $location.path('/queue').search({ctx:$rootScope.ctx});
                 },
                 function(err) { // error
                     console.log(err.status + ": " + err.data);
@@ -421,6 +424,7 @@ angular.module('nmpi')
                     };
                 }
             );
+            console.log("$result : " + JSON.stringify(result));
         }
 
         // reset
