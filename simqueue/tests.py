@@ -744,7 +744,7 @@ class TestEmail(TestCase):
             sa = UserSocialAuth(user=user, uid=job['user_id'])
             sa.save()
 
-        log = "\n".join(str(x) for x in range(25))
+        log = "\n".join(str(x) for x in range(105))
         log_response = self.client.put("/api/v2/log/{}".format(job["id"]),
                                        data=json.dumps({"content": log}),
                                        content_type="application/json")
@@ -763,7 +763,11 @@ class TestEmail(TestCase):
         self.assertEqual(message.to, ["testuser@example.com"])
         self.assertEqual(message.subject, "[HBP Neuromorphic] job {} finished".format(job["id"]))
         self.assertIn("Job {} finished".format(job["id"]), message.body)
-        self.assertIn("0\n1\n2\n3\n4\n5\n6\n7\n8\n9\n\n.  .  .\n\n15\n16\n17\n18\n19\n20\n21\n22\n23\n24",
+        self.assertIn("0\n1\n2\n3\n4\n5\n6\n7\n8\n9\n",
+                      message.body)
+        self.assertIn("27\n28\n29\n\n.  .  .\n\n35\n36\n37",  # cut at :30 and -70:
+                      message.body)
+        self.assertIn("95\n96\n97\n98\n99\n100\n101\n102\n103\n104",
                       message.body)
         self.assertIn("https://collab.humanbrainproject.eu/#/collab/{}/nav/{}?state=job.{}".format(job["collab_id"],
                                                                                                    job["provenance"]["collaboratory"]["nav_item"],

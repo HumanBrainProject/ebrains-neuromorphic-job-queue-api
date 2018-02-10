@@ -361,12 +361,12 @@ class QueueResource(BaseJobResource):
                 else:
                     log_lines = log_list[0].content.split("\n")
                     nb_lines = len(log_lines)
-                    if nb_lines <= 20:
-                        log_content = "\n".join(log_lines[:20])
+                    if nb_lines <= 100:
+                        log_content = "\n".join(log_lines)
                     else:
-                        log_content = "\n".join(log_lines[:10])
+                        log_content = "\n".join(log_lines[:30])
                         log_content += "\n\n.  .  .\n\n"
-                        log_content += "\n".join(log_lines[-10:])
+                        log_content += "\n".join(log_lines[-70:])
                 subject = '[HBP Neuromorphic] job ' + str(bundle.data['id']) + ' ' + bundle.data['status']
                 content = 'HBP Neuromorphic Computing Platform: Job {} {}\n\n'.format(bundle.data['id'],
                                                                                       bundle.data['status'])
