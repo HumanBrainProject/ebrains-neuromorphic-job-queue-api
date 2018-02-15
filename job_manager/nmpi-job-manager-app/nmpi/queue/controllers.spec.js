@@ -1,5 +1,7 @@
-window.base_url = 'https://127.0.0.1:8000/app/';
-var ctx = "86c8aff9-89ed-4d04-a996-81c3987a52f7";
+// window.base_url = 'https://127.0.0.1:8000/app/';
+// var ctx = "86c8aff9-89ed-4d04-a996-81c3987a52f7";
+window.base_url = 'https://127.0.0.1:8000';
+window.ver_api = '/api/v2/';
 var collab_id = 4293;
 
 describe('ListQueue', function() {
@@ -14,7 +16,7 @@ describe('ListQueue', function() {
         $scope = $rootScope.$new();
         $controller = _$controller_;
         controller = $controller('ListQueue', { $scope: $scope });
-        console.log("injected controller : " + controller );
+        //console.log("injected controller : " + JSON.stringify(controller) );
     })));
     
     // Verify our controller exists
@@ -44,47 +46,66 @@ describe('ListQueue', function() {
         // $httpBackend.flush();
         // expect($scope.get_queue).toHaveBeenCalledWith({id:collab_id}, jasmine.any(Function));
         // expect($scope.queue).toBeDefined();
-
+        //setTimeout('$scope.get_queue(collab_id);', 1000)
         console.log("$scope.queue : " + JSON.stringify($scope.queue));
 
     });
 });
 
 describe('DetailQueue', function() {
+    var Log;
+
     console.log("begining nmpi.DetailQueue");
     var $controller, $rootScope, controller;
     beforeEach(angular.mock.module('ui.router'));
     beforeEach(angular.mock.module('nmpi'));
     
     console.log("before inject controller");
-    beforeEach(inject(angular.mock.inject(function( _$controller_, _$rootScope_ ) {
+    beforeEach(inject(angular.mock.inject(function( _$controller_, _$rootScope_, _Log_, _$httpBackend_, _$stateParams_ ) {
         $rootScope = _$rootScope_;
         $scope = $rootScope.$new();
         $controller = _$controller_;
         controller = $controller('DetailQueue', { $scope: $scope });
         //console.log("injected controller : " + controller );
+        //Log = _Log_;
+        $httpBackend = _$httpBackend_;
+        //$stateParams = _$stateParams_;
     })));
-
+    beforeEach(function() {
+        // Initialize our local result object to an empty object before each test
+        result = {};
+        $httpBackend.whenGET("https://services.humanbrainproject.eu/idm/v1/api/user/").respond(200);
+        $httpBackend.whenGET("https://services.humanbrainproject.eu/idm/v1/api/user/me").respond(200);
+        $httpBackend.whenGET("https://services.humanbrainproject.eu/collab/v0/collab/").respond(200);
+        $httpBackend.whenGET(window.base_url + window.ver_api + "results/?format=json").respond(200);
+        $httpBackend.whenGET(window.base_url + window.ver_api + "log/?format=json").respond(200);
+    });
     // Verify our controller exists
     it('DetailQueue controller should be defined', function() {
         expect(controller).toBeDefined();
     });
 
     it('test $scope.addTag', function() {
+        $httpBackend.flush();
         //console.log(json.stringify())
         
     });
     it('test $scope.removeTag', function() {
-        
+        $httpBackend.flush();
     });
     it('test $scope.getLog', function() {
+        $httpBackend.flush();
+        $httpBackend.expectGET(window.base_url + window.ver_api + "log/?format=json").respond(200);
+        console.log("beforee getLog execution");
         $scope.getLog();
+        $httpBackend.flush();
         console.log("log : " + JSON.stringify($scope.log));
     });
     it('test $scope.copyData', function() {
-
+        $httpBackend.flush();
     });
     it('test $scope.isImage', function() {
+        $httpBackend.flush();
         var result_img = $scope.isImage("https://collab.humanbrainproject.eu/assets/hbp_diamond_120.png");
         expect(result_img).toBe(true);
         var result_img = $scope.isImage("toto.jpg");
@@ -148,8 +169,8 @@ describe('AddJob', function() {
         $scope.job.tags = 'toto';
         $scope.job.user_id = '304621';
         $scope.job.collab_id = 4293;
-        $scope.job.provanance ={
-                "collaboratory":{
+        $scope.job.provanance = {
+                "collaboratory": {
                     "nav_item":36930
                 }
             };

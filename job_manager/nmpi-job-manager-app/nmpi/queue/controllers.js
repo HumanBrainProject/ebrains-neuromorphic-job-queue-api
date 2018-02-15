@@ -249,7 +249,6 @@ angular.module('nmpi')
                 }
             }, 'https://collab.humanbrainproject.eu/');
         };
-
         Results.get(
             {id: $stateParams.eId},
             // first we try to get the job from the Results endpoint
@@ -257,9 +256,11 @@ angular.module('nmpi')
                 $scope.job = job;
                 $scope.job.collab = Collab.get({cid:$scope.job.collab_id}, function(data){});
                 $scope.job.user = User.get({id:job.user_id}, function(data){});
-                $scope.job.comments.forEach( function( comment, key ){
-                    $scope.job.comments[key].user_obj = User.get({id:comment.user}, function(data){});
-                });
+                if (typeof $scope.job.comments !== 'undefined') { //for test
+                    $scope.job.comments.forEach( function( comment, key ){
+                        $scope.job.comments[key].user_obj = User.get({id:comment.user}, function(data){});
+                    });
+                }
             },
             // if it's not there we try the Queue endpoint
             function(error) {
@@ -273,9 +274,13 @@ angular.module('nmpi')
                 );
             }
         );
-
+        
         $scope.getLog = function() {
+            console.log ("=> EXECUTE");
             $scope.log = Log.get({id: $stateParams.eId});
+            console.log ("=> EXECUTEDDD");
+            console.log ("$scope.log : " + JSON.stringify($scope.log));
+            return $scope.log;
         };
 
         $scope.copyData = function(target) {
@@ -291,7 +296,7 @@ angular.module('nmpi')
 
         $scope.isImage = function(url) {
             var filename = url.split('/').pop();
-            var extension = filename.split('.').pop().toLowerCase()
+            var extension = filename.split('.').pop().toLowerCase();
             return ['jpg', 'jpeg', 'gif', 'png', 'svg'].includes(extension);
         };
 
