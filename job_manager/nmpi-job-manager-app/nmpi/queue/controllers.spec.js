@@ -103,11 +103,15 @@ describe('DetailQueue', function() {
         $httpBackend.flush();
         spyOn(Log, 'get').and.callThrough();
         $stateParams.eId = "1";
-        $httpBackend.expectGET(window.base_url + window.ver_api + "log/1/?format=json").respond(200);
+        var mock_log = {
+            content: "This is the log"
+        }
+        $httpBackend.expectGET(window.base_url + window.ver_api + "log/1/?format=json").respond(200, mock_log);
         //console.log("beforee getLog execution");
         $scope.getLog();
         $httpBackend.flush();
         console.log("log : " + JSON.stringify($scope.log));
+        expect($scope.log.content).toEqual("This is the log");
     });
     it('test $scope.copyData', function() {
         $httpBackend.flush();
@@ -131,13 +135,22 @@ describe('AddJob', function() {
 
     document.body.insertAdjacentHTML('afterbegin', fixture);
 
-    beforeEach(inject(angular.mock.inject(function( _$controller_, _$rootScope_, _$location_, _Queue_ ) {
+    beforeEach(inject(angular.mock.inject(function( _$controller_, _$rootScope_, _$location_, _$httpBackend_, _Queue_ ) {
         $rootScope = _$rootScope_;
         $scope = $rootScope.$new();
         $controller = _$controller_;
         $location = _$location_;
+        $httpBackend = _$httpBackend_;
         Queue = _Queue_;
         controller = $controller('AddJob', { $scope: $scope });
+
+        var fake_context = {
+            collab: {
+                id: 99999
+            }
+        };
+        $httpBackend.expectGET('https://services.humanbrainproject.eu/idm/v1/api/user/me').respond(200, {});
+        $httpBackend.expectGET('https://services.humanbrainproject.eu/collab/v0/collab/context/').respond(200, fake_context);
     })));
 
     // Verify our controller exists
@@ -185,6 +198,9 @@ describe('AddJob', function() {
                     "nav_item":36930
                 }
             };
+
+        $httpBackend.expectGET("static/nmpi/queue/list.tpl.html").respond(200);  // should redirect to list view on success
+
         console.log("before test $scope.savejob : ");
         $scope.savejob();
         $httpBackend.flush();
