@@ -170,7 +170,7 @@ angular.module('nmpi')
         $scope.hpcSite = null;
         $scope.showHPCsites = false;
 
-        console.log('context detail :'+$rootScope.ctx);
+        //console.log('context detail :'+$rootScope.ctx);
 
         $scope.comment = new Comment();
         $scope.comment.content = "";
@@ -276,9 +276,10 @@ angular.module('nmpi')
         );
         
         $scope.getLog = function() {
-            console.log ("=> EXECUTE");
-            $scope.log = Log.get({id: $stateParams.eId});
-            console.log ("=> EXECUTEDDD");
+            console.log("$stateParams.eId : " + $stateParams.eId);
+            $scope.log = Log.get({id: $stateParams.eId}, function(log){
+                console.log ("log 00 : " + JSON.stringify(log));
+            });
             console.log ("$scope.log : " + JSON.stringify($scope.log));
             return $scope.log;
         };
@@ -408,7 +409,7 @@ angular.module('nmpi')
 
         $scope.savejob = function(){
             console.log("$scope.savejob execution");
-            console.log("$scope.job : " + JSON.stringify($scope.job));
+            //console.log("$scope.job : " + JSON.stringify($scope.job));
             var result = $scope.job.$save({},
                 function(data){  // success
                     console.log("submitting job");
@@ -421,7 +422,7 @@ angular.module('nmpi')
                     $location.path('/queue').search({ctx:$rootScope.ctx});
                 },
                 function(err) { // error
-                    console.log(err.status + ": " + err.data);
+                    console.log(err.status + " : " + err.data);
                     $scope.$parent.msg = {
                         text: "Your job has not been submitted. " + err.data,
                         css: "danger",

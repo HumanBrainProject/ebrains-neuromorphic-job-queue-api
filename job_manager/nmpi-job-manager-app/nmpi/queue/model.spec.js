@@ -162,6 +162,7 @@ describe('Queue factory', function() {
         var rs1;
         rs1 = Log.get({id:'1'}, function(res){
             result = res;
+            console.log("log result : "+JSON.stringify(result));
         });
         // Flush pending HTTP requests
         $httpBackend.flush();

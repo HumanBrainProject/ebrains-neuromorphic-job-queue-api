@@ -21,7 +21,7 @@ describe('ListQueue', function() {
     
     // Verify our controller exists
     it('ListQueue controller should be defined', function() {
-        console.log("controller ListQueue : " + controller );
+        console.log("controller ListQueue : " + JSON.stringify(controller) );
         console.log("begining ListQueue should be defined");
         expect(controller).toBeDefined();
     });
@@ -29,6 +29,12 @@ describe('ListQueue', function() {
     it('test $scope.changePage', function() {
         $scope.changePage(3);
         expect($scope.curPage).toBe(3);
+    });
+
+    it('test $scope.get_queue', function() {
+        //$httpBackend.flush();
+        //spyOn("");
+        $scope.get_queue(collab_id);
     });
 
     it('test $scope.get_results', function(){
@@ -67,9 +73,9 @@ describe('DetailQueue', function() {
         $controller = _$controller_;
         controller = $controller('DetailQueue', { $scope: $scope });
         //console.log("injected controller : " + controller );
-        //Log = _Log_;
+        Log = _Log_;
         $httpBackend = _$httpBackend_;
-        //$stateParams = _$stateParams_;
+        $stateParams = _$stateParams_;
     })));
     beforeEach(function() {
         // Initialize our local result object to an empty object before each test
@@ -78,7 +84,7 @@ describe('DetailQueue', function() {
         $httpBackend.whenGET("https://services.humanbrainproject.eu/idm/v1/api/user/me").respond(200);
         $httpBackend.whenGET("https://services.humanbrainproject.eu/collab/v0/collab/").respond(200);
         $httpBackend.whenGET(window.base_url + window.ver_api + "results/?format=json").respond(200);
-        $httpBackend.whenGET(window.base_url + window.ver_api + "log/?format=json").respond(200);
+        //$httpBackend.whenGET(window.base_url + window.ver_api + "log/?format=json").respond(200);
     });
     // Verify our controller exists
     it('DetailQueue controller should be defined', function() {
@@ -95,8 +101,10 @@ describe('DetailQueue', function() {
     });
     it('test $scope.getLog', function() {
         $httpBackend.flush();
-        $httpBackend.expectGET(window.base_url + window.ver_api + "log/?format=json").respond(200);
-        console.log("beforee getLog execution");
+        spyOn(Log, 'get').and.callThrough();
+        $stateParams.eId = "1";
+        $httpBackend.expectGET(window.base_url + window.ver_api + "log/1/?format=json").respond(200);
+        //console.log("beforee getLog execution");
         $scope.getLog();
         $httpBackend.flush();
         console.log("log : " + JSON.stringify($scope.log));
@@ -116,18 +124,19 @@ describe('DetailQueue', function() {
 });
 
 describe('AddJob', function() {
-    var $controller, $rootScope, controller, $location;
+    var $controller, $rootScope, controller, $location, Queue;
     beforeEach(angular.mock.module('ui.router'));
     beforeEach(angular.mock.module('nmpi'));
     var fixture = '<ul class="nav nav-tabs"><li id="li_code_editor" class="nav-link"><a class="nav-link" ng-click="toggleTabs(\'code_editor\')">Editor</a></li><li id="li_upload_link" class="nav-link"><a class="nav-link" ng-click="toggleTabs(\'upload_link\')">From Git repository or zip archive</a></li><li id="li_upload_script" class="nav-link active"><a class="nav-link" ng-click="toggleTabs(\'upload_script\')">From Collab storage</a></li></ul>';
 
     document.body.insertAdjacentHTML('afterbegin', fixture);
 
-    beforeEach(inject(angular.mock.inject(function( _$controller_, _$rootScope_, _$location_ ) {
+    beforeEach(inject(angular.mock.inject(function( _$controller_, _$rootScope_, _$location_, _Queue_ ) {
         $rootScope = _$rootScope_;
         $scope = $rootScope.$new();
         $controller = _$controller_;
         $location = _$location_;
+        Queue = _Queue_;
         controller = $controller('AddJob', { $scope: $scope });
     })));
 
@@ -161,6 +170,8 @@ describe('AddJob', function() {
 
     it('test $scope.savejob', function() {
         //console.log("$scope.job : " + JSON.stringify($scope.job));
+        spyOn(Queue, 'save').and.callThrough();
+        $httpBackend.expectPOST(window.base_url + window.ver_api + "queue/?format=json").respond(200);
         $scope.job.code = 'https://github.com/HumanBrainProject/hbp_neuromorphic_platform.git';
         $scope.job.hardware_platform = 'SpiNNaker';
         $scope.job.status = "submitted";
@@ -174,7 +185,9 @@ describe('AddJob', function() {
                     "nav_item":36930
                 }
             };
+        console.log("before test $scope.savejob : ");
         $scope.savejob();
+        $httpBackend.flush();
     });
 
     it('test $scope.toggleTabs', function() {
