@@ -288,9 +288,17 @@ angular.module('nmpi')
             console.log("Trying to copy data to " + target);
             var response = $http.get('/copydata/' + target + '/' + $stateParams.eId);
             response.success(function (data, status, headers, config) {
+                //console.log("*** SUCCESS ***" + data + "/" + status + "/" + JSON.stringify(config));
+                $scope.status = status;
+                $scope.config = config;
+                if(data == undefined){
+                    var data = {};
+                    data.length = 0;
+                }
                 $scope.msg = {text: "Copied " + data.length + ' files', css: "success", show: true};
             });
             response.error(function (data, status, headers, config) {
+                console.log("*** ERROR ***");
                 $scope.msg = {text: "Data could not be copied.", css: "danger", show: true};
             });
         };

@@ -6,15 +6,18 @@ var collab_id = 4293;
 
 describe('ListQueue', function() {
     console.log("begining nmpi.ListQueue");
-    var $controller, $rootScope, controller;
+    var $controller, $rootScope, controller, Queue, User, Collab;
     beforeEach(angular.mock.module('ui.router'));
     beforeEach(angular.mock.module('nmpi'));
     
     console.log("before inject controller");
-    beforeEach(inject(angular.mock.inject(function( _$controller_, _$rootScope_ ) {
+    beforeEach(inject(angular.mock.inject(function( _$controller_, _$rootScope_, _Queue_, _User_, _Collab_ ) {
         $rootScope = _$rootScope_;
         $scope = $rootScope.$new();
         $controller = _$controller_;
+        Queue = _Queue_;
+        User = _User_;
+        Collab = _Collab_;
         controller = $controller('ListQueue', { $scope: $scope });
         //console.log("injected controller : " + JSON.stringify(controller) );
     })));
@@ -33,8 +36,14 @@ describe('ListQueue', function() {
 
     it('test $scope.get_queue', function() {
         //$httpBackend.flush();
-        //spyOn("");
+        spyOn(Queue, 'get').and.callThrough();
+        spyOn(User, 'get').and.callThrough();
+        spyOn(Collab, 'get').and.callThrough();
+        $httpBackend.expectGET(window.base_url + window.ver_api + 'queue/').respond(200);
+        $httpBackend.expectGET("https://services.humanbrainproject.eu/idm/v1/api/user/").respond(200);
+        $httpBackend.expectGET("https://services.humanbrainproject.eu/collab/v0/collab/").respond(200);
         $scope.get_queue(collab_id);
+        //$httpBackend.flush();
     });
 
     it('test $scope.get_results', function(){
@@ -93,7 +102,7 @@ describe('DetailQueue', function() {
 
     it('test $scope.addTag', function() {
         $httpBackend.flush();
-        //console.log(json.stringify())
+        
         
     });
     it('test $scope.removeTag', function() {
@@ -110,7 +119,15 @@ describe('DetailQueue', function() {
         console.log("log : " + JSON.stringify($scope.log));
     });
     it('test $scope.copyData', function() {
+        var target = "collab";
         $httpBackend.flush();
+        $stateParams.eId = 1;
+        $httpBackend.expectGET('/copydata/' + target + '/' + $stateParams.eId).respond(200);
+        $scope.copyData(target);
+        $httpBackend.flush();
+        //console.log("$scope.msg : " + JSON.stringify($scope.msg));
+        expect($scope.status).toBe(200);
+        expect($scope.config.url).toBe("/copydata/collab/1");
     });
     it('test $scope.isImage', function() {
         $httpBackend.flush();
