@@ -43,7 +43,9 @@ angular.module('nmpi')
 
         $scope.get_queue = function( cid ){
             // collab_id:cid will be passed as a GET variable and used by tastypie to retrieve only jobs from cid collab
+            console.log("cid : " + cid);
             $scope.queue = Queue.get({collab_id:cid}, function(data){
+                console.log("data : " + JSON.stringify(data));
                 $scope.queue.objects.forEach( function( job, key ){
                     $scope.queue.objects[key].user = User.get({id:job.user_id}, function(data){});
                     if( !cid ){ // standalone condition
@@ -169,6 +171,7 @@ angular.module('nmpi')
         $scope.msg = {text: "", css: "", show: false};
         $scope.hpcSite = null;
         $scope.showHPCsites = false;
+        $scope.is_test = false;
 
         //console.log('context detail :'+$rootScope.ctx);
 
@@ -191,10 +194,19 @@ angular.module('nmpi')
         $scope.del_job = function(id){
             $scope.job.$del({id:id.eId}, function(data){
                 // on success, return to job list
+                console.log("data : " + JSON.stringify(data));
                 if($rootScope.with_ctx){
-                    window.location.href = "app/#/queue?ctx="+$rootScope.ctx;
+                    if($scope.is_test == false){
+                        window.location.href = "app/#/queue?ctx="+$rootScope.ctx;
+                    } else {
+                        $scope.win_href = "app/#/queue?ctx="+$rootScope.ctx;
+                    }
                 } else {
-                    window.location.href = "app/#/queue";
+                    if($scope.is_test == false){
+                        window.location.href = "app/#/queue";
+                    } else {
+                        $scope.win_href = "app/#/queue";
+                    }
                 }
             });
         };
