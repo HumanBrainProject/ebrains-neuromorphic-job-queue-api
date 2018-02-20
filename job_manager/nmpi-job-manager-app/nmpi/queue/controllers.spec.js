@@ -102,11 +102,55 @@ describe('DetailQueue', function() {
 
     it('test $scope.addTag', function() {
         $httpBackend.flush();
-        
-        
+        $stateParams.eId = "1";
+        $scope.job.code = 'https://github.com/HumanBrainProject/hbp_neuromorphic_platform.git';
+        $scope.job.hardware_platform = 'SpiNNaker';
+        $scope.job.status = "submitted";
+        $scope.job.command = '99';
+        $scope.job.hardware_config = {"menu":{"id":"file","popup":{"menuitem":[{"onclick":"CreateNewDoc()","value":"New"},{"onclick":"OpenDoc()","value":"Open"},{"onclick":"CloseDoc()","value":"Close"}]},"value":"File"}};
+        $scope.job.tags = 'toto';
+        $scope.job.user_id = '304621';
+        $scope.job.collab_id = 4293;
+        $scope.job.provanance = {
+                "collaboratory": {
+                    "nav_item":36930
+                }
+            };
+        $scope.job.tags = new Array();
+        var tag = {
+            name: 'test_tag',
+        };
+        $httpBackend.expectPUT(window.base_url + window.ver_api + "results/?format=json").respond(200);
+        $scope.addTag($scope.job, tag ,$stateParams.eId );
+        expect($scope.job.tags[0]).toBe(tag.name);
+        $httpBackend.flush();
     });
     it('test $scope.removeTag', function() {
         $httpBackend.flush();
+        $stateParams.eId = "1";
+        $scope.job.code = 'https://github.com/HumanBrainProject/hbp_neuromorphic_platform.git';
+        $scope.job.hardware_platform = 'SpiNNaker';
+        $scope.job.status = "submitted";
+        $scope.job.command = '99';
+        $scope.job.hardware_config = {"menu":{"id":"file","popup":{"menuitem":[{"onclick":"CreateNewDoc()","value":"New"},{"onclick":"OpenDoc()","value":"Open"},{"onclick":"CloseDoc()","value":"Close"}]},"value":"File"}};
+        $scope.job.tags = 'toto';
+        $scope.job.user_id = '304621';
+        $scope.job.collab_id = 4293;
+        $scope.job.provanance = {
+                "collaboratory": {
+                    "nav_item":36930
+                }
+            };
+        $scope.job.tags = ['tag_001', 'tag_002', 'tag_003'];
+        var tag = {
+            name:'tag_001'
+        };
+        $httpBackend.expectPUT(window.base_url + window.ver_api + "results/?format=json").respond(200);
+        $scope.removeTag($scope.job, tag, $stateParams.eId);
+        $httpBackend.flush();
+        expect($scope.job.tags.length).toBe(2);
+        expect($scope.job.tags[0]).toBe('tag_002');
+        expect($scope.job.tags[1]).toBe('tag_003');
     });
     it('test $scope.getLog', function() {
         $httpBackend.flush();
@@ -199,7 +243,6 @@ describe('AddJob', function() {
     // });
 
     it('test $scope.savejob', function() {
-        //console.log("$scope.job : " + JSON.stringify($scope.job));
         spyOn(Queue, 'save').and.callThrough();
         $httpBackend.expectPOST(window.base_url + window.ver_api + "queue/?format=json").respond(200);
         $scope.job.code = 'https://github.com/HumanBrainProject/hbp_neuromorphic_platform.git';
@@ -217,8 +260,6 @@ describe('AddJob', function() {
             };
 
         $httpBackend.expectGET("static/nmpi/queue/list.tpl.html").respond(200);  // should redirect to list view on success
-
-        console.log("before test $scope.savejob : ");
         $scope.savejob();
         $httpBackend.flush();
     });
@@ -251,12 +292,22 @@ describe('ReSubmitJob', function() {
     var $controller, $rootScope, controller;
     beforeEach(angular.mock.module('ui.router'));
     beforeEach(angular.mock.module('nmpi'));
-    beforeEach(inject(angular.mock.inject(function( _$controller_, _$rootScope_, _$location_ ) {
+    beforeEach(inject(angular.mock.inject(function( _$controller_, _$rootScope_, _$location_, _$httpBackend_, _Queue_ ) {
         $rootScope = _$rootScope_;
         $scope = $rootScope.$new();
         $controller = _$controller_;
         $location = _$location_;
+        $httpBackend = _$httpBackend_;
+        Queue = _Queue_;
+
         controller = $controller('ReSubmitJob', { $scope: $scope });
+        var fake_context = {
+            collab: {
+                id: 99999
+            }
+        };
+        $httpBackend.expectGET('https://services.humanbrainproject.eu/idm/v1/api/user/me').respond(200, {});
+        $httpBackend.expectGET('https://services.humanbrainproject.eu/collab/v0/collab/context/').respond(200, fake_context);
     })));
     // Verify our controller exists
     it('ReSubmitJob controller should be defined', function() {
@@ -274,6 +325,27 @@ describe('ReSubmitJob', function() {
         var test_length = $scope.inputs.length;
         $scope.removeInput();
         expect($scope.inputs.length).toBe(test_length - 1);
+    });
+
+    it('test $scope.savejob (ReSubmitJob)', function(){
+        spyOn(Queue, 'save').and.callThrough();
+        $httpBackend.expectPOST(window.base_url + window.ver_api + "queue/?format=json").respond(200);
+        $scope.job.code = 'https://github.com/HumanBrainProject/hbp_neuromorphic_platform.git';
+        $scope.job.hardware_platform = 'SpiNNaker';
+        $scope.job.status = "submitted";
+        $scope.job.command = '99';
+        $scope.job.hardware_config = {"menu":{"id":"file","popup":{"menuitem":[{"onclick":"CreateNewDoc()","value":"New"},{"onclick":"OpenDoc()","value":"Open"},{"onclick":"CloseDoc()","value":"Close"}]},"value":"File"}};
+        $scope.job.tags = 'toto';
+        $scope.job.user_id = '304621';
+        $scope.job.collab_id = 4293;
+        $scope.job.provanance = {
+                "collaboratory": {
+                    "nav_item":36930
+                }
+            };
+        $httpBackend.expectGET("static/nmpi/queue/list.tpl.html").respond(200);  // should redirect to list view on success
+        $scope.savejob();
+        //$httpBackend.flush();
     });
 
     it('test $scope.reset', function(){

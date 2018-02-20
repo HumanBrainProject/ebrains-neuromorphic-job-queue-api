@@ -277,10 +277,7 @@ angular.module('nmpi')
         
         $scope.getLog = function() {
             console.log("$stateParams.eId : " + $stateParams.eId);
-            $scope.log = Log.get({id: $stateParams.eId}, function(log){
-                console.log ("log 00 : " + JSON.stringify(log));
-            });
-            console.log ("$scope.log : " + JSON.stringify($scope.log));
+            $scope.log = Log.get({id: $stateParams.eId});
             return $scope.log;
         };
 
@@ -416,12 +413,8 @@ angular.module('nmpi')
         };
 
         $scope.savejob = function(){
-            console.log("$scope.savejob execution");
-            //console.log("$scope.job : " + JSON.stringify($scope.job));
             var result = $scope.job.$save({},
                 function(data){  // success
-                    console.log("submitting job");
-                    console.log(JSON.stringify(data));
                     $rootScope.msg = {
                         text: "Your job has been submitted. You will receive further updates by email.",
                         css: "success",
@@ -430,7 +423,6 @@ angular.module('nmpi')
                     $location.path('/queue').search({ctx:$rootScope.ctx});
                 },
                 function(err) { // error
-                    console.log(err.status + " : " + err.data);
                     $scope.$parent.msg = {
                         text: "Your job has not been submitted. " + err.data,
                         css: "danger",
@@ -438,7 +430,6 @@ angular.module('nmpi')
                     };
                 }
             );
-            console.log("$result : " + JSON.stringify(result));
         }
 
         // reset
@@ -590,7 +581,7 @@ angular.module('nmpi')
         };
 
         $scope.savejob = function(){
-            $scope.job.$save({},
+            var result = $scope.job.$save({},
                 function(data){  // success
                     console.log(JSON.stringify(data));
                     $rootScope.msg = {
