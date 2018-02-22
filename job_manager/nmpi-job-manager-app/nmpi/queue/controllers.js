@@ -231,16 +231,22 @@ angular.module('nmpi')
             $scope.comment.job = job.resource_uri;
             $scope.comment.$save({},
                 function(data){  // success
+                    console.log("data : " + data);
                     $scope.$parent.msg = {
                         text: "Your comment has been submitted.",
                         css: "success",
                         show: true
                     };
                     $scope.comment.user_obj = $scope.currentUser;
-                    $scope.job.comments.push($scope.comment);
+                    if (typeof $scope.job.comments !== 'undefined') { //for test
+                        $scope.job.comments.push($scope.comment);
+                    } else {
+                        $scope.job.comments = new Array();
+                        $scope.job.comments.push($scope.comment);
+                    }
                     $scope.comment = new Comment();
                     $scope.comment.content = "";
-                    console.log(data);
+                    //console.log("data : " + JSON.stringify(data));
                 },
                 function(err) { // error
                     console.log(err.status + ": " + err.data);

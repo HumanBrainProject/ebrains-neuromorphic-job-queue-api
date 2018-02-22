@@ -135,6 +135,8 @@ describe('DetailQueue', function() {
     it('test $scope.addTag', function() {
         $httpBackend.flush();
         $stateParams.eId = "1";
+        
+        $scope.job.id = '1';
         $scope.job.code = 'https://github.com/HumanBrainProject/hbp_neuromorphic_platform.git';
         $scope.job.hardware_platform = 'SpiNNaker';
         $scope.job.status = "submitted";
@@ -184,11 +186,34 @@ describe('DetailQueue', function() {
         expect($scope.job.tags[0]).toBe('tag_002');
         expect($scope.job.tags[1]).toBe('tag_003');
     });
-    // it('test $scope.submit_comment', function() {
-    //     $httpBackend.flush();
-    //     $scope.submit_comment();
+    it('test $scope.submit_comment', function() {
+        $httpBackend.flush();
+        $stateParams.eId = "1";
+        $scope.job.code = 'https://github.com/HumanBrainProject/hbp_neuromorphic_platform.git';
+        $scope.job.hardware_platform = 'SpiNNaker';
+        $scope.job.status = "finished";
+        $scope.job.command = '99';
+        $scope.job.hardware_config = {"menu":{"id":"file","popup":{"menuitem":[{"onclick":"CreateNewDoc()","value":"New"},{"onclick":"OpenDoc()","value":"Open"},{"onclick":"CloseDoc()","value":"Close"}]},"value":"File"}};
+        $scope.job.tags = 'toto';
+        $scope.job.user_id = '304621';
+        $scope.job.collab_id = 4293;
+        $scope.job.provanance = {
+                "collaboratory": {
+                    "nav_item":36930
+                }
+            };
+        $scope.job.tags = ['tag_001', 'tag_002', 'tag_003'];
+        $scope.job.comment = "";
+        $scope.job.resource_uri = '/api/v2/queue/1';
 
-    // });
+        $scope.comment.content = "test_comment 1 kdkd";
+        $scope.comment.user = '304621';
+        var sauv_comment = $scope.comment;
+        $httpBackend.expectPOST(window.base_url + window.ver_api + "comment/?format=json").respond(200, $scope.comment);
+        $scope.submit_comment($scope.comment, $scope.job);
+        $httpBackend.flush();
+        expect(sauv_comment).toBe($scope.job.comments[0]);
+    });
 
     it('test $scope.getLog', function() {
         $httpBackend.flush();
