@@ -431,6 +431,7 @@ angular.module('nmpi')
         };
 
         $scope.savejob = function(){
+            console.log("$scope.job : " + JSON.stringify($scope.job));
             var result = $scope.job.$save({},
                 function(data){  // success
                     $rootScope.msg = {
@@ -599,6 +600,7 @@ angular.module('nmpi')
         };
 
         $scope.savejob = function(){
+            console.log("$scope.job : " + JSON.stringify($scope.job));
             var result = $scope.job.$save({},
                 function(data){  // success
                     console.log(JSON.stringify(data));
@@ -607,7 +609,7 @@ angular.module('nmpi')
                         css: "success",
                         show: true
                     };
-                    $location.path( '/queue').search({ctx:$rootScope.ctx});
+                    $location.path('/queue').search({ctx:$rootScope.ctx});
                 },
                 function(err) { // error
                     console.log(err.status + ": " + err.data);

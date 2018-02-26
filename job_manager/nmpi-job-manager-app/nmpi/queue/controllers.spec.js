@@ -42,7 +42,7 @@ describe('ListQueue', function() {
         $httpBackend.expectGET("https://services.humanbrainproject.eu/idm/v1/api/user/").respond(200);
         $httpBackend.expectGET("https://services.humanbrainproject.eu/collab/v0/collab/").respond(200);
         $scope.get_queue(collab_id);
-        //$httpBackend.flush();
+        $httpBackend.flush();
         console.log("$scope.queue.objects : " + JSON.stringify($scope.queue.objects));
     });
 
@@ -59,15 +59,11 @@ describe('ListQueue', function() {
         //console.log("$scope.numberOfPages : " + $scope.numPages);
     });
 
-    it('test $scope.get_queue', function(){
-        $scope.get_queue(collab_id);
-        // $httpBackend.flush();
-        // expect($scope.get_queue).toHaveBeenCalledWith({id:collab_id}, jasmine.any(Function));
-        // expect($scope.queue).toBeDefined();
-        //setTimeout('$scope.get_queue(collab_id);', 1000)
-        console.log("$scope.queue : " + JSON.stringify($scope.queue));
-
-    });
+    // it('test $scope.numberOfPages', function(){
+    //     $scope.pageSize = 20;
+    //     result = $scope.numberOfPages();
+    //     console.log("result : " + $scope.numberOfPages);
+    // });
 });
 
 describe('DetailQueue', function() {
@@ -321,7 +317,6 @@ describe('AddJob', function() {
                     "nav_item":36930
                 }
             };
-
         $httpBackend.expectGET("static/nmpi/queue/list.tpl.html").respond(200);  // should redirect to list view on success
         $scope.savejob();
         $httpBackend.flush();
@@ -393,6 +388,8 @@ describe('ReSubmitJob', function() {
     it('test $scope.savejob (ReSubmitJob)', function(){
         spyOn(Queue, 'save').and.callThrough();
         $httpBackend.expectPOST(window.base_url + window.ver_api + "queue/?format=json").respond(200);
+        //$httpBackend.expectPOST(window.base_url + window.ver_api + "results/?format=json").respond(200);
+        //$httpBackend.expectGET("https://services.humanbrainproject.eu/idm/v1/api/user/me").respond(200);
         $scope.job.code = 'https://github.com/HumanBrainProject/hbp_neuromorphic_platform.git';
         $scope.job.hardware_platform = 'SpiNNaker';
         $scope.job.status = "submitted";
@@ -406,9 +403,9 @@ describe('ReSubmitJob', function() {
                     "nav_item":36930
                 }
             };
-        $httpBackend.expectGET("static/nmpi/queue/list.tpl.html").respond(200);  // should redirect to list view on success
+        $httpBackend.expectGET("static/nmpi/queue/resubmit.tpl.html").respond(200);  // should redirect to list view on success
         $scope.savejob();
-        //$httpBackend.flush();
+        $httpBackend.flush();
     });
 
     it('test $scope.reset', function(){
