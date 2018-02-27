@@ -18,15 +18,17 @@ describe('Queue factory', function() {
     var testComment = {"content": "ffdfdfsfds", "created_time": "2017-11-30T16:17:21", "id": 1, "job": "/api/v2/results/1", "resource_uri": "/api/v2/comment/1", "user": "me"};
     var testPostComment = {"content": "test_post_comment", "job": "/api/v2/results/1", "user": "me"};
     var testLog = {"list_endpoint": "/api/v2/log", "schema": "/api/v2/log/schema"};
+    var testTags = {"list_endpoint": "/api/v2/tags", "schema": "/api/v2/tags/schema"};
 
     // Before each test load our api.users module
     beforeEach(angular.mock.module('nmpi'));
 
-    beforeEach(inject(function(_Queue_, _Results_, _Comment_, _Log_, _$httpBackend_, _$q_, _$location_) {
+    beforeEach(inject(function(_Queue_, _Results_, _Comment_, _Log_, _Tags_, _$httpBackend_, _$q_, _$location_) {
         Queue = _Queue_;
         Results = _Results_;
         Comment = _Comment_;
         Log = _Log_;
+        Tags = _Tags_;
         $httpBackend = _$httpBackend_;
         $q = _$q_;
         $location = _$location_;
@@ -134,24 +136,42 @@ describe('Queue factory', function() {
     it('should exist Comment.get', function() {
         expect(Comment.get).toBeDefined();
     });
+
     it('test result Comment.get', function() {
+        var comment;
+        // Declare the endpoint we expect our service to hit and provide it with our mocked return values
         $httpBackend.expectGET(window.base_url + window.ver_api + "comment/1/?format=json").respond(testComment);
         expect(Comment.get).not.toHaveBeenCalled();
         expect(result).toEqual({});
         var rs1;
         rs1 = Comment.get({id:'1'}, function(res){
-            result = res;
+            comment = res;
+            //console.log('comment 1 : ' + comment.content);
         });
         // Flush pending HTTP requests
         $httpBackend.flush();
+        //console.log('rs1 : ' + JSON.stringify(rs1));
         expect(Comment.get).toHaveBeenCalledWith({id:'1'}, jasmine.any(Function));
-        expect(result).toBeDefined();
-        expect(result.list_endpoint).toEqual(testComment.list_endpoint);
-
+        expect(comment).toBeDefined();
+        //console.log("comment.content : " + comment.content);
+        expect(comment.content).toEqual(testComment.content);
     });
-        
+
     it('should exist Comment.save', function() {
         expect(Comment.save).toBeDefined();
+    });
+
+    it('test result Comment.save', function() {
+        // Declare the endpoint we expect our service to hit and provide it with our mocked return values
+        $httpBackend.expectPOST(window.base_url + window.ver_api + "comment/?format=json").respond(200);
+        // post new comment
+        expect(Comment.save).toBeDefined();
+        //console.log('testPostComment : ' + JSON.stringify(testPostComment));
+        rs_save = Comment.save(testPostComment);
+        //console.log("rs_save : " + JSON.stringify(rs_save));
+        //expect(Comment.save).toHaveBeenCalledWith({id:'1'}, jasmine.any(Function));
+        expect(Comment.save).toHaveBeenCalledWith( testPostComment );
+        $httpBackend.flush();
     });
 
     it('should exist Comment.del', function() {
@@ -186,37 +206,7 @@ describe('Queue factory', function() {
         expect(result.list_endpoint).toEqual(testLog.list_endpoint);
     });
 
-    it('test result Comment.get', function() {
-        var comment;
-
-        // Declare the endpoint we expect our service to hit and provide it with our mocked return values
-        $httpBackend.expectGET(window.base_url + window.ver_api + "comment/1/?format=json").respond(testComment);
-        expect(Comment.get).not.toHaveBeenCalled();
-        expect(result).toEqual({});
-        var rs1;
-        rs1 = Comment.get({id:'1'}, function(res){
-            comment = res;
-            //console.log('comment 1 : ' + comment.content);
-        });
-        // Flush pending HTTP requests
-        $httpBackend.flush();
-        //console.log('rs1 : ' + JSON.stringify(rs1));
-        expect(Comment.get).toHaveBeenCalledWith({id:'1'}, jasmine.any(Function));
-        expect(comment).toBeDefined();
-        //console.log("comment.content : " + comment.content);
-        expect(comment.content).toEqual(testComment.content);
-    });
-    
-    it('test result Comment.save', function() {
-        // Declare the endpoint we expect our service to hit and provide it with our mocked return values
-        $httpBackend.expectPOST(window.base_url + window.ver_api + "comment/?format=json").respond(200);
-        // post new comment
-        expect(Comment.save).toBeDefined();
-        //console.log('testPostComment : ' + JSON.stringify(testPostComment));
-        rs_save = Comment.save(testPostComment);
-        //console.log("rs_save : " + JSON.stringify(rs_save));
-        //expect(Comment.save).toHaveBeenCalledWith({id:'1'}, jasmine.any(Function));
-        expect(Comment.save).toHaveBeenCalledWith( testPostComment );
-        $httpBackend.flush();
+    it('should exist Tags.get', function(){
+        expect(Tags.get).toBeDefined();
     });
   });
