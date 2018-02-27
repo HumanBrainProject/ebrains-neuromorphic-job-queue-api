@@ -45,6 +45,7 @@ describe('Queue factory', function() {
         spyOn(Comment, 'get').and.callThrough();
         spyOn(Comment, 'save').and.callThrough();
         spyOn(Log, 'get').and.callThrough();
+        spyOn(Tags, 'get').and.callThrough();
     });
 
     it('should exist Queue Factory', function() {
@@ -208,5 +209,21 @@ describe('Queue factory', function() {
 
     it('should exist Tags.get', function(){
         expect(Tags.get).toBeDefined();
+    });
+
+    it('test result Tags.get', function(){
+        $httpBackend.expectGET(window.base_url + window.ver_api + "tags/1/?format=json").respond(testTags);
+        expect(Tags.get).not.toHaveBeenCalled();
+        expect(result).toEqual({});
+        var rs1;
+        rs1 = Tags.get({id:'1'}, function(res){
+            result = res;
+            console.log("tags result : " + JSON.stringify(result));
+        });
+        // Flush pending HTTP requests
+        $httpBackend.flush();
+        expect(Tags.get).toHaveBeenCalledWith({id:'1'}, jasmine.any(Function));
+        expect(result).toBeDefined();
+        expect(result.list_endpoint).toEqual(testTags.list_endpoint);
     });
   });
