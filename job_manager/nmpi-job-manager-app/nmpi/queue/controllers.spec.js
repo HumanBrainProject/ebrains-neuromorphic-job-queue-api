@@ -42,7 +42,7 @@ describe('ListQueue', function() {
         $httpBackend.expectGET("https://services.humanbrainproject.eu/idm/v1/api/user/").respond(200);
         $httpBackend.expectGET("https://services.humanbrainproject.eu/collab/v0/collab/").respond(200);
         $scope.get_queue(collab_id);
-        $httpBackend.flush();
+        //$httpBackend.flush();
         console.log("$scope.queue.objects : " + JSON.stringify($scope.queue.objects));
     });
 
@@ -405,7 +405,7 @@ describe('ReSubmitJob', function() {
             };
         $httpBackend.expectGET("static/nmpi/queue/resubmit.tpl.html").respond(200);  // should redirect to list view on success
         $scope.savejob();
-        $httpBackend.flush();
+        //$httpBackend.flush();
     });
 
     it('test $scope.reset', function(){

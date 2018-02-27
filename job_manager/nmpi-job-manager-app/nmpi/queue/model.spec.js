@@ -134,6 +134,21 @@ describe('Queue factory', function() {
     it('should exist Comment.get', function() {
         expect(Comment.get).toBeDefined();
     });
+    it('test result Comment.get', function() {
+        $httpBackend.expectGET(window.base_url + window.ver_api + "comment/1/?format=json").respond(testComment);
+        expect(Comment.get).not.toHaveBeenCalled();
+        expect(result).toEqual({});
+        var rs1;
+        rs1 = Comment.get({id:'1'}, function(res){
+            result = res;
+        });
+        // Flush pending HTTP requests
+        $httpBackend.flush();
+        expect(Comment.get).toHaveBeenCalledWith({id:'1'}, jasmine.any(Function));
+        expect(result).toBeDefined();
+        expect(result.list_endpoint).toEqual(testComment.list_endpoint);
+
+    });
         
     it('should exist Comment.save', function() {
         expect(Comment.save).toBeDefined();
