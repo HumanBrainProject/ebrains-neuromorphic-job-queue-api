@@ -43,22 +43,18 @@ describe('DataItem factory', function() {
         var rs1;
         rs1 = DataItem.get({id:'1'}, function(res){
             result = res;
-            //console.log('result 1 : ' + result.content);
         });
         // Flush pending HTTP requests
         $httpBackend.flush();
         expect(DataItem.get).toHaveBeenCalledWith({id:'1'}, jasmine.any(Function));
         expect(result).toBeDefined();
-        //console.log("result.content : " + result.content);
         expect(result.content).toEqual(testDataItem.content);        
     });
 
     it('test result DataItem.save', function() {
         $httpBackend.expectPOST(window.base_url + window.ver_api + "dataitem/?format=json").respond(200);
         expect(DataItem.save).toBeDefined();
-        //console.log('testPostDataItem : ' + JSON.stringify(testPostDataItem));
         rs_save = DataItem.save(testPostDataItem);
-        //console.log("rs_save : " + JSON.stringify(rs_save));
         expect(DataItem.save).toHaveBeenCalledWith( testPostDataItem );
         $httpBackend.flush();
     });

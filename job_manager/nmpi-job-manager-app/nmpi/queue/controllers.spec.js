@@ -38,19 +38,20 @@ describe('ListQueue', function() {
         spyOn(Queue, 'get').and.callThrough();
         spyOn(User, 'get').and.callThrough();
         spyOn(Collab, 'get').and.callThrough();
-        $httpBackend.expectGET(window.base_url + window.ver_api + 'queue/?collab_id=' + collab_id).respond(200);
+        $httpBackend.expectGET(window.base_url + window.ver_api + 'queue/?collab_id=' + collab_id + '&format=json').respond(200);
         $httpBackend.expectGET("https://services.humanbrainproject.eu/idm/v1/api/user/").respond(200);
         $httpBackend.expectGET("https://services.humanbrainproject.eu/collab/v0/collab/").respond(200);
         $scope.get_queue(collab_id);
-        //$httpBackend.flush();
+        $httpBackend.flush();
         console.log("$scope.queue.objects : " + JSON.stringify($scope.queue.objects));
     });
 
     it('test $scope.get_results', function(){
-        spyOn(Results, 'get').and.callThrough();
-        $httpBackend.expectGET(window.base_url + window.ver_api + 'results/?collab_id=' + collab_id).respond(200);
-        $scope.get_results(collab_id);
         //$httpBackend.flush();
+        spyOn(Results, 'get').and.callThrough();
+        $httpBackend.expectGET(window.base_url + window.ver_api + 'results/?collab_id=' + collab_id + '&format=json').respond(200);
+        $scope.get_results(collab_id);
+        $httpBackend.flush();
         // angular.forEach($scope.results.objects, function(value, key) {
         //     console.log(key + ': ' + value);
         // });
@@ -364,8 +365,8 @@ describe('ReSubmitJob', function() {
                 id: 99999
             }
         };
-        $httpBackend.expectGET('https://services.humanbrainproject.eu/idm/v1/api/user/me').respond(200, {});
-        $httpBackend.expectGET('https://services.humanbrainproject.eu/collab/v0/collab/context/').respond(200, fake_context);
+        //$httpBackend.expectGET('https://services.humanbrainproject.eu/idm/v1/api/user/me').respond(200, {});
+        //$httpBackend.expectGET('https://services.humanbrainproject.eu/collab/v0/collab/context/').respond(200, fake_context);
     })));
     // Verify our controller exists
     it('ReSubmitJob controller should be defined', function() {
@@ -386,9 +387,11 @@ describe('ReSubmitJob', function() {
     });
 
     it('test $scope.savejob (ReSubmitJob)', function(){
-        spyOn(Queue, 'save').and.callThrough();
-        $httpBackend.expectPOST(window.base_url + window.ver_api + "queue/?format=json").respond(200);
-        //$httpBackend.expectPOST(window.base_url + window.ver_api + "results/?format=json").respond(200);
+        // spyOn(Queue, 'save').and.callThrough();
+        spyOn(Queue, 'get').and.callThrough();
+        // $httpBackend.expectPOST(window.base_url + window.ver_api + "queue/?format=json").respond(200);
+        $httpBackend.expectGET(window.base_url + window.ver_api + "queue/?format=json").respond(200);
+        $httpBackend.expectGET(window.base_url + window.ver_api + "results/?format=json").respond(200);
         //$httpBackend.expectGET("https://services.humanbrainproject.eu/idm/v1/api/user/me").respond(200);
         $scope.job.code = 'https://github.com/HumanBrainProject/hbp_neuromorphic_platform.git';
         $scope.job.hardware_platform = 'SpiNNaker';
@@ -405,7 +408,7 @@ describe('ReSubmitJob', function() {
             };
         $httpBackend.expectGET("static/nmpi/queue/resubmit.tpl.html").respond(200);  // should redirect to list view on success
         $scope.savejob();
-        //$httpBackend.flush();
+        $httpBackend.flush();
     });
 
     it('test $scope.reset', function(){
