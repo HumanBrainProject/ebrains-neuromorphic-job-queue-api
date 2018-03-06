@@ -19,6 +19,3 @@ matrix:
     - cd job_manager
     - python manage.py migrate --noinput
     - python manage.py test simqueue
-  - language: nodejs
-    node_js:
-    - 0.8
