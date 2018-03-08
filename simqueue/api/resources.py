@@ -235,7 +235,7 @@ class QueueResource(BaseJobResource):
     def obj_create(self, bundle, **kwargs):
         # todo: check user is either an HBP member or has permission to use the platform
         selected_tab = str(bundle.data.get('selected_tab'))
-        if selected_tab == "upload_script" :
+        if selected_tab == "upload_script":
             bundle.data["code"] = self.copy_code_file_from_collab_storage(bundle)
             # putting the temporary download path in the code field is not ideal.
             # perhaps we can temporarily store the collab file id somewhere, and
@@ -247,7 +247,10 @@ class QueueResource(BaseJobResource):
         """
         Download code from Collab storage
         """
-        from hbp_service_client.document_service.client import Client as DocClient
+        try:  # older versions of hbp-service-client
+            from hbp_service_client.document_service.client import Client as DocClient
+        except ImportError:
+            from hbp_service_client.storage_service.api import ApiClient as DocClient
         joinp = os.path.join
 
         access_token = get_access_token(bundle.request.user.social_auth.get())
