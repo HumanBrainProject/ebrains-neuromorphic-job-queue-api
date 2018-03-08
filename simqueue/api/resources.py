@@ -253,7 +253,9 @@ class QueueResource(BaseJobResource):
             from hbp_service_client.storage_service.api import ApiClient as DocClient
         joinp = os.path.join
 
-        access_token = get_access_token(bundle.request.user.social_auth.get())
+        auth = bundle.request.META["HTTP_AUTHORIZATION"]
+        assert auth.startswith("Bearer ")
+        access_token = auth[len("Bearer "):]
         doc_client = DocClient.new(access_token)
 
         entity_id = bundle.data.get("code")
