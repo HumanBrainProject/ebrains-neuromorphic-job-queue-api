@@ -25,6 +25,7 @@ matrix:
       - 0.8
       before_script:
       - export DISPLAY=:99.0
+      - sh -e /etc/init.d/xvfb start
       stript:
       - cd job_manager/nmpi-job-manager-app/nmpi
       - karma start --single-run
