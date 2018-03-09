@@ -28,4 +28,4 @@ matrix:
       - sh -e /etc/init.d/xvfb start
       stript:
       - cd job_manager/nmpi-job-manager-app/nmpi
-      - karma start --single-run
+      - node_modules/karma/bin/karma start --single-run
