@@ -17,6 +17,7 @@ matrix:
       - python -c "import django; print(django.get_version())"
       - export NMPI_ENV=travis
       script:
+      - npm update -g npm
       - cd job_manager
       - python manage.py migrate --noinput
       - python manage.py test simqueue
