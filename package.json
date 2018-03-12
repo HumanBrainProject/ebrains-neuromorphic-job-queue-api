@@ -1,5 +1,6 @@
 {
 "devDependencies": {
+    "bower": "1.7.10",
     "karma": "~0.8"
   },
   "scripts": {
