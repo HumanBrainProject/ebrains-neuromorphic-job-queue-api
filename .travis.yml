@@ -7,6 +7,11 @@ matrix:
       before_install:
       - openssl aes-256-cbc -K $encrypted_f930a91c198a_key -iv $encrypted_f930a91c198a_iv
         -in packages/hbp-app-python-auth-master.zip.enc -out packages/hbp-app-python-auth-master.zip -d
+      install:
+      - sudo apt-get install libpq-dev python-dev
+      - ls -R packages/
+      - unzip packages/hbp-app-python-auth-master.zip -d packages/
+      - pip install -f packages -r job_manager/requirements_ci.txt
       before_script:
       - export PYTHONPATH=$PYTHONPATH:$(pwd)
       - python -c "import django; print(django.get_version())"
