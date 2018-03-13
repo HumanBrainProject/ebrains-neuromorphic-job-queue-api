@@ -24,10 +24,12 @@ matrix:
     - language: node_js
       node_js:
       - 0.8
-      # before_script:
-      # - npm cache clean
-      # - export DISPLAY=:99.0
-      # - sh -e /etc/init.d/xvfb start
+      before_script:
+      - npm cache clean
+      - export DISPLAY=:99.0
+      - sh -e /etc/init.d/xvfb start
       stript:
       - cd job_manager/nmpi-job-manager-app/nmpi
       - node_modules/karma/bin/karma start --single-run
+      after_failure:
+      - cat /home/travis/build/HumanBrainProject/hbp_neuromorphic_platform/npm-debug.log
