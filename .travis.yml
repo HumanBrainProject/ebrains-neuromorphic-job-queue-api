@@ -25,11 +25,14 @@ matrix:
       node_js:
       - 0.8
       before_script:
+      - echo "***** before_script *****"
       - npm cache clean
       - export DISPLAY=:99.0
       - sh -e /etc/init.d/xvfb start
       stript:
+      - echo "***** stript *****"
       - cd job_manager/nmpi-job-manager-app/nmpi
       - node_modules/karma/bin/karma start --single-run
       after_failure:
+      - echo "***** after_failure *****"
       - cat /home/travis/build/HumanBrainProject/hbp_neuromorphic_platform/npm-debug.log
