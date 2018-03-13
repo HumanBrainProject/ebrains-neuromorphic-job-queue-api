@@ -16,7 +16,6 @@ matrix:
       - export PYTHONPATH=$PYTHONPATH:$(pwd)
       - python -c "import django; print(django.get_version())"
       - export NMPI_ENV=travis
-      - npm cache clean
       script:
       - npm update -g npm
       - cd job_manager
@@ -26,6 +25,7 @@ matrix:
       node_js:
       - 0.8
       before_script:
+      - npm cache clean
       - export DISPLAY=:99.0
       - sh -e /etc/init.d/xvfb start
       stript:
