@@ -35,7 +35,8 @@ matrix:
       # - echo "***** stript *****"
       # - cd job_manager/nmpi-job-manager-app/nmpi
       # - node_modules/karma/bin/karma start --browsers Chrome --single-run
-      - ./node_modules/.bin/karma start --browsers Chrome --single-run /home/travis/build/HumanBrainProject/hbp_neuromorphic_platform/tree/feature/test_karma/job_manager/nmpi-job-manager-app/nmpi/karma.conf.js
+      - cat job_manager/nmpi-job-manager-app/nmpi/karma.conf.js
+      - ./node_modules/.bin/karma start --browsers Chrome --single-run job_manager/nmpi-job-manager-app/nmpi/karma.conf.js
       # /Users/jojo/Documents_2/hbp/hbp_neuromorphic_platform/job_manager/nmpi-job-manager-app/nmpi/karma.conf.js
 
       after_failure:
