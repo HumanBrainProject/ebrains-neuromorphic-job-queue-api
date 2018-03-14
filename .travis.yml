@@ -37,6 +37,7 @@ matrix:
       # - node_modules/karma/bin/karma start --browsers Chrome --single-run
       - cat job_manager/nmpi-job-manager-app/nmpi/karma.conf.js
       - nvm ls
+      - karma --version
       - ./node_modules/.bin/karma start job_manager/nmpi-job-manager-app/nmpi/karma.conf.js --browsers Chrome --single-run 
       # /Users/jojo/Documents_2/hbp/hbp_neuromorphic_platform/job_manager/nmpi-job-manager-app/nmpi/karma.conf.js
 
