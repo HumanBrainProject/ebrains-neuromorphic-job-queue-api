@@ -23,11 +23,12 @@ matrix:
       - python manage.py test simqueue
     - language: node_js
       node_js:
-      - 0.8
+      - "node"
+      - "9"
       # before_script:
       # - echo "***** before_script *****"
       before_install:
-      # - npm cache clean
+      - npm cache clean
       - export DISPLAY=:99.0
       - sh -e /etc/init.d/xvfb start
       stript:
