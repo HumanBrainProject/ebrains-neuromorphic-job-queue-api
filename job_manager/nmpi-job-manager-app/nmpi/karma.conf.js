@@ -3,7 +3,7 @@
 
 // var URL_FILES = '/Users/jojo/Documents_2/hbp/hbp_neuromorphic_platform/job_manager/nmpi-job-manager-app';
 //var URL_FILES = 'job_manager/nmpi-job-manager-app';
-var URL_FILES = '';
+var URL_FILES = 'job_manager/nmpi-job-manager-app';
 //var URL_FILES = '/Users/andrew/dev/nmpi-gh/job_manager/lib'
 
 
