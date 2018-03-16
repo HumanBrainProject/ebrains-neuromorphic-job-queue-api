@@ -36,7 +36,7 @@ matrix:
       # - karma --version
       # - ./node_modules/.bin/karma start job_manager/nmpi-job-manager-app/nmpi/karma.conf.js --browsers Chrome --single-run 
       - unzip job_manager/nmpi-job-manager-app/static_file_nmpi.zip 
-      - find | grep -e "job_manager/nmpi-job-manager-app/nmpi"
+      - find | grep -e "job_manager/nmpi-job-manager-app"
       - ./node_modules/.bin/karma start job_manager/nmpi-job-manager-app/nmpi/karma.conf.js --browsers PhantomJS --single-run 
       after_failure:
       - cat /home/travis/build/HumanBrainProject/hbp_neuromorphic_platform/npm-debug.log
