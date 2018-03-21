@@ -36,7 +36,7 @@ matrix:
       # - karma --version
       # - ./node_modules/.bin/karma start job_manager/nmpi-job-manager-app/nmpi/karma.conf.js --browsers Chrome --single-run 
       - unzip ./job_manager/nmpi-job-manager-app/static_file_nmpi.zip -d ./job_manager/nmpi-job-manager-app
-      - find | grep 'job_manager/'
+      - find | grep 'job_manager'
       # - find
       - sleep 20
       - ./node_modules/.bin/karma start job_manager/nmpi-job-manager-app/nmpi/karma.conf.js --browsers PhantomJS --single-run 
