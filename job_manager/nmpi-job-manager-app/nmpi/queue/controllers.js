@@ -321,6 +321,7 @@ angular.module('nmpi')
         $scope.isImage = function(url) {
             var filename = url.split('/').pop();
             var extension = filename.split('.').pop().toLowerCase();
+            console.log("ext : " + extension);
             return ['jpg', 'jpeg', 'gif', 'png', 'svg'].includes(extension);
         };
 
