@@ -1,6 +1,7 @@
 // window.base_url = 'https://127.0.0.1:8000/app/';
 // var ctx = "86c8aff9-89ed-4d04-a996-81c3987a52f7";
-window.base_url = 'https://127.0.0.1:8000';
+//window.base_url = 'https://127.0.0.1:8000';
+window.base_url = 'https://nmpi.hbpneuromorphic.eu';
 window.ver_api = '/api/v2/';
 var collab_id = 4293;
 

@@ -8,8 +8,8 @@ describe('Queue factory', function() {
     var $q;
     var $location;
 
-    window.base_url = 'https://127.0.0.1:8000';
-    //window.base_url = '';
+    //window.base_url = 'https://127.0.0.1:8000';
+    window.base_url = 'https://nmpi.hbpneuromorphic.eu';
     window.ver_api = '/api/v2/';
 
     var testQueue = {"list_endpoint": "/api/v2/queue", "schema": "/api/v2/queue/schema"};
