@@ -40,6 +40,6 @@ matrix:
       - find | grep 'job_manager'
       # - find
       - sleep 20
-      - ./node_modules/.bin/karma start job_manager/nmpi-job-manager-app/nmpi/karma.conf.js --browsers Chrome --single-run 
+      - ./node_modules/.bin/karma start job_manager/nmpi-job-manager-app/nmpi/karma.conf.js --browsers Chrome_travis_ci --single-run 
       after_failure:
       - cat /home/travis/build/HumanBrainProject/hbp_neuromorphic_platform/npm-debug.log
