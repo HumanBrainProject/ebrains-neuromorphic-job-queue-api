@@ -115,7 +115,7 @@
             <a class="btn btn-info" role="button" href="app/#/queue/create?ctx={{ctx}}" ng-if="with_ctx && inTeam && canAccessPlatform">New Job</a>
             <a class="btn btn-info" role="button" href="" ng-if="!with_ctx" onclick="alert('You have to be within an HBP Collaboratory to submit a new job.')">New Job</a>
             <p ng-if="!inTeam"><small>Only members of this Collab are able to submit jobs</small></p>
-            <p ng-if="!canAccessPlatform"><small>You cannot submit new jobs because you have not yet signed the Platform User Agreement.<br>Please contact neuromorphic@humanbrainproject.eu</small></p>
+            <p ng-if="!canAccessPlatform"><small>You cannot submit new jobs because you have not yet signed the <a href="https://electronicvisions.github.io/hbp-sp9-guidebook/quick_start.html#getting-started" target="_blank">Platform User Agreement</a>.<br>Please contact neuromorphic@humanbrainproject.eu</small></p>
         </div>
         </div>
     </div>
