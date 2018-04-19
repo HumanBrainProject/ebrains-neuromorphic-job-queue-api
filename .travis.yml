@@ -12,6 +12,7 @@ matrix:
       - ls -R packages/
       - unzip packages/hbp-app-python-auth-master.zip -d packages/
       - pip install -f packages -r job_manager/requirements_ci.txt
+      - pip install -f packages -r resource_manager/requirements.txt
       before_script:
       - export PYTHONPATH=$PYTHONPATH:$(pwd)
       - python -c "import django; print(django.get_version())"
@@ -22,7 +23,7 @@ matrix:
       - python manage.py migrate --noinput
       - python manage.py test simqueue
       - cd ../resource_manager
-      - sudo touch /var/log/django.log
+      - sudo chmod 755 /var/log/django.log
       - python manage.py migrate --noinput
       - python manage.py test quotas
     - language: node_js
