@@ -23,7 +23,6 @@ matrix:
       - python manage.py migrate --noinput
       - python manage.py test simqueue
       - cd ../resource_manager
-      - sudo chmod 755 /var/log/django.log
       - python manage.py migrate --noinput
       - python manage.py test quotas
     - language: node_js
