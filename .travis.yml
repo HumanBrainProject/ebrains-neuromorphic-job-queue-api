@@ -21,6 +21,9 @@ matrix:
       - cd job_manager
       - python manage.py migrate --noinput
       - python manage.py test simqueue
+      - cd ../resource_manager
+      - python manage.py migrate --noinput
+      - python manage.py test quotas
     - language: node_js
       node_js:
       - "node"
