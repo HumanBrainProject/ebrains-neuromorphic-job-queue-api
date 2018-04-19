@@ -22,6 +22,7 @@ matrix:
       - python manage.py migrate --noinput
       - python manage.py test simqueue
       - cd ../resource_manager
+      - touch /var/log/django.log
       - python manage.py migrate --noinput
       - python manage.py test quotas
     - language: node_js
