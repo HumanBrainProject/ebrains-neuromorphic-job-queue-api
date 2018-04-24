@@ -1,14 +1,11 @@
-describe('Collab and Context factory', function() {
+describe('Resource manager controller and factory', function() {
     // Before each test load our api.users module
+    var Projects, Quotas;
     beforeEach(angular.mock.module('request-app'));
 
     // Before each test set our injected Projects factory (_Projects_) to our local Projects variable
-    beforeEach(inject(function(_Projects_) {
+    beforeEach(inject(function(_Projects_, _Quotas_) {
         Projects = _Projects_;
-    }));
-
-    // Before each test set our injected Quotas factory (_Quotas_) to our local Quotas variable
-    beforeEach(inject(function(_Quotas_) {
         Quotas = _Quotas_;
     }));
 

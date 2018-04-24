@@ -1,6 +1,6 @@
 // Karma configuration
 // Generated on Tue Apr 24 2018 09:24:00 GMT+0200 (CEST)
-var URL_FILES = '.';
+var URL_FILES = './app';
 
 module.exports = function(config) {
   config.set({
@@ -143,8 +143,11 @@ module.exports = function(config) {
 
       // URL_FILES + '/Users/jojo/hbp/hbp_neuromorphic_platform/node_modules/karma-html/index.js',
 
-      './app.js',
-      './app.spec.js',
+      './app/app.js',
+      './app/app.spec.js',
+      './coordinator_app/coordinator-app.js',
+      './coordinator_app/coordinator-app.spec.js',
+
     ],
 
 
