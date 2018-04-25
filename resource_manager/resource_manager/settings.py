@@ -121,7 +121,6 @@ STATICFILES_DIRS = [
     os.path.join(BASE_DIR, "lib"),
     os.path.join(BASE_DIR, "app"),
     os.path.join(BASE_DIR, "coordinator_app"),
-    os.path.join(BASE_DIR, "job_manager/nmpi-job-manager-app"),
 ]
 
 

@@ -1,6 +1,7 @@
 // Karma configuration
 // Generated on Tue Apr 24 2018 09:24:00 GMT+0200 (CEST)
-var URL_FILES = './app';
+// var URL_FILES = './app';
+var URL_FILES = '../job_manager/nmpi-job-manager-app';
 
 module.exports = function(config) {
   config.set({
