@@ -13,6 +13,10 @@ describe('Resource manager controller and factory', function() {
     it('should exist Projects Factory', function() {
         expect(Projects).toBeDefined();
     });
+    
+    it('should exist Projects.update', function(){
+        expect(Projects.update).toBeDefined();
+    });
 
     it('should exist Quotas Factory', function() {
         expect(Quotas).toBeDefined();

@@ -38,3 +38,5 @@ matrix:
       script:
       - unzip ./job_manager/nmpi-job-manager-app/static_file_nmpi.zip -d ./job_manager/nmpi-job-manager-app
       - ./node_modules/.bin/karma start job_manager/nmpi-job-manager-app/nmpi/karma.conf.js --browsers Chrome_travis_ci --single-run 
+      - ./node_modules/.bin/karma start resource_manager/karma.conf.js --browsers Chrome_travis_ci --single-run
+      
