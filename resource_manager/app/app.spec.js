@@ -34,6 +34,9 @@ describe('Resource manager controller and factory', function() {
         it('HelloCtrl controller should be defined', function() {
             expect(controller).toBeDefined();
         });
+        it('HelloCtrl test result', function() {
+            expect($scope.thing.name).toEqual("World");
+        });
     });
 
     describe('ViewProjectCtrl', function(){
