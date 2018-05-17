@@ -1,19 +1,25 @@
 describe('Coordinator controller and factory', function() {
+    window.base_url = 'https://127.0.0.1:8001';
+    window.ver_api = '/v1/api';
+    var user_test = '304621';
+    var project_test = '1542c7cd-497a-4cf1-a689-c19eac3dc1a0';
+
     var User, Projects, Quotas;
     var $httpBackend;
 
     var testUser = {};
     var testProject = {
-        "status": "under review", 
-        "description": "fdsfdsfds", 
-        "title": "FF", 
-        "abstract": "fedds", 
+        "status": "accepted", 
+        "description": "project01 description", 
+        "title": "project01", 
+        "abstract": "project01 abstract", 
         "collab": "4293", 
         "quotas": [], 
-        "duration": 0, 
-        "context": "7e3d3bb7-95bd-4679-8da0-d3cc921cc0f0", 
+        "duration": 5, 
+        "context": "1542c7cd-497a-4cf1-a689-c19eac3dc1a0", 
         "owner": "304621", 
-        "resource_uri": "/projects/7e3d3bb7-95bd-4679-8da0-d3cc921cc0f0"
+        "start_date": "2018-05-16", 
+        "resource_uri": "/projects/1542c7cd-497a-4cf1-a689-c19eac3dc1a0"
     };
     beforeEach(angular.mock.module('request-coordinator-app'));
 
@@ -26,40 +32,6 @@ describe('Coordinator controller and factory', function() {
     beforeEach(function() {
         // Initialize our local result object to an empty object before each test
         result = {};
-
-        // spyOn(User).and.callThrough();
-        // spyOn(Projects).and.callThrough();
-
-    });
-    // A simple test to verify the factory exists
-    it('should exist User Factory', function() {
-        expect(User).toBeDefined();
-    });
-    // it('test result User factory', function() {
-    //     $httpBackend.expectGET(window.base_url + window.ver_api + "/user/1/?format=json").respond(testUser);
-    //     expect(User).not.toHaveBeenCalled();
-    // });
-    it('should exist Projects Factory', function() {
-        expect(Projects).toBeDefined();
-    });
-    // it('test Projects factory', function(){
-    //     spyOn(Projects, 'id').and.callThrough();
-    //     $httpBackend.expectGET("https://quotas.hbpneuromorphic.eu/projects/7e3d3bb7-95bd-4679-8da0-d3cc921cc0f0").respond(testProject);
-    //     expect(Projects.id).not.toHaveBeenCalled();
-    //     expect(result).toEqual({});
-    //     var rs1;
-    //     rs1 = Projects({id:'7e3d3bb7-95bd-4679-8da0-d3cc921cc0f0'}, function(res){
-    //         result = res;
-    //     });
-        
-    //     // Flush pending HTTP requests
-    //     $httpBackend.flush();
-    //     expect(Projects).toHaveBeenCalledWith({id:'7e3d3bb7-95bd-4679-8da0-d3cc921cc0f0'}, jasmine.any(Function));
-    //     expect(result).toBeDefined();
-    //     expect(result.description).toEqual(testProject.description);
-    // });
-    it('should exist Quotas Factory', function() {
-        expect(Quotas).toBeDefined();
     });
 
     describe('RequestListController', function(){
@@ -69,8 +41,50 @@ describe('Coordinator controller and factory', function() {
             $rootScope = _$rootScope_;
             Projects = _Projects_;
             User = _User_;
+
+            spyOn(User, 'get').and.callThrough();
+            spyOn(Projects, 'get').and.callThrough();
+            // spyOn(Projects, 'put').and.callThrough();
+            spyOn(Quotas, 'get').and.callThrough();  
+
             controller = $controller('RequestListController', { $scope: $scope });;
         })));
+        it('should exist User Factory', function() {
+            expect(User).toBeDefined();
+        });
+        it('test result User factory', function() {
+            $httpBackend.expectGET("https://services.humanbrainproject.eu" + window.ver_api + "/user/" + user_test).respond(testUser);
+            expect(User).not.toHaveBeenCalled();
+            expect(result).toEqual({});
+            var rs1;
+            rs1 = User.get({id:'1'}, function(res){
+                result = res;
+            });
+            // Flush pending HTTP requests
+            $httpBackend.flush();
+    
+        });
+        it('should exist Projects Factory', function() {
+            expect(Projects).toBeDefined();
+        });
+        it('test Projects factory', function(){
+            $httpBackend.expectGET(base_url + "/projects/" + project_test).respond(testProject);
+            expect(Projects.id).not.toHaveBeenCalled();
+            expect(result).toEqual({});
+            var rs1;
+            rs1 = Projects({id:project_test}, function(res){
+                result = res;
+            });
+            
+            // Flush pending HTTP requests
+            $httpBackend.flush();
+            expect(Projects).toHaveBeenCalledWith({id:project_test}, jasmine.any(Function));
+            expect(result).toBeDefined();
+            expect(result.description).toEqual(testProject.description);
+        });
+        it('should exist Quotas Factory', function() {
+            expect(Quotas).toBeDefined();
+        });
         it('RequestListController controller should be defined', function() {
             expect(controller).toBeDefined();
         });
@@ -83,6 +97,12 @@ describe('Coordinator controller and factory', function() {
                 expect($scope.css[array_tab[i]]).toEqual('btn btn-primary');
                 expect($scope.selectedTab).toEqual(array_tab[i]);
             }
+        });
+        it('test Projects.query', function() {
+            // $httpBackend.flush();
+            // console.log("Projects : " + Projects.query());
+            // toto = Projects.query();
+            // console.log("$scope.projects : " + $scope.projects);
         });
     });
 
