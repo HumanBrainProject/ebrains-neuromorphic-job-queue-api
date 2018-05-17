@@ -1,6 +1,9 @@
 (function() {
 
 window.base_url = '';
+// window.base_url = 'https://services.humanbrainproject.eu/idm';
+// window.ver_api = '/v1/api';
+
 
 angular.module('request-coordinator-app', ['ngResource', 'ui.bootstrap', 'hbpCommon'])
     .config(
