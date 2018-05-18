@@ -47,44 +47,52 @@ describe('Coordinator controller and factory', function() {
             // spyOn(Projects, 'put').and.callThrough();
             spyOn(Quotas, 'get').and.callThrough();  
 
-            controller = $controller('RequestListController', { $scope: $scope });;
+            $httpBackend.expectGET(window.base_url + "/projects/").respond(200);
+            controller = $controller('RequestListController', { $scope: $scope });
+            $httpBackend.flush();
         })));
         it('should exist User Factory', function() {
             expect(User).toBeDefined();
         });
         it('test result User factory', function() {
-            $httpBackend.expectGET("https://services.humanbrainproject.eu" + window.ver_api + "/user/" + user_test).respond(testUser);
-            expect(User).not.toHaveBeenCalled();
+            $httpBackend.expectGET("https://services.humanbrainproject.eu/idm" + window.ver_api + "/user/" + user_test).respond(testUser);
+            // expect(User.get).not.toHaveBeenCalled();
             expect(result).toEqual({});
             var rs1;
-            rs1 = User.get({id:'1'}, function(res){
+            rs1 = User.get({id:user_test}, function(res){
                 result = res;
+                console.log("result user : " + JSON.stringify(result));
             });
+            console.log("users : " + JSON.stringify(rs1));
             // Flush pending HTTP requests
             $httpBackend.flush();
-    
+            expect(User.get).toHaveBeenCalledWith({id:user_test}, jasmine.any(Function));
         });
         it('should exist Projects Factory', function() {
             expect(Projects).toBeDefined();
         });
         it('test Projects factory', function(){
             $httpBackend.expectGET(base_url + "/projects/" + project_test).respond(testProject);
-            expect(Projects.id).not.toHaveBeenCalled();
+            // expect(Projects.get).not.toHaveBeenCalled();
             expect(result).toEqual({});
             var rs1;
-            rs1 = Projects({id:project_test}, function(res){
+            rs1 = Projects.get({id:project_test}, function(res){
                 result = res;
+                console.log("result project : " + JSON.stringify(result));
             });
-            
             // Flush pending HTTP requests
             $httpBackend.flush();
-            expect(Projects).toHaveBeenCalledWith({id:project_test}, jasmine.any(Function));
+            expect(Projects.get).toHaveBeenCalledWith( {id:project_test}, jasmine.any(Function) );
             expect(result).toBeDefined();
+            expect(result.status).toEqual(testProject.status);
             expect(result.description).toEqual(testProject.description);
         });
         it('should exist Quotas Factory', function() {
             expect(Quotas).toBeDefined();
         });
+        // it('test Quotas factory', function(){
+
+        // });
         it('RequestListController controller should be defined', function() {
             expect(controller).toBeDefined();
         });
@@ -98,12 +106,7 @@ describe('Coordinator controller and factory', function() {
                 expect($scope.selectedTab).toEqual(array_tab[i]);
             }
         });
-        it('test Projects.query', function() {
-            // $httpBackend.flush();
-            // console.log("Projects : " + Projects.query());
-            // toto = Projects.query();
-            // console.log("$scope.projects : " + $scope.projects);
-        });
+
     });
 
     describe('RequestDetailController', function(){
