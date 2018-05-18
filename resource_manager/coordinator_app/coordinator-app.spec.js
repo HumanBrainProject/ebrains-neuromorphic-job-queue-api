@@ -21,6 +21,14 @@ describe('Coordinator controller and factory', function() {
         "start_date": "2018-05-16", 
         "resource_uri": "/projects/1542c7cd-497a-4cf1-a689-c19eac3dc1a0"
     };
+    var testQuotas = {
+        "platform": "BrainScaleS", 
+        "project": project_test, 
+        "units": "wafer-hours", 
+        "limit": 2.0, 
+        "usage": 0.0, 
+        "resource_uri": "/projects/" + project_test + "/quotas/2"
+    };
     beforeEach(angular.mock.module('request-coordinator-app'));
 
     beforeEach(inject(function(_User_, _Projects_, _Quotas_, _$httpBackend_) {
@@ -45,7 +53,8 @@ describe('Coordinator controller and factory', function() {
             spyOn(User, 'get').and.callThrough();
             spyOn(Projects, 'get').and.callThrough();
             // spyOn(Projects, 'put').and.callThrough();
-            spyOn(Quotas, 'get').and.callThrough();  
+            spyOn(Quotas, 'get').and.callThrough();
+            spyOn(Quotas, 'save').and.callThrough();  
 
             $httpBackend.expectGET(window.base_url + "/projects/").respond(200);
             controller = $controller('RequestListController', { $scope: $scope });
@@ -54,16 +63,14 @@ describe('Coordinator controller and factory', function() {
         it('should exist User Factory', function() {
             expect(User).toBeDefined();
         });
-        it('test result User factory', function() {
+        it('test result User.get', function() {
             $httpBackend.expectGET("https://services.humanbrainproject.eu/idm" + window.ver_api + "/user/" + user_test).respond(testUser);
             // expect(User.get).not.toHaveBeenCalled();
             expect(result).toEqual({});
             var rs1;
             rs1 = User.get({id:user_test}, function(res){
                 result = res;
-                console.log("result user : " + JSON.stringify(result));
             });
-            console.log("users : " + JSON.stringify(rs1));
             // Flush pending HTTP requests
             $httpBackend.flush();
             expect(User.get).toHaveBeenCalledWith({id:user_test}, jasmine.any(Function));
@@ -71,14 +78,13 @@ describe('Coordinator controller and factory', function() {
         it('should exist Projects Factory', function() {
             expect(Projects).toBeDefined();
         });
-        it('test Projects factory', function(){
+        it('test result Projects.get', function(){
             $httpBackend.expectGET(base_url + "/projects/" + project_test).respond(testProject);
             // expect(Projects.get).not.toHaveBeenCalled();
             expect(result).toEqual({});
             var rs1;
             rs1 = Projects.get({id:project_test}, function(res){
                 result = res;
-                console.log("result project : " + JSON.stringify(result));
             });
             // Flush pending HTTP requests
             $httpBackend.flush();
@@ -90,9 +96,30 @@ describe('Coordinator controller and factory', function() {
         it('should exist Quotas Factory', function() {
             expect(Quotas).toBeDefined();
         });
-        // it('test Quotas factory', function(){
-
-        // });
+        it('should exist Quotas.get', function() {
+            expect(Quotas.get).toBeDefined();
+        });
+        it('should exist Quotas.save', function() {
+            expect(Quotas.save).toBeDefined();
+        });
+        it('test result Quotas.save', function(){
+            // Declare the endpoint we expect our service to hit and provide it with our mocked return values
+            $httpBackend.expectPOST(window.base_url + "/projects/quotas/").respond(200);
+            // post new Quotas
+            rs_save = Quotas.save(testQuotas);
+            $httpBackend.flush();
+            expect(JSON.stringify(rs_save)).toEqual(JSON.stringify(testQuotas));
+        });
+        it('test result Quotas.get', function(){
+            $httpBackend.expectGET(window.base_url + "/projects/quotas/2").respond(testQuotas);
+            expect(result).toEqual({});
+            var rs1;
+            rs1 = Quotas.get({id:'2'}, function(res){
+                result = res;
+            });
+            $httpBackend.flush();
+            expect(JSON.stringify(result)).toEqual(JSON.stringify(testQuotas));
+        });
         it('RequestListController controller should be defined', function() {
             expect(controller).toBeDefined();
         });
