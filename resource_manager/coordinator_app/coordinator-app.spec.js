@@ -119,7 +119,7 @@ describe('Coordinator controller and factory', function() {
                 "start_date": "2018-05-16", 
                 "resource_uri": "/projects/1542c7cd-497a-4cf1-a689-c19eac3dc1a0"
             };
-        
+            console.log("project_test : " + base_url + "/projects/" + project_test);
             $httpBackend.expectPUT(base_url + "/projects/" + project_test).respond(200);
             rs_update = Projects.update(update_testProject);
             $httpBackend.flush();
@@ -176,7 +176,16 @@ describe('Coordinator controller and factory', function() {
             Projects = _Projects_;
             Quotas = _Quotas_;
             User = _User_;
-            controller = $controller('RequestDetailController', { $scope: $scope });
+
+            spyOn(User, 'get').and.callThrough();
+            spyOn(Projects, 'get').and.callThrough();
+            spyOn(Projects, 'update').and.callThrough();
+            spyOn(Quotas, 'get').and.callThrough();
+            spyOn(Quotas, 'save').and.callThrough();  
+
+            $httpBackend.expectGET(window.base_url + "/projects/").respond(200);
+            $httpBackend.expectGET("https://services.humanbrainproject.eu/idm" + window.ver_api + "/user/").respond(200);
+            controller = $controller('RequestDetailController', { $scope: $scope});
             // $httpBackend.flush();
         })));
         it('RequestDetailController controller should be defined', function() {
@@ -187,9 +196,11 @@ describe('Coordinator controller and factory', function() {
         //     $httpBackend.flush();
         //     expect(project["status"]).toEqual("accepted");
         // });
-        if('test addQuota', function($scope){
-            $scope.addQuota();
-            $httpBackend.flush();
-        });
+        
+        // it('test addQuota', function($scope){
+        //     // $httpBackend.flush();
+        //     $scope.addQuota();
+        //     $httpBackend.flush();
+        // });
     });
 });
