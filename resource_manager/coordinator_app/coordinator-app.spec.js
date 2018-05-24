@@ -173,6 +173,7 @@ describe('Coordinator controller and factory', function() {
         beforeEach(inject(angular.mock.inject(function(_$controller_, _$rootScope_, _Projects_, _Quotas_, _User_){
             $controller = _$controller_;
             $rootScope = _$rootScope_;
+            $scope = $rootScope.$new();
             Projects = _Projects_;
             Quotas = _Quotas_;
             User = _User_;

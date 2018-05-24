@@ -64,7 +64,7 @@ angular.module('request-app', ['ngResource', 'ui.bootstrap', 'hbpCommon'],
     .controller('EditProjectCtrl', function($scope, $location, $timeout, Projects, hbpIdentityUserDirectory, hbpCollabStore) {
         var ctx = $location.search()['ctx'];
         $scope.saved = false;
-        var updateScope = function(project, responseHeaders) {
+        $scope.updateScope = function(project, responseHeaders) {
             // success callback
             $scope.createMode = false;
             if ($scope.project.submitted) {
@@ -75,11 +75,11 @@ angular.module('request-app', ['ngResource', 'ui.bootstrap', 'hbpCommon'],
                 $scope.saved = false;
             }, 5000);
         };
-        var createOrUpdateProject = function() {
+        $scope.createOrUpdateProject = function() {
             if ($scope.createMode) {
-                $scope.project = Projects.save($scope.project, updateScope);
+                $scope.project = Projects.save($scope.project, $scope.updateScope);
             } else {
-                Projects.update({id: ctx}, $scope.project, updateScope);
+                Projects.update({id: ctx}, $scope.project, $scope.updateScope);
             }
         };
         Projects.get({id: ctx},
@@ -90,10 +90,10 @@ angular.module('request-app', ['ngResource', 'ui.bootstrap', 'hbpCommon'],
                          $scope.createMode = false;
                          $scope.status = project.status;
                          // todo: only define these functions if the project has not been submitted
-                         $scope.save_changes = createOrUpdateProject;
+                         $scope.save_changes = $scope.createOrUpdateProject;
                          $scope.submit_proposal = function() {
                              $scope.project.submitted = true;
-                             createOrUpdateProject();
+                             $scope.createOrUpdateProject();
                          };
                      },
                      function(httpResponse) {
@@ -110,10 +110,10 @@ angular.module('request-app', ['ngResource', 'ui.bootstrap', 'hbpCommon'],
                          hbpCollabStore.context.get(ctx).then(function (context) {
                             $scope.project.collab = context.collab.id;
                          });
-                         $scope.save_changes = createOrUpdateProject;
+                         $scope.save_changes = $scope.createOrUpdateProject;
                          $scope.submit_proposal = function() {
                              $scope.project.submitted = true;
-                             createOrUpdateProject();
+                             $scope.createOrUpdateProject();
                          };
                      }
         );

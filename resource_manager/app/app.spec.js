@@ -62,6 +62,7 @@ describe('Resource manager controller and factory', function() {
         var rs1;
         rs1 = Projects.get({id:project_test}, function(res){
             result = res;
+            console.log("rs1 : " + JSON.stringify(result));
         });
         // Flush pending HTTP requests
         $httpBackend.flush();
@@ -84,7 +85,6 @@ describe('Resource manager controller and factory', function() {
             "start_date": "2018-05-16", 
             "resource_uri": "/projects/1542c7cd-497a-4cf1-a689-c19eac3dc1a0"
         };
-        console.log("project_test : " + base_url + "/projects/" + project_test);
         $httpBackend.expectPUT(base_url + "/projects/" + project_test).respond(200);
         rs_update = Projects.update({id: project_test},update_testProject);
         $httpBackend.flush();
@@ -134,6 +134,7 @@ describe('Resource manager controller and factory', function() {
         beforeEach(inject(angular.mock.inject(function(_$controller_, _$rootScope_, _$location_, _Projects_, _hbpIdentityUserDirectory_, _hbpCollabStore_){
             $controller = _$controller_;
             $rootScope = _$rootScope_;
+            $scope = $rootScope.$new();
             $location = _$location_;
             Projects = _Projects_;
             hbpIdentityUserDirectory = _hbpIdentityUserDirectory_;
@@ -150,6 +151,7 @@ describe('Resource manager controller and factory', function() {
         beforeEach(inject(angular.mock.inject(function(_$controller_, _$rootScope_, _$location_, _$timeout_, _Projects_, _hbpIdentityUserDirectory_, _hbpCollabStore_){
             $controller = _$controller_;
             $rootScope = _$rootScope_;
+            $scope = $rootScope.$new();
             $location = _$location_;
             $timeout = _$timeout_;
             Projects = _Projects_;
@@ -160,5 +162,26 @@ describe('Resource manager controller and factory', function() {
         it('EditProjectCtrl controller should be defined', function() {
             expect(controller).toBeDefined();
         });
+        it('$scope.updateScope() should be defined', function(){
+            expect($scope.updateScope).toBeDefined();
+        });
+        it('test result $scope.updateScope()', function(){
+            $scope.project = testProject;
+            $scope.project.submitted = true;
+            $scope.updateScope();
+            expect($scope.createMode).toEqual(false);
+            expect($scope.status).toEqual("submitted");
+            expect($scope.saved).toEqual(true);
+        });
+
+        it('$scope.createOrUpdateProject() should be defined', function(){
+            expect($scope.createOrUpdateProject).toBeDefined();
+        });
+        // it('test result $scope.createOrUpdateProject()', function(){
+        //     $scope.createMode = false;
+        //     $scope.createOrUpdateProject();
+        //     $scope.createMode = true;
+        //     $scope.createOrUpdateProject();
+        // });
     });
 });
