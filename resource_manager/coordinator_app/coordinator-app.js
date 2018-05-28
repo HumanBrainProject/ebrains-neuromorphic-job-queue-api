@@ -66,64 +66,64 @@ angular.module('request-coordinator-app', ['ngResource', 'ui.bootstrap', 'hbpCom
     })
     .controller('RequestDetailController', function($scope, $stateParams, Projects, Quotas, User) {
         Projects.get({id: $stateParams.eId},
-                     function(project, responseHeaders) {
-                         $scope.project = project;
-                         User.get(
-                             {id:project.owner},
-                             function(user, responseHeaders){
-                                 var primaryEmail = user.emails.filter(function(entry) {
-                                                                           return entry.primary;
-                                                                       })[0].value;
-                                 user.primaryEmail = primaryEmail;
-                                 $scope.project.owner = user;
-                                 });
-                         $scope.new_quota = {
-                             "project": $scope.project.context,
-                             "limit": 0,
-                             "usage": 0,
-                             "units": "core-hours",
-                             "platform": "SpiNNaker",
-                         };
-                         $scope.accept = function() {
-                             console.log("Accepted");
-                             project["status"] = "accepted";
-                             project.$update();
-                         };
-                         $scope.reject = function() {
-                             console.log("Rejected");
-                             project["status"] = "rejected";
-                             project.$update();
-                         };
-                         $scope.addQuota = function() {
-                             console.log("Adding quota", $scope.new_quota);
-                             Quotas.save({projectId: $scope.project.context},
-                                         $scope.new_quota,
-                                         function(saved_quota, responseHeaders) {
-                                             // success callback
-                                             $scope.project.quotas.push(saved_quota);
-                                             $scope.new_quota = {
-                                                 "project": $scope.project.context,
-                                                 "limit": 0,
-                                                 "usage": 0,
-                                                 "units": "core-hours",
-                                                 "platform": "SpiNNaker", // would be nice to change this to the opposite of the platform used in saved_quota
-                                             }
-                                         },
-                                         function(httpResponse) {
-                                             console.log("Couldn't save quota")
-                                         }
-                             );
-                         };
-                         $scope.getUnits = function(quota) {
-                             quota.units = {"BrainScaleS": "wafer-hours", "SpiNNaker": "core-hours",
-                                            "BrainScaleS-ESS": "core-hours", "Spikey": "hours"}[quota.platform];
-                             return quota.units
-                         }
-                     },
-                     function(httpResponse) {
-                         console.log("Something went wrong in the RequestDetailController")
-                     }
+            function(project, responseHeaders) {
+                $scope.project = project;
+                User.get(
+                    {id:project.owner},
+                    function(user, responseHeaders){
+                        var primaryEmail = user.emails.filter(function(entry) {
+                                                                return entry.primary;
+                                                            })[0].value;
+                        user.primaryEmail = primaryEmail;
+                        $scope.project.owner = user;
+                        });
+                $scope.new_quota = {
+                    "project": $scope.project.context,
+                    "limit": 0,
+                    "usage": 0,
+                    "units": "core-hours",
+                    "platform": "SpiNNaker",
+                };
+            },
+            function(httpResponse) {
+                console.log("Something went wrong in the RequestDetailController")
+            }
         );
+        $scope.accept = function() {
+            console.log("Accepted");
+            project["status"] = "accepted";
+            project.$update();
+        };
+        $scope.reject = function() {
+            console.log("Rejected");
+            project["status"] = "rejected";
+            project.$update();
+        };
+        $scope.addQuota = function() {
+            console.log("Adding quota", $scope.new_quota);
+            Quotas.save({projectId: $scope.project.context},
+                        $scope.new_quota,
+                        function(saved_quota, responseHeaders) {
+                            // success callback
+                            $scope.project.quotas.push(saved_quota);
+                            $scope.new_quota = {
+                                "project": $scope.project.context,
+                                "limit": 0,
+                                "usage": 0,
+                                "units": "core-hours",
+                                "platform": "SpiNNaker", // would be nice to change this to the opposite of the platform used in saved_quota
+                            }
+                        },
+                        function(httpResponse) {
+                            console.log("Couldn't save quota")
+                        }
+            );
+        };
+        $scope.getUnits = function(quota) {
+            quota.units = {"BrainScaleS": "wafer-hours", "SpiNNaker": "core-hours",
+                        "BrainScaleS-ESS": "core-hours", "Spikey": "hours"}[quota.platform];
+            return quota.units
+        };
     })
 
  // Bootstrap function

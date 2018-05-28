@@ -192,16 +192,30 @@ describe('Coordinator controller and factory', function() {
         it('RequestDetailController controller should be defined', function() {
             expect(controller).toBeDefined();
         });
-        // it('test $scope.accept', function($scope) {
-        //     $scope.accept();
-        //     $httpBackend.flush();
-        //     expect(project["status"]).toEqual("accepted");
-        // });
-        
-        // it('test addQuota', function($scope){
-        //     // $httpBackend.flush();
-        //     $scope.addQuota();
-        //     $httpBackend.flush();
-        // });
+        it('test $scope.accept()', function($scope) {
+            expect($scope.accept()).toBeDefined();
+            $scope.accept();
+            // $httpBackend.flush();
+            // expect(project["status"]).toEqual("accepted");
+        });
+        it('test $scope.reject()', function($scope) {
+            expect($scope.reject()).toBeDefined();
+            $scope.reject();
+            // $httpBackend.flush();
+            // expect(project["status"]).toEqual("accepted");
+        });
+        it('test addQuota', function($scope){
+            // $httpBackend.flush();
+            expect($scope.addQuota()).toBeDefined();
+            $scope.addQuota();
+            // $httpBackend.flush();
+        });
+
+        it('test getUnits', function($scope){
+            // $httpBackend.flush();
+            expect($scope.getUnits()).toBeDefined();
+            $scope.getUnits();
+            // $httpBackend.flush();
+        });
     });
 });
