@@ -4,7 +4,7 @@
 
 angular.module( 'nmpi' )
 
-.factory( 
+.factory(
     'Queue',
     function( $resource ){ // , $filter can be added if ngFilter is injected above
         return $resource( window.base_url + window.ver_api + 'queue/:id/', { id:'@eId' },

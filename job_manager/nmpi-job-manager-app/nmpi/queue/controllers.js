@@ -4,11 +4,10 @@
 angular.module('nmpi')
 
 
-.controller('ListQueue', 
+.controller('ListQueue',
             ['$scope', '$rootScope', '$http', '$location', 'Queue', 'Results', 'Context', 'Collab', 'User', 'Tags', 'hbpCollabStore', 'hbpIdentityUserDirectory',
-    function( $scope,   $rootScope,   $http,   $location,   Queue,   Results,   Context,   Collab,   User,   Tags, hbpCollabStore,   hbpIdentityUserDirectory)
+    function( $scope,  $rootScope,   $http,   $location,   Queue,   Results,   Context,   Collab,   User,  Tags,  hbpCollabStore,   hbpIdentityUserDirectory)
     {
-
         // pagination server-side
         // http://stackoverflow.com/questions/17309955/angularjs-and-complex-json-returned-by-django-tastypie
         // pagination client-side
@@ -42,9 +41,11 @@ angular.module('nmpi')
             $scope.curPage = page;
         };
 
-        var get_queue = function( cid ){
+        $scope.get_queue = function( cid ){
             // collab_id:cid will be passed as a GET variable and used by tastypie to retrieve only jobs from cid collab
+            console.log("cid : " + cid);
             $scope.queue = Queue.get({collab_id:cid}, function(data){
+                console.log("data : " + JSON.stringify(data));
                 $scope.queue.objects.forEach( function( job, key ){
                     $scope.queue.objects[key].user = User.get({id:job.user_id}, function(data){});
                     if( !cid ){ // standalone condition
@@ -55,7 +56,7 @@ angular.module('nmpi')
             $scope.queue.objects = new Array(); // init before the resource is answered by the server
         };
 
-        var get_results = function( cid ){
+        $scope.get_results = function( cid ){
             // collab_id:cid will be passed as a GET variable and used by tastypie to retrieve only jobs from cid collab
             $scope.results = Results.get({collab_id:cid}, function(data){
                 $scope.results.objects.forEach( function( job, key ){
@@ -72,7 +73,7 @@ angular.module('nmpi')
                 {
                     var numPages = Math.ceil($scope.filtered_jobs.length / $scope.pageSize);
                     $scope.pages = Array.apply(null, {length: numPages}).map(Number.call, Number);
-                    return numPages
+                    return numPages;
                 };
             });
             $scope.results.objects = new Array(); // init before the resource is answered by the server
@@ -114,16 +115,17 @@ angular.module('nmpi')
                     console.log("User has access to the platform: " + response);
                 });
 
-                get_queue(context.collab.id);
-                get_results(context.collab.id);
+                $scope.get_queue(context.collab.id);
+                console.log("$scope.queue : " + JSON.stringify($scope.queue));
+                $scope.get_results(context.collab.id);
             });
         } else {
             // Stand-alone
             $rootScope.with_ctx = false;
             $rootScope.ctx = null;
             $rootScope.collab_id = null;
-            get_queue(null);
-            get_results(null);
+            $scope.get_queue(null);
+            $scope.get_results(null);
         }
 
         if( !$scope.msg ){ $scope.msg = {text:"", css:"", show:false} };
@@ -169,8 +171,9 @@ angular.module('nmpi')
         $scope.msg = {text: "", css: "", show: false};
         $scope.hpcSite = null;
         $scope.showHPCsites = false;
+        $scope.is_test = false;
 
-        console.log('context detail :'+$rootScope.ctx);
+        //console.log('context detail :'+$rootScope.ctx);
 
         $scope.comment = new Comment();
         $scope.comment.content = "";
@@ -191,10 +194,19 @@ angular.module('nmpi')
         $scope.del_job = function(id){
             $scope.job.$del({id:id.eId}, function(data){
                 // on success, return to job list
+                console.log("data : " + JSON.stringify(data));
                 if($rootScope.with_ctx){
-                    window.location.href = "app/#/queue?ctx="+$rootScope.ctx;
+                    if($scope.is_test == false){
+                        window.location.href = "app/#/queue?ctx="+$rootScope.ctx;
+                    } else {
+                        $scope.win_href = "app/#/queue?ctx="+$rootScope.ctx;
+                    }
                 } else {
-                    window.location.href = "app/#/queue";
+                    if($scope.is_test == false){
+                        window.location.href = "app/#/queue";
+                    } else {
+                        $scope.win_href = "app/#/queue";
+                    }
                 }
             });
         };
@@ -219,16 +231,22 @@ angular.module('nmpi')
             $scope.comment.job = job.resource_uri;
             $scope.comment.$save({},
                 function(data){  // success
+                    console.log("data : " + data);
                     $scope.$parent.msg = {
                         text: "Your comment has been submitted.",
                         css: "success",
                         show: true
                     };
                     $scope.comment.user_obj = $scope.currentUser;
-                    $scope.job.comments.push($scope.comment);
+                    if (typeof $scope.job.comments !== 'undefined') { //for test
+                        $scope.job.comments.push($scope.comment);
+                    } else {
+                        $scope.job.comments = new Array();
+                        $scope.job.comments.push($scope.comment);
+                    }
                     $scope.comment = new Comment();
                     $scope.comment.content = "";
-                    console.log(data);
+                    //console.log("data : " + JSON.stringify(data));
                 },
                 function(err) { // error
                     console.log(err.status + ": " + err.data);
@@ -249,7 +267,6 @@ angular.module('nmpi')
                 }
             }, 'https://collab.humanbrainproject.eu/');
         };
-
         Results.get(
             {id: $stateParams.eId},
             // first we try to get the job from the Results endpoint
@@ -257,9 +274,11 @@ angular.module('nmpi')
                 $scope.job = job;
                 $scope.job.collab = Collab.get({cid:$scope.job.collab_id}, function(data){});
                 $scope.job.user = User.get({id:job.user_id}, function(data){});
-                $scope.job.comments.forEach( function( comment, key ){
-                    $scope.job.comments[key].user_obj = User.get({id:comment.user}, function(data){});
-                });
+                if (typeof $scope.job.comments !== 'undefined') { //for test
+                    $scope.job.comments.forEach( function( comment, key ){
+                        $scope.job.comments[key].user_obj = User.get({id:comment.user}, function(data){});
+                    });
+                }
             },
             // if it's not there we try the Queue endpoint
             function(error) {
@@ -273,25 +292,36 @@ angular.module('nmpi')
                 );
             }
         );
-
+        
         $scope.getLog = function() {
+            console.log("$stateParams.eId : " + $stateParams.eId);
             $scope.log = Log.get({id: $stateParams.eId});
+            return $scope.log;
         };
 
         $scope.copyData = function(target) {
             console.log("Trying to copy data to " + target);
             var response = $http.get('/copydata/' + target + '/' + $stateParams.eId);
             response.success(function (data, status, headers, config) {
+                //console.log("*** SUCCESS ***" + data + "/" + status + "/" + JSON.stringify(config));
+                $scope.status = status;
+                $scope.config = config;
+                if(data == undefined){
+                    var data = {};
+                    data.length = 0;
+                }
                 $scope.msg = {text: "Copied " + data.length + ' files', css: "success", show: true};
             });
             response.error(function (data, status, headers, config) {
+                console.log("*** ERROR ***");
                 $scope.msg = {text: "Data could not be copied.", css: "danger", show: true};
             });
         };
 
         $scope.isImage = function(url) {
             var filename = url.split('/').pop();
-            var extension = filename.split('.').pop().toLowerCase()
+            var extension = filename.split('.').pop().toLowerCase();
+            console.log("ext : " + extension);
             return ['jpg', 'jpeg', 'gif', 'png', 'svg'].includes(extension);
         };
 
@@ -402,26 +432,24 @@ angular.module('nmpi')
         };
 
         $scope.savejob = function(){
-            // console.log(JSON.stringify($scope.job));
-            $scope.job.$save({},
+            console.log("$scope.job : " + JSON.stringify($scope.job));
+            var result = $scope.job.$save({},
                 function(data){  // success
-                    //console.log(JSON.stringify(data));
                     $rootScope.msg = {
                         text: "Your job has been submitted. You will receive further updates by email.",
                         css: "success",
                         show: true
                     };
-                    $location.path( '/queue').search({ctx:$rootScope.ctx});
+                    $location.path('/queue').search({ctx:$rootScope.ctx});
                 },
                 function(err) { // error
-                    console.log(err.status + ": " + err.data);
                     $scope.$parent.msg = {
                         text: "Your job has not been submitted. " + err.data,
                         css: "danger",
                         show: true
                     };
                 }
-            );        
+            );
         }
 
         // reset
@@ -507,7 +535,8 @@ angular.module('nmpi')
         $scope.job.tags = [];
         $scope.job.input_data = [];
         $scope.job.output_data = []; 
-        $scope.job.resource_uri = ""; 
+        $scope.job.resource_uri = "";
+        $scope.inputs = [];
 
         Results.get({id:job_id}, function(former_job){
             $scope.job.code = former_job.code;
@@ -572,7 +601,8 @@ angular.module('nmpi')
         };
 
         $scope.savejob = function(){
-            $scope.job.$save({},
+            console.log("$scope.job : " + JSON.stringify($scope.job));
+            var result = $scope.job.$save({},
                 function(data){  // success
                     console.log(JSON.stringify(data));
                     $rootScope.msg = {
@@ -580,7 +610,7 @@ angular.module('nmpi')
                         css: "success",
                         show: true
                     };
-                    $location.path( '/queue').search({ctx:$rootScope.ctx});
+                    $location.path('/queue').search({ctx:$rootScope.ctx});
                 },
                 function(err) { // error
                     console.log(err.status + ": " + err.data);
