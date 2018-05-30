@@ -14,9 +14,8 @@ import os, sys
 import json
 import hbp_app_python_auth.settings as auth_settings
 
-# ENV = os.environ.get('NMPI_ENV', 'production')
-ENV = os.environ.get('NMPI_ENV', 'dev')
-LOCAL_DB = False    # only applies when ENV='dev'
+ENV = os.environ.get('NMPI_ENV', 'production')
+LOCAL_DB = True    # only applies when ENV='dev'
 EMAIL_DEBUG = False
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
