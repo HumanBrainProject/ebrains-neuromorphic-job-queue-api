@@ -1,4 +1,0 @@
-bbp-services
-hbp-app-python-auth
-bbp-client
-python-social-auth==0.2.14  # because more recent versions ask for a version of "requests" which is not compatible with bbp-client's requirements.txt
