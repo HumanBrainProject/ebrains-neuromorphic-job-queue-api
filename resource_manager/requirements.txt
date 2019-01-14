@@ -24,7 +24,7 @@ python-dateutil==2.2
 python-openid==2.2.5      # via python-social-auth
 python-social-auth==0.2.13
 pytz==2016.4
-PyYAML==3.10
+PyYAML>=4.2b1
 requests-oauthlib==0.6.1  # via python-social-auth
-requests==2.5.1           # via python-social-auth, requests-oauthlib
+rrequests==2.20.0         # via python-social-auth, requests-oauthlib
 six==1.10.0               # via python-dateutil, python-social-auth
