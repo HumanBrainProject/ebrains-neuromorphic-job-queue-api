@@ -9,4 +9,6 @@ Contents:
 
    architecture
    development_environment
+   testing
    deployment
+   monitoring

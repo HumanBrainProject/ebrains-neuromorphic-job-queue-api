@@ -12,9 +12,13 @@ The platform provides the following components:
     * Quotas REST service
     * Resource manager Collaboratory app
     * Resource manager coordination Collaboratory app
+* Running on benchmarks.hbpneuromorphic.eu:
+    * Benchmarks REST service
+    * Benchmarks website
 * Running on www.hbpneuromorphic.eu:
     * Collaboratory home ("splash") page
     * Development and Operations Guidebook (this document)
+* Monitoring service (commercial service)
 * Python client
 * User Guidebook
 
@@ -25,14 +29,13 @@ The REST services are implemented with Django. The Collaboratory apps are implem
 Both services and apps are served using nginx, running in Docker containers on cloud servers
 from Digital Ocean.
 
+A migration from the commercial cloud provider (Digital Ocean) to servers provided by ICEI is planned for 2019.
+
 
 
 .. Coming later
 
-.. benchmark server:  benchmarks.hbpneuromorphic.eu
-.. benchmark database
 .. benchmark runner (webhook)
 .. nest server (for benchmarks): nest.hbpneuromorphic.eu
 .. nest data store: tmp-data.hbpneuromorphic.eu
-.. sandbox: sandbox.hbpneuromorphic.eu
-.. monitoring service
+

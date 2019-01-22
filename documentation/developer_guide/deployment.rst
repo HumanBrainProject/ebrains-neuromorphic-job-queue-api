@@ -3,10 +3,11 @@ Deploying the platform
 ======================
 
 The job queue server and its web interface are deployed in the cloud using Docker containers.
-Building Docker images and deploying the containers is handled by the :file:`deploy.py` script.
+Building Docker images and deploying the containers is handled by the "cloud-deploy" package,
+available at https://github.com/CNRS-UNIC/cloud-deploy. This provides a command-line tool, :file:`cld` script.
 
 
-.. note:: All actions of :file:`deploy.py` are logged to :file:`deploy.log` so you can always
+.. note:: All actions of :file:`cld` are logged to :file:`deploy.log` so you can always
           review the actions that have been performed.
 
 Managing nodes and services
@@ -17,48 +18,55 @@ cloud. We use the name "service" to refer to an individual Docker container.
 
 List available server nodes::
 
-    $ ./deploy.py node list
+    $ cld node list
 
 Example output::
 
-    Name                                                    Ip_Address       Created_At              Size  Region
-    ------------------------------------------------------  ---------------  --------------------  ------  -----------
-    eb644c9c-8a7d-4d3e-8c55-9ab34998a90c.node.dockerapp.io  37.139.23.137    2016-02-28T09:42:36Z    1024  Amsterdam 2
-    docker-512mb-ams2-02                                    146.185.156.125  2016-04-22T15:00:47Z     512  Amsterdam 2
-    ginormica                                               146.185.160.61   2016-05-12T16:17:37Z    1024  Amsterdam 2
-    drcockroach                                             146.185.172.147  2016-05-18T20:18:57Z    1024  Amsterdam 2
-    bob                                                     146.185.173.96   2016-05-19T14:02:42Z     512  Amsterdam 2
+    Name               Ip_Address       Created_At              Size  Region
+    -----------------  ---------------  --------------------  ------  ---------------
+    bob                146.185.173.96   2016-05-19T14:02:42Z     512  Amsterdam 2
+    gallaxhar          146.185.169.134  2016-08-10T13:26:47Z    1024  Amsterdam 2
+    ginormica          95.85.18.21      2016-08-10T14:00:40Z    1024  Amsterdam 2
+    gigantosaurus      82.196.8.80      2016-09-19T21:22:34Z     512  Amsterdam 2
+    elastigirl         188.226.128.38   2016-11-23T12:22:08Z    2048  Amsterdam 2
+    drcockroach        37.139.6.192     2017-05-17T10:34:54Z     512  Amsterdam 2
+
 
 This requires a DigitalOcean API token, which should be stored in your password manager.
 (Only the OS X Keychain currently supported).
 
 To start a new node::
 
-    $ ./deploy.py node create --size 512mb <node-name>
+    $ cld node create --size 512mb <node-name>
 
 To shut-down and remove a node::
 
-    $ ./deploy.py node destroy <node-name>
+    $ cld node destroy <node-name>
 
 List running services (each service corresponds to a Docker container)::
 
-    $ ./deploy.py services
+    $ cld services
 
 Example output::
 
-    Name         Image                                Status    Url                      ID            Node                  Ports
-    -----------  -----------------------------------  --------  -----------------------  ------------  --------------------  ----------
-    quotas-blue  cnrsunic/nmpi_resource_manager:blue  running   https://146.185.156.125  7eea7086323d  docker-512mb-ams2-02  443:443
-    nmpi-blue    cnrsunic/nmpi_queue_server:blue      running   https://146.185.160.61   4a0218e7859d  ginormica             443:443
-    db           tutum/postgresql:latest              running   https://146.185.160.61   484fafdb2335  ginormica             5432:32770
-    nmpi-green   cnrsunic/nmpi_queue_server:green     running   https://146.185.172.147  32f594fd3380  drcockroach           443:443
-    docs         cnrsunic/neuromorphic_docs:latest    running   https://146.185.173.96   0f112888b8a5  bob                   443:443
+    Name                Image                                            Status    Url                      ID            Node           Ports
+    ------------------  -----------------------------------------------  --------  -----------------------  ------------  -------------  --------------
+    docs                cnrsunic/neuromorphic_docs                       running   https://146.185.173.96   3308c939b689  bob            443:443
+    db                  tutum/postgresql:latest                          running   https://146.185.169.134  7a22924ecebc  gallaxhar      5432:32768
+    nmpi-blue           cnrsunic/nmpi_queue_server:blue                  running   https://95.85.18.21      ca51f676041d  ginormica      443:443
+    benchmarkdb         tutum/postgresql:latest                          running   https://95.85.18.21      a5a1e3115ff3  ginormica      5432:32768
+    benchmarks-service  cnrsunic/neuromorphic_benchmarks_service:latest  running   https://82.196.8.80      19eda6adccbe  gigantosaurus  443:443
+    quotas-green        cnrsunic/nmpi_resource_manager:green             running   https://188.226.128.38   0bea557df8d0  elastigirl     443:443
+    issuetracker-green  cnrsunic/hbp_issuetracker:green                  running   https://37.139.6.192     2618f3e50951  drcockroach    443:443
+    issuetracker-db     tutum/postgresql:latest                          running   https://37.139.6.192     53f310185d2e  drcockroach    5432:32768
+
 
 To launch a new service::
 
-    $ ./deploy.py launch --colour=<colour> <service-name> <node-name>
+    $ cld launch --colour=<colour> <service-name> <node-name>
 
-Possible values of ``<service-name>`` are "nmpi", "splash", "quotas", "db". Each service has a configuration file, e.g. :file:`nmpi.yml`, in the same directory as :file:`deploy.py`.
+Possible values of ``<service-name>`` are "nmpi", "splash", "quotas", "db", etc.
+Each service has a configuration file, e.g. :file:`nmpi.yml`, in the :file:`deployment` subdirectory.
 
 .. note:: *Colours* For most services we run a "blue" service and a "green" service, each on
           a different server node.
@@ -73,16 +81,16 @@ Possible values of ``<service-name>`` are "nmpi", "splash", "quotas", "db". Each
 
 To redeploy a service with the latest version::
 
-    $ ./deploy.py build --colour=<colour> <service-name>
-    $ ./deploy.py redeploy --colour=<colour> <service-name>
+    $ cld build --colour=<colour> <service-name>
+    $ cld redeploy --colour=<colour> <service-name>
 
 To terminate a service::
 
-    $ ./deploy.py terminate --colour=<colour> <service-name>
+    $ cld terminate --colour=<colour> <service-name>
 
 To download the logs of a service::
 
-    $ ./deploy.py log --colour=<colour> --filename=<logfile> <service-name>
+    $ cld log --colour=<colour> --filename=<logfile> <service-name>
 
 
 Deploying the database
@@ -95,10 +103,10 @@ Launching the database service
 
 ::
 
-    $ ./deploy.py launch db <node-name>
+    $ cld launch db <node-name>
 
 This creates a PostgreSQL service with an empty database and a randomly generated password for
-the "postgres" user. To retrieve the password run ``./deploy.py log db``.
+the "postgres" user. To retrieve the password run ``cld log db``.
 
 .. note:: It is possible to run multiple instances of the database service,
           but they must each run on different server nodes.
@@ -111,7 +119,7 @@ Restoring the database
 
 After (re-)deployment, the database is empty. To restore the database from an SQL dump::
 
-    $ ./deploy.py database restore db <filename>
+    $ cld database restore db <filename>
 
 and then enter the password for the "postgres" user when prompted.
 
@@ -126,7 +134,7 @@ file :file:`job_manager/Dockerfile`.
 
 To build the image, run::
 
-    $ ./deploy.py build --colour=<colour> nmpi
+    $ cld build --colour=<colour> nmpi
 
 This builds the image ``cnrsunic/nmpi_queue_server``, tags it with both the colour and the
 latest Git commit id, and pushes the image to `Docker Hub`_.
@@ -136,7 +144,7 @@ latest Git commit id, and pushes the image to `Docker Hub`_.
 
 To launch the service::
 
-    $ ./deploy.py launch --color=<colour> nmpi <node-name>
+    $ cld launch --color=<colour> nmpi <node-name>
 
 The service requires the following environment variables to be defined in your shell.
 The deployment script reads these variables and sets them as environment variables for
@@ -151,8 +159,8 @@ The service also requires a number of passwords and other secrets, contained in 
 
 To deploy a new version of the service::
 
-    $ ./deploy.py build --colour=<colour> nmpi
-    $ ./deploy.py redeploy --colour=<colour> nmpi
+    $ cld build --colour=<colour> nmpi
+    $ cld redeploy --colour=<colour> nmpi
 
 
 Deploying the quotas service
@@ -163,14 +171,14 @@ file :file:`resource_manager/Dockerfile`.
 
 To build the image, run::
 
-    $ ./deploy.py build --colour=<colour> quotas
+    $ cld build --colour=<colour> quotas
 
 This builds the image ``cnrsunic/nmpi_resource_manager``, tags it with both the colour and the
 latest Git commit id, and pushes the image to `Docker Hub`_.
 
 To launch the service::
 
-    $ ./deploy.py launch --color=<colour> nmpi <node-name>
+    $ cld launch --color=<colour> nmpi <node-name>
 
 The service requires the following environment variables to be defined::
 
@@ -187,13 +195,13 @@ Taking database backups
 
 To take a backup of the database, run::
 
-    $ ./deploy.py database dump db
+    $ cld database dump db
 
 
 Domain name registration
 ========================
 
-The domain name "hbpneuromorphic.eu" was registered with GoDaddy (expiration 09/06/2016).
+The domain name "hbpneuromorphic.eu" was registered with GoDaddy.
 The DNS is configured using the GoDaddy dashboard
 (contact Andrew Davison for credentials).
 
@@ -205,8 +213,9 @@ Certificates
 ============
 
 The SSL certificates for hbpneuromorphic.eu are obtained from Let's Encrypt.
-The private keys and the unified certificates are stored in the :file:`job_manager/deployment/ssl`
-and :file:`resource_manager/deployment/ssl` directories and installed into the Docker images.
+The private keys and the certificates are stored in the :file:`/etc/letsencrypt`
+directory of the host servers, and made available to the Docker images via 
+Docker shared volumes.
 Certificates are valid for three months. At the moment, they must be manually renewed.
 Automatic renewal (e.g. through a cron job) is planned.
 
