@@ -33,4 +33,4 @@ There are 6 main components:
         see git@gitviz.kip.uni-heidelberg.de:hbp-sp9-guidebook.git
 
 
-All code is copyright 2015-2016 CNRS unless otherwise indicated.
+All code is copyright 2015-2019 CNRS unless otherwise indicated.
