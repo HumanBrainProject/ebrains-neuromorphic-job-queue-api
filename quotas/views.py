@@ -65,7 +65,7 @@ def notify_coordinators(request, project):
     headers = get_authorization_header(request)
     targets = [{"type": "HBPUser", "id": id} for id in coordinators]
     payload = {
-        "summary": "New access request for the Neuromorphic Computing Platform: {}".format(project.title),
+        "summary": u"New access request for the Neuromorphic Computing Platform: {}".format(project.title),
         "targets": targets,
         "object": {
             "type": "HBPCollaboratoryContext",
