@@ -16,7 +16,7 @@ from django.contrib.auth.models import User
 from django.core import mail
 from tastypie.authentication import Authentication
 from tastypie.models import ApiKey
-from social.apps.django_app.default.models import UserSocialAuth
+from social_django.models import UserSocialAuth
 
 from .models import Job, DataItem
 from .api.resources import QueueResource, ResultsResource

@@ -5,7 +5,6 @@ from tastypie.authentication import Authentication, ApiKeyAuthentication
 from tastypie.exceptions import NotFound
 from django.conf import settings
 import requests
-from social.apps.django_app.default.models import UserSocialAuth
 
 
 logger = logging.getLogger("simqueue")

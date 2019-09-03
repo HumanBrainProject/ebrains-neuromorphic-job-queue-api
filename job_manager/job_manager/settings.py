@@ -47,27 +47,25 @@ INSTALLED_APPS = [
     'job_manager',
     'simqueue',
     'tastypie',
-    'social.apps.django_app.default',
+    'social_django',
     'quotas',
     'taggit',
-    # 'social_django',
 ]
 if ENV == "dev":
     INSTALLED_APPS.insert(0, 'django_pdb')
     INSTALLED_APPS.append('sslserver')
     sys.path.append("..")
 
-MIDDLEWARE_CLASSES = [
+MIDDLEWARE = [
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
-    'django.contrib.auth.middleware.SessionAuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.security.SecurityMiddleware',
-    'social.apps.django_app.middleware.SocialAuthExceptionMiddleware'
+    'social_django.middleware.SocialAuthExceptionMiddleware'
 ]
 if ENV == "dev":
-    MIDDLEWARE_CLASSES.append('django_pdb.middleware.PdbMiddleware')
+    MIDDLEWARE.append('django_pdb.middleware.PdbMiddleware')
 
 ROOT_URLCONF = 'job_manager.urls'
 
@@ -92,7 +90,7 @@ WSGI_APPLICATION = 'job_manager.wsgi.application'
 
 # Database
 
-if ENV in ('dev', 'travis') and LOCAL_DB:  
+if ENV in ('dev', 'travis') and LOCAL_DB:
     DATABASES = {
         'default': {
             'ENGINE': 'django.db.backends.sqlite3',
@@ -153,9 +151,9 @@ STATICFILES_DIRS = [
     os.path.join(BASE_DIR, "lib"),
     os.path.join(BASE_DIR, "nmpi-job-manager-app"),
     os.path.join(BASE_DIR, "nmpi-dashboard-app"),
-    os.path.join(BASE_DIR, "job_manager/nmpi-job-manager-app"),
-    os.path.join(BASE_DIR, "job_manager/nmpi-dashboard-app"),
-    os.path.join(BASE_DIR, "job_manager/static"),
+    #os.path.join(BASE_DIR, "job_manager/nmpi-job-manager-app"),
+    #os.path.join(BASE_DIR, "job_manager/nmpi-dashboard-app"),
+    #os.path.join(BASE_DIR, "job_manager/static"),
 ]
 STATIC_ROOT = "%s/static/" % BASE_DIR
 
@@ -173,6 +171,7 @@ EMAIL_USE_TLS = True
 SOCIAL_AUTH_ADMIN_USER_SEARCH_FIELDS = ['username', 'first_name', 'local_settings', 'email']
 SOCIAL_AUTH_HBP_KEY = auth_settings.SOCIAL_AUTH_HBP_KEY = os.environ.get('HBP_OIDC_CLIENT_ID')
 SOCIAL_AUTH_HBP_SECRET = auth_settings.SOCIAL_AUTH_HBP_SECRET = os.environ.get('HBP_OIDC_CLIENT_SECRET')
+SOCIAL_AUTH_POSTGRES_JSONFIELD = True
 
 # admins
 auth_settings.SUPER_USER_NAMES = []

@@ -48,7 +48,7 @@ class Quota(models.Model):
     limit = models.FloatField(help_text="Quantity of resources granted")
     usage = models.FloatField(help_text="Quantity of resources used")
     platform = models.CharField(max_length=20, help_text="System to which quota applies")
-    project = models.ForeignKey(Project)
+    project = models.ForeignKey(Project, on_delete=models.CASCADE)
 
     def exhausted(self):
         return self.usage >= self.limit
@@ -59,7 +59,7 @@ class Quota(models.Model):
 
 @python_2_unicode_compatible
 class Review(models.Model):
-    project = models.ForeignKey(Project)
+    project = models.ForeignKey(Project, on_delete=models.CASCADE)
     reviewer = models.CharField(max_length=15, help_text="HBP user id")
     content = models.TextField()
     type = models.CharField(max_length=10, choices=(("technical", "technical"), ("scientific", "scientific")))
