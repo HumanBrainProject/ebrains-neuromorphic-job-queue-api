@@ -181,7 +181,7 @@ class ProjectResource(BaseResource):
             if project.submission_date is not None:
                 return json_err(HttpResponseForbidden, "Can't edit a submitted form.")
             data = json.loads(request.body)
-            for field, value in model_to_dict(project).iteritems():
+            for field, value in model_to_dict(project).items():
                 if field not in data:
                     data[field] = value
             form = ProposalForm(data, instance=project)
