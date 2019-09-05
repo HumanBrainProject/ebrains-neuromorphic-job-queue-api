@@ -9,3 +9,5 @@ psycopg2          # dev only - installed as Debian package in Docker image
 numpy             # dev only - installed as Debian package in Docker image
 hbp-service-client
 django-taggit
+python-social-auth<0.3
+pyyaml

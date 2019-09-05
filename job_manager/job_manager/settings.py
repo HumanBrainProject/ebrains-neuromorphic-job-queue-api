@@ -153,9 +153,9 @@ STATICFILES_DIRS = [
     os.path.join(BASE_DIR, "lib"),
     os.path.join(BASE_DIR, "nmpi-job-manager-app"),
     os.path.join(BASE_DIR, "nmpi-dashboard-app"),
-    os.path.join(BASE_DIR, "job_manager/nmpi-job-manager-app"),
-    os.path.join(BASE_DIR, "job_manager/nmpi-dashboard-app"),
-    os.path.join(BASE_DIR, "job_manager/static"),
+    #os.path.join(BASE_DIR, "job_manager/nmpi-job-manager-app"),
+    #os.path.join(BASE_DIR, "job_manager/nmpi-dashboard-app"),
+    #os.path.join(BASE_DIR, "job_manager/static"),
 ]
 STATIC_ROOT = "%s/static/" % BASE_DIR
 

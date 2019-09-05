@@ -12,12 +12,11 @@
 # To check the content of the docker container:
 #   sudo docker run -it nmpi_server /bin/bash
 
-FROM debian:jessie
+FROM debian:buster-slim
 MAINTAINER Andrew Davison <andrew.davison@unic.cnrs-gif.fr>
 
 ENV DEBIAN_FRONTEND noninteractive
-RUN apt-get update --fix-missing; apt-get -y -q install python-dev python-setuptools sqlite3 python-psycopg2 git supervisor build-essential python-numpy nginx-extras
-RUN easy_install pip
+RUN apt-get update --fix-missing; apt-get -y -q install python-dev python-setuptools sqlite3 python-psycopg2 git supervisor build-essential python-numpy nginx-extras python-pip
 RUN pip install --upgrade pip
 RUN unset DEBIAN_FRONTEND
 
@@ -50,4 +49,3 @@ RUN ln -sf /dev/stderr /var/log/nginx/error.log
 
 EXPOSE 443
 CMD ["supervisord", "-n", "-c", "/etc/supervisor/conf.d/supervisor-app.conf"]
-
