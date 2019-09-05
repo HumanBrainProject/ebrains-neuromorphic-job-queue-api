@@ -12,16 +12,16 @@
 # To check the content of the docker container:
 #   sudo docker run -it nmpi_server /bin/bash
 
-FROM debian:jessie
+FROM debian:buster-slim
 MAINTAINER Andrew Davison <andrew.davison@unic.cnrs-gif.fr>
 
 ENV DEBIAN_FRONTEND noninteractive
-RUN apt-get update --fix-missing; apt-get -y -q install python-dev python-setuptools sqlite3 python-psycopg2 git supervisor build-essential python-numpy nginx-extras
-RUN easy_install pip
-RUN pip install --upgrade pip
+RUN apt-get update --fix-missing; apt-get -y -q install python3-dev python3-setuptools sqlite3 python3-psycopg2 git supervisor build-essential python3-numpy nginx-extras python3-pip
+#RUN easy_install pip
+#RUN pip3 install --upgrade pip
 RUN unset DEBIAN_FRONTEND
 
-RUN pip install uwsgi
+RUN pip3 install uwsgi
 
 ENV SITEDIR /home/docker/site
 
@@ -32,13 +32,13 @@ COPY quotas /home/docker/quotas
 COPY build_info.json $SITEDIR
 
 WORKDIR /home/docker
-RUN pip install -r $SITEDIR/requirements.txt
-ENV PYTHONPATH  /home/docker:/home/docker/site:/usr/local/lib/python2.7/dist-packages:/usr/lib/python2.7/dist-packages
+RUN pip3 install -r $SITEDIR/requirements.txt
+ENV PYTHONPATH  /home/docker:/home/docker/site:/usr/local/lib/python3.7/dist-packages:/usr/lib/python3.7/dist-packages
 
 WORKDIR $SITEDIR
 RUN if [ -f $SITEDIR/db.sqlite3 ]; then rm $SITEDIR/db.sqlite3; fi
-RUN python manage.py check
-RUN python manage.py collectstatic --noinput
+RUN python3 manage.py check
+RUN python3 manage.py collectstatic --noinput
 RUN unset PYTHONPATH
 
 RUN echo "daemon off;" >> /etc/nginx/nginx.conf
@@ -50,4 +50,3 @@ RUN ln -sf /dev/stderr /var/log/nginx/error.log
 
 EXPOSE 443
 CMD ["supervisord", "-n", "-c", "/etc/supervisor/conf.d/supervisor-app.conf"]
-
