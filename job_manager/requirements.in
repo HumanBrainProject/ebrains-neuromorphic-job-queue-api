@@ -1,8 +1,6 @@
--e packages/task-types-0.0.10
 -e packages/bbp-services-0.0.15
 -e packages/hbp-app-python-auth-0.1.0
--e packages/bbp-client-0.4.3
-Django>=1.9
+Django>=1.11,<2
 pytz
 jsonfield
 django-tastypie
