@@ -24,7 +24,8 @@ oauthlib==3.1.0           # via python-social-auth, requests-oauthlib
 pyjwt==1.7.1              # via python-social-auth
 python-dateutil==2.8.0    # via django-tastypie
 python-mimeparse==1.6.0   # via django-tastypie
-python-social-auth==0.2.21
+social-auth-app-django==3.1.0
+social-auth-core==3.2.0
 python3-openid==3.1.0     # via python-social-auth
 pytz==2019.2
 requests-oauthlib==1.2.0  # via python-social-auth
