@@ -17,7 +17,7 @@ SECRET_KEY = os.environ.get('DJANGO_SECRET_KEY', 'none')
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = os.environ.get('DEBUG') in ['True', '1']
-LOCAL_DB = True  # only applies when ENV='dev'
+LOCAL_DB = False  # only applies when ENV='dev'
 
 ALLOWED_HOSTS = ["*"]
 
@@ -32,7 +32,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'quotas',
-    'social.apps.django_app.default',
+    'social_django'
 ]
 if ENV == "dev":
     INSTALLED_APPS.append('sslserver')
@@ -45,7 +45,7 @@ MIDDLEWARE_CLASSES = (
     'django.contrib.auth.middleware.SessionAuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.security.SecurityMiddleware',
-    'social.apps.django_app.middleware.SocialAuthExceptionMiddleware',
+    'social_django.middleware.SocialAuthExceptionMiddleware'
 )
 
 AUTHENTICATION_BACKENDS = (

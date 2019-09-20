@@ -20,7 +20,7 @@ from .views import show, edit, config, coordinator_app
 
 urlpatterns = [
     url(r'^admin/', include(admin.site.urls)),
-    url('', include('social.apps.django_app.urls', namespace='social')),
+    url(r'', include('social_django.urls', namespace='social')),
     url(r'^app/$', show, name='app_show'),
     url(r'^app/edit$', edit, name='app_edit'),
     url(r'^coordinator-app/$', coordinator_app, name='coordinator-app'),

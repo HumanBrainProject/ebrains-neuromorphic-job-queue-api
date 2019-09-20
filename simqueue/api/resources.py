@@ -641,7 +641,7 @@ class JobCountResource(StatisticsResource):
 
         for i, days in enumerate(bin_edges[:-1]):
             count = {}
-            start = period_start + timedelta(days)
+            start = period_start + timedelta(int(days))  # timedelta doesn't like numpy int64
             end = start + timedelta(interval)
             for platform in counts:
                 count[platform] = counts[platform][i]
@@ -692,7 +692,7 @@ class CumulativeJobCountResource(StatisticsResource):
 
         count_cumul = defaultdict(lambda: 0)
         for i, days in enumerate(bin_edges[:-1]):
-            start = period_start + timedelta(days)
+            start = period_start + timedelta(int(days))
             end = start + timedelta(interval)
             for platform in counts:
                 count_cumul[platform] += counts[platform][i]
