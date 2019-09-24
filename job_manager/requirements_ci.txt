@@ -1,24 +1,21 @@
 -e packages/hbp-app-python-auth
-argparse==1.2.1
-django-sslserver==0.18
-django-tastypie==0.13.3
-Django==1.9.6             # via django-sslserver, jsonfield
-httplib2==0.8
-jsonfield==1.0.3
-mechanize==0.2.5
-numpy==1.11.0             # comment this out if provided by system package
-oauthlib==1.1.1           # via python-social-auth, requests-oauthlib
-ordereddict==1.1
-psycopg2                  # comment this out if provided by system package
-PyJWT==1.4                # via python-social-auth
-python-dateutil==2.2      # via django-tastypie
-python-mimeparse==1.5.2   # via django-tastypie
-python-openid==2.2.5      # via python-social-auth
-python-social-auth==0.2.13
-pytz==2016.4
-PyYAML>=4.2b1
-requests-oauthlib==0.6.1  # via python-social-auth
-requests==2.20.0          # via python-social-auth, requests-oauthlib
-six==1.10.0               # via python-dateutil, python-social-auth
+django-sslserver==0.20
+django-tastypie==0.14.2
+Django==1.11.24
+jsonfield==2.0.2
+numpy==1.16.5
+oauthlib==3.1.0
+psycopg2
+pyjwt==1.7.1
+python-dateutil==2.8.0
+python-mimeparse==1.6.0
+social-auth-app-django==3.1.0
+social-auth-core==3.2.0
+python3-openid==3.1.0
+pytz==2019.2
+pyyaml==5.1.2
+requests-oauthlib==1.2.0
+requests==2.22.0
+six==1.12.0
 hbp-service-client
-django-taggit==0.22.1
+django-taggit==0.24.0
