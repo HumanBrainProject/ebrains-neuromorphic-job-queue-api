@@ -42,12 +42,12 @@ def is_admin(request):
     try:
         admins = get_admin_list(request)
     except Exception as err:
-        logger.warning(err.message)
+        logger.warning(str(err))
         return False
     try:
         user_id = get_user(request)["id"]
     except Exception as err:
-        logger.warning(err.message)
+        logger.warning(str(err))
         return False
     return user_id in admins
 

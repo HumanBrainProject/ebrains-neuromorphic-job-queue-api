@@ -1,4 +1,4 @@
-from django.shortcuts import render_to_response
+from django.shortcuts import render
 from django.template.context import RequestContext
 from django.http import HttpResponse
 from django.contrib.auth.decorators import login_required
@@ -23,9 +23,9 @@ import errno
 @login_required(login_url='/login/hbp/')
 def home(request):
     # from the request context, load user
-    context = RequestContext(request, {'request': request, 'user': request.user})
+    context = {'request': request, 'user': request.user}
     request.access_token = ''
-    return render_to_response('home.html', context_instance=context)
+    return render(request, 'home.html', context)
 
 
 @login_required(login_url='/login/hbp/')

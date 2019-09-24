@@ -15,7 +15,7 @@ import json
 import hbp_app_python_auth.settings as auth_settings
 
 ENV = os.environ.get('NMPI_ENV', 'production')
-LOCAL_DB = True    # only applies when ENV='dev'
+LOCAL_DB = False    # only applies when ENV='dev'
 EMAIL_DEBUG = False
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
@@ -47,10 +47,9 @@ INSTALLED_APPS = [
     'job_manager',
     'simqueue',
     'tastypie',
-    'social.apps.django_app.default',
     'quotas',
     'taggit',
-    # 'social_django',
+    'social_django',
 ]
 if ENV == "dev":
     INSTALLED_APPS.insert(0, 'django_pdb')
@@ -64,7 +63,7 @@ MIDDLEWARE_CLASSES = [
     'django.contrib.auth.middleware.SessionAuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.security.SecurityMiddleware',
-    'social.apps.django_app.middleware.SocialAuthExceptionMiddleware'
+    'social_django.middleware.SocialAuthExceptionMiddleware'
 ]
 if ENV == "dev":
     MIDDLEWARE_CLASSES.append('django_pdb.middleware.PdbMiddleware')
@@ -92,7 +91,7 @@ WSGI_APPLICATION = 'job_manager.wsgi.application'
 
 # Database
 
-if ENV in ('dev', 'travis') and LOCAL_DB:  
+if ENV in ('dev', 'travis') and LOCAL_DB:
     DATABASES = {
         'default': {
             'ENGINE': 'django.db.backends.sqlite3',
@@ -153,9 +152,9 @@ STATICFILES_DIRS = [
     os.path.join(BASE_DIR, "lib"),
     os.path.join(BASE_DIR, "nmpi-job-manager-app"),
     os.path.join(BASE_DIR, "nmpi-dashboard-app"),
-    os.path.join(BASE_DIR, "job_manager/nmpi-job-manager-app"),
-    os.path.join(BASE_DIR, "job_manager/nmpi-dashboard-app"),
-    os.path.join(BASE_DIR, "job_manager/static"),
+    #os.path.join(BASE_DIR, "job_manager/nmpi-job-manager-app"),
+    #os.path.join(BASE_DIR, "job_manager/nmpi-dashboard-app"),
+    #os.path.join(BASE_DIR, "job_manager/static"),
 ]
 STATIC_ROOT = "%s/static/" % BASE_DIR
 

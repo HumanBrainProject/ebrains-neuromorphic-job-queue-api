@@ -16,6 +16,7 @@ resource_manager/static
 resource_manager/node_modules
 documentation/splash/bower_components
 node_modules
+model_builder/lib
 
 # ensure these are not tracked by git
 *secrets.yml
