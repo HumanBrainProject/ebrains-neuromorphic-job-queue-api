@@ -19,7 +19,8 @@
         <a class="nav" href="app/#/queue" ng-click="msg.show=false" ng-if="!with_ctx">back</a>
       </span>
       <div class="panel-body">
-        <p><span ng-class="{'label label-info':job.status=='submitted', 'label label-success':job.status=='finished', 'label label-warning':job.status=='error'}">{{job.status}}</span></p>
+        <p><span ng-class="{'label label-info':job.status=='submitted', 'label label-success':job.status=='finished', 'label label-danger':job.status=='error', 'label label-primary':job.status=='running'}">
+          {{job.status}}</span></p>
         <p><small>Submitted {{job.timestamp_submission | date : "yyyy-MM-dd HH:mm:ss" }}
                   by {{job.user.displayName}}
                   to <strong>{{job.hardware_platform}}</strong></small></p>
