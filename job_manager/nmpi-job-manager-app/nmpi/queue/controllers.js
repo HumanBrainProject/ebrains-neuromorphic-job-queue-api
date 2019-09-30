@@ -281,6 +281,34 @@ angular.module('nmpi')
                 }
             }, 'https://collab.humanbrainproject.eu/');
         };
+
+        var isDict = function(obj) {
+            return obj.constructor == Object;
+        };
+
+        var flattenDict = function(obj) {
+            // assumes only two levels of nesting
+            var flattened = [];
+            var currentKey = "";
+            for (var key in obj) {
+                var value = obj[key];
+                if (isDict(value)) {
+                    for (var key2 in value) {
+                        var value2 = value[key2];
+                        if (key == currentKey) {
+                            flattened.push(["", key2, value2]);
+                        } else {
+                            flattened.push([key, key2, value2]);
+                            currentKey = key;
+                        };
+                    }
+                } else {
+                    flattened.push([key, "", value]);
+                };
+            }
+            return flattened;
+        };
+
         Results.get(
             {id: $stateParams.eId},
             // first we try to get the job from the Results endpoint
@@ -293,6 +321,7 @@ angular.module('nmpi')
                         $scope.job.comments[key].user_obj = User.get({id:comment.user}, function(data){});
                     });
                 }
+                $scope.job.flattenedProvenance = flattenDict($scope.job.provenance);
             },
             // if it's not there we try the Queue endpoint
             function(error) {
@@ -335,7 +364,7 @@ angular.module('nmpi')
         $scope.isImage = function(url) {
             var filename = url.split('/').pop();
             var extension = filename.split('.').pop().toLowerCase();
-            console.log("ext : " + extension);
+            //console.log("ext : " + extension);
             return ['jpg', 'jpeg', 'gif', 'png', 'svg'].includes(extension);
         };
 

@@ -111,7 +111,12 @@
   <div class="panel panel-default"  ng-show="job.hardware_config">
     <div class="panel-heading">Hardware config</div>
     <div class="panel-body">
-      <pre>{{job.hardware_config}}</pre>
+        <table class="table table-striped table-condensed">
+            <tr ng-repeat="(key, value) in job.hardware_config">
+              <td>{{key}}</td>
+              <td>{{value}}</td>
+            </tr>
+        </table>
     </div>
   </div>
   </div>
@@ -121,9 +126,10 @@
     <div class="panel-heading">Provenance</div>
     <div class="panel-body">
       <table class="table table-striped table-condensed">
-        <tr ng-repeat="(key, value) in job.provenance">
-          <td>{{key}}</td>
-          <td>{{value}}</td>
+          <tr ng-repeat="item in job.flattenedProvenance">
+            <td>{{item[0]}}</td>
+            <td>{{item[1]}}</td>
+            <td>{{item[2]}}</td>
         </tr>
       </table>
     </div>
