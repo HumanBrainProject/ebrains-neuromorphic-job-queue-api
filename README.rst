@@ -35,4 +35,6 @@ There are 6 main components:
 
 All code is copyright 2015-2019 CNRS unless otherwise indicated.
 
-This project was developed in the Human Brain Project, funded from the European Union’s Horizon 2020 Framework Programme for Research and Innovation under Specific Grant Agreements No. 720270 and No. 785907 (Human Brain Project SGA1 and SGA2).
+This project was developed in the Human Brain Project, 
+funded from the European Union’s Horizon 2020 Framework Programme for Research and Innovation 
+under Specific Grant Agreements No. 720270 and No. 785907 (Human Brain Project SGA1 and SGA2).
