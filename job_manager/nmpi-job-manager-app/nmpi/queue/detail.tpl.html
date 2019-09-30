@@ -24,7 +24,7 @@
         <p><small>Submitted {{job.timestamp_submission | date : "yyyy-MM-dd HH:mm:ss" }}
                   by {{job.user.displayName}}
                   to <strong>{{job.hardware_platform}}</strong></small></p>
-        <p data-ng-show="job.status != 'submitted'"><small>Completed {{job.timestamp_completion | date : "yyyy-MM-dd HH:mm:ss" }}</small></p>
+        <p data-ng-show="job.status == 'finished' || job.status == 'error'"><small>Completed {{job.timestamp_completion | date : "yyyy-MM-dd HH:mm:ss" }}</small></p>
         <div class="p_container">
           <a href style="float:right" ng-click="show=!show" ng-show="inTeam">
               <i ng-class="{'glyphicon glyphicon-remove': show, 'glyphicon glyphicon-tag': !show}"></i>
