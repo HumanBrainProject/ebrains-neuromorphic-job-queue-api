@@ -719,11 +719,16 @@ class CumulativeUserCountResource(StatisticsResource):
     def obj_get(self, bundle, **kwargs):
         users = Job.objects.values("user_id").distinct()
         first_job_dates = []
+        query = Job.objects
+        if  "platform" in bundle.request.GET:
+            query = query.filter(hardware_platform=bundle.request.GET["platform"])
         for n, user in enumerate(users):
             user_id = user['user_id']
-            first_job_dates.append(Job.objects.filter(user_id=user_id).first().timestamp_submission.date())
+            first_job = query.filter(user_id=user_id).first()
+            if first_job:
+                first_job_dates.append(first_job.timestamp_submission.date())
         first_job_dates.append(date.today())
-        user_counts = list(range(1, len(users) + 1))
+        user_counts = list(range(1, len(first_job_dates)))
         user_counts.append(user_counts[-1])  # repeat last value for today's date
         return TimeSeries(dates=sorted(first_job_dates),
                           values=user_counts)
