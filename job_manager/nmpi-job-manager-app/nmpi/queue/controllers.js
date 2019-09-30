@@ -22,6 +22,8 @@ angular.module('nmpi')
         $scope.tags = Tags.get();
         $scope.hardware_choices = ["BrainScaleS", "SpiNNaker", "BrainScaleS-ESS", "Spikey"];
         $scope.status_choices = ["submitted", "running", "finished", "error"];
+        $scope.loadingQueue = false;
+        $scope.loadingResults = false;
 
         var sendState = function(state, page) {
             var displayPage = page + 1; // in the UI, pages are numbered from 1
@@ -44,6 +46,7 @@ angular.module('nmpi')
         $scope.get_queue = function( cid ){
             // collab_id:cid will be passed as a GET variable and used by tastypie to retrieve only jobs from cid collab
             console.log("cid : " + cid);
+            $scope.loadingQueue = true;
             $scope.queue = Queue.get({collab_id:cid}, function(data){
                 console.log("data : " + JSON.stringify(data));
                 $scope.queue.objects.forEach( function( job, key ){
@@ -52,18 +55,21 @@ angular.module('nmpi')
                         $scope.queue.objects[key].collab = Collab.get({cid:job.collab_id}, function(data){});
                     }
                 });
+                $scope.loadingQueue = false;
             });
             $scope.queue.objects = new Array(); // init before the resource is answered by the server
         };
 
         $scope.get_results = function( cid ){
             // collab_id:cid will be passed as a GET variable and used by tastypie to retrieve only jobs from cid collab
+            $scope.loadingResults = true;
             $scope.results = Results.get({collab_id:cid}, function(data){
                 $scope.results.objects.forEach( function( job, key ){
                     $scope.results.objects[key].user = User.get({id:job.user_id}, function(data){});
                     if( !cid ){ // standalone condition
                         $scope.results.objects[key].collab = Collab.get({cid:job.collab_id}, function(data){});
                     }
+                    $scope.loadingResults = false;
                 });
 
                 // on the assumption there will be few queued jobs and many results, we
@@ -77,6 +83,14 @@ angular.module('nmpi')
                 };
             });
             $scope.results.objects = new Array(); // init before the resource is answered by the server
+        };
+
+        $scope.updating = function() {
+            if ($scope.loadingQueue || $scope.loadingResults) {
+                return "glyphicon glyphicon-refresh spinning";
+            } else {
+                return "glyphicon glyphicon-refresh";
+            }
         };
 
         var contextState = $location.search().ctxstate;

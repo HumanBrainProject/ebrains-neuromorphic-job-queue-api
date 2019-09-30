@@ -7,6 +7,9 @@
 
     <div class="row-fluid">
         <div class="pull-right" style="padding-bottom: 12px;">
+                <span style="margin-left: 30px;">
+                        <a ng-class="updating()" role="button" href="" ng-click="get_queue(collab_id); get_results(collab_id)"></a>
+                </span>
         <ui-select multiple ng-model="tags_list.selected" theme="bootstrap" ng-disabled="disabled" style="min-height: 33px;width: 300px;float: left;" title="Choose a tag">
             <ui-select-match placeholder="Filter by tags">{{$item.name}}</ui-select-match>
             <ui-select-choices repeat="tag.name as tag in tags.objects | filter: {name: $select.search} | orderBy:'name'">
