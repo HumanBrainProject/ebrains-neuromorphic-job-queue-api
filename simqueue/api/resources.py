@@ -402,7 +402,8 @@ class QueueResource(BaseJobResource):
         update = super(QueueResource, self).obj_update(bundle, **kwargs)
         logger.info("Updating status of job {} to {}".format(bundle.data['id'], bundle.data['status']))
         if bundle.data['status'] in ('finished', 'error'):
-            if "timestamp_completion" not in bundle.data:
+            logger.debug(str(bundle.data))
+            if "timestamp_completion" not in bundle.data or not bundle.data["timestamp_completion"]:
                 bundle.obj.timestamp_completion = datetime.now()
                 bundle.obj.save()
             self._send_email(bundle)
