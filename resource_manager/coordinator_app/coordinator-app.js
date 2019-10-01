@@ -60,6 +60,7 @@ angular.module('request-coordinator-app', ['ngResource', 'ui.bootstrap', 'hbpCom
                            console.log("Something went wrong in the RequestListController")
                        }
         );
+        $scope.build_info = window.bbpConfig.build;
     })
     .controller('RequestDetailController', function($scope, $stateParams, Projects, Quotas, User) {
         Projects.get({id: $stateParams.eId},
