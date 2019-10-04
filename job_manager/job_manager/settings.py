@@ -50,6 +50,7 @@ INSTALLED_APPS = [
     'quotas',
     'taggit',
     'social_django',
+    'corsheaders'
 ]
 if ENV == "dev":
     INSTALLED_APPS.insert(0, 'django_pdb')
@@ -58,6 +59,7 @@ if ENV == "dev":
 
 MIDDLEWARE_CLASSES = [
     'django.contrib.sessions.middleware.SessionMiddleware',
+    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.auth.middleware.SessionAuthenticationMiddleware',
@@ -244,3 +246,7 @@ if os.path.exists(os.path.join(BASE_DIR, "build_info.json")):
         BUILD_INFO = json.load(fp)
 else:
     BUILD_INFO = None
+
+CORS_ORIGIN_WHITELIST = (
+    'https://localhost:8011',
+)
