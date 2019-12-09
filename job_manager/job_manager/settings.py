@@ -230,6 +230,18 @@ LOGGING = {
         'simqueue': {
             'handlers': ['file'],
             'level': 'DEBUG',
+        },
+        'openid_http_client.http_client': {
+            'handlers': ['file'],
+            'level': 'DEBUG',
+        },
+        'kg_migration': {
+            'handlers': ['file'],
+            'level': 'DEBUG',
+        },
+        'fairgraph': {
+            'handlers': ['file'],
+            'level': 'DEBUG',
         }
     },
     'formatters': {
