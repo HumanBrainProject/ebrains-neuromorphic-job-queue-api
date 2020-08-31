@@ -113,20 +113,13 @@ angular.module('nmpi')
             });
             // todo: check that there is at least one quota associated with the collab
             $scope.inTeam = false;
-            $scope.canAccessPlatform = false;
+            $scope.canAccessPlatform = true;
             hbpCollabStore.context.get($rootScope.ctx).then(function (context) {
                 $rootScope.collab_id = context.collab.id;
 
                 hbpCollabStore.team.userInTeam(context.collab.id).then(function(response) {
                     $scope.inTeam = response;
                     console.log("User in team: " + response);
-                });
-
-                hbpIdentityUserDirectory.isGroupMember(['hbp-sp09-member',
-                                                        'hbp-sga1-sp09-member',
-                                                        'hbp-neuromorphic-platform-users']).then(function(response) {
-                    $scope.canAccessPlatform = response;
-                    console.log("User has access to the platform: " + response);
                 });
 
                 $scope.get_queue(context.collab.id);
