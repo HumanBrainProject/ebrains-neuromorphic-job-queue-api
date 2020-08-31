@@ -48,32 +48,26 @@ class IdentityService(object):
         logger.debug("Requesting user information for given access token")
         res = requests.get(url, headers=headers)
         if res.status_code != 200:
-            logger.debug("Error" + res.content)
+            logger.debug("Error requesting {} with headers {}".format(url, headers))
             raise Exception(res.content)
         logger.debug("User information retrieved")
         return res.json()
 
     @classmethod
     def can_use_platform(cls, request):
-        user_id = cls.get_user(request)["id"]
-        # todo: given that we have previously called get_user during authentication, we should cache this information
-        url = "{}/user/{}/member-groups?pageSize=100".format(settings.HBP_IDENTITY_SERVICE_URL, user_id)
-        headers = {'Authorization': request.META["HTTP_AUTHORIZATION"]}
-        logger.debug("Requesting group membership for user id {}".format(user_id))
-        res = requests.get(url, headers=headers)
-        if res.status_code != 200:
-            logger.debug("Error" + res.content)
-            raise Exception(res.content)
-        groups = [g["name"] for g in res.json()['_embedded']['groups']]
-        logger.debug("Groups: {}".format(groups))
-        return 'hbp-sga1-sp09-member' in groups \
-               or 'hbp-neuromorphic-platform-users' in groups \
-               or 'hbp-sp09-member' in groups
+        return True
+        # as of SGA3, the HBP account registration process has access and privacy policies to agree upon
+        # as part of the sign up process and it limits accounts to either positive-listed institutional
+        # email domains or a manual process to verify something about the account owner.
+        # Therefore, we no longer need to restrict access to a specific subset of HBP users.
+
+        # Note that users will still need to be members of a collab with an associated resource quota to submit jobs.
 
 
 class ProviderAuthentication(ApiKeyAuthentication):
 
     def is_provider(self, request):
+        logger.debug(request.META)
         return self.is_authenticated(request) is True
 
 
