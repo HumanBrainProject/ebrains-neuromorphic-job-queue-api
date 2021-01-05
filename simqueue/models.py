@@ -26,8 +26,8 @@ class Job(models.Model):
     )
     code = models.TextField()
     command = models.CharField(max_length=200, blank=True)
-    collab_id = models.TextField(null=False, blank=False, max_length=25)  # should be a CharField
-    user_id = models.CharField(default="me", max_length=25)
+    collab_id = models.TextField(null=False, blank=False, max_length=40)  # should be a CharField
+    user_id = models.CharField(default="me", max_length=36)
     status = models.CharField(choices=status_choices, default="submitted", blank=True, max_length=15)
     input_data = models.ManyToManyField('DataItem', related_name="input_to", blank=True)
     output_data = models.ManyToManyField('DataItem', related_name="generated_by", blank=True)
@@ -62,7 +62,7 @@ class Job(models.Model):
             'tags': [tag.name for tag in self.tags.all()],
             'comments': self.comments.all(),
         }
-        
+
     def __unicode__(self):
         return "Job #%d - %s" % (self.pk, str(self.collab_id))
 
@@ -76,7 +76,7 @@ class Comment(models.Model):
     job = models.ForeignKey(Job, related_name="comments", null=True, blank=True)
     content = models.TextField(null=True)
     created_time = models.DateTimeField(default=now_in_utc, blank=True)
-    user = models.CharField(default="me", max_length=25)
+    user = models.CharField(default="me", max_length=36)
 
     def __unicode__(self):
         return self.content

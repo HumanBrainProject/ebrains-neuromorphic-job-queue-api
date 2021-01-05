@@ -28,13 +28,66 @@ class CollabService(object):
         return permissions
 
     @classmethod
+    def _get_permissions_v2(cls, request, collab_id):
+        url = f"{settings.HBP_IDENTITY_SERVICE_URL_V2}/userinfo"
+        headers = {'Authorization': request.META["HTTP_AUTHORIZATION"]}
+        logger.debug("Requesting EBRAINS user information for given access token")
+        res = requests.get(url, headers=headers)
+        if res.status_code != 200:
+            logger.debug("Error requesting {} with headers {}".format(url, headers))
+            raise Exception(res.content)
+        logger.debug("User information retrieved")
+        userinfo = res.json()
+
+        target_team_names = {role: f"collab-{collab_id}-{role}"
+                            for role in ("viewer", "editor", "administrator")}
+
+        highest_collab_role = None
+        for role, team_name in target_team_names.items():
+            if team_name in userinfo["roles"]["team"]:
+                highest_collab_role = role
+        if highest_collab_role == "viewer":
+            permissions = {"VIEW": True, "UPDATE": False}
+        elif highest_collab_role in ("editor", "administrator"):
+            permissions = {"VIEW": True, "UPDATE": True}
+        else:
+            assert highest_collab_role is None
+            collab_info = cls.get_collab_info(request, collab_id)
+            if collab_info["isPublic"]:
+                permissions = {"VIEW": True, "UPDATE": False}
+            else:
+                permissions = {"VIEW": False, "UPDATE": False}
+        return permissions
+
+    @classmethod
+    def get_collab_info(cls, request, collab_id):
+        collab_info_url = f"{settings.HBP_COLLAB_SERVICE_URL_V2}collabs/{collab_id}"
+        headers = {'Authorization': request.META["HTTP_AUTHORIZATION"]}
+        res = requests.get(collab_info_url, headers=headers)
+        if res.status_code != 200:
+            raise Exception("Error getting collab info")
+        else:
+            response = res.json()
+        return response
+
+    @classmethod
     def can_view(cls, request, collab_id):
-        perms = cls._get_permissions(request, collab_id)
+        try:
+            int(collab_id)
+            get_permissions = cls._get_permissions
+        except ValueError:
+            get_permissions = cls._get_permissions_v2
+        perms = get_permissions(request, collab_id)
         return perms.get('VIEW', False)
 
     @classmethod
     def is_team_member(cls, request, collab_id):
-        perms = cls._get_permissions(request, collab_id)
+        try:
+            int(collab_id)
+            get_permissions = cls._get_permissions
+        except ValueError:
+            get_permissions = cls._get_permissions_v2
+        perms = get_permissions(request, collab_id)
         return perms.get('UPDATE', False)
 
 
@@ -45,13 +98,31 @@ class IdentityService(object):
         url = "{}/user/me".format(settings.HBP_IDENTITY_SERVICE_URL)
         #import pdb; pdb.set_trace()
         headers = {'Authorization': request.META["HTTP_AUTHORIZATION"]}
-        logger.debug("Requesting user information for given access token")
+        logger.debug("Requesting HBP user information for given access token")
         res = requests.get(url, headers=headers)
         if res.status_code != 200:
             logger.debug("Error requesting {} with headers {}".format(url, headers))
             raise Exception(res.content)
         logger.debug("User information retrieved")
         return res.json()
+
+    @classmethod
+    def get_ebrains_user(cls, request):
+        url = f"{settings.HBP_IDENTITY_SERVICE_URL_V2}/userinfo"
+        headers = {'Authorization': request.META["HTTP_AUTHORIZATION"]}
+        logger.debug("Requesting EBRAINS user information for given access token")
+        res = requests.get(url, headers=headers)
+        if res.status_code != 200:
+            logger.debug("Error requesting {} with headers {}".format(url, headers))
+            raise Exception(res.content)
+        logger.debug("User information retrieved")
+        user_info = res.json()
+        logger.debug(user_info)
+        # make this compatible with the v1 json
+        user_info["id"] = user_info["sub"]
+        user_info["username"] = user_info.get("preferred_username", "unknown")
+        logger.debug("User information retrieved")
+        return user_info
 
     @classmethod
     def can_use_platform(cls, request):
@@ -67,7 +138,7 @@ class IdentityService(object):
 class ProviderAuthentication(ApiKeyAuthentication):
 
     def is_provider(self, request):
-        logger.debug(request.META)
+        #logger.debug(request.META)
         return self.is_authenticated(request) is True
 
 
@@ -81,18 +152,21 @@ class HBPAuthentication(Authentication):
             return False
         logger.debug("Got OIDC user {}".format(user["username"]))
         return True
-        # try:
-        #     usa = UserSocialAuth.objects.get(uid=user["id"])
-        # except UserSocialAuth.DoesNotExist:
-        #     logger.debug("No social auth for uid" + user["id"])
-        #     return False
-        # logger.debug("Bearer {}".format(usa.access_token))
-        # logger.debug(request.META["HTTP_AUTHORIZATION"])
-        # return "Bearer {}".format(usa.access_token) == request.META["HTTP_AUTHORIZATION"]
 
-    # Optional but recommended
-    #def get_identifier(self, request):
-    #    return request.user.username
+    def is_provider(self, request):
+        return False
+
+
+class EBRAINSAuthentication(Authentication):
+
+    def is_authenticated(self, request, **kwargs):
+        try:
+            user = IdentityService.get_ebrains_user(request)
+        except Exception as err:
+            logger.debug("IAM Service exception: {}".format(err))
+            return False
+        logger.debug("Got IAM user {}".format(user["username"]))
+        return True
 
     def is_provider(self, request):
         return False

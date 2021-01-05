@@ -32,7 +32,7 @@ import numpy as np
 
 from ..models import DataItem, Job, Log, Comment
 from taggit.models import Tag
-from .auth import CollabAuthorization, HBPAuthentication, ProviderAuthentication
+from .auth import CollabAuthorization, EBRAINSAuthentication, HBPAuthentication, ProviderAuthentication
 from quotas.models import Quota, Project
 
 from hbp_app_python_auth.auth import get_access_token
@@ -189,7 +189,7 @@ class QueueResource(BaseJobResource):
     class Meta:
         queryset = Job.objects.exclude(status__in=["removed", "error", "finished"]).order_by('-timestamp_submission')
         object_class = Job
-        authentication = MultiAuthentication(ProviderAuthentication(), HBPAuthentication())
+        authentication = MultiAuthentication(ProviderAuthentication(), HBPAuthentication(), EBRAINSAuthentication())
         authorization = CollabAuthorization()
         serializer = ISO8601UTCOffsetSerializer(formats=['json'])
         resource_name = "queue"  # TODO: copy this class with another resource_name and filterQ applied
@@ -463,7 +463,7 @@ class ResultsResource(BaseJobResource):
 
     class Meta:
         queryset = Job.objects.filter(status__in=['finished', 'error']).order_by('-timestamp_submission')
-        authentication = MultiAuthentication(ProviderAuthentication(), HBPAuthentication())
+        authentication = MultiAuthentication(ProviderAuthentication(), HBPAuthentication(), EBRAINSAuthentication())
         authorization = CollabAuthorization()
         serializer = ISO8601UTCOffsetSerializer(formats=['json'])
         resource_name = "results"

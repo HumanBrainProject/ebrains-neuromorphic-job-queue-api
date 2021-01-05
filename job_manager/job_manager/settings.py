@@ -196,7 +196,9 @@ SESSION_COOKIE_NAME = 'clbapp_sessionid'
 
 HBP_ENV_URL = 'https://collab.humanbrainproject.eu/config.json'
 HBP_COLLAB_SERVICE_URL = 'https://services.humanbrainproject.eu/collab/v0'
+HBP_COLLAB_SERVICE_URL_V2 = "https://wiki.ebrains.eu/rest/v1/"
 HBP_IDENTITY_SERVICE_URL = 'https://services.humanbrainproject.eu/idm/v1/api'
+HBP_IDENTITY_SERVICE_URL_V2 = "https://iam.ebrains.eu/auth/realms/hbp/protocol/openid-connect"
 
 TMP_FILE_URL = "/tmp_download/"
 TMP_FILE_ROOT = "%s/tmp_download/" % BASE_DIR

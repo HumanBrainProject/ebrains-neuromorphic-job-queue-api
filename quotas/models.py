@@ -4,8 +4,8 @@ from django.utils.encoding import python_2_unicode_compatible
 
 @python_2_unicode_compatible
 class ProjectMember(models.Model):
-    user_id = models.CharField(max_length=15, help_text="HBP user id")
-    approved_by = models.CharField(max_length=15, help_text="HBP user id")
+    user_id = models.CharField(max_length=36, help_text="HBP user id")
+    approved_by = models.CharField(max_length=36, help_text="HBP user id")
     approved_on = models.DateTimeField(null=True, help_text="If null, applicant has not been approved")
     platform = models.CharField(max_length=20, help_text="System to which approval applies")
 
@@ -16,8 +16,8 @@ class ProjectMember(models.Model):
 @python_2_unicode_compatible
 class Project(models.Model):
     context = models.UUIDField(primary_key=True, unique=True)
-    collab = models.CharField(max_length=32, help_text="Collab id")
-    owner = models.CharField(max_length=32, help_text="HBP user id")
+    collab = models.CharField(max_length=40, help_text="Collab id")
+    owner = models.CharField(max_length=36, help_text="HBP user id")
     title = models.CharField(max_length=200, blank=True)
     abstract = models.TextField(blank=True)
     description = models.TextField(blank=True)
@@ -60,7 +60,7 @@ class Quota(models.Model):
 @python_2_unicode_compatible
 class Review(models.Model):
     project = models.ForeignKey(Project)
-    reviewer = models.CharField(max_length=15, help_text="HBP user id")
+    reviewer = models.CharField(max_length=36, help_text="HBP user id")
     content = models.TextField()
     type = models.CharField(max_length=10, choices=(("technical", "technical"), ("scientific", "scientific")))
     date_due = models.DateField(help_text="Date when review due")
