@@ -154,7 +154,7 @@ class ProjectResource(BaseResource):
             return HttpResponseNotFound()
 
         if not is_admin(request):
-            collab = CollabService(request, context=kwargs["project_id"])
+            collab = CollabService(request, collab_id=project.collab)
             if not (collab.can_view  # public collab, or a member of a private collab
                     and (collab.is_team_member or project.accepted)):  # for public collabs, only accepted projects can be viewed
                  return json_err(HttpResponseForbidden, "You do not have permission to view this resource.")
@@ -171,16 +171,15 @@ class ProjectResource(BaseResource):
             return self.change_status(request, kwargs["project_id"], data['status'])
         else:
             logger.info("Updating project: %s", data)
-            collab = CollabService(request, context=kwargs["project_id"])
-            if not collab.is_team_member:
-                logger.info(collab.permissions)
-                return json_err(HttpResponseForbidden, "You do not have permission to modify this project.")
             project = self._get_project(kwargs["project_id"])
             if project is None:
                 return HttpResponseNotFound()
+            collab = CollabService(request, collab_id=project.collab)
+            if not collab.is_team_member:
+                logger.info(collab.permissions)
+                return json_err(HttpResponseForbidden, "You do not have permission to modify this project.")
             if project.submission_date is not None:
                 return json_err(HttpResponseForbidden, "Can't edit a submitted form.")
-            data = json.loads(request.body)
             for field, value in model_to_dict(project).items():
                 if field not in data:
                     data[field] = value
@@ -258,8 +257,10 @@ class ProjectListResource(BaseResource):
 
     def post(self, request, *args, **kwargs):
         """Create a proposal"""
+        logger.info("Received request to create a proposal")
         form = ProposalForm(json.loads(request.body))
         if form.is_valid():
+            logger.debug("Form is valid")
             collab = CollabService(request, collab_id=form.cleaned_data["collab"])
             if not collab.is_team_member:
                 return json_err(HttpResponseForbidden, "You do not have permission to create a project.")
@@ -267,6 +268,7 @@ class ProjectListResource(BaseResource):
             if form.cleaned_data.get("submitted", False):
                 project.submission_date = date.today()
                 project.save()
+                logger.debug("Notifying coordinators")
                 notify_coordinators(request, project)
             content = self.serializer.serialize(project)
             return HttpResponse(content, content_type="application/json; charset=utf-8", status=201)
@@ -301,7 +303,7 @@ class QuotaResource(BaseResource):
             return json_err(HttpResponseNotFound, "No such project")
 
         if not is_admin(request):
-            collab = CollabService(request, context=kwargs["project_id"])
+            collab = CollabService(request, collab_id=project.collab)
             if not collab.is_team_member:
                 return json_err(HttpResponseForbidden, "You do not have permission to view this resource.")
 
@@ -335,7 +337,7 @@ class QuotaListResource(BaseResource):
         if project is None:
             return json_err(HttpResponseNotFound, "No such project")
         if not is_admin(request):
-            collab = CollabService(request, context=kwargs["project_id"])
+            collab = CollabService(request, collab_id=project.collab)
             if not collab.is_team_member:
                 return json_err(HttpResponseForbidden, "You do not have permission to view this resource.")
         quotas = Quota.objects.filter(project=project)

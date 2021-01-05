@@ -74,19 +74,13 @@ test_project_data = {
     ),
 }
 
-collab_map = dict((p["context"], p["collab"])
-                  for p in test_project_data.values())
-
 
 class MockCollabService(object):
 
-    def __init__(self, request, context=None, collab_id=None):
-        if collab_id is None:
-            self.collab_id = collab_map[str(context)]
-        else:
-            self.collab_id = collab_id
+    def __init__(self, request, collab_id=None):
+        self.collab_id = collab_id
         if self.collab_id is None:
-            raise ValueError("Invalid context provided: {} not in map {}".format(context, collab_map))
+            raise ValueError("Must provide collab_id")
         access_token = request.META.get('HTTP_AUTHORIZATION', None)
         self.user_id = token_map.get(access_token, None)
         self.permissions = {"foo": "bar"}
@@ -270,7 +264,6 @@ class ProjectResourceTest(TestCase):
             abstract = "I will do some science",
             description = "lsirgjcmrgcoio\nrogicargcagc\niorhrg\n"
         )
-        collab_map[project_data["context"]] = project_data["collab"]
         response = self.alice.post('/projects/', data=json.dumps(project_data),
                                    content_type="application/json")
         self.assertEqual(response.status_code, 201)
@@ -287,7 +280,6 @@ class ProjectResourceTest(TestCase):
             abstract = "No, I will do some science",
             description = "Lsirgjcmrgcoio\nRogicargcagc\nIorhrg\n"
         )
-        collab_map[project_data["context"]] = project_data["collab"]
         response = self.bob.post('/projects/', data=json.dumps(project_data),
                                  content_type="application/json")
         self.assertEqual(response.status_code, 403)
@@ -305,7 +297,6 @@ class ProjectResourceTest(TestCase):
             description = "lsirgjcmrgcoio\nrogicargcagc\niorhrg\n",
             submitted = True
         )
-        collab_map[project_data["context"]] = project_data["collab"]
         response = self.alice.post('/projects/', data=json.dumps(project_data),
                                    content_type="application/json")
         self.assertEqual(response.status_code, 201)
@@ -559,5 +550,3 @@ class QuotaResourceTest(TestCase):
         self.assertEqual(response.json()["error"], "You do not have permission to add a quota to a project.")
 
 #     #def test_update_usage(self):
-
-

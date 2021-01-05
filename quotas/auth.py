@@ -25,12 +25,14 @@ def get_authorization_header(request):
 
 
 def get_admin_list(request):
+    # todo: implement this for v2 as well
     url = 'https://services.humanbrainproject.eu/idm/v1/api/group/hbp-neuromorphic-platform-admin/members?pageSize=100'
     headers = get_authorization_header(request)
     res = requests.get(url, headers=headers)
     #logger.debug(headers)
     if res.status_code != 200:
-        raise Exception("Couldn't get list of administrators." + res.content + str(headers))
+        logger.warning("Couldn't get list of administrators." + res.text + str(headers))
+        return []
     data = res.json()
     assert data['page']['totalPages'] == 1, "Too many administrators - need to read data from second page"
     # todo: fix this, get all pages
@@ -66,29 +68,65 @@ def get_user(request):
 
 class CollabService(object):
 
-    def __init__(self, request, context=None, collab_id=None):
-        # must provide either context or collab
-        svc_url = settings.HBP_COLLAB_SERVICE_URL
-        headers = get_authorization_header(request)
+    def __init__(self, request, collab_id=None):
         if collab_id is None:
-            if context is None:
-                self.permissions = {}
-                logger.error("Can't have both context and collab be None")
-            else:
-                url = '%scollab/context/%s/' % (svc_url, context)
-                res = requests.get(url, headers=headers)
-                if res.status_code != 200:
-                    self.permissions = {}
-                    return
-                collab_id = res.json()['collab']['id']
-        url = '%scollab/%s/permissions/' % (svc_url, collab_id)
+            self.permissions = {}
+            logger.error("Must provide collab_id")
+        else:
+            try:
+                int(collab_id)
+                self.permissions = CollabService._get_permissions(request, collab_id)
+            except ValueError:
+                self.permissions = CollabService._get_permissions_v2(request, collab_id)
+        logger.debug(str(self.permissions))
+
+    @classmethod
+    def _get_permissions(cls, request, collab_id):
+        logger.debug("Checking permissions for collab {}".format(collab_id))
+        svc_url = settings.HBP_COLLAB_SERVICE_URL
+        url = '{}/collab/{}/permissions'.format(svc_url, collab_id)
+        #headers = get_authorization_header(request)
+        headers = {'Authorization': request.META["HTTP_AUTHORIZATION"]}
         res = requests.get(url, headers=headers)
         if res.status_code in (200, 403):
-            self.permissions = res.json()
+            permissions = res.json()
         else:
             logger.error(res.content)
-            self.permissions = {}
-        logger.debug(str(self.permissions))
+            permissions = {}
+        logger.debug(str(permissions))
+        return permissions
+
+    @classmethod
+    def _get_permissions_v2(cls, request, collab_id):
+        url = f"{settings.HBP_IDENTITY_SERVICE_URL_V2}/userinfo"
+        headers = {'Authorization': request.META["HTTP_AUTHORIZATION"]}
+        logger.debug("Requesting EBRAINS user information for given access token")
+        res = requests.get(url, headers=headers)
+        if res.status_code != 200:
+            logger.debug("Error requesting {} with headers {}".format(url, headers))
+            raise Exception(res.content)
+        logger.debug("User information retrieved")
+        userinfo = res.json()
+
+        target_team_names = {role: f"collab-{collab_id}-{role}"
+                            for role in ("viewer", "editor", "administrator")}
+
+        highest_collab_role = None
+        for role, team_name in target_team_names.items():
+            if team_name in userinfo["roles"]["team"]:
+                highest_collab_role = role
+        if highest_collab_role == "viewer":
+            permissions = {"VIEW": True, "UPDATE": False}
+        elif highest_collab_role in ("editor", "administrator"):
+            permissions = {"VIEW": True, "UPDATE": True}
+        else:
+            assert highest_collab_role is None
+            collab_info = cls.get_collab_info(request, collab_id)
+            if collab_info["isPublic"]:
+                permissions = {"VIEW": True, "UPDATE": False}
+            else:
+                permissions = {"VIEW": False, "UPDATE": False}
+        return permissions
 
     @property
     def can_view(self):
