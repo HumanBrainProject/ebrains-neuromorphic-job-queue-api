@@ -230,7 +230,15 @@ LOGGING = {
         'simqueue': {
             'handlers': ['file'],
             'level': 'DEBUG',
-        }
+        },
+        'social_core': {
+            'handlers': ['file'],
+            'level': 'DEBUG',
+        },
+        'social_django': {
+            'handlers': ['file'],
+            'level': 'DEBUG',
+        },
     },
     'formatters': {
         'verbose': {

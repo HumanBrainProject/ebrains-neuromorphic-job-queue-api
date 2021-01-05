@@ -1,3 +1,4 @@
+import logging
 from django.shortcuts import render
 from django.template.context import RequestContext
 from django.http import HttpResponse
@@ -20,6 +21,9 @@ except ImportError:  # Py3
     from urllib.request import urlretrieve
 import errno
 
+logger = logging.getLogger("simqueue")
+
+
 @login_required(login_url='/login/hbp/')
 def home(request):
     # from the request context, load user
@@ -39,6 +43,7 @@ def config(request):
     config['auth']['clientId'] = settings.SOCIAL_AUTH_HBP_KEY
 
     # Add user token information
+    logger.debug("user = {}".format(request.user))
     config['auth']['token'] = {
         'access_token': get_access_token(request.user.social_auth.get()),
         'token_type': get_token_type(request.user.social_auth.get()),

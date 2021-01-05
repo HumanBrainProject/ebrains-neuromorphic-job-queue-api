@@ -28,7 +28,7 @@ def get_admin_list(request):
     url = 'https://services.humanbrainproject.eu/idm/v1/api/group/hbp-neuromorphic-platform-admin/members?pageSize=100'
     headers = get_authorization_header(request)
     res = requests.get(url, headers=headers)
-    logger.debug(headers)
+    #logger.debug(headers)
     if res.status_code != 200:
         raise Exception("Couldn't get list of administrators." + res.content + str(headers))
     data = res.json()
