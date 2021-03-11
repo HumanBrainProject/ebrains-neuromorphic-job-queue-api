@@ -41,6 +41,11 @@ def get_admin_list(request):
 
 
 def is_admin(request):
+    # v2
+    admin_collab = CollabService(request, collab_id="neuromorphic-platform-admin")
+    if admin_collab.is_team_member:
+        return True
+    # v1
     try:
         admins = get_admin_list(request)
     except Exception as err:
@@ -99,7 +104,10 @@ class CollabService(object):
     @classmethod
     def _get_permissions_v2(cls, request, collab_id):
         url = f"{settings.HBP_IDENTITY_SERVICE_URL_V2}/userinfo"
-        headers = {'Authorization': request.META["HTTP_AUTHORIZATION"]}
+        auth = request.META.get("HTTP_AUTHORIZATION", None)
+        if auth is None:
+            return {"VIEW": False, "UPDATE": False}
+        headers = {'Authorization': auth}
         logger.debug("Requesting EBRAINS user information for given access token")
         res = requests.get(url, headers=headers)
         if res.status_code != 200:
