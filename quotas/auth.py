@@ -111,8 +111,9 @@ class CollabService(object):
         logger.debug("Requesting EBRAINS user information for given access token")
         res = requests.get(url, headers=headers)
         if res.status_code != 200:
-            logger.debug("Error requesting {} with headers {}".format(url, headers))
-            raise Exception(res.content)
+            logger.warning("Error requesting {} with headers {}".format(url, headers))
+            return {"VIEW": False, "UPDATE": False}
+
         logger.debug("User information retrieved")
         userinfo = res.json()
 
@@ -135,6 +136,17 @@ class CollabService(object):
             else:
                 permissions = {"VIEW": False, "UPDATE": False}
         return permissions
+
+    @classmethod
+    def get_collab_info(cls, request, collab_id):
+        collab_info_url = f"{settings.HBP_COLLAB_SERVICE_URL_V2}collabs/{collab_id}"
+        headers = {'Authorization': request.META.get("HTTP_AUTHORIZATION")}
+        res = requests.get(collab_info_url, headers=headers)
+        if res.status_code != 200:
+            raise Exception("Error getting collab info")
+        else:
+            response = res.json()
+        return response
 
     @property
     def can_view(self):
