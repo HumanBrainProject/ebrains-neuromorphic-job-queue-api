@@ -6,3 +6,4 @@ jsonfield
 django-sslserver  # dev only
 psycopg2
 social-auth-app-django
+django-cors-headers

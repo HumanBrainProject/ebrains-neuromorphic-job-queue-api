@@ -32,7 +32,8 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'quotas',
-    'social_django'
+    'social_django',
+    'corsheaders'
 ]
 if ENV == "dev":
     INSTALLED_APPS.append('sslserver')
@@ -40,6 +41,7 @@ if ENV == "dev":
 
 MIDDLEWARE_CLASSES = (
     'django.contrib.sessions.middleware.SessionMiddleware',
+    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.auth.middleware.SessionAuthenticationMiddleware',
@@ -168,3 +170,6 @@ if os.path.exists(os.path.join(BASE_DIR, "build_info.json")):
         BUILD_INFO = json.load(fp)
 else:
     BUILD_INFO = None
+
+CORS_ORIGIN_ALLOW_ALL = True
+CORS_EXPOSE_HEADERS = ["Location"]
