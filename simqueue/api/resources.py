@@ -39,7 +39,7 @@ from hbp_app_python_auth.auth import get_access_token
 
 
 CODE_MAX_LENGTH = 15000
-STANDARD_QUEUES = ("BrainScaleS", "BrainScaleS-ESS", "Spikey", "SpiNNaker")
+STANDARD_QUEUES = ("BrainScaleS", "BrainScaleS-ESS", "Spikey", "SpiNNaker", "BrainScaleS-2")
 
 logger = logging.getLogger("simqueue")
 
