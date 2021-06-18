@@ -124,6 +124,7 @@ class CollabService(object):
         for role, team_name in target_team_names.items():
             if team_name in userinfo["roles"]["team"]:
                 highest_collab_role = role
+
         if highest_collab_role == "viewer":
             permissions = {"VIEW": True, "UPDATE": False}
         elif highest_collab_role in ("editor", "administrator"):
@@ -131,7 +132,7 @@ class CollabService(object):
         else:
             assert highest_collab_role is None
             collab_info = cls.get_collab_info(request, collab_id)
-            if collab_info["isPublic"]:
+            if collab_info.get("isPublic", False):
                 permissions = {"VIEW": True, "UPDATE": False}
             else:
                 permissions = {"VIEW": False, "UPDATE": False}
@@ -143,7 +144,12 @@ class CollabService(object):
         headers = {'Authorization': request.META.get("HTTP_AUTHORIZATION")}
         res = requests.get(collab_info_url, headers=headers)
         if res.status_code != 200:
-            raise Exception("Error getting collab info")
+            response = {
+                "error": {
+                    "status_code": res.status_code,
+                    "message": f"Error getting collab info for {collab_id}: {res.content}"
+                }
+            }
         else:
             response = res.json()
         return response
