@@ -22,7 +22,7 @@ List available server nodes::
 
 Example output::
 
-    Name               Ip_Address       Created_At              Size  Region
+    Name               Ip_Address       Created_At              Size  Location
     -----------------  ---------------  --------------------  ------  ---------------
     bob                146.185.173.96   2016-05-19T14:02:42Z     512  Amsterdam 2
     gallaxhar          146.185.169.134  2016-08-10T13:26:47Z    1024  Amsterdam 2
@@ -214,7 +214,7 @@ Certificates
 
 The SSL certificates for hbpneuromorphic.eu are obtained from Let's Encrypt.
 The private keys and the certificates are stored in the :file:`/etc/letsencrypt`
-directory of the host servers, and made available to the Docker images via 
+directory of the host servers, and made available to the Docker images via
 Docker shared volumes.
 Certificates are valid for three months. At the moment, they must be manually renewed.
 Automatic renewal (e.g. through a cron job) is planned.

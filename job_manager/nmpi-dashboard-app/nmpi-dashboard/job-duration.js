@@ -11,6 +11,10 @@ d3.json("/api/v2/statistics/job-duration/?scale=log&bins=50",
                                     function (item) {
                                         return item.platform == 'BrainScaleS' && item.status == 'finished';
                                     })[0],
+            brainscales2_finished: data.objects.filter(
+                function (item) {
+                    return item.platform == 'BrainScaleS-2' && item.status == 'finished';
+                })[0],
             spikey_finished: data.objects.filter(
                                     function (item) {
                                         return item.platform == 'Spikey' && item.status == 'finished';
@@ -23,6 +27,8 @@ d3.json("/api/v2/statistics/job-duration/?scale=log&bins=50",
         job_durations.brainscales_finished.values.unshift('BrainScaleS (finished)');
         job_durations.spikey_finished.bins.unshift('x');
         job_durations.spikey_finished.values.unshift('Spikey (finished)');
+        job_durations.brainscales2_finished.bins.unshift('x');
+        job_durations.brainscales2_finished.values.unshift('BrainScaleS-2 (finished)');
 
         var axis = {
                 x: {
@@ -116,4 +122,27 @@ d3.json("/api/v2/statistics/job-duration/?scale=log&bins=50",
             axis: axis,
             padding: padding,
         });
+
+        var chart4 = c3.generate({
+            bindto: '#chart-job-duration-brainscales2',
+            data: {
+                x: 'x',
+                columns: [
+                    job_durations.brainscales2_finished.bins,
+                    job_durations.brainscales2_finished.values
+                ],
+                type: 'area-step',
+                colors: {
+                    'BrainScaleS-2 (finished)': '#ee6f9e',
+                },
+            },
+            line: {
+                step: {
+                    type: 'step-after'
+                }
+            },
+            axis: axis,
+            padding: padding,
+        });
+
 });

@@ -114,7 +114,8 @@ angular.module('request-coordinator-app', ['ngResource', 'ui.bootstrap', 'hbpCom
                          };
                          $scope.getUnits = function(quota) {
                              quota.units = {"BrainScaleS": "wafer-hours", "SpiNNaker": "core-hours",
-                                            "BrainScaleS-ESS": "core-hours", "Spikey": "hours"}[quota.platform];
+                                            "BrainScaleS-ESS": "core-hours", "Spikey": "hours",
+                                            "BrainScaleS-2": "chip-hours"}[quota.platform];
                              return quota.units
                          }
                      },

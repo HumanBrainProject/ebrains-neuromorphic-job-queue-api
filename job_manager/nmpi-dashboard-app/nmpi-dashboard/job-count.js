@@ -21,12 +21,12 @@ d3.json("/api/v2/statistics/job-count/?start=2015-06-22&end=" + today + "&interv
             json: job_stats,
             keys: {
                 x: 'end_date',
-                value: ['SpiNNaker', 'BrainScaleS', 'BrainScaleS-ESS', 'Spikey'],
+                value: ['SpiNNaker', 'BrainScaleS', 'BrainScaleS-2', 'BrainScaleS-ESS', 'Spikey'],
             },
             x: 'end_date',
             xFormat: '%Y-%m-%d',
             type: 'area',
-            groups: [['SpiNNaker', 'BrainScaleS', 'BrainScaleS-ESS', 'Spikey']]
+            groups: [['SpiNNaker', 'BrainScaleS', 'BrainScaleS-2', 'BrainScaleS-ESS', 'Spikey']]
         },
         point: {
             show: false
