@@ -9,7 +9,7 @@
 
 
 FROM debian:buster-slim
-MAINTAINER Andrew Davison <andrew.davison@unic.cnrs-gif.fr>
+MAINTAINER Andrew Davison <andrew.davison@cnrs.fr>
 
 ENV DEBIAN_FRONTEND noninteractive
 RUN apt-get update --fix-missing
@@ -22,7 +22,6 @@ RUN pip3 install uwsgi
 ENV SITEDIR /home/docker/site
 
 COPY resource_manager $SITEDIR
-COPY packages /home/docker/packages
 COPY quotas /home/docker/quotas
 COPY build_info.json $SITEDIR
 
