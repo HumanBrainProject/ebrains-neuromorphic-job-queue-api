@@ -257,15 +257,19 @@ def copy_datafiles_to_collab_drive(request, job, local_dir, relative_paths):
             #doc_client.makedirs(os.path.dirname(collab_path))
             # collab_path_id = dsc.create_folder(collab_path_2, folder_id)
         local_path = os.path.join(local_dir, relative_path)
+        print('subdirectorry',subdirectory)
         print('local_path',local_path)
         print("File ",relative_path,"may need to be copied")
         try:
+            print('we are in try, and the collabpath is', collab_path)
             target_repository.get_file(collab_path)
             print("A file",relative_path," exists already in the target repositiory")
         except:
             print("No file ",relative_path,"yet in the target directoy")
             print("Copy the file to destination directory",splitted_collab_path[1])
             if get_file_size(local_path, 'GB') < size_limit:
+                dir = target_repository.get_dir(subdirectory)
+                print(dir)
                 dir.upload_local_file(local_path)    #not the right dir in case of subdir
                 print("Copy done")
             else:
