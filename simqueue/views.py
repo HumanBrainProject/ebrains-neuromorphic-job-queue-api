@@ -6,6 +6,8 @@ from django.contrib.auth.decorators import login_required
 import json
 import requests
 from hbp_app_python_auth.auth import get_access_token, get_token_type
+import ebrains_drive
+from ebrains_drive.client import DriveApiClient
 from django.conf import settings
 
 import os.path
@@ -64,12 +66,23 @@ def mkdir_p(path):
         else:
             raise
 
+def convert_bytes(size_in_bytes,unit):
+    size_units = ['bytes', 'KB', 'MB', 'GB', 'TB']
+    return size_in_bytes/(1024**size_units.index(unit))
 
-@login_required(login_url='/login/hbp/')
+def get_file_size(file_path, unit):
+    if os.path.isfile(file_path):
+        file_info = os.stat(file_path)
+        return convert_bytes(file_info.st_size, unit)
+
+# @login_required(login_url='/login/hbp/')
 def copy_datafiles_to_storage(request, target, job_id):
     # get list of output data files from job_id
     job = Job.objects.get(pk=job_id)
+    print('=================================')
     datalist = job.output_data.all()
+    print('datalist',datalist)
+
     # for now, we copy all files. In future, could allow selection of subset
 
     # todo: check that the files haven't already been copied to the collab
@@ -77,27 +90,46 @@ def copy_datafiles_to_storage(request, target, job_id):
     if datalist:
         # download to local storage
         server_paths = [urlparse(item.url)[2] for item in datalist]
+        print('server_paths', server_paths)
         if len(server_paths) > 1:
             common_prefix = os.path.commonprefix(server_paths)
+            print('common prefix', common_prefix)
             assert common_prefix[-1] == "/"
         else:
             common_prefix = os.path.dirname(server_paths[0])
+            print('common prefix (else)', common_prefix)
         relative_paths = [os.path.relpath(p, common_prefix) for p in server_paths]
+        print('relative_paths',relative_paths)
 
         local_dir = tempfile.mkdtemp()
+        print('local_dir',local_dir)
         for relative_path, dataitem in zip(relative_paths, datalist):
+            print(relative_path,dataitem)
             url = dataitem.url
+            print('url', url)
             (scheme, netloc, path, params, query, fragment) = urlparse(url)
+            print('(scheme, netloc, path, params, query, fragment)')
+            print(scheme, netloc, path, params, query, fragment)
             if not scheme:
                 url = "file://" + url
             local_path = os.path.join(local_dir, relative_path)
+            print('local_path',local_path)
             dir = os.path.dirname(local_path)
+            print('dir',dir)
+            dir = dir + '/Matthieu'
             mkdir_p(dir)
+            local_path = os.path.join(dir, relative_path)
             urlretrieve(url, local_path)
+            print('retrieve',urlretrieve(url, local_path))
 
+        print('=================================')
+
+        relative_paths = ['Matthieu/reports.zip', 'Matthieu/simulation_results.png', 'Matthieu/output_6133586187239592560.txt']
         # upload files
         if target == "collab":
             target_paths = copy_datafiles_to_collab_storage(request, job, local_dir, relative_paths)
+        elif target == "drive":
+            target_paths = copy_datafiles_to_collab_drive(request, job, local_dir, relative_paths)
         else:
             target_paths = copy_datafiles_with_unicore(request, target, job, local_dir, relative_paths)
 
@@ -163,7 +195,85 @@ def copy_datafiles_to_collab_storage(request, job, local_dir, relative_paths):
             os.path.normpath(os.path.join('/', str(collab_path)))
     return collab_paths
 
+def copy_datafiles_to_collab_drive(request, job, local_dir, relative_paths):
+    size_limit = 1.
 
+    print(request, job, local_dir, relative_paths)
+    access_token = request.META.get('HTTP_AUTHORIZATION').replace("Bearer ", "")
+    print('token ?', access_token)
+    # print('test', request)
+    # print(get_access_token(request.user.social_auth.get()))
+
+    ebrains_drive_client = ebrains_drive.connect(token=access_token)
+    print(ebrains_drive_client)
+    list = ebrains_drive_client.repos.list_repos()
+    # print(list)
+    collab_name = job.collab_id
+    print(collab_name)
+    target_repository = ebrains_drive_client.repos.get_repo_by_url(collab_name)
+    print(target_repository)
+    seafdir = target_repository.get_dir('/')
+    print(seafdir)
+    collab_folder = "/job_{}".format(job.pk)
+    print("Check for existence of ", collab_folder)
+    try:
+        dir = target_repository.get_dir(collab_folder)
+        print("directory",dir,"exists in the target repository")
+    except:
+        print("The path",collab_folder,"does not yet exist in the target repository")
+        # seafdir = targetRepo.get_dir('/')
+        print(seafdir)
+        # seafdir.mkdir(file.path)
+        dir = seafdir.mkdir(collab_folder)
+
+    print('.......', dir)
+    
+    collab_paths = []
+    for relative_path in relative_paths:
+        print('relative_path',relative_path)
+        collab_path = os.path.join(collab_folder, relative_path)
+        print('collab_path',collab_path)
+        splitted_collab_path = collab_path.split('/')
+        print(len(splitted_collab_path))
+        collab_path_2 = splitted_collab_path[2]
+        if os.path.dirname(relative_path):  # if there are subdirectories...
+            print('YES')
+            subdirectory = collab_folder
+            for d in range(2, len(splitted_collab_path)-1):
+                print('d', d)
+                subdirectory += '/'+splitted_collab_path[d]
+                # collab_folder = "/job_{}".format(job.pk)
+                print("Check for existence of", subdirectory)
+                try:
+                    subdir = target_repository.get_dir(subdirectory)
+                    print("directory",subdir,"exists in the target repository")
+                except:
+                    print("The path",subdirectory,"does not yet exist in the target repository")
+                    # seafdir = targetRepo.get_dir('/')
+                    print(seafdir)
+                    # seafdir.mkdir(file.path)
+                    subdir = seafdir.mkdir(subdirectory)
+                    print("Creation of the", subdir, ' directory')
+            #doc_client.makedirs(os.path.dirname(collab_path))
+            # collab_path_id = dsc.create_folder(collab_path_2, folder_id)
+        local_path = os.path.join(local_dir, relative_path)
+        print('local_path',local_path)
+        print("File ",relative_path,"may need to be copied")
+        try:
+            target_repository.get_file(collab_path)
+            print("A file",relative_path," exists already in the target repositiory")
+        except:
+            print("No file ",relative_path,"yet in the target directoy")
+            print("Copy the file to destination directory",splitted_collab_path[1])
+            if get_file_size(local_path, 'GB') < size_limit:
+                dir.upload_local_file(local_path)    #not the right dir in case of subdir
+                print("Copy done")
+            else:
+                print('The file can\'t be copied to the Drive (file size exceeds 1 GB limit)')
+
+        collab_paths.append(collab_path)
+    print('collab_path',collab_paths)
+    return collab_paths
 
 
 def copy_datafiles_with_unicore(request, target, job, local_dir, relative_paths):
