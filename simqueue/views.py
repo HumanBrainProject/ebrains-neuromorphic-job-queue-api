@@ -79,10 +79,7 @@ def get_file_size(file_path, unit):
 def copy_datafiles_to_storage(request, target, job_id):
     # get list of output data files from job_id
     job = Job.objects.get(pk=job_id)
-    print('=================================')
     datalist = job.output_data.all()
-    print('datalist',datalist)
-
     # for now, we copy all files. In future, could allow selection of subset
 
     # todo: check that the files haven't already been copied to the collab
@@ -90,41 +87,24 @@ def copy_datafiles_to_storage(request, target, job_id):
     if datalist:
         # download to local storage
         server_paths = [urlparse(item.url)[2] for item in datalist]
-        print('server_paths', server_paths)
         if len(server_paths) > 1:
             common_prefix = os.path.commonprefix(server_paths)
-            print('common prefix', common_prefix)
             assert common_prefix[-1] == "/"
         else:
             common_prefix = os.path.dirname(server_paths[0])
-            print('common prefix (else)', common_prefix)
         relative_paths = [os.path.relpath(p, common_prefix) for p in server_paths]
-        print('relative_paths',relative_paths)
 
         local_dir = tempfile.mkdtemp()
-        print('local_dir',local_dir)
         for relative_path, dataitem in zip(relative_paths, datalist):
-            print(relative_path,dataitem)
             url = dataitem.url
-            print('url', url)
             (scheme, netloc, path, params, query, fragment) = urlparse(url)
-            print('(scheme, netloc, path, params, query, fragment)')
-            print(scheme, netloc, path, params, query, fragment)
             if not scheme:
                 url = "file://" + url
             local_path = os.path.join(local_dir, relative_path)
-            print('local_path',local_path)
             dir = os.path.dirname(local_path)
-            print('dir',dir)
-            dir = dir + '/Matthieu'
             mkdir_p(dir)
             local_path = os.path.join(dir, relative_path)
             urlretrieve(url, local_path)
-            print('retrieve',urlretrieve(url, local_path))
-
-        print('=================================')
-
-        relative_paths = ['Matthieu/reports.zip', 'Matthieu/simulation_results.png', 'Matthieu/output_6133586187239592560.txt']
         # upload files
         if target == "collab":
             target_paths = copy_datafiles_to_collab_storage(request, job, local_dir, relative_paths)
