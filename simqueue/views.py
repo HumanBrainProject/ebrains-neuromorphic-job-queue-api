@@ -182,48 +182,42 @@ def copy_datafiles_to_collab_drive(request, job, local_dir, relative_paths):
     access_token = request.META.get('HTTP_AUTHORIZATION').replace("Bearer ", "")
     ebrains_drive_client = ebrains_drive.connect(token=access_token)
 
-    # print(list)
     collab_name = job.collab_id
     target_repository = ebrains_drive_client.repos.get_repo_by_url(collab_name)
     seafdir = target_repository.get_dir('/')
     collab_folder = "/job_{}".format(job.pk)
-    print("Check for existence of ", collab_folder)
+    # Check for existence of the directory
     try:
-        dir = target_repository.get_dir(collab_folder)
-        print("directory",dir,"exists in the target repository")
+        dir = target_repository.get_dir(collab_folder)  # exists
     except:
-        print("The path",collab_folder,"does not yet exist in the target repository")
+        # The directory does not yet exist - Creation of the subdirectory
         dir = seafdir.mkdir(collab_folder)
-    
+        
     collab_paths = []
     for relative_path in relative_paths:
         collab_path = os.path.join(collab_folder, relative_path)
         splitted_collab_path = collab_path.split('/')
+        subdirectory = collab_folder
         if os.path.dirname(relative_path):  # if there are subdirectories...
-            subdirectory = collab_folder
             for d in range(2, len(splitted_collab_path)-1):
-                subdirectory += '/'+splitted_collab_path[d]
-                print("Check for existence of", subdirectory)
-                try:
-                    subdir = target_repository.get_dir(subdirectory)
-                    print("directory",subdir,"exists in the target repository")
+                subdirectory += '/'+splitted_collab_path[d] 
+                # Check for existence of the subdirectory
+                try:  
+                    target_repository.get_dir(subdirectory) 
+                    # The subdirectory exists
                 except:
-                    print("The path",subdirectory,"does not yet exist in the target repository")
-                    subdir = seafdir.mkdir(subdirectory)
-                    print("Creation of the", subdir, ' directory')
+                    # The subdirectory does not yet exist - Creation of the subdirectory
+                    seafdir.mkdir(subdirectory)
         local_path = os.path.join(local_dir, relative_path)
-        print("File ",relative_path,"may need to be copied")
+        print("The File may need to be copied")
         try:
-            print('we are in try, and the collabpath is', collab_path)
             target_repository.get_file(collab_path)
-            print("A file",relative_path," exists already in the target repositiory")
+            # The file exists already in the target repository
         except:
-            print("No file ",relative_path,"yet in the target directoy")
-            print("Copy the file to destination directory",splitted_collab_path[1])
-            if get_file_size(local_path, 'GB') < size_limit:
+            # No file yet - Copy the file to destination directory
+            if get_file_size(local_path, 'GB') < size_limit: 
                 dir = target_repository.get_dir(subdirectory)
-                dir.upload_local_file(local_path)    #not the right dir in case of subdir
-                print("Copy done")
+                dir.upload_local_file(local_path)  # Copy done
             else:
                 print('The file can\'t be copied to the Drive (file size exceeds 1 GB limit)')
 
