@@ -176,24 +176,16 @@ def copy_datafiles_to_collab_storage(request, job, local_dir, relative_paths):
     return collab_paths
 
 def copy_datafiles_to_collab_drive(request, job, local_dir, relative_paths):
+
     size_limit = 1.
 
-    print(request, job, local_dir, relative_paths)
     access_token = request.META.get('HTTP_AUTHORIZATION').replace("Bearer ", "")
-    print('token ?', access_token)
-    # print('test', request)
-    # print(get_access_token(request.user.social_auth.get()))
-
     ebrains_drive_client = ebrains_drive.connect(token=access_token)
-    print(ebrains_drive_client)
-    list = ebrains_drive_client.repos.list_repos()
+
     # print(list)
     collab_name = job.collab_id
-    print(collab_name)
     target_repository = ebrains_drive_client.repos.get_repo_by_url(collab_name)
-    print(target_repository)
     seafdir = target_repository.get_dir('/')
-    print(seafdir)
     collab_folder = "/job_{}".format(job.pk)
     print("Check for existence of ", collab_folder)
     try:
@@ -201,44 +193,25 @@ def copy_datafiles_to_collab_drive(request, job, local_dir, relative_paths):
         print("directory",dir,"exists in the target repository")
     except:
         print("The path",collab_folder,"does not yet exist in the target repository")
-        # seafdir = targetRepo.get_dir('/')
-        print(seafdir)
-        # seafdir.mkdir(file.path)
         dir = seafdir.mkdir(collab_folder)
-
-    print('.......', dir)
     
     collab_paths = []
     for relative_path in relative_paths:
-        print('relative_path',relative_path)
         collab_path = os.path.join(collab_folder, relative_path)
-        print('collab_path',collab_path)
         splitted_collab_path = collab_path.split('/')
-        print(len(splitted_collab_path))
-        collab_path_2 = splitted_collab_path[2]
         if os.path.dirname(relative_path):  # if there are subdirectories...
-            print('YES')
             subdirectory = collab_folder
             for d in range(2, len(splitted_collab_path)-1):
-                print('d', d)
                 subdirectory += '/'+splitted_collab_path[d]
-                # collab_folder = "/job_{}".format(job.pk)
                 print("Check for existence of", subdirectory)
                 try:
                     subdir = target_repository.get_dir(subdirectory)
                     print("directory",subdir,"exists in the target repository")
                 except:
                     print("The path",subdirectory,"does not yet exist in the target repository")
-                    # seafdir = targetRepo.get_dir('/')
-                    print(seafdir)
-                    # seafdir.mkdir(file.path)
                     subdir = seafdir.mkdir(subdirectory)
                     print("Creation of the", subdir, ' directory')
-            #doc_client.makedirs(os.path.dirname(collab_path))
-            # collab_path_id = dsc.create_folder(collab_path_2, folder_id)
         local_path = os.path.join(local_dir, relative_path)
-        print('subdirectorry',subdirectory)
-        print('local_path',local_path)
         print("File ",relative_path,"may need to be copied")
         try:
             print('we are in try, and the collabpath is', collab_path)
@@ -249,7 +222,6 @@ def copy_datafiles_to_collab_drive(request, job, local_dir, relative_paths):
             print("Copy the file to destination directory",splitted_collab_path[1])
             if get_file_size(local_path, 'GB') < size_limit:
                 dir = target_repository.get_dir(subdirectory)
-                print(dir)
                 dir.upload_local_file(local_path)    #not the right dir in case of subdir
                 print("Copy done")
             else:
