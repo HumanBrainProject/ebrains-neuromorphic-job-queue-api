@@ -192,8 +192,9 @@ def copy_datafiles_to_collab_drive(request, job, local_dir, relative_paths):
     except:
         # The directory does not yet exist - Creation of the subdirectory
         dir = seafdir.mkdir(collab_folder)
-        
+
     collab_paths = []
+    status = []
     for relative_path in relative_paths:
         collab_path = os.path.join(collab_folder, relative_path)
         splitted_collab_path = collab_path.split('/')
@@ -209,21 +210,25 @@ def copy_datafiles_to_collab_drive(request, job, local_dir, relative_paths):
                     # The subdirectory does not yet exist - Creation of the subdirectory
                     seafdir.mkdir(subdirectory)
         local_path = os.path.join(local_dir, relative_path)
-        print("The File may need to be copied")
+        print("The file may need to be copied")
         try:
+            state = 'Exists'
             target_repository.get_file(collab_path)
             # The file exists already in the target repository
         except:
+            file_size = get_file_size(local_path, 'GB')
             # No file yet - Copy the file to destination directory
-            if get_file_size(local_path, 'GB') < size_limit: 
+            if file_size < size_limit: 
                 dir = target_repository.get_dir(subdirectory)
                 dir.upload_local_file(local_path)  # Copy done
+                state = 'Copied'
             else:
-                print('The file can\'t be copied to the Drive (file size exceeds 1 GB limit)')
-
-        collab_paths.append(collab_path)
-    print('collab_path',collab_paths)
-    return collab_paths
+                state = ['Oversized', file_size]
+                # The file can't be copied to the Drive (file size exceeds 1 GB limit)
+        collab_paths.append(relative_path)
+        status.append(state)
+        
+    return collab_paths, status
 
 
 def copy_datafiles_with_unicore(request, target, job, local_dir, relative_paths):
