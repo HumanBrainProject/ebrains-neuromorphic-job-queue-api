@@ -25,7 +25,6 @@ RUN pip3 install uwsgi
 ENV SITEDIR /home/docker/site
 
 COPY job_manager $SITEDIR
-COPY packages /home/docker/packages
 COPY simqueue /home/docker/simqueue
 COPY quotas /home/docker/quotas
 COPY build_info.json $SITEDIR

@@ -1,4 +1,3 @@
--e packages/hbp-app-python-auth
 django-sslserver==0.20
 django-tastypie==0.14.2
 Django==1.11.24
@@ -17,6 +16,6 @@ pyyaml==5.1.2
 requests-oauthlib==1.2.0
 requests==2.22.0
 six==1.12.0
-hbp-service-client
 django-taggit==0.24.0
 django-cors-headers==3.1.1
+ebrains_drive==0.4.0

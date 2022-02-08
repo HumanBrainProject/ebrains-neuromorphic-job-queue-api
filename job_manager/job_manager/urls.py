@@ -49,9 +49,7 @@ api.register(TagsResource())
 urlpatterns = (
     url(r'^admin/', include(admin.site.urls)),
     url(r'', include('social_django.urls', namespace='social')),
-    url(r'^app/', views.home),
     url(r'^api/', include(api.urls)),
-    url(r'^config.json$', views.config, name='config'),
     url(r'^copydata/(?P<target>\w+)/(?P<job_id>\d+)$', views.copy_datafiles_to_storage, name="copydata"),
     url(r'^dashboard/', TemplateView.as_view(template_name='dashboard.html')),
 )
