@@ -8,8 +8,7 @@ build_job_queue_production:
       - $CI_COMMIT_BRANCH == "main"
   script:
     - export  # debugging environment variables
-    - cd job_manager
-    - docker build -f Dockerfile.prod -t docker-registry.ebrains.eu/neuromorphic/nmpi_queue_server:prod .
+    - docker build -f job_manager/Dockerfile.prod -t docker-registry.ebrains.eu/neuromorphic/nmpi_queue_server:prod .
     - echo $DOCKER_REGISTRY_USER
     - docker login -u $DOCKER_REGISTRY_USER -p $DOCKER_REGISTRY_SECRET docker-registry.ebrains.eu
     - docker push docker-registry.ebrains.eu/neuromorphic/nmpi_queue_server:prod
@@ -22,8 +21,7 @@ build_job_queue_staging:
     variables:
       - $CI_COMMIT_BRANCH == "staging"
   script:
-    - cd job_manager
-    - docker build -f Dockerfile.staging -t docker-registry.ebrains.eu/neuromorphic/nmpi_queue_server:staging .
+    - docker build -f job_manager/Dockerfile.staging -t docker-registry.ebrains.eu/neuromorphic/nmpi_queue_server:staging .
     - echo $DOCKER_REGISTRY_USER
     - docker login -u $DOCKER_REGISTRY_USER -p $DOCKER_REGISTRY_SECRET docker-registry.ebrains.eu
     - docker push docker-registry.ebrains.eu/neuromorphic/nmpi_queue_server:staging
@@ -37,8 +35,7 @@ build_quotas_production:
       - $CI_COMMIT_BRANCH == "main"
   script:
     - export  # debugging environment variables
-    - cd resource_manager
-    - docker build -f Dockerfile.prod -t docker-registry.ebrains.eu/neuromorphic/nmpi_resource_manager:prod .
+    - docker build -f resource_manager/Dockerfile.prod -t docker-registry.ebrains.eu/neuromorphic/nmpi_resource_manager:prod .
     - echo $DOCKER_REGISTRY_USER
     - docker login -u $DOCKER_REGISTRY_USER -p $DOCKER_REGISTRY_SECRET docker-registry.ebrains.eu
     - docker push docker-registry.ebrains.eu/neuromorphic/nmpi_resource_manager:prod
@@ -51,8 +48,7 @@ build_quotas_staging:
     variables:
       - $CI_COMMIT_BRANCH == "staging"
   script:
-    - cd resource_manager
-    - docker build -f Dockerfile.staging -t docker-registry.ebrains.eu/neuromorphic/nmpi_resource_manager:staging .
+    - docker build -f resource_manager/Dockerfile.staging -t docker-registry.ebrains.eu/neuromorphic/nmpi_resource_manager:staging .
     - echo $DOCKER_REGISTRY_USER
     - docker login -u $DOCKER_REGISTRY_USER -p $DOCKER_REGISTRY_SECRET docker-registry.ebrains.eu
     - docker push docker-registry.ebrains.eu/neuromorphic/nmpi_resource_manager:staging
