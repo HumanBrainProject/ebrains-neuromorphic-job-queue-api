@@ -8,7 +8,7 @@ build_job_queue_production:
       - $CI_COMMIT_BRANCH == "main"
   script:
     - export  # debugging environment variables
-    - echo "{\"git\": \"${CI_COMMIT_SHORT_SHA}\", \"colour\": \"production\", \"date\": \"${CI_JOB_STARTED_AT}\"}" > build_info.json
+    - bash get_build_info.sh production
     - docker build -f job_manager/Dockerfile.prod -t docker-registry.ebrains.eu/neuromorphic/nmpi_queue_server:prod .
     - echo $DOCKER_REGISTRY_USER
     - docker login -u $DOCKER_REGISTRY_USER -p $DOCKER_REGISTRY_SECRET docker-registry.ebrains.eu
@@ -22,7 +22,7 @@ build_job_queue_staging:
     variables:
       - $CI_COMMIT_BRANCH == "staging"
   script:
-    - echo "{\"git\": \"${CI_COMMIT_SHORT_SHA}\", \"colour\": \"staging\", \"date\": \"${CI_JOB_STARTED_AT}\"}" > build_info.json
+    - bash get_build_info.sh staging
     - docker build -f job_manager/Dockerfile.staging -t docker-registry.ebrains.eu/neuromorphic/nmpi_queue_server:staging .
     - echo $DOCKER_REGISTRY_USER
     - docker login -u $DOCKER_REGISTRY_USER -p $DOCKER_REGISTRY_SECRET docker-registry.ebrains.eu
@@ -37,7 +37,7 @@ build_quotas_production:
       - $CI_COMMIT_BRANCH == "main"
   script:
     - export  # debugging environment variables
-    - echo "{\"git\": \"${CI_COMMIT_SHORT_SHA}\", \"colour\": \"production\", \"date\": \"${CI_JOB_STARTED_AT}\"}" > build_info.json
+    - bash get_build_info.sh production
     - docker build -f resource_manager/Dockerfile.prod -t docker-registry.ebrains.eu/neuromorphic/nmpi_resource_manager:prod .
     - echo $DOCKER_REGISTRY_USER
     - docker login -u $DOCKER_REGISTRY_USER -p $DOCKER_REGISTRY_SECRET docker-registry.ebrains.eu
@@ -51,7 +51,7 @@ build_quotas_staging:
     variables:
       - $CI_COMMIT_BRANCH == "staging"
   script:
-    - echo "{\"git\": \"${CI_COMMIT_SHORT_SHA}\", \"colour\": \"staging\", \"date\": \"${CI_JOB_STARTED_AT}\"}" > build_info.json
+    - bash get_build_info.sh staging
     - docker build -f resource_manager/Dockerfile.staging -t docker-registry.ebrains.eu/neuromorphic/nmpi_resource_manager:staging .
     - echo $DOCKER_REGISTRY_USER
     - docker login -u $DOCKER_REGISTRY_USER -p $DOCKER_REGISTRY_SECRET docker-registry.ebrains.eu

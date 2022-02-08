@@ -1,0 +1,1 @@
+echo "{\"git\": \"${CI_COMMIT_SHORT_SHA}\", \"colour\": \"$1\", \"date\": \"${CI_JOB_STARTED_AT}\"}" > build_info.json
