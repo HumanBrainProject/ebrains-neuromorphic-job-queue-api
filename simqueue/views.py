@@ -64,8 +64,16 @@ def mkdir_p(path):
         else:
             raise
 
+def convert_bytes(size_in_bytes,unit):
+    size_units = ['bytes', 'KB', 'MB', 'GB', 'TB']
+    return size_in_bytes/(1024**size_units.index(unit))
 
-@login_required(login_url='/login/hbp/')
+def get_file_size(file_path, unit):
+    if os.path.isfile(file_path):
+        file_info = os.stat(file_path)
+        return convert_bytes(file_info.st_size, unit)
+
+# @login_required(login_url='/login/hbp/')
 def copy_datafiles_to_storage(request, target, job_id):
     # get list of output data files from job_id
     job = Job.objects.get(pk=job_id)
@@ -98,6 +106,9 @@ def copy_datafiles_to_storage(request, target, job_id):
         # upload files
         if target == "collab":
             target_paths = copy_datafiles_to_collab_storage(request, job, local_dir, relative_paths)
+        # elif target == "bucket":
+        elif target == "drive":
+            target_paths = copy_datafiles_to_collab_bucket(request, job, local_dir, relative_paths)
         else:
             target_paths = copy_datafiles_with_unicore(request, target, job, local_dir, relative_paths)
 
@@ -164,6 +175,11 @@ def copy_datafiles_to_collab_storage(request, job, local_dir, relative_paths):
     return collab_paths
 
 
+def copy_datafiles_to_collab_bucket(request, job, local_dir, relative_paths):
+    
+    
+
+    return collab_paths, status
 
 
 def copy_datafiles_with_unicore(request, target, job, local_dir, relative_paths):
