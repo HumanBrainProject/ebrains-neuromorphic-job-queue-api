@@ -6,6 +6,8 @@ from django.contrib.auth.decorators import login_required
 import json
 import requests
 from hbp_app_python_auth.auth import get_access_token, get_token_type
+import ebrains_drive
+from ebrains_drive.client import DriveApiClient
 from django.conf import settings
 
 import os.path
@@ -64,8 +66,16 @@ def mkdir_p(path):
         else:
             raise
 
+def convert_bytes(size_in_bytes,unit):
+    size_units = ['bytes', 'KB', 'MB', 'GB', 'TB']
+    return size_in_bytes/(1024**size_units.index(unit))
 
-@login_required(login_url='/login/hbp/')
+def get_file_size(file_path, unit):
+    if os.path.isfile(file_path):
+        file_info = os.stat(file_path)
+        return convert_bytes(file_info.st_size, unit)
+
+# @login_required(login_url='/login/hbp/')
 def copy_datafiles_to_storage(request, target, job_id):
     # get list of output data files from job_id
     job = Job.objects.get(pk=job_id)
@@ -93,11 +103,13 @@ def copy_datafiles_to_storage(request, target, job_id):
             local_path = os.path.join(local_dir, relative_path)
             dir = os.path.dirname(local_path)
             mkdir_p(dir)
+            local_path = os.path.join(dir, relative_path)
             urlretrieve(url, local_path)
-
         # upload files
         if target == "collab":
             target_paths = copy_datafiles_to_collab_storage(request, job, local_dir, relative_paths)
+        elif target == "drive":
+            target_paths = copy_datafiles_to_collab_drive(request, job, local_dir, relative_paths)
         else:
             target_paths = copy_datafiles_with_unicore(request, target, job, local_dir, relative_paths)
 
@@ -163,7 +175,60 @@ def copy_datafiles_to_collab_storage(request, job, local_dir, relative_paths):
             os.path.normpath(os.path.join('/', str(collab_path)))
     return collab_paths
 
+def copy_datafiles_to_collab_drive(request, job, local_dir, relative_paths):
 
+    size_limit = 1.
+
+    access_token = request.META.get('HTTP_AUTHORIZATION').replace("Bearer ", "")
+    ebrains_drive_client = ebrains_drive.connect(token=access_token)
+
+    collab_name = job.collab_id
+    target_repository = ebrains_drive_client.repos.get_repo_by_url(collab_name)
+    seafdir = target_repository.get_dir('/')
+    collab_folder = "/job_{}".format(job.pk)
+    # Check for existence of the directory
+    try:
+        dir = target_repository.get_dir(collab_folder)  # exists
+    except:
+        # The directory does not yet exist - Creation of the subdirectory
+        dir = seafdir.mkdir(collab_folder)
+
+    collab_paths = []
+    status = []
+    for relative_path in relative_paths:
+        collab_path = os.path.join(collab_folder, relative_path)
+        splitted_collab_path = collab_path.split('/')
+        subdirectory = collab_folder
+        if os.path.dirname(relative_path):  # if there are subdirectories...
+            for d in range(2, len(splitted_collab_path)-1):
+                subdirectory += '/'+splitted_collab_path[d] 
+                # Check for existence of the subdirectory
+                try:  
+                    target_repository.get_dir(subdirectory) 
+                    # The subdirectory exists
+                except:
+                    # The subdirectory does not yet exist - Creation of the subdirectory
+                    seafdir.mkdir(subdirectory)
+        local_path = os.path.join(local_dir, relative_path)
+        print("The file may need to be copied")
+        try:
+            state = 'Exists'
+            target_repository.get_file(collab_path)
+            # The file exists already in the target repository
+        except:
+            file_size = get_file_size(local_path, 'GB')
+            # No file yet - Copy the file to destination directory
+            if file_size < size_limit: 
+                dir = target_repository.get_dir(subdirectory)
+                dir.upload_local_file(local_path)  # Copy done
+                state = 'Copied'
+            else:
+                state = ['Oversized', file_size]
+                # The file can't be copied to the Drive (file size exceeds 1 GB limit)
+        collab_paths.append(relative_path)
+        status.append(state)
+        
+    return collab_paths, status
 
 
 def copy_datafiles_with_unicore(request, target, job, local_dir, relative_paths):
