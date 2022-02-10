@@ -1,5 +1,3 @@
--e packages/bbp-services-0.0.15
--e packages/hbp-app-python-auth-0.1.0
 Django>=1.11,<2
 pytz
 jsonfield
@@ -7,8 +5,8 @@ django-tastypie
 django-sslserver  # dev only
 psycopg2          # dev only - installed as Debian package in Docker image
 numpy             # dev only - installed as Debian package in Docker image
-hbp-service-client
 django-taggit
 social-auth-app-django
 pyyaml
 django-cors-headers
+ebrains_drive

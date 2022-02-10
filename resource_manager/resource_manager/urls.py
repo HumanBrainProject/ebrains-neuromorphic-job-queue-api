@@ -16,14 +16,7 @@ Including another URLconf
 from django.conf.urls import include, url
 from django.contrib import admin
 
-from .views import show, edit, config, coordinator_app
-
 urlpatterns = [
     url(r'^admin/', include(admin.site.urls)),
-    url(r'', include('social_django.urls', namespace='social')),
-    url(r'^app/$', show, name='app_show'),
-    url(r'^app/edit$', edit, name='app_edit'),
-    url(r'^coordinator-app/$', coordinator_app, name='coordinator-app'),
-    url(r'^config.json$', config, name='config'),
     url(r'^', include('quotas.urls')),
 ]

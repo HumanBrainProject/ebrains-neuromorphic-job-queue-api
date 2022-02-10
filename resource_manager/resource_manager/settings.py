@@ -6,7 +6,6 @@ Django settings for resource_manager project.
 import os
 import sys
 import json
-import hbp_app_python_auth.settings as auth_settings
 
 ENV = os.environ.get('NMPI_ENV', 'production')
 
@@ -32,7 +31,6 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'quotas',
-    'social_django',
     'corsheaders'
 ]
 if ENV == "dev":
@@ -47,7 +45,6 @@ MIDDLEWARE_CLASSES = (
     'django.contrib.auth.middleware.SessionAuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.security.SecurityMiddleware',
-    'social_django.middleware.SocialAuthExceptionMiddleware'
 )
 
 AUTHENTICATION_BACKENDS = (
@@ -119,21 +116,10 @@ USE_TZ = True
 STATIC_URL = '/static/'
 
 STATIC_ROOT = "%s/static/" % BASE_DIR
-STATICFILES_DIRS = [
-    os.path.join(BASE_DIR, "lib"),
-    os.path.join(BASE_DIR, "app"),
-    os.path.join(BASE_DIR, "coordinator_app"),
-]
+STATICFILES_DIRS = []
 
-
-HBP_COLLAB_SERVICE_URL = 'https://services.humanbrainproject.eu/collab/v0/'
-HBP_ENV_URL = 'https://collab.humanbrainproject.eu/config.json'
-HBP_IDENTITY_SERVICE_URL = 'https://services.humanbrainproject.eu/idm/v1/api'
-HBP_COLLAB_SERVICE_URL_V2 = "https://wiki.ebrains.eu/rest/v1/"
-HBP_IDENTITY_SERVICE_URL_V2 = "https://iam.ebrains.eu/auth/realms/hbp/protocol/openid-connect"
-
-SOCIAL_AUTH_HBP_KEY = auth_settings.SOCIAL_AUTH_HBP_KEY = os.environ.get('HBP_OIDC_CLIENT_ID')
-SOCIAL_AUTH_HBP_SECRET = auth_settings.SOCIAL_AUTH_HBP_SECRET = os.environ.get('HBP_OIDC_CLIENT_SECRET')
+HBP_COLLAB_SERVICE_URL = "https://wiki.ebrains.eu/rest/v1/"
+HBP_IDENTITY_SERVICE_URL = "https://iam.ebrains.eu/auth/realms/hbp/protocol/openid-connect"
 
 LOGGING = {
     'version': 1,

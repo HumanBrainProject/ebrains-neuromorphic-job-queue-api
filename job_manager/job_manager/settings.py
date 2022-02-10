@@ -12,7 +12,6 @@ https://docs.djangoproject.com/en/1.9/ref/settings/
 
 import os, sys
 import json
-import hbp_app_python_auth.settings as auth_settings
 
 ENV = os.environ.get('NMPI_ENV', 'production')
 LOCAL_DB = False    # only applies when ENV='dev'
@@ -151,12 +150,7 @@ USE_TZ = True
 STATIC_URL = '/static/'
 
 STATICFILES_DIRS = [
-    os.path.join(BASE_DIR, "lib"),
-    os.path.join(BASE_DIR, "nmpi-job-manager-app"),
     os.path.join(BASE_DIR, "nmpi-dashboard-app"),
-    #os.path.join(BASE_DIR, "job_manager/nmpi-job-manager-app"),
-    #os.path.join(BASE_DIR, "job_manager/nmpi-dashboard-app"),
-    #os.path.join(BASE_DIR, "job_manager/static"),
 ]
 STATIC_ROOT = "%s/static/" % BASE_DIR
 
@@ -169,21 +163,8 @@ EMAIL_PORT = 587
 EMAIL_USE_TLS = True
 
 
-# SPECIFIC to HBP
-
-SOCIAL_AUTH_ADMIN_USER_SEARCH_FIELDS = ['username', 'first_name', 'local_settings', 'email']
-SOCIAL_AUTH_HBP_KEY = auth_settings.SOCIAL_AUTH_HBP_KEY = os.environ.get('HBP_OIDC_CLIENT_ID')
-SOCIAL_AUTH_HBP_SECRET = auth_settings.SOCIAL_AUTH_HBP_SECRET = os.environ.get('HBP_OIDC_CLIENT_SECRET')
-
-# admins
-auth_settings.SUPER_USER_NAMES = []
-# users that can access admin interface
-auth_settings.STAFF_USER_NAMES = []
-
 # Configure available backends
 AUTHENTICATION_BACKENDS = (
-    # HBP Auth
-    'job_manager.auth.ModifiedHbpAuth',
     # Django Model authorization
     'django.contrib.auth.backends.ModelBackend',
 )
@@ -194,10 +175,7 @@ CSRF_COOKIE_NAME = 'clbapp_csfrtoken'
 # and the session ID
 SESSION_COOKIE_NAME = 'clbapp_sessionid'
 
-HBP_ENV_URL = 'https://collab.humanbrainproject.eu/config.json'
-HBP_COLLAB_SERVICE_URL = 'https://services.humanbrainproject.eu/collab/v0'
 HBP_COLLAB_SERVICE_URL_V2 = "https://wiki.ebrains.eu/rest/v1/"
-HBP_IDENTITY_SERVICE_URL = 'https://services.humanbrainproject.eu/idm/v1/api'
 HBP_IDENTITY_SERVICE_URL_V2 = "https://iam.ebrains.eu/auth/realms/hbp/protocol/openid-connect"
 
 TMP_FILE_URL = "/tmp_download/"

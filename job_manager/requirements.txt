@@ -6,8 +6,6 @@
 #
 #    pip-compile job_manager/requirements.in
 #
--e packages/bbp-services-0.0.15
--e packages/hbp-app-python-auth-0.1.0
 certifi==2019.6.16        # via requests
 chardet==3.0.4            # via requests
 decorator==4.4.0          # via validators
@@ -16,7 +14,6 @@ django-sslserver==0.20
 django-taggit==0.24.0
 django-tastypie==0.14.2
 django==1.11.24
-hbp-service-client==1.1.1
 idna==2.8                 # via requests
 jsonfield==2.0.2
 numpy==1.16.5
@@ -34,6 +31,6 @@ requests-oauthlib==1.2.0  # via python-social-auth
 requests==2.22.0          # via hbp-service-client, python-social-auth, requests-oauthlib
 six==1.12.0               # via python-dateutil, python-social-auth, validators
 urllib3==1.25.3           # via requests
-validators==0.14.0        # via hbp-service-client
 pyyaml==5.1.2
 django-cors-headers==3.1.1
+ebrains_drive==0.4.0

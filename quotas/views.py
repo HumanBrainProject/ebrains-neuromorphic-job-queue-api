@@ -18,12 +18,10 @@ from django.http import (HttpResponse, JsonResponse,
                          HttpResponseRedirect)       # 302
 from django.core.serializers.json import DjangoJSONEncoder
 from django.conf import settings
-import requests
-from hbp_app_python_auth.auth import get_auth_header
 
 from .models import Project, Quota
 from .forms import ProposalForm, AddQuotaForm
-from .auth import CollabService, get_authorization_header, get_admin_list, is_admin
+from .auth import CollabService, is_admin
 
 logger = logging.getLogger("quotas")
 
@@ -60,23 +58,24 @@ logger = logging.getLogger("quotas")
 
 
 def notify_coordinators(request, project):
-    coordinators = get_admin_list(request)
-    url = 'https://services.humanbrainproject.eu/stream/v0/api/notification/'
-    headers = get_authorization_header(request)
-    targets = [{"type": "HBPUser", "id": id} for id in coordinators]
-    payload = {
-        "summary": u"New access request for the Neuromorphic Computing Platform: {}".format(project.title),
-        "targets": targets,
-        "object": {
-            "type": "HBPCollaboratoryContext",
-            "id": "346173bb-887c-4a47-a8fb-0da5d5980dfc"
-        }
-    }
-    res = requests.post(url, json=payload, headers=headers)
-    if res.status_code not in (200, 204):
-        logger.error("Unable to notify coordinators. {}: {}".format(res.status_code, res.content))
-        return False
-    return True
+    raise NotImplementedError("to be reimplemented if possible")
+    # coordinators = get_admin_list(request)
+    # url = 'https://services.humanbrainproject.eu/stream/v0/api/notification/'
+    # headers = get_authorization_header(request)
+    # targets = [{"type": "HBPUser", "id": id} for id in coordinators]
+    # payload = {
+    #     "summary": u"New access request for the Neuromorphic Computing Platform: {}".format(project.title),
+    #     "targets": targets,
+    #     "object": {
+    #         "type": "HBPCollaboratoryContext",
+    #         "id": "346173bb-887c-4a47-a8fb-0da5d5980dfc"
+    #     }
+    # }
+    # res = requests.post(url, json=payload, headers=headers)
+    # if res.status_code not in (200, 204):
+    #     logger.error("Unable to notify coordinators. {}: {}".format(res.status_code, res.content))
+    #     return False
+    # return True
 
 
 def json_err(response_cls, msg):
@@ -189,7 +188,7 @@ class ProjectResource(BaseResource):
                 if form.cleaned_data.get("submitted", False):
                     project.submission_date = date.today()
                     project.save()
-                    notify_coordinators(request, project)
+                    #notify_coordinators(request, project)
                 return HttpResponse('', status=200)  # should be 204 No Content ?
             else:
                 return HttpResponseBadRequest(form.errors.as_json(),
@@ -269,7 +268,7 @@ class ProjectListResource(BaseResource):
                 project.submission_date = date.today()
                 project.save()
                 logger.debug("Notifying coordinators")
-                notify_coordinators(request, project)
+                #notify_coordinators(request, project)
             content = self.serializer.serialize(project)
             return HttpResponse(content, content_type="application/json; charset=utf-8", status=201)
         else:

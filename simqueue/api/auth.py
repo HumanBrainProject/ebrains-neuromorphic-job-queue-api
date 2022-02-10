@@ -13,21 +13,6 @@ logger = logging.getLogger("simqueue")
 class CollabService(object):
 
     @classmethod
-    def _get_permissions(cls, request, collab_id):
-        logger.debug("Checking permissions for collab {}".format(collab_id))
-        svc_url = settings.HBP_COLLAB_SERVICE_URL
-        url = '{}/collab/{}/permissions'.format(svc_url, collab_id)
-        headers = {'Authorization': request.META["HTTP_AUTHORIZATION"]}
-        res = requests.get(url, headers=headers)
-        if res.status_code in (200, 403):
-            permissions = res.json()
-        else:
-            logger.error(res.content)
-            permissions = {}
-        logger.debug(str(permissions))
-        return permissions
-
-    @classmethod
     def _get_permissions_v2(cls, request, collab_id):
         url = f"{settings.HBP_IDENTITY_SERVICE_URL_V2}/userinfo"
         headers = {'Authorization': request.META["HTTP_AUTHORIZATION"]}
@@ -74,40 +59,29 @@ class CollabService(object):
     def can_view(cls, request, collab_id):
         try:
             int(collab_id)
-            get_permissions = cls._get_permissions
         except ValueError:
             get_permissions = cls._get_permissions_v2
-        perms = get_permissions(request, collab_id)
-        return perms.get('VIEW', False)
+            perms = get_permissions(request, collab_id)
+            return perms.get('VIEW', False)
+        else:
+            return False
 
     @classmethod
     def is_team_member(cls, request, collab_id):
         try:
             int(collab_id)
-            get_permissions = cls._get_permissions
         except ValueError:
             get_permissions = cls._get_permissions_v2
-        perms = get_permissions(request, collab_id)
-        return perms.get('UPDATE', False)
+            perms = get_permissions(request, collab_id)
+            return perms.get('UPDATE', False)
+        else:
+            return False
 
 
 class IdentityService(object):
 
     @classmethod
     def get_user(cls, request):
-        url = "{}/user/me".format(settings.HBP_IDENTITY_SERVICE_URL)
-        #import pdb; pdb.set_trace()
-        headers = {'Authorization': request.META["HTTP_AUTHORIZATION"]}
-        logger.debug("Requesting HBP user information for given access token")
-        res = requests.get(url, headers=headers)
-        if res.status_code != 200:
-            logger.debug("Error requesting {} with headers {}".format(url, headers))
-            raise Exception(res.content)
-        logger.debug("User information retrieved")
-        return res.json()
-
-    @classmethod
-    def get_ebrains_user(cls, request):
         url = f"{settings.HBP_IDENTITY_SERVICE_URL_V2}/userinfo"
         headers = {'Authorization': request.META["HTTP_AUTHORIZATION"]}
         logger.debug("Requesting EBRAINS user information for given access token")
@@ -142,26 +116,11 @@ class ProviderAuthentication(ApiKeyAuthentication):
         return self.is_authenticated(request) is True
 
 
-class HBPAuthentication(Authentication):
-
-    def is_authenticated(self, request, **kwargs):
-        try:
-            user = IdentityService.get_user(request)
-        except Exception as err:
-            logger.debug("OIDC Service exception: {}".format(err))
-            return False
-        logger.debug("Got OIDC user {}".format(user["username"]))
-        return True
-
-    def is_provider(self, request):
-        return False
-
-
 class EBRAINSAuthentication(Authentication):
 
     def is_authenticated(self, request, **kwargs):
         try:
-            user = IdentityService.get_ebrains_user(request)
+            user = IdentityService.get_user(request)
         except Exception as err:
             logger.debug("IAM Service exception: {}".format(err))
             return False
