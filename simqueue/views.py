@@ -107,7 +107,7 @@ def copy_datafiles_to_storage(request, target, job_id):
         if target == "collab":
             target_paths = copy_datafiles_to_collab_storage(request, job, local_dir, relative_paths)
         # elif target == "bucket":
-        elif target == "drive":
+        elif target == "bucket":
             target_paths = copy_datafiles_to_collab_bucket(request, job, local_dir, relative_paths)
         else:
             target_paths = copy_datafiles_with_unicore(request, target, job, local_dir, relative_paths)
@@ -177,7 +177,53 @@ def copy_datafiles_to_collab_storage(request, job, local_dir, relative_paths):
 
 def copy_datafiles_to_collab_bucket(request, job, local_dir, relative_paths):
     
+    size_limit = 100. # in GB - Maybe not useful for the bucket - Implemented for the future
+
+    access_token = request.META.get('HTTP_AUTHORIZATION')
+    auth_header = {
+        "Authorization": f"{access_token}"
+    }
+    data_proxy_endpoint = "https://data-proxy.ebrains.eu/api"
+    bucket_name = job.collab_id
+    bucket_folder = "/job_{}".format(job.pk)
+
+    # Check for existence of the bucket (By default, the collab bucket is not created)
+    response = requests.get(f"{data_proxy_endpoint}/buckets/{bucket_name}", headers=auth_header) 
+    if(response.status_code == 404): # Init the bucket
+        response = requests.post(
+            f"{data_proxy_endpoint}/buckets", 
+            headers=auth_header, 
+            json={
+                "bucket_name": bucket_name
+            })
+
+    collab_paths = []
+    status = []
+    for relative_path in relative_paths:
+        bucket_path = os.path.join(bucket_folder, relative_path)
+        local_path = os.path.join(local_dir, relative_path)
+
+        # Check for existence of the file in the bucket
+        object = requests.get(f"{data_proxy_endpoint}/buckets/{bucket_name}?prefix={bucket_path[1:]}&limit=50",
+                            headers=auth_header)
+
+        if len(object.json()['objects']) == 0:  # The file does not exists in the target repository
+            file_size = get_file_size(local_path, 'GB')
+            if file_size < size_limit: 
+                temporary_url_ul = requests.put(f"{data_proxy_endpoint}/buckets/{bucket_name}{bucket_path}", 
+                                                headers=auth_header)
+                response = requests.put(temporary_url_ul.json()["url"], 
+                                        data=open(local_path, 'rb').read()) # Copy done
+                state = 'Copied'
+            else:
+                state = ['Oversized', file_size]
+                # The file can't be copied to the bucket (file size exceeds the limit)
+
+        else:   # The file exists already in the target repository
+            state = 'Exists'
     
+        collab_paths.append(relative_path)
+        status.append(state)
 
     return collab_paths, status
 
