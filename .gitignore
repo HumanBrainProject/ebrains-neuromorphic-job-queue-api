@@ -4,6 +4,7 @@
 .idea
 _build
 packages
+packages_
 *_old
 htmlcov
 coverage
@@ -24,3 +25,4 @@ job_manager/deployment/ssl
 resource_manager/deployment/ssl
 letsencrypt
 ssl
+env_local.sh
