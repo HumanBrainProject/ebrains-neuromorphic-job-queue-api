@@ -131,4 +131,5 @@ async def query_jobs(
 
 async def get_job(job_id: int):
     query = jobs.select().where(jobs.c.id == job_id)
-    return await database.fetch_one(query)
+    result = await database.fetch_one(query)
+    return transform_fields(await follow_relationships(dict(result)))
