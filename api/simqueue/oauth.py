@@ -18,3 +18,17 @@ oauth.register(
         "trust_env": False,
     },
 )
+
+
+class User:
+
+    def __init__(self, **kwargs):
+        for key, value in kwargs.items():
+            setattr(self, key, value)
+
+    @classmethod
+    async def from_token(cls, token):
+        user_info = await oauth.ebrains.userinfo(
+            token={"access_token": token, "token_type": "bearer"}
+        )
+        return cls(**user_info)

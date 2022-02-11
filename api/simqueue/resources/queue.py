@@ -12,7 +12,7 @@ from ..data_models import (
     SubmittedJob, AcceptedJob, CompletedJob, Job, JobStatus, JobPatch,
     Comment, CommentBody
 )
-from .. import db
+from .. import db, oauth
 
 
 logger = logging.getLogger("simqueue")
@@ -22,10 +22,10 @@ router = APIRouter()
 
 
 @router.get("/jobs/", response_model=List[Job])
-def query_jobs(
+async def query_jobs(
     status: JobStatus = Query(None, description="status"),
     tag: List[str] = Query(None, description="tags"),
-    project_id: List[UUID] = Query(None, description="project id"),
+    collab_id: List[str] = Query(None, description="collab id"),
     user_id: List[str] = Query(None, description="user id"),
     hardware_platform: List[str] = Query(None, description="hardware platform (e.g. SpiNNaker, BrainScales)"),
     date_range_start: date = Query(None, description="jobs submitted after this date"),
@@ -34,15 +34,33 @@ def query_jobs(
     from_index: int = Query(0, description="Index of the first job to return"),
     # from header
     token: HTTPAuthorizationCredentials = Depends(auth),
-    # we need to have an independent database session/connection per request,
-    # use the same session through all the request and then close it after the request is finished.
-    db_session: Session = Depends(db.get_db_session)
 ):
     """
     Return a list of jobs
     """
-    jobs = db.query_jobs(db_session, status, user_id, hardware_platform,
-                         date_range_start, date_range_end, from_index, size)
+    # If the user (from the token) is an admin there are no restrictions on the query
+    # If the user is not an admin:
+    #   - if user_id is provided, it must contain _only_ the user's id
+    #   - if collab_id is not provided, only the user's own jobs are returned
+    #   - if collab_id is provided the user must be a member of all collabs in the list
+    # user = await oauth.User.from_token(token.credentials)
+    # if not user.is_admin:
+    #     if user_id and user_id != user.username:  # todo: also support user_id_v1
+    #         raise HTTPException(
+    #             status_code=status.HTTP_403_FORBIDDEN,
+    #             detail="User id provided does not match authentication token",
+    #         )
+    #     if collab_id:
+    #         for cid in collab_id:
+    #             if not user.can_view(cid):
+    #                 raise HTTPException(
+    #                     status_code=status.HTTP_403_FORBIDDEN,
+    #                     detail="You do not have permission to view collab {cid}"
+    #                 )
+    #     else:
+    #         user_id = [user.username]
+    jobs = await db.query_jobs(status, collab_id, user_id, hardware_platform,
+                               date_range_start, date_range_end, from_index, size)
     return jobs
 
 
@@ -54,7 +72,7 @@ async def get_job(
     """
     Return an individual job
     """
-    pass
+    job = db.get_job(job_id)
 
 
 @router.get("/jobs/{job_id}/comments", response_model=List[Comment])
@@ -63,7 +81,7 @@ async def get_comments(
     token: HTTPAuthorizationCredentials = Depends(auth),
 ):
     """
-    Return an individual job
+    Return the comments on an individual job
     """
     pass
 

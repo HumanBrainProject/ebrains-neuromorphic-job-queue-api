@@ -4,6 +4,7 @@ from starlette.middleware.cors import CORSMiddleware
 
 from . import settings
 from .resources import queue, auth
+from .db import database
 
 
 description = """
@@ -17,6 +18,16 @@ copy the <i>access_token</i> into the "HTTPBearer" box
 """
 
 app = FastAPI(title="EBRAINS Neuromorphic Computing Job Queue API", description=description, version="3.0")
+
+@app.on_event("startup")
+async def startup():
+    await database.connect()
+
+
+@app.on_event("shutdown")
+async def shutdown():
+    await database.disconnect()
+
 
 app.add_middleware(SessionMiddleware, secret_key=settings.SESSIONS_SECRET_KEY)
 app.add_middleware(

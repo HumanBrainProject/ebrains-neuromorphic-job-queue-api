@@ -34,9 +34,6 @@ class DataItem(BaseModel):
     size: int = None  # in bytes
     hash: str = None
 
-    class Config:
-        orm_mode = True
-
 
 class ResourceUsage(BaseModel):
     value: float
@@ -52,16 +49,10 @@ class SubmittedJob(BaseModel):
     code: str
     command: str = None
     collab_id: str
-    #input_data: List[DataItem] = None
+    input_data: List[DataItem] = None
     hardware_platform: str
     hardware_config: dict = None
     #tags: List[str] = None
-
-    # @validator("hardware_config", "provenance", pre=True)
-    # def convert_str(cls, value):
-    #     if isinstance(value, str):
-    #         return json.loads(value)
-    #     return value
 
 
 class AcceptedJob(SubmittedJob):
@@ -69,9 +60,6 @@ class AcceptedJob(SubmittedJob):
     user_id: str
     status: JobStatus = JobStatus.submitted
     timestamp_submission: datetime = None
-
-    class Config:
-        orm_mode = True
 
 
 class CompletedJob(AcceptedJob):
