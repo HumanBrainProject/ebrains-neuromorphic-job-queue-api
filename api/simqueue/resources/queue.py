@@ -35,6 +35,7 @@ async def query_jobs(
     date_range_end: date = Query(None, description="jobs submitted before this date"),
     size: int = Query(100, description="Number of jobs to return"),
     from_index: int = Query(0, description="Index of the first job to return"),
+    as_admin: bool = Query(False, description="Run this query with admin privileges, if you have them"),
     # from header
     token: HTTPAuthorizationCredentials = Depends(auth),
 ):
@@ -47,7 +48,7 @@ async def query_jobs(
     #   - if collab_id is not provided, only the user's own jobs are returned
     #   - if collab_id is provided the user must be a member of all collabs in the list
     user = await oauth.User.from_token(token.credentials)
-    if not user.is_admin:
+    if not as_admin:
         if user_id:
             if len(user_id) > 1:
                 raise HTTPException(
@@ -61,13 +62,18 @@ async def query_jobs(
                 )
         if collab_id:
             for cid in collab_id:
-                if not user.can_view(cid):
+                if not await user.can_view(cid):
                     raise HTTPException(
                         status_code=status_codes.HTTP_403_FORBIDDEN,
                         detail="You do not have permission to view collab {cid}"
                     )
         else:
             user_id = [user.username]
+    elif not user.is_admin:
+        raise HTTPException(
+            status_code=status_codes.HTTP_403_FORBIDDEN,
+            detail=f"The token provided does not give admin privileges"
+        )
     jobs = await db.query_jobs(status, collab_id, user_id, hardware_platform,
                                date_range_start, date_range_end, from_index, size)
     return jobs

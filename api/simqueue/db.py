@@ -1,13 +1,15 @@
 from datetime import datetime, date
 import pytz
 from typing import List
-from uuid import UUID
 import json
+import uuid
 
 import databases
-from sqlalchemy import Column, ForeignKey, Integer, Float, String, DateTime, Table, MetaData
+from sqlalchemy import Column, ForeignKey, Integer, Float, String, Boolean, DateTime, Date, Table, MetaData
+from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.sql import select
 
+from .data_models import ProjectStatus
 from . import settings
 from .globals import RESOURCE_USAGE_UNITS
 
@@ -56,6 +58,23 @@ jobs = Table(
     Column("resource_usage", Float)
 )
 
+projects = Table(
+    "quotas_project",
+    metadata,
+    Column("context", UUID, primary_key=True, default=uuid.uuid4),
+    Column("collab", String(40), nullable=False),
+    Column("owner", String(36), nullable=False),
+    Column("title", String(200), nullable=False),
+    Column("abstract", String, nullable=False),
+    Column("description", String, nullable=False),
+    Column("duration", Integer, default=0),  # in days
+    Column("start_date", Date),  # Value set when project is accepted
+    Column("accepted", Boolean, default=False),
+    Column("submission_date", Date),
+    Column("decision_date", Date) # Value set when project is accepted/refused
+)
+
+
 def transform_fields(job):
     """Change certain fields that are stored as strings or floats into richer Python types"""
     if job.get("hardware_config", None):
@@ -68,6 +87,11 @@ def transform_fields(job):
             "units": RESOURCE_USAGE_UNITS.get(job["hardware_platform"], "hours")
         }
     return job
+
+
+def transform_project_fields(project):
+    project["id"] = project.pop("context")
+    return project
 
 
 async def follow_relationships(job):
@@ -101,7 +125,7 @@ async def query_jobs(
     date_range_start: date = None,
     date_range_end: date = None,
     from_index: int = 0,
-    size: int = 100
+    size: int = 10
 ):
     filters = []
     if status:
@@ -133,3 +157,44 @@ async def get_job(job_id: int):
     query = jobs.select().where(jobs.c.id == job_id)
     result = await database.fetch_one(query)
     return transform_fields(await follow_relationships(dict(result)))
+
+
+async def query_projects(
+    status: ProjectStatus = None,
+    collab_id: List[str] = None,
+    owner_id: List[str] = None,
+    #date_range_start: date = None,
+    #date_range_end: date = None,
+    from_index: int = 0,
+    size: int = 10
+):
+    filters = []
+    if status:
+        if status is ProjectStatus.accepted:
+            filters.append(projects.c.approved == True)
+        else:
+            filters.append(projects.c.approved == False)
+            if status is ProjectStatus.rejected:
+                filters.append(projects.c.decision_date is not None)
+            elif status is ProjectStatus.under_review:
+                filters.extend((
+                    projects.c.submission_date is not None,
+                    projects.c.decision_date is None
+                ))
+            else:
+                assert status is ProjectStatus.in_prep
+                filters.append((
+                    projects.c.submission_date is None,
+                ))
+    if collab_id:
+        filters.append(get_list_filter(projects.c.collab, collab_id))
+    if owner_id:
+        filters.append(get_list_filter(projects.c.owner, owner_id))
+
+    if filters:
+        query = projects.select().where(*filters).offset(from_index).limit(size)
+    else:
+        query = projects.select().offset(from_index).limit(size)
+
+    results = await database.fetch_all(query)
+    return [transform_project_fields(dict(result)) for result in results]

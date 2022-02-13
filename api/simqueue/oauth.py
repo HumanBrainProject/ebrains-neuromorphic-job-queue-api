@@ -50,6 +50,9 @@ class User:
         )
         return cls(**user_info)
 
+    def __repr__(self):
+        return f"User('{self.username}')"
+
     @property
     def is_admin(self):
         return False
@@ -75,3 +78,14 @@ class User:
         for role, team_name in target_team_names.items():
             if team_name in self.roles["team"]:
                 return True
+
+    def get_collabs(self, access=["viewer", "editor", "administrator"]):
+        collabs = set()
+        for team_access in self.roles["team"]:
+            parts = team_access.split("-")
+            assert parts[0] == "collab"
+            collab_id = "-".join(parts[1:-1])
+            role = parts[-1]
+            if role in access:
+                collabs.add(collab_id)
+        return sorted(collabs)

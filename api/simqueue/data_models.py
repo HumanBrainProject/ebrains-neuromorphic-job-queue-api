@@ -1,5 +1,5 @@
 
-from datetime import datetime
+from datetime import datetime, date
 from enum import Enum
 from typing import List
 from uuid import UUID
@@ -114,10 +114,10 @@ class Project(ProjectSubmission):
     id: UUID
     owner: str
     duration: int = None
-    start_date: datetime = None
+    start_date: date = None
     accepted: bool = False
-    submission_date: datetime = None
-    decision_date: datetime = None
+    submission_date: date = None
+    decision_date: date = None
 
     def status(self):
         if self.submission_date is None:
