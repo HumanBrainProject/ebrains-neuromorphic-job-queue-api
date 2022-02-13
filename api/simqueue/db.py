@@ -171,9 +171,9 @@ async def query_projects(
     filters = []
     if status:
         if status is ProjectStatus.accepted:
-            filters.append(projects.c.approved == True)
+            filters.append(projects.c.accepted == True)
         else:
-            filters.append(projects.c.approved == False)
+            filters.append(projects.c.accepted == False)
             if status is ProjectStatus.rejected:
                 filters.append(projects.c.decision_date is not None)
             elif status is ProjectStatus.under_review:

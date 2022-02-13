@@ -101,6 +101,7 @@ class ProjectStatus(str, Enum):
     accepted = "accepted"
     under_review = "under review"
     rejected = "rejected"
+    # todo: consider adding "expired"
 
 
 class ProjectSubmission(BaseModel):

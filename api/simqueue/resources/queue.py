@@ -4,7 +4,6 @@ from typing import List
 from datetime import date
 import logging
 import asyncio
-from cmd2 import set_default_argument_parser_type
 
 from fastapi import APIRouter, Depends, Query, Path, HTTPException, status as status_codes
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
