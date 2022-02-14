@@ -46,7 +46,7 @@ jobs = Table(
     metadata,
     Column("id", Integer, primary_key=True, index=True),
     Column("code", String, nullable=False),
-    Column("command", String(200), nullable=False),
+    Column("command", String(500), nullable=False),
     Column("collab_id", String(40), nullable=False),
     Column("user_id", String(36), nullable=False),
     Column("status", String(15), default="submitted", nullable=False),
@@ -147,7 +147,7 @@ async def query_jobs(
     if filters:
         query = jobs.select().where(*filters).offset(from_index).limit(size)
     else:
-        query = jobs.select().offset(from_index).limit(size).all()
+        query = jobs.select().offset(from_index).limit(size)
 
     results = await database.fetch_all(query)
     return [transform_fields(await follow_relationships(dict(result))) for result in results]
