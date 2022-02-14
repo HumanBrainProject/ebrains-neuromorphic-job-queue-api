@@ -10,5 +10,5 @@ DATABASE_USERNAME = "nmpi_dbadmin"
 DATABASE_PASSWORD = os.environ.get("NMPI_DATABASE_PASSWORD")
 DATABASE_HOST = os.environ.get("NMPI_DATABASE_HOST")
 DATABASE_PORT = os.environ.get("NMPI_DATABASE_PORT")
-BASE_URL = "http://127.0.0.1:8000" #os.environ.get("NMPI_BASE_URL")
+BASE_URL = os.environ.get("NMPI_BASE_URL")
 #ADMIN_GROUP_ID = ""

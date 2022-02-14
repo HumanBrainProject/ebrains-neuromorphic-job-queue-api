@@ -1,0 +1,9 @@
+uvicorn
+fastapi
+itsdangerous
+Authlib
+httpx
+databases[postgresql]
+sqlalchemy
+pytz
+requests

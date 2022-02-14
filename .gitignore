@@ -26,3 +26,4 @@ resource_manager/deployment/ssl
 letsencrypt
 ssl
 env_local.sh
+docker-compose.yml

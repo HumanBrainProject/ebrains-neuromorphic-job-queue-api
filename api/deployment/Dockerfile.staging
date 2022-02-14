@@ -1,0 +1,39 @@
+#
+# Build an image for deploying the Neuromorphic Platform Job Queue API v3
+#
+# To build the image, from the parent directory:
+#   docker-compose build
+#
+# To run the application:
+#  docker-compose up -d
+#
+#
+# To check the content of the docker container:
+#   sudo docker run -it nmpi_server /bin/bash
+
+FROM debian:bullseye-slim
+MAINTAINER Andrew Davison <andrew.davison@cnrs.fr>
+
+ENV DEBIAN_FRONTEND noninteractive
+RUN apt-get update --fix-missing; apt-get -y -q install python3-pkg-resources python3-pip supervisor build-essential nginx-extras git wget
+RUN unset DEBIAN_FRONTEND
+
+RUN pip3 install --upgrade pip
+
+ENV SITEDIR /home/docker/site
+
+COPY requirements.txt $SITEDIR/
+RUN pip3 install -r $SITEDIR/requirements.txt
+
+COPY simqueue $SITEDIR/simqueue
+
+ENV PYTHONPATH  /home/docker:/home/docker/site:/usr/local/lib/python3.7/dist-packages:/usr/lib/python3.7/dist-packages
+
+RUN echo "daemon off;" >> /etc/nginx/nginx.conf
+RUN rm /etc/nginx/sites-enabled/default
+COPY deployment/nginx-app.conf /etc/nginx/sites-enabled/
+COPY deployment/supervisor-app.conf /etc/supervisor/conf.d/
+
+EXPOSE 443
+
+CMD ["supervisord", "-n", "-c", "/etc/supervisor/conf.d/supervisor-app.conf"]
