@@ -4,3 +4,6 @@ For local development, run:
 
   uvicorn simqueue.main:app --reload
 
+To run tests:
+
+  pytest --cov=simqueue --cov-report=term --cov-report=html

@@ -3,6 +3,7 @@ import pytz
 import pytest
 import pytest_asyncio
 from simqueue.db import database, query_jobs, get_job, query_projects
+from simqueue.data_models import ProjectStatus
 
 
 @pytest_asyncio.fixture()
@@ -42,3 +43,62 @@ async def test_query_jobs_with_filters(database_connection):
         assert job["user_id"] == "adavison"
         assert job["hardware_platform"] == "SpiNNaker"
         assert datetime(2021, 3, 1, 0, tzinfo=pytz.UTC) <= job["timestamp_submission"] <= datetime(2021, 3, 31, 23, 59, 59, tzinfo=pytz.UTC)
+
+
+@pytest.mark.asyncio
+async def test_get_job(database_connection):
+    job = await get_job(142972)
+    expected_keys = (
+        'id', 'input_data', 'provenance', 'resource_usage', 'status', 'user_id',
+        'hardware_config', 'output_data', 'code', 'command', 'timestamp_submission',
+         'timestamp_completion', 'collab_id', 'hardware_platform'
+    )
+    assert job["id"] == 142972
+    assert job["collab_id"] == "neuromorphic-testing-private"
+
+
+@pytest.mark.asyncio
+async def test_query_projects_no_filters(database_connection):
+    projects = await query_projects(size=5, from_index=5)
+    assert len(projects) > 0
+    expected_keys = (
+        'abstract', 'accepted', 'collab', 'decision_date', 'description', 'duration',
+        'id', 'owner', 'start_date', 'submission_date', 'title',
+    )
+    assert set(projects[0].keys()) == set(expected_keys)
+
+
+@pytest.mark.asyncio
+async def test_query_projects_with_filters(database_connection):
+    projects = await query_projects(
+        status=ProjectStatus.accepted, size=5, from_index=0
+    )
+    assert len(projects) > 0
+    assert projects[0]["accepted"] is True
+    assert projects[0]["decision_date"] is not None
+    assert projects[0]["submission_date"] is not None
+
+    projects = await query_projects(
+        status=ProjectStatus.rejected, size=5, from_index=0
+    )
+    assert len(projects) > 0
+    assert projects[0]["accepted"] is False
+    assert projects[0]["decision_date"] is not None
+    assert projects[0]["submission_date"] is not None
+
+    projects = await query_projects(
+        status=ProjectStatus.under_review, size=5, from_index=0,
+        collab_id=["neuromorphic-testing-private"], owner_id=["adavison"]
+    )
+    assert len(projects) > 0
+    assert projects[0]["accepted"] is False
+    assert projects[0]["decision_date"] is None
+    assert projects[0]["submission_date"] is not None
+
+    projects = await query_projects(
+        status=ProjectStatus.in_prep, size=5, from_index=0
+    )
+    assert len(projects) > 0
+    assert projects[0]["accepted"] is False
+    assert projects[0]["decision_date"] is None
+    assert projects[0]["submission_date"] is None

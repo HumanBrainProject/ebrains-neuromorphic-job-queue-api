@@ -175,17 +175,15 @@ async def query_projects(
         else:
             filters.append(projects.c.accepted == False)
             if status is ProjectStatus.rejected:
-                filters.append(projects.c.decision_date is not None)
+                filters.append(projects.c.decision_date != None)
             elif status is ProjectStatus.under_review:
                 filters.extend((
-                    projects.c.submission_date is not None,
-                    projects.c.decision_date is None
+                    projects.c.submission_date != None,
+                    projects.c.decision_date == None
                 ))
             else:
                 assert status is ProjectStatus.in_prep
-                filters.append((
-                    projects.c.submission_date is None,
-                ))
+                filters.append(projects.c.submission_date == None)
     if collab_id:
         filters.append(get_list_filter(projects.c.collab, collab_id))
     if owner_id:
