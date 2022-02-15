@@ -25,12 +25,11 @@ oauth.register(
 
 
 async def get_collab_info(collab_id, token):
-    collab_info_url = f"{settings.HBP_COLLAB_SERVICE_URL_V2}collabs/{collab_id}"
+    collab_info_url = f"{settings.HBP_COLLAB_SERVICE_URL}collabs/{collab_id}"
     headers = {"Authorization": f"Bearer {token}"}
     res = requests.get(collab_info_url, headers=headers)
-    try:
-        response = res.json()
-    except json.decoder.JSONDecodeError:
+    response = res.json()
+    if isinstance(response, dict) and "code" in response and response["code"] == 404:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid collab id"
         )
@@ -48,6 +47,7 @@ class User:
         user_info = await oauth.ebrains.userinfo(
             token={"access_token": token, "token_type": "bearer"}
         )
+        user_info["token"] = {"access_token": token, "token_type": "bearer"}
         return cls(**user_info)
 
     def __repr__(self):

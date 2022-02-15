@@ -1,4 +1,3 @@
-from curses.ascii import HT
 from uuid import UUID
 from typing import List
 from datetime import date
@@ -7,8 +6,6 @@ import asyncio
 
 from fastapi import APIRouter, Depends, Query, Path, HTTPException, status as status_codes
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
-
-from sqlalchemy.orm import Session
 
 from ..data_models import (
     SubmittedJob, AcceptedJob, CompletedJob, Job, JobStatus, JobPatch,
@@ -32,7 +29,7 @@ async def query_jobs(
     hardware_platform: List[str] = Query(None, description="hardware platform (e.g. SpiNNaker, BrainScales)"),
     date_range_start: date = Query(None, description="jobs submitted after this date"),
     date_range_end: date = Query(None, description="jobs submitted before this date"),
-    size: int = Query(100, description="Number of jobs to return"),
+    size: int = Query(10, description="Number of jobs to return"),
     from_index: int = Query(0, description="Index of the first job to return"),
     as_admin: bool = Query(False, description="Run this query with admin privileges, if you have them"),
     # from header
@@ -92,6 +89,7 @@ async def get_job(
     job = await get_job_task
     if job["user_id"] == user.username or await user.can_view(job["collab_id"]):
         return job
+
     raise HTTPException(
         status_code=status_codes.HTTP_404_NOT_FOUND,
         detail=f"Either there is no job with id {job_id}, or you do not have access to it"

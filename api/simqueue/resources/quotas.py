@@ -24,7 +24,7 @@ async def query_projects(
     owner_id: List[str] = Query(None, description="owner id"),
     #date_range_start: date = Query(None, description="projects which started after this date"),
     #date_range_end: date = Query(None, description="projects which started before this date"),
-    size: int = Query(100, description="Number of projects to return"),
+    size: int = Query(10, description="Number of projects to return"),
     from_index: int = Query(0, description="Index of the first project to return"),
     as_admin: bool = Query(False, description="Run this query with admin privileges, if you have them"),
     # from header
