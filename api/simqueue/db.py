@@ -58,6 +58,23 @@ jobs = Table(
     Column("resource_usage", Float)
 )
 
+comments = Table(
+    "simqueue_comment",
+    metadata,
+    Column("id", Integer, primary_key=True),
+    Column("content", String),
+    Column("created_time", DateTime(timezone=True), default=now_in_utc, nullable=False),
+    Column("user", String(36), nullable=False),
+    Column("job_id", Integer, ForeignKey("simqueue_job.id"))
+)
+
+logs = Table(
+    "simqueue_log",
+    metadata,
+    Column("job_id", Integer, ForeignKey("simqueue_job.id"), primary_key=True),
+    Column("content", String, nullable=False)
+)
+
 projects = Table(
     "quotas_project",
     metadata,
@@ -73,6 +90,19 @@ projects = Table(
     Column("submission_date", Date),
     Column("decision_date", Date) # Value set when project is accepted/refused
 )
+
+quotas = Table(
+    "quotas_quota",
+    metadata,
+    Column("id", Integer, primary_key=True),
+    Column("units", String(15), nullable=False),
+    Column("limit", Float, nullable=False),
+    Column("usage", Float, nullable=False),
+    Column("platform", String(20), nullable=False),
+    Column("project_id", UUID, ForeignKey("quotas_project.context"), nullable=False)
+)
+
+
 
 
 def transform_fields(job):
@@ -159,6 +189,18 @@ async def get_job(job_id: int):
     return transform_fields(await follow_relationships(dict(result)))
 
 
+async def get_comments(job_id: int):
+    query = comments.select().where(comments.c.job_id == job_id)
+    results = await database.fetch_all(query)
+    return [dict(result) for result in results]
+
+
+async def get_log(job_id: int):
+    query = logs.select().where(logs.c.job_id == job_id)
+    result = await database.fetch_one(query)
+    return dict(result)
+
+
 async def query_projects(
     status: ProjectStatus = None,
     collab_id: List[str] = None,
@@ -196,3 +238,22 @@ async def query_projects(
 
     results = await database.fetch_all(query)
     return [transform_project_fields(dict(result)) for result in results]
+
+
+async def get_project(project_id: UUID):
+    query = projects.select().where(projects.c.context == project_id)
+    result = await database.fetch_one(query)
+    return dict(result)
+
+
+async def query_quotas(
+    project_id: List[str] = None,
+    from_index: int = 0,
+    size: int = 10
+):
+    query = quotas.select()
+    if project_id:
+        query = query.where(get_list_filter(quotas.c.project_id, project_id))
+    query = query.offset(from_index).limit(size)
+    results = await database.fetch_all(query)
+    return [dict(result) for result in results]

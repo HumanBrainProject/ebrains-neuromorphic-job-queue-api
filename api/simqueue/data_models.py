@@ -23,9 +23,15 @@ class JobStatus(str, Enum):
     removed = "removed"
 
 
-class Log(BaseModel):
+class Comment(BaseModel):
+    job_id: UUID = None
     content: str
-    job_id: UUID
+    user_id: str
+    timestamp: datetime = None
+
+
+class CommentBody(BaseModel):
+    content: str
 
 
 class DataItem(BaseModel):
@@ -67,7 +73,8 @@ class CompletedJob(AcceptedJob):
     provenance: dict = None
     timestamp_completion: datetime = None
     resource_usage: ResourceUsage = None
-    #log: str = None
+    comments: List[Comment] = None
+    log: str = None
 
 
 class Job(CompletedJob):
@@ -83,17 +90,7 @@ class JobPatch(BaseModel):
     log: str = None
 
 
-class Comment(BaseModel):
-    job_id: UUID = None
-    content: str
-    user_id: str
-    timestamp: datetime = None
-
-
-class CommentBody(BaseModel):
-    content: str
-
-#sclass Config #?
+# class Config #?
 
 
 class ProjectStatus(str, Enum):

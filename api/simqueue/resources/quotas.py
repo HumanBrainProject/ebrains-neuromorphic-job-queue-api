@@ -2,6 +2,7 @@ from uuid import UUID
 from typing import List
 from datetime import date
 import logging
+import asyncio
 
 from fastapi import APIRouter, Depends, Query, Path, HTTPException, status as status_codes
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
@@ -69,6 +70,27 @@ async def query_projects(
     return projects
 
 
+@router.get("/projects/{project_id}", response_model=Project)
+async def get_project(
+    project_id: int = Path(..., title="Project ID", description="ID of the project to be retrieved"),
+    as_admin: bool = Query(False, description="Run this query with admin privileges, if you have them"),
+    token: HTTPAuthorizationCredentials = Depends(auth),
+):
+    """
+    Return an individual project
+    """
+    get_user_task = asyncio.create_task(oauth.User.from_token(token.credentials))
+    get_project_task = asyncio.create_task(db.get_project(project_id))
+    user = await get_user_task
+    project = await get_project_task
+    if (as_admin and user.is_admin) or await user.can_view(project["collab"]):
+        return project
+    raise HTTPException(
+        status_code=status_codes.HTTP_404_NOT_FOUND,
+        detail=f"Either there is no project with id {project_id}, or you do not have access to it"
+    )
+
+
 @router.get("/collabs/", response_model=List[str])
 async def query_collabs(
     status: ProjectStatus = Query(None, description="status"),
@@ -118,15 +140,26 @@ async def query_collabs(
     return sorted(collabs)
 
 
-# url(r'^projects/$',
-#         ProjectListResource.as_view(),
-#         name="project-list-resource"),
-#     url(r'^projects/(?P<project_id>{})$'.format(uuid_pattern),
-#         ProjectResource.as_view(),
-#         name="project-resource"),
-#     url(r'^projects/(?P<project_id>{})/quotas/$'.format(uuid_pattern),
-#         QuotaListResource.as_view(),
-#         name="quota-list-resource"),
-#     url(r'^projects/(?P<project_id>{})/quotas/(?P<quota_id>\d+)$'.format(uuid_pattern),
-#         QuotaResource.as_view(),
-#         name="quota-resource"),
+@router.get("/projects/{project_id}/quotas/", response_model=List[Project])
+async def query_quotas(
+    project_id: int = Path(..., title="Project ID", description="ID of the project whose quotas should be retrieved"),
+    as_admin: bool = Query(False, description="Run this query with admin privileges, if you have them"),
+    size: int = Query(10, description="Number of projects to return"),
+    from_index: int = Query(0, description="Index of the first project to return"),
+    # from header
+    token: HTTPAuthorizationCredentials = Depends(auth),
+):
+    """
+    Return a list of quotas for a given project
+    """
+    get_user_task = asyncio.create_task(oauth.User.from_token(token.credentials))
+    get_project_task = asyncio.create_task(db.get_project(project_id))
+    user = await get_user_task
+    project = await get_project_task
+    if not ((as_admin and user.is_admin) or await user.can_view(project["collab"])):
+        raise HTTPException(
+            status_code=status_codes.HTTP_404_NOT_FOUND,
+            detail=f"Either there is no project with id {project_id}, or you do not have access to it"
+        )
+    quotas = await db.query_quotas(project_id=[project_id], size=size, from_index=from_index)
+    return quotas

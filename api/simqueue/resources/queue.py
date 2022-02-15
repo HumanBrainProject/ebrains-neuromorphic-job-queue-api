@@ -78,6 +78,9 @@ async def query_jobs(
 @router.get("/jobs/{job_id}", response_model=Job)
 async def get_job(
     job_id: int = Path(..., title="Job ID", description="ID of the job to be retrieved"),
+    with_comments: bool = Query(False, description="Include comments"),
+    with_log: bool = Query(False, description="Include log"),
+    as_admin: bool = Query(False, description="Run this query with admin privileges, if you have them"),
     token: HTTPAuthorizationCredentials = Depends(auth),
 ):
     """
@@ -87,7 +90,11 @@ async def get_job(
     get_job_task = asyncio.create_task(db.get_job(job_id))
     user = await get_user_task
     job = await get_job_task
-    if job["user_id"] == user.username or await user.can_view(job["collab_id"]):
+    if (as_admin and user.is_admin) or job["user_id"] == user.username or await user.can_view(job["collab_id"]):
+        if with_comments:
+            job["comments"] = await db.get_comments(job_id)
+        if with_log:
+            job["log"] = await db.get_log(job_id)
         return job
 
     raise HTTPException(
@@ -98,13 +105,46 @@ async def get_job(
 
 @router.get("/jobs/{job_id}/comments", response_model=List[Comment])
 async def get_comments(
-    job_id: str = Path(..., title="Job ID", description="ID of the job to be retrieved"),
+    job_id: str = Path(..., title="Job ID", description="ID of the job whose comments are to be retrieved"),
+    as_admin: bool = Query(False, description="Run this query with admin privileges, if you have them"),
     token: HTTPAuthorizationCredentials = Depends(auth),
 ):
     """
     Return the comments on an individual job
     """
-    pass
+    get_user_task = asyncio.create_task(oauth.User.from_token(token.credentials))
+    get_job_task = asyncio.create_task(db.get_job(job_id))
+    user = await get_user_task
+    job = await get_job_task
+    if (as_admin and user.is_admin) or job["user_id"] == user.username or await user.can_view(job["collab_id"]):
+        return await db.get_comments(job_id)
+
+    raise HTTPException(
+        status_code=status_codes.HTTP_404_NOT_FOUND,
+        detail=f"Either there is no job with id {job_id}, or you do not have access to it"
+    )
+
+
+@router.get("/jobs/{job_id}/log", response_model=str)
+async def get_log(
+    job_id: str = Path(..., title="Job ID", description="ID of the job whose log is to be retrieved"),
+    as_admin: bool = Query(False, description="Run this query with admin privileges, if you have them"),
+    token: HTTPAuthorizationCredentials = Depends(auth),
+):
+    """
+    Return the log for an individual job
+    """
+    get_user_task = asyncio.create_task(oauth.User.from_token(token.credentials))
+    get_job_task = asyncio.create_task(db.get_job(job_id))
+    user = await get_user_task
+    job = await get_job_task
+    if (as_admin and user.is_admin) or job["user_id"] == user.username or await user.can_view(job["collab_id"]):
+        return await db.get_log(job_id)["content"]
+
+    raise HTTPException(
+        status_code=status_codes.HTTP_404_NOT_FOUND,
+        detail=f"Either there is no job with id {job_id}, or you do not have access to it"
+    )
 
 
 @router.post("/jobs/", response_model=AcceptedJob, status_code=status_codes.HTTP_201_CREATED)

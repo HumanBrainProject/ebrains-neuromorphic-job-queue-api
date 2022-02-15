@@ -2,7 +2,7 @@ from datetime import date, datetime
 import pytz
 import pytest
 import pytest_asyncio
-from simqueue.db import database, query_jobs, get_job, query_projects
+from simqueue.db import database, query_jobs, get_job, query_projects, query_quotas, get_comments, get_log
 from simqueue.data_models import ProjectStatus
 
 
@@ -17,12 +17,12 @@ async def database_connection():
 async def test_query_jobs_no_filters(database_connection):
     jobs = await query_jobs(size=5, from_index=5)
     assert len(jobs) == 5
-    expected_keys = (
+    expected_keys = {
         'id', 'input_data', 'provenance', 'resource_usage', 'status', 'user_id',
         'hardware_config', 'output_data', 'code', 'command', 'timestamp_submission',
          'timestamp_completion', 'collab_id', 'hardware_platform'
-    )
-    assert set(jobs[0].keys()) == set(expected_keys)
+    }
+    assert set(jobs[0].keys()) == expected_keys
 
 
 @pytest.mark.asyncio
@@ -58,14 +58,29 @@ async def test_get_job(database_connection):
 
 
 @pytest.mark.asyncio
+async def test_get_comments(database_connection):
+    comments = await get_comments(122685)
+    expected_keys = {'user', 'content', 'job_id', 'id', 'created_time'}
+    assert len(comments) > 0
+    assert set(comments[0].keys()) == expected_keys
+
+
+@pytest.mark.asyncio
+async def test_get_log(database_connection):
+    log = await get_log(142972)
+    expected_keys = {'job_id', 'content'}
+    assert set(log.keys()) == expected_keys
+
+
+@pytest.mark.asyncio
 async def test_query_projects_no_filters(database_connection):
     projects = await query_projects(size=5, from_index=5)
     assert len(projects) > 0
-    expected_keys = (
+    expected_keys = {
         'abstract', 'accepted', 'collab', 'decision_date', 'description', 'duration',
         'id', 'owner', 'start_date', 'submission_date', 'title',
-    )
-    assert set(projects[0].keys()) == set(expected_keys)
+    }
+    assert set(projects[0].keys()) == expected_keys
 
 
 @pytest.mark.asyncio
@@ -102,3 +117,11 @@ async def test_query_projects_with_filters(database_connection):
     assert projects[0]["accepted"] is False
     assert projects[0]["decision_date"] is None
     assert projects[0]["submission_date"] is None
+
+
+@pytest.mark.asyncio
+async def test_query_quotas_no_filters(database_connection):
+    quotas = await query_quotas(size=5, from_index=5)
+    assert len(quotas) > 0
+    expected_keys = ('id', 'project_id', 'usage', 'limit', 'units', 'platform')
+    assert set(quotas[0].keys()) == set(expected_keys)
