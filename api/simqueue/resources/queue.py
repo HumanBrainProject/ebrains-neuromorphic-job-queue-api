@@ -94,7 +94,8 @@ async def get_job(
         if with_comments:
             job["comments"] = await db.get_comments(job_id)
         if with_log:
-            job["log"] = await db.get_log(job_id)
+            log = await db.get_log(job_id)
+            job["log"] = log["content"]
         return job
 
     raise HTTPException(
@@ -139,7 +140,8 @@ async def get_log(
     user = await get_user_task
     job = await get_job_task
     if (as_admin and user.is_admin) or job["user_id"] == user.username or await user.can_view(job["collab_id"]):
-        return await db.get_log(job_id)["content"]
+        log = await db.get_log(job_id)
+        return log["content"]
 
     raise HTTPException(
         status_code=status_codes.HTTP_404_NOT_FOUND,

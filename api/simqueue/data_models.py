@@ -24,9 +24,9 @@ class JobStatus(str, Enum):
 
 
 class Comment(BaseModel):
-    job_id: UUID = None
+    job_id: int = None
     content: str
-    user_id: str
+    user_id: str = None
     timestamp: datetime = None
 
 

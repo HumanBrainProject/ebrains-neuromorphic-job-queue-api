@@ -30,9 +30,7 @@ async def get_collab_info(collab_id, token):
     res = requests.get(collab_info_url, headers=headers)
     response = res.json()
     if isinstance(response, dict) and "code" in response and response["code"] == 404:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid collab id"
-        )
+        raise ValueError("Invalid collab id")
     return response
 
 
@@ -55,7 +53,7 @@ class User:
 
     @property
     def is_admin(self):
-        return False
+        return self.can_edit("neuromorphic-platform-admin")
 
     @property
     def username(self):
@@ -69,8 +67,12 @@ class User:
             if team_name in self.roles["team"]:
                 return True
         # if that fails, check if it's a public collab
-        collab_info = await get_collab_info(collab_id, self.token["access_token"])
-        return collab_info.get("isPublic", False)
+        try:
+            collab_info = await get_collab_info(collab_id, self.token["access_token"])
+        except ValueError:
+            return False
+        else:
+            return collab_info.get("isPublic", False)
 
     def can_edit(self, collab_id):
         target_team_names = {role: f"collab-{collab_id}-{role}"

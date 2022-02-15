@@ -55,9 +55,7 @@ async def test_user_can_view_public_collab(token):
 @pytest.mark.asyncio
 async def test_user_can_view_non_existent_collab(token):
     user = await User.from_token(token)
-    with pytest.raises(HTTPException) as excinfo:
-        await user.can_view("d0cumentat10n")
-    assert excinfo.value.detail == "Invalid collab id"
+    assert not await user.can_view("d0cumentat10n")
 
 
 def test_user_can_edit(fake_user_data):
