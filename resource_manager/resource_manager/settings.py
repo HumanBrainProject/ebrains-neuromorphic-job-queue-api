@@ -116,7 +116,9 @@ USE_TZ = True
 STATIC_URL = '/static/'
 
 STATIC_ROOT = "%s/static/" % BASE_DIR
-STATICFILES_DIRS = []
+STATICFILES_DIRS = [
+    os.path.join(BASE_DIR, "lib"),
+]
 
 HBP_COLLAB_SERVICE_URL = "https://wiki.ebrains.eu/rest/v1/"
 HBP_IDENTITY_SERVICE_URL = "https://iam.ebrains.eu/auth/realms/hbp/protocol/openid-connect"
