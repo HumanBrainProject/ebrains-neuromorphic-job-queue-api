@@ -7,3 +7,4 @@ databases[postgresql]
 sqlalchemy
 pytz
 requests
+numpy

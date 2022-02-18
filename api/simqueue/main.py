@@ -3,7 +3,7 @@ from starlette.middleware.sessions import SessionMiddleware
 from starlette.middleware.cors import CORSMiddleware
 
 from . import settings
-from .resources import queue, quotas, auth
+from .resources import queue, quotas, statistics, auth
 from .db import database
 
 
@@ -41,4 +41,5 @@ app.add_middleware(
 
 app.include_router(queue.router, tags=["Jobs"])
 app.include_router(quotas.router, tags=["Quotas"])
+app.include_router(statistics.router, tags=["Statistics"])
 app.include_router(auth.router, tags=["Authentication and authorization"])

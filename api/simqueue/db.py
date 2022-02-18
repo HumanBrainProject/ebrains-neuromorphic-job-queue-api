@@ -5,9 +5,8 @@ import json
 import uuid
 
 import databases
-from sqlalchemy import Column, ForeignKey, Integer, Float, String, Boolean, DateTime, Date, Table, MetaData
+from sqlalchemy import Column, ForeignKey, Integer, Float, String, Boolean, DateTime, Date, Table, MetaData, literal_column
 from sqlalchemy.dialects.postgresql import UUID
-from sqlalchemy.sql import select
 
 from .data_models import ProjectStatus
 from . import settings
@@ -147,13 +146,14 @@ def get_list_filter(attr, value):
 
 
 async def query_jobs(
-    status: str = None,
+    status: List[str] = None,
     #tag: List[str] = None,
     collab_id: List[str] = None,
     user_id: List[str] = None,
     hardware_platform: List[str] = None,
     date_range_start: date = None,
     date_range_end: date = None,
+    fields: List[str] = None,
     from_index: int = 0,
     size: int = 10
 ):
@@ -174,10 +174,14 @@ async def query_jobs(
     elif date_range_end:
         filters.append(jobs.c.timestamp_submission <= date_range_end)
 
-    if filters:
-        query = jobs.select().where(*filters).offset(from_index).limit(size)
+    if fields is None:
+        select = jobs.select()
     else:
-        query = jobs.select().offset(from_index).limit(size)
+        select = jobs.select(*[literal_column(field) for field in fields])
+    if filters:
+        query = select.where(*filters).offset(from_index).limit(size)
+    else:
+        query = select.offset(from_index).limit(size)
 
     results = await database.fetch_all(query)
     return [transform_fields(await follow_relationships(dict(result))) for result in results]

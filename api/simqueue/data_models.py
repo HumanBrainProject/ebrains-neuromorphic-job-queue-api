@@ -1,7 +1,7 @@
 
 from datetime import datetime, date
 from enum import Enum
-from typing import List
+from typing import List, Dict
 from uuid import UUID
 import json
 
@@ -134,3 +134,9 @@ class Quota(BaseModel):
     usage: float   # "Quantity of resources used"
     platform: str  # "System to which quota applies")
     project_id: UUID
+
+
+class DateRangeCount(BaseModel):
+    start: date
+    end: date
+    count: Dict[str, int]
