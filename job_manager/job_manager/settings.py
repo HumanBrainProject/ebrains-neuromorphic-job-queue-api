@@ -150,6 +150,7 @@ USE_TZ = True
 STATIC_URL = '/static/'
 
 STATICFILES_DIRS = [
+    os.path.join(BASE_DIR, "lib"),
     os.path.join(BASE_DIR, "nmpi-dashboard-app"),
 ]
 STATIC_ROOT = "%s/static/" % BASE_DIR
