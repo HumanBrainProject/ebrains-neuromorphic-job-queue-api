@@ -34,10 +34,9 @@ def _copy_code_file_from_collab_drive(file_obj, local_dir, get_temporary_url):
 
 def _copy_code_dir_from_collab_drive(dir_obj, local_dir, get_temporary_url):
     # create a zip archive and put its url into the "code" field
-    joinp = os.path.join
     zipfile_name = f"{dir_obj.name}.zip"
     dir_obj.download(name=zipfile_name)
-    shutil.move(zipfile_name, local_dir)
+    os.rename(zipfile_name, os.path.join(local_dir, zipfile_name))
     temporary_url = get_temporary_url(zipfile_name)
     return temporary_url
 
