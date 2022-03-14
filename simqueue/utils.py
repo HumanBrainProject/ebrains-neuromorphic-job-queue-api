@@ -46,6 +46,8 @@ def copy_code_from_collab_drive(ebrains_drive_client, collab_id, code_location, 
     Download code from Collab Drive storage
     """
     target_repository = ebrains_drive_client.repos.get_repo_by_url(collab_id)
+    if not os.path.exists(local_dir):
+        os.makedirs(local_dir, exist_ok=True)
 
     try:
         seafdir = target_repository.get_dir(code_location)
