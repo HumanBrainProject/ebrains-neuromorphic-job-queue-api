@@ -6,7 +6,6 @@ from django.contrib.auth.decorators import login_required
 import json
 import requests
 import ebrains_drive
-from ebrains_drive.client import DriveApiClient
 from django.conf import settings
 
 import os.path
