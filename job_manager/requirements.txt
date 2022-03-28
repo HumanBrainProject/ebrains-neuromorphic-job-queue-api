@@ -6,31 +6,77 @@
 #
 #    pip-compile job_manager/requirements.in
 #
-certifi==2019.6.16        # via requests
-chardet==3.0.4            # via requests
-decorator==4.4.0          # via validators
-defusedxml==0.6.0         # via python3-openid
-django-sslserver==0.20
-django-taggit==0.24.0
-django-tastypie==0.14.2
-django==1.11.24
-idna==2.8                 # via requests
-jsonfield==2.0.2
-numpy==1.16.5
-oauthlib==3.1.0           # via python-social-auth, requests-oauthlib
-pyjwt==1.7.1              # via python-social-auth
-python-dateutil==2.8.0    # via django-tastypie
-python-mimeparse==1.6.0   # via django-tastypie
-#social-auth-app-django==3.1.0
-git+https://github.com/apdavison/social-app-django@debug#egg=social-auth-app-django
-#social-auth-core==3.2.0
-git+https://github.com/apdavison/social-core@debug#egg=social-auth-core
-python3-openid==3.1.0     # via python-social-auth
-pytz==2019.2
-requests-oauthlib==1.2.0  # via python-social-auth
-requests==2.22.0          # via hbp-service-client, python-social-auth, requests-oauthlib
-six==1.12.0               # via python-dateutil, python-social-auth, validators
-urllib3==1.25.3           # via requests
-pyyaml==5.1.2
+certifi==2019.6.16
+    # via requests
+cffi==1.15.0
+    # via cryptography
+chardet==3.0.4
+    # via requests
+cryptography==36.0.2
+    # via social-auth-core
+defusedxml==0.6.0
+    # via
+    #   python3-openid
+    #   social-auth-core
+django==2.2.27
+    # via
+    #   -r requirements.in
+    #   django-cors-headers
+    #   django-sslserver
+    #   django-taggit
+    #   jsonfield
 django-cors-headers==3.1.1
-ebrains_drive==0.4.0
+    # via -r requirements.in
+django-sslserver==0.20
+    # via -r requirements.in
+django-taggit==0.24.0
+    # via -r requirements.in
+django-tastypie==0.14.2
+    # via -r requirements.in
+ebrains-drive==0.4.0
+    # via -r requirements.in
+idna==2.8
+    # via requests
+jsonfield==2.0.2
+    # via -r requirements.in
+numpy==1.16.5
+    # via -r requirements.in
+oauthlib==3.1.0
+    # via
+    #   requests-oauthlib
+    #   social-auth-core
+psycopg2==2.9.3
+    # via -r requirements.in
+pycparser==2.21
+    # via cffi
+pyjwt==2.3.0
+    # via social-auth-core
+python-dateutil==2.8.0
+    # via django-tastypie
+python-mimeparse==1.6.0
+    # via django-tastypie
+python3-openid==3.1.0
+    # via social-auth-core
+pytz==2019.2
+    # via
+    #   -r requirements.in
+    #   django
+pyyaml==5.1.2
+    # via -r requirements.in
+requests==2.22.0
+    # via
+    #   ebrains-drive
+    #   requests-oauthlib
+    #   social-auth-core
+requests-oauthlib==1.2.0
+    # via social-auth-core
+six==1.12.0
+    # via python-dateutil
+social-auth-app-django==5.0.0
+    # via -r requirements.in
+social-auth-core==4.2.0
+    # via social-auth-app-django
+sqlparse==0.4.2
+    # via django
+urllib3==1.25.3
+    # via requests
