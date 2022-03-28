@@ -117,7 +117,7 @@ STATIC_URL = '/static/'
 
 STATIC_ROOT = "%s/static/" % BASE_DIR
 STATICFILES_DIRS = [
-    os.path.join(BASE_DIR, "lib"),
+    #os.path.join(BASE_DIR, "lib"),
 ]
 
 HBP_COLLAB_SERVICE_URL = "https://wiki.ebrains.eu/rest/v1/"
