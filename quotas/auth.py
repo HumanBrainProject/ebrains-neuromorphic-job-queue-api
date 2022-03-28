@@ -26,7 +26,7 @@ class CollabService(object):
             logger.error("Must provide collab_id")
         else:
             self.permissions = CollabService._get_permissions(request, collab_id)
-        logger.debug(str(self.permissions))
+        #logger.debug(str(self.permissions))
 
     @classmethod
     def _get_permissions(cls, request, collab_id):

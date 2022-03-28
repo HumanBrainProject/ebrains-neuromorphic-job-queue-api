@@ -89,9 +89,8 @@ class IdentityService(object):
         if res.status_code != 200:
             logger.debug("Error requesting {} with headers {}".format(url, headers))
             raise Exception(res.content)
-        logger.debug("User information retrieved")
         user_info = res.json()
-        logger.debug(user_info)
+        #logger.debug(user_info)
         # make this compatible with the v1 json
         user_info["id"] = user_info["sub"]
         user_info["username"] = user_info.get("preferred_username", "unknown")

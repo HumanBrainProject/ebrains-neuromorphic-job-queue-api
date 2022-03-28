@@ -128,7 +128,7 @@ LOGGING = {
     'disable_existing_loggers': False,
     'handlers': {
         'file': {
-            'level': 'DEBUG',
+            'level': 'INFO',
             'class': 'logging.FileHandler',
             'filename': '/var/log/django.log',
             'formatter': 'verbose'
@@ -141,7 +141,7 @@ LOGGING = {
         },
         'quotas': {
             'handlers': ['file'],
-            'level': 'DEBUG',
+            'level': 'INFO',
         }
     },
     'formatters': {
