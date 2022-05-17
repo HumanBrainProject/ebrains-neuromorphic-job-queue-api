@@ -85,17 +85,15 @@ def copy_datafiles_to_storage(request, target, job_id, path):
 
 def copy_datafiles_to_collab_drive(request, job, local_dir, relative_paths):
 
-    size_limit = .0000000001
+    size_limit = 1.
     
     access_token = request.META.get('HTTP_AUTHORIZATION').replace("Bearer ", "")
     ebrains_drive_client = ebrains_drive.connect(token=access_token)
     
     requested_path = unquote(request.META.get('QUERY_STRING'))
     splitted_path = requested_path.split('/') 
-    print(splitted_path)
     
     collab_name = splitted_path[1]
-    # collab_name = job.collab_id
     target_repository = ebrains_drive_client.repos.get_repo_by_url(collab_name)
     subdirectory = ''
     seafdir = target_repository.get_dir('/')
@@ -110,7 +108,6 @@ def copy_datafiles_to_collab_drive(request, job, local_dir, relative_paths):
                 # The subdirectory does not yet exist - Creation of the subdirectory
                 seafdir.mkdir(subdirectory)
     output_folder = subdirectory + "/job_{}".format(job.pk)
-    print('Check for existence of the directory')
     # Check for existence of the directory
     try:
         dir = target_repository.get_dir(output_folder)  # exists
