@@ -50,6 +50,6 @@ urlpatterns = (
     url(r'^admin/', include(admin.site.urls)),
     url(r'', include('social_django.urls', namespace='social')),
     url(r'^api/', include(api.urls)),
-    url(r'^copydata/(?P<target>\w+)/(?P<job_id>\d+)$', views.copy_datafiles_to_storage, name="copydata"),
+    url(r'^copydata/(?P<target>\w+)/(?P<job_id>\d+)/(?:path-(?P<path>\w+)/)?$', views.copy_datafiles_to_storage, name="copydata"),
     url(r'^dashboard/', TemplateView.as_view(template_name='dashboard.html')),
 )

@@ -17,6 +17,7 @@ from simqueue.models import Job
 
 from urllib.parse import urlparse
 from urllib.request import urlretrieve
+from urllib.parse import unquote
 import errno
 
 logger = logging.getLogger("simqueue")
@@ -33,7 +34,7 @@ def get_file_size(file_path, unit):
         return convert_bytes(file_info.st_size, unit)
 
 
-def copy_datafiles_to_storage(request, target, job_id):
+def copy_datafiles_to_storage(request, target, job_id, path):
     # get list of output data files from job_id
     job = Job.objects.get(pk=job_id)
     datalist = job.output_data.all()
@@ -84,28 +85,45 @@ def copy_datafiles_to_storage(request, target, job_id):
 
 def copy_datafiles_to_collab_drive(request, job, local_dir, relative_paths):
 
-    size_limit = 1.
-
+    size_limit = .0000000001
+    
     access_token = request.META.get('HTTP_AUTHORIZATION').replace("Bearer ", "")
     ebrains_drive_client = ebrains_drive.connect(token=access_token)
-
-    collab_name = job.collab_id
+    
+    requested_path = unquote(request.META.get('QUERY_STRING'))
+    splitted_path = requested_path.split('/') 
+    print(splitted_path)
+    
+    collab_name = splitted_path[1]
+    # collab_name = job.collab_id
     target_repository = ebrains_drive_client.repos.get_repo_by_url(collab_name)
+    subdirectory = ''
     seafdir = target_repository.get_dir('/')
-    collab_folder = "/job_{}".format(job.pk)
+    if os.path.dirname(requested_path):
+        for sub in range(2, len(splitted_path)):
+            subdirectory += '/'+splitted_path[sub]
+            print(subdirectory)
+            try:
+                target_repository.get_dir(subdirectory)
+                # The subdirectory exists
+            except:
+                # The subdirectory does not yet exist - Creation of the subdirectory
+                seafdir.mkdir(subdirectory)
+    output_folder = subdirectory + "/job_{}".format(job.pk)
+    print('Check for existence of the directory')
     # Check for existence of the directory
     try:
-        dir = target_repository.get_dir(collab_folder)  # exists
+        dir = target_repository.get_dir(output_folder)  # exists
     except:
         # The directory does not yet exist - Creation of the subdirectory
-        dir = seafdir.mkdir(collab_folder)
+        dir = seafdir.mkdir(output_folder)
 
     collab_paths = []
     status = []
     for relative_path in relative_paths:
-        collab_path = os.path.join(collab_folder, relative_path)
+        collab_path = os.path.join(output_folder, relative_path)
         splitted_collab_path = collab_path.split('/')
-        subdirectory = collab_folder
+        subdirectory = output_folder
         if os.path.dirname(relative_path):  # if there are subdirectories...
             for d in range(2, len(splitted_collab_path)-1):
                 subdirectory += '/'+splitted_collab_path[d]
