@@ -311,23 +311,60 @@ class QueueResource(BaseJobResource):
         """
         Download code from Collab storage
         """
-        # try:  # older versions of hbp-service-client
-        #     from hbp_service_client.document_service.client import Client as DocClient
-        # except ImportError:
-        #     from hbp_service_client.storage_service.api import ApiClient as DocClient
-            
         import ebrains_drive
-        from ebrains_drive.client import DriveApiClient
+        # from ebrains_drive.client import DriveApiClient
         joinp = os.path.join
 
-        auth = bundle.request.META["HTTP_AUTHORIZATION"]
-        assert auth.startswith("Bearer ")
-        access_token = auth[len("Bearer "):]
-        print(access_token)
-        doc_client = DocClient.new(access_token)
+        # auth = bundle.request.META["HTTP_AUTHORIZATION"]
+        # assert auth.startswith("Bearer ")
+        # access_token = auth[len("Bearer "):]
+        # print(access_token)
+        access_token = bundle.request.META.get('HTTP_AUTHORIZATION').replace("Bearer ", "")
+        ebrains_drive_client = ebrains_drive.connect(token=access_token)
+        # doc_client = DocClient.new(access_token)
 
         entity_id = bundle.data.get("code")
         print('entity_id', entity_id)
+        local_dir = settings.TMP_FILE_ROOT
+        # print(os.path.isdir(local_dir))
+        if(not os.path.isdir(local_dir)): 
+            os.mkdir(local_dir)
+        # print(os.path.isdir(local_dir))
+        # print(local_dir)
+        os.chdir(local_dir)
+        temp_dir = tempfile.mkdtemp()
+        print('he',temp_dir)
+        # print('she',bundle.data.get('id'))
+        os.chdir(temp_dir)
+        # for item in range(2, len(splitted_path)):
+        for item in entity_id:
+            print(item)
+            repo_obj = ebrains_drive_client.repos.get_repo(item[3])
+            entity_type = item[1]
+            if entity_type == 'file':
+                # repo_obj.get_file()
+                for d in range(2, len(collab_path)):
+                    my_path += '/'+collab_path[d]
+                my_path += '/'+item[0]
+                print(my_path)
+                return
+            elif entity_type == 'dir':
+                collab_path = item[2].split('/')
+                # print(collab_path)
+                my_path = ''
+                # if os.path.dirname(relative_path):  # if there are subdirectories...
+                for d in range(2, len(collab_path)):
+                    my_path += '/'+collab_path[d]
+                my_path += '/'+item[0]
+                print(my_path)
+                my_dir = repo_obj.get_dir(my_path)
+                my_dir.download(name='temp.zip')
+                shutil.unpack_archive('temp.zip')
+                print(os.listdir())
+                os.remove('temp.zip')
+                print(os.listdir())
+                # print(repo_obj.__dict__)
+        return
         metadata = doc_client.get_entity_details(entity_id)
         ext = metadata['name'].split('.')[-1]
 
