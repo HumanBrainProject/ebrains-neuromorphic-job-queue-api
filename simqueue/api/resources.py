@@ -332,31 +332,42 @@ class QueueResource(BaseJobResource):
         # print(os.path.isdir(local_dir))
         # print(local_dir)
         os.chdir(local_dir)
-        temp_dir = tempfile.mkdtemp()
+        temp_dir = tempfile.mkdtemp(dir=local_dir)
         print('he',temp_dir)
         # print('she',bundle.data.get('id'))
         os.chdir(temp_dir)
+        print(len(entity_id))
         # for item in range(2, len(splitted_path)):
         for item in entity_id:
             print(item)
             repo_obj = ebrains_drive_client.repos.get_repo(item[3])
             entity_type = item[1]
+            entity_name = item[0]
+            collab_path = item[2].split('/')
+            # print(collab_path)
+            my_path = ''
+            for d in range(2, len(collab_path)):
+                my_path += '/'+collab_path[d]
+            my_path += '/'+entity_name
+            print(my_path)
             if entity_type == 'file':
-                # repo_obj.get_file()
-                for d in range(2, len(collab_path)):
-                    my_path += '/'+collab_path[d]
-                my_path += '/'+item[0]
-                print(my_path)
-                return
+                content = repo_obj.get_file(my_path).get_content()
+                ext = item[0].split('.')[-1]
+                if ext == 'ipynb' and len(entity_id)==1:
+                    content = self.filter_ipynb_content(content)
+                    return content
+                else:
+                    with open(entity_name, "wb") as fp:
+                        fp.write(content)
+                    if ext in ('zip', 'tgz', 'gz') and len(entity_id)==1:
+                        print(os.path.basename(temp_dir))
+                        temporary_url = bundle.request.build_absolute_uri(settings.TMP_FILE_URL +
+                                                                          os.path.basename(temp_dir) +
+                                                                          entity_name)
+                        content = temporary_url
+                        print(content)
+                print(os.listdir())
             elif entity_type == 'dir':
-                collab_path = item[2].split('/')
-                # print(collab_path)
-                my_path = ''
-                # if os.path.dirname(relative_path):  # if there are subdirectories...
-                for d in range(2, len(collab_path)):
-                    my_path += '/'+collab_path[d]
-                my_path += '/'+item[0]
-                print(my_path)
                 my_dir = repo_obj.get_dir(my_path)
                 my_dir.download(name='temp.zip')
                 shutil.unpack_archive('temp.zip')
