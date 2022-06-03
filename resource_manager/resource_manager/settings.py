@@ -121,7 +121,7 @@ STATICFILES_DIRS = [
 ]
 
 HBP_COLLAB_SERVICE_URL = "https://wiki.ebrains.eu/rest/v1/"
-HBP_IDENTITY_SERVICE_URL = "https://iam.ebrains.eu/auth/realms/hbp/protocol/openid-connect"
+HBP_IDENTITY_SERVICE_URL = "https://iam-int.ebrains.eu/auth/realms/hbp/protocol/openid-connect"
 
 LOGGING = {
     'version': 1,
