@@ -333,6 +333,7 @@ class QueueResource(BaseJobResource):
         # print(local_dir)
         os.chdir(local_dir)
         temp_dir = tempfile.mkdtemp(dir=local_dir)
+        basename_temp_dir = os.path.basename(temp_dir)
         print('he',temp_dir)
         # print('she',bundle.data.get('id'))
         os.chdir(temp_dir)
@@ -362,7 +363,7 @@ class QueueResource(BaseJobResource):
                     if ext in ('zip', 'tgz', 'gz') and len(entity_id)==1:
                         print(os.path.basename(temp_dir))
                         temporary_url = bundle.request.build_absolute_uri(settings.TMP_FILE_URL +
-                                                                          os.path.basename(temp_dir) +
+                                                                          basename_temp_dir + '/' +
                                                                           entity_name)
                         content = temporary_url
                         print(content)
@@ -375,55 +376,19 @@ class QueueResource(BaseJobResource):
                 os.remove('temp.zip')
                 print(os.listdir())
                 # print(repo_obj.__dict__)
-        return
-        metadata = doc_client.get_entity_details(entity_id)
-        ext = metadata['name'].split('.')[-1]
-
-        entity_name = "{}_{}".format(entity_id, metadata["name"])
-        entity_type = metadata["entity_type"]
-        local_dir = settings.TMP_FILE_ROOT
-        if entity_type == 'file':
-            # put the file content into the "code" field directly
-            etag, content = doc_client.download_file_content(entity_id)
-            if ext == 'ipynb':
-                content = self.filter_ipynb_content(content)
-            elif ext in ('zip', 'tgz', 'gz'):
-                with open(os.path.join(local_dir, entity_name), 'wb') as fp:
-                    fp.write(content)
-                temporary_url = bundle.request.build_absolute_uri(settings.TMP_FILE_URL + entity_name)
-                content = temporary_url
-            # logger.debug(content)
-            return content
-        elif entity_type == 'folder':
-            # create a zip archive and put its url into the "code" field
-            def download_folder(entity, local_dir):
-                folder_content = doc_client.list_folder_content(entity["uuid"])
-                sub_dir = joinp(local_dir, entity["name"])
-                if os.path.exists(sub_dir):
-                    shutil.rmtree(sub_dir)
-                os.mkdir(sub_dir)
-                for child in folder_content['results']:
-                    entity_type = child["entity_type"]
-                    if entity_type == 'file':
-                        with open(joinp(sub_dir, child["name"]), "wb") as fp:
-                            etag, content = doc_client.download_file_content(child["uuid"])
-                            fp.write(content)
-                    elif entity_type == 'folder':
-                        download_folder(child, sub_dir)
-                    else:
-                        logger.warning("Cannot handle entity type '{}'".format(entity_type))
-                return sub_dir
-
-            folder_root = download_folder(metadata, local_dir)
-            shutil.make_archive(joinp(local_dir, entity_name), 'zip',
-                                root_dir=local_dir,
-                                base_dir=metadata["name"])
-            filename = entity_name + ".zip"
-            shutil.rmtree(folder_root)
-            temporary_url = bundle.request.build_absolute_uri(settings.TMP_FILE_URL + filename)
-            return temporary_url
-        else:
-            raise ValueError("Can't handle entity type '{}'".format(entity_type))
+            else:
+                raise ValueError("Can't handle entity type '{}'".format(entity_type))
+            
+        shutil.make_archive(temp_dir, 'zip',
+                            root_dir=temp_dir)
+                            # base_dir='.')
+        filename = basename_temp_dir + ".zip"
+        shutil.rmtree(temp_dir)
+        os.chdir(settings.TMP_FILE_ROOT)
+        os.system('ls')
+        shutil.unpack_archive(basename_temp_dir + '.zip')
+        temporary_url = bundle.request.build_absolute_uri(settings.TMP_FILE_URL + filename)
+        return temporary_url
 
     def filter_ipynb_content(self, content_in):
         cells = json.loads(content_in)["cells"]
