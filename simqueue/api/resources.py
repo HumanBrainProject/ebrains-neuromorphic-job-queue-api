@@ -312,16 +312,9 @@ class QueueResource(BaseJobResource):
         Download code from Collab storage
         """
         import ebrains_drive
-        # from ebrains_drive.client import DriveApiClient
-        joinp = os.path.join
-
-        # auth = bundle.request.META["HTTP_AUTHORIZATION"]
-        # assert auth.startswith("Bearer ")
-        # access_token = auth[len("Bearer "):]
-        # print(access_token)
+        
         access_token = bundle.request.META.get('HTTP_AUTHORIZATION').replace("Bearer ", "")
         ebrains_drive_client = ebrains_drive.connect(token=access_token)
-        # doc_client = DocClient.new(access_token)
 
         entity_id = bundle.data.get("code")
         print('entity_id', entity_id)
@@ -384,10 +377,11 @@ class QueueResource(BaseJobResource):
                             # base_dir='.')
         filename = basename_temp_dir + ".zip"
         shutil.rmtree(temp_dir)
-        os.chdir(settings.TMP_FILE_ROOT)
-        os.system('ls')
-        shutil.unpack_archive(basename_temp_dir + '.zip')
+        # Test the content of the archive; should be without parent directory
+        # os.chdir(settings.TMP_FILE_ROOT)
+        # shutil.unpack_archive(basename_temp_dir + '.zip')
         temporary_url = bundle.request.build_absolute_uri(settings.TMP_FILE_URL + filename)
+        print(temporary_url)
         return temporary_url
 
     def filter_ipynb_content(self, content_in):
