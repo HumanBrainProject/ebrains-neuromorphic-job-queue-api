@@ -153,14 +153,14 @@ def copy_datafiles_to_collab_drive(request, job, local_dir, relative_paths):
     
 
 def copy_datafiles_to_collab_bucket(request, job, local_dir, relative_paths):
-    
+        
     size_limit = 100. # in GB - Maybe not useful for the bucket - Implemented for the future
 
     access_token = request.META.get('HTTP_AUTHORIZATION')
     auth_header = {
         "Authorization": f"{access_token}"
     }
-    data_proxy_endpoint = "https://data-proxy.ebrains.eu/api"
+    data_proxy_endpoint = "https://data-proxy.ebrains.eu/api/v1/"
     bucket_name = job.collab_id
     bucket_folder = "/job_{}".format(job.pk)
 
@@ -183,6 +183,7 @@ def copy_datafiles_to_collab_bucket(request, job, local_dir, relative_paths):
         # Check for existence of the file in the bucket
         object = requests.get(f"{data_proxy_endpoint}/buckets/{bucket_name}?prefix={bucket_path[1:]}&limit=50",
                             headers=auth_header)
+
 
         if len(object.json()['objects']) == 0:  # The file does not exists in the target repository
             file_size = get_file_size(local_path, 'GB')
