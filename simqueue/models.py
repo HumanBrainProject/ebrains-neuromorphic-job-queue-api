@@ -25,7 +25,7 @@ class Job(models.Model):
         ("removed", "removed")
     )
     code = models.TextField()
-    command = models.CharField(max_length=200, blank=True)
+    command = models.CharField(max_length=500, blank=True)
     collab_id = models.TextField(null=False, blank=False, max_length=40)  # should be a CharField
     user_id = models.CharField(default="me", max_length=36)
     status = models.CharField(choices=status_choices, default="submitted", blank=True, max_length=15)

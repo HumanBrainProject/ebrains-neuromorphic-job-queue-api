@@ -30,6 +30,9 @@ from tastypie.exceptions import NotFound, Unauthorized, ImmediateHttpResponse
 
 import numpy as np
 
+import ebrains_drive
+
+from ..utils import copy_code_from_collab_drive
 from ..models import DataItem, Job, Log, Comment
 from taggit.models import Tag
 from .auth import CollabAuthorization, EBRAINSAuthentication, ProviderAuthentication
@@ -235,79 +238,14 @@ class QueueResource(BaseJobResource):
         selected_tab = str(bundle.data.get('selected_tab'))
         if selected_tab == "upload_script":
             # bundle.data["code"] = self.copy_code_file_from_collab_storage(bundle)
-            bundle.data["code"] = self.copy_code_file_from_collab_drive(bundle)
+            bundle.data["code"] = self.copy_code_from_collab_drive(bundle)
             # putting the temporary download path in the code field is not ideal.
             # perhaps we can temporarily store the collab file id somewhere, and
             # restore it once the job has been launched
         self._check_quotas(bundle)
         return super(QueueResource, self).obj_create(bundle, **kwargs)
-
-    def copy_code_file_from_collab_storage(self, bundle):
-        """
-        Download code from Collab storage
-        """
-        try:  # older versions of hbp-service-client
-            from hbp_service_client.document_service.client import Client as DocClient
-        except ImportError:
-            from hbp_service_client.storage_service.api import ApiClient as DocClient
-        joinp = os.path.join
-
-        auth = bundle.request.META["HTTP_AUTHORIZATION"]
-        assert auth.startswith("Bearer ")
-        access_token = auth[len("Bearer "):]
-        doc_client = DocClient.new(access_token)
-
-        entity_id = bundle.data.get("code")
-        metadata = doc_client.get_entity_details(entity_id)
-        ext = metadata['name'].split('.')[-1]
-
-        entity_name = "{}_{}".format(entity_id, metadata["name"])
-        entity_type = metadata["entity_type"]
-        local_dir = settings.TMP_FILE_ROOT
-        if entity_type == 'file':
-            # put the file content into the "code" field directly
-            etag, content = doc_client.download_file_content(entity_id)
-            if ext == 'ipynb':
-                content = self.filter_ipynb_content(content)
-            elif ext in ('zip', 'tgz', 'gz'):
-                with open(os.path.join(local_dir, entity_name), 'wb') as fp:
-                    fp.write(content)
-                temporary_url = bundle.request.build_absolute_uri(settings.TMP_FILE_URL + entity_name)
-                content = temporary_url
-            # logger.debug(content)
-            return content
-        elif entity_type == 'folder':
-            # create a zip archive and put its url into the "code" field
-            def download_folder(entity, local_dir):
-                folder_content = doc_client.list_folder_content(entity["uuid"])
-                sub_dir = joinp(local_dir, entity["name"])
-                if os.path.exists(sub_dir):
-                    shutil.rmtree(sub_dir)
-                os.mkdir(sub_dir)
-                for child in folder_content['results']:
-                    entity_type = child["entity_type"]
-                    if entity_type == 'file':
-                        with open(joinp(sub_dir, child["name"]), "wb") as fp:
-                            etag, content = doc_client.download_file_content(child["uuid"])
-                            fp.write(content)
-                    elif entity_type == 'folder':
-                        download_folder(child, sub_dir)
-                    else:
-                        logger.warning("Cannot handle entity type '{}'".format(entity_type))
-                return sub_dir
-
-            folder_root = download_folder(metadata, local_dir)
-            shutil.make_archive(joinp(local_dir, entity_name), 'zip',
-                                root_dir=local_dir,
-                                base_dir=metadata["name"])
-            filename = entity_name + ".zip"
-            shutil.rmtree(folder_root)
-            temporary_url = bundle.request.build_absolute_uri(settings.TMP_FILE_URL + filename)
-            return temporary_url
-        else:
-            raise ValueError("Can't handle entity type '{}'".format(entity_type))
         
-    def copy_code_file_from_collab_drive(self, bundle):
+    def copy_code_from_collab_drive(self, bundle):
         """
         Download code from Collab storage
         """
