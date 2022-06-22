@@ -257,26 +257,20 @@ class QueueResource(BaseJobResource):
         entity_id = bundle.data.get("code")
         print('entity_id', entity_id)
         local_dir = settings.TMP_FILE_ROOT
-        # print(os.path.isdir(local_dir))
         if(not os.path.isdir(local_dir)): 
             os.mkdir(local_dir)
-        # print(os.path.isdir(local_dir))
-        # print(local_dir)
         os.chdir(local_dir)
         temp_dir = tempfile.mkdtemp(dir=local_dir)
         basename_temp_dir = os.path.basename(temp_dir)
         print('he',temp_dir)
-        # print('she',bundle.data.get('id'))
         os.chdir(temp_dir)
         print(len(entity_id))
-        # for item in range(2, len(splitted_path)):
         for item in entity_id:
             print(item)
             repo_obj = ebrains_drive_client.repos.get_repo(item[3])
             entity_type = item[1]
             entity_name = item[0]
             collab_path = item[2].split('/')
-            # print(collab_path)
             my_path = ''
             for d in range(2, len(collab_path)):
                 my_path += '/'+collab_path[d]
