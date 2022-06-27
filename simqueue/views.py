@@ -16,6 +16,7 @@ from simqueue.models import Job
 
 from urllib.parse import urlparse
 from urllib.request import urlretrieve
+from urllib.parse import unquote
 import errno
 
 logger = logging.getLogger("simqueue")
@@ -32,7 +33,7 @@ def get_file_size(file_path, unit):
         return convert_bytes(file_info.st_size, unit)
 
 
-def copy_datafiles_to_storage(request, target, job_id):
+def copy_datafiles_to_storage(request, target, job_id, path):
     # get list of output data files from job_id
     job = Job.objects.get(pk=job_id)
     datalist = job.output_data.all()
@@ -64,6 +65,8 @@ def copy_datafiles_to_storage(request, target, job_id):
         # upload files
         if target == "drive":
             target_paths = copy_datafiles_to_collab_drive(request, job, local_dir, relative_paths)
+        elif target == "bucket":
+            target_paths = copy_datafiles_to_collab_bucket(request, job, local_dir, relative_paths)
         else:
             target_paths = copy_datafiles_with_unicore(request, target, job, local_dir, relative_paths)
 
@@ -82,27 +85,41 @@ def copy_datafiles_to_storage(request, target, job_id):
 def copy_datafiles_to_collab_drive(request, job, local_dir, relative_paths):
 
     size_limit = 1.
-
+    
     access_token = request.META.get('HTTP_AUTHORIZATION').replace("Bearer ", "")
     ebrains_drive_client = ebrains_drive.connect(token=access_token)
-
-    collab_name = job.collab_id
+    
+    requested_path = unquote(request.META.get('QUERY_STRING'))
+    splitted_path = requested_path.split('/') 
+    
+    collab_name = splitted_path[1]
     target_repository = ebrains_drive_client.repos.get_repo_by_url(collab_name)
+    subdirectory = ''
     seafdir = target_repository.get_dir('/')
-    collab_folder = "/job_{}".format(job.pk)
+    if os.path.dirname(requested_path):
+        for sub in range(2, len(splitted_path)):
+            subdirectory += '/'+splitted_path[sub]
+            print(subdirectory)
+            try:
+                target_repository.get_dir(subdirectory)
+                # The subdirectory exists
+            except:
+                # The subdirectory does not yet exist - Creation of the subdirectory
+                seafdir.mkdir(subdirectory)
+    output_folder = subdirectory + "/job_{}".format(job.pk)
     # Check for existence of the directory
     try:
-        dir = target_repository.get_dir(collab_folder)  # exists
+        dir = target_repository.get_dir(output_folder)  # exists
     except:
         # The directory does not yet exist - Creation of the subdirectory
-        dir = seafdir.mkdir(collab_folder)
+        dir = seafdir.mkdir(output_folder)
 
     collab_paths = []
     status = []
     for relative_path in relative_paths:
-        collab_path = os.path.join(collab_folder, relative_path)
+        collab_path = os.path.join(output_folder, relative_path)
         splitted_collab_path = collab_path.split('/')
-        subdirectory = collab_folder
+        subdirectory = output_folder
         if os.path.dirname(relative_path):  # if there are subdirectories...
             for d in range(2, len(splitted_collab_path)-1):
                 subdirectory += '/'+splitted_collab_path[d]
@@ -114,7 +131,6 @@ def copy_datafiles_to_collab_drive(request, job, local_dir, relative_paths):
                     # The subdirectory does not yet exist - Creation of the subdirectory
                     seafdir.mkdir(subdirectory)
         local_path = os.path.join(local_dir, relative_path)
-        print("The file may need to be copied")
         try:
             state = 'Exists'
             target_repository.get_file(collab_path)
@@ -129,6 +145,60 @@ def copy_datafiles_to_collab_drive(request, job, local_dir, relative_paths):
             else:
                 state = ['Oversized', file_size]
                 # The file can't be copied to the Drive (file size exceeds 1 GB limit)
+        collab_paths.append(relative_path)
+        status.append(state)
+
+    return collab_paths, status
+    
+
+def copy_datafiles_to_collab_bucket(request, job, local_dir, relative_paths):
+        
+    size_limit = 100. # in GB - Maybe not useful for the bucket - Implemented for the future
+
+    access_token = request.META.get('HTTP_AUTHORIZATION')
+    auth_header = {
+        "Authorization": f"{access_token}"
+    }
+    data_proxy_endpoint = "https://data-proxy.ebrains.eu/api/v1/"
+    bucket_name = job.collab_id
+    bucket_folder = "/job_{}".format(job.pk)
+
+    # Check for existence of the bucket (By default, the collab bucket is not created)
+    response = requests.get(f"{data_proxy_endpoint}/buckets/{bucket_name}", headers=auth_header) 
+    if(response.status_code == 404): # Init the bucket
+        response = requests.post(
+            f"{data_proxy_endpoint}/buckets", 
+            headers=auth_header, 
+            json={
+                "bucket_name": bucket_name
+            })
+
+    collab_paths = []
+    status = []
+    for relative_path in relative_paths:
+        bucket_path = os.path.join(bucket_folder, relative_path)
+        local_path = os.path.join(local_dir, relative_path)
+
+        # Check for existence of the file in the bucket
+        object = requests.get(f"{data_proxy_endpoint}/buckets/{bucket_name}?prefix={bucket_path[1:]}&limit=50",
+                            headers=auth_header)
+
+
+        if len(object.json()['objects']) == 0:  # The file does not exists in the target repository
+            file_size = get_file_size(local_path, 'GB')
+            if file_size < size_limit: 
+                temporary_url_ul = requests.put(f"{data_proxy_endpoint}/buckets/{bucket_name}{bucket_path}", 
+                                                headers=auth_header)
+                response = requests.put(temporary_url_ul.json()["url"], 
+                                        data=open(local_path, 'rb').read()) # Copy done
+                state = 'Copied'
+            else:
+                state = ['Oversized', file_size]
+                # The file can't be copied to the bucket (file size exceeds the limit)
+
+        else:   # The file exists already in the target repository
+            state = 'Exists'
+    
         collab_paths.append(relative_path)
         status.append(state)
 
