@@ -177,7 +177,7 @@ CSRF_COOKIE_NAME = 'clbapp_csfrtoken'
 SESSION_COOKIE_NAME = 'clbapp_sessionid'
 
 HBP_COLLAB_SERVICE_URL_V2 = "https://wiki.ebrains.eu/rest/v1/"
-HBP_IDENTITY_SERVICE_URL_V2 = "https://iam-int.ebrains.eu/auth/realms/hbp/protocol/openid-connect"
+HBP_IDENTITY_SERVICE_URL_V2 = "https://iam.ebrains.eu/auth/realms/hbp/protocol/openid-connect"
 
 TMP_FILE_URL = "/tmp_download/"
 TMP_FILE_ROOT = "%s/tmp_download/" % BASE_DIR
