@@ -106,8 +106,8 @@ class Command(BaseCommand):
             hs.save(kg_client)
         print(hardware_systems)
 
-        for job in Job.objects.all()[:100]:
-        #for job in Job.objects.filter(collab_id=633)[:10]:
+        #for job in Job.objects.all()[:100]:
+        for job in Job.objects.filter(collab_id=633):
             print("\n" + "-" * 79)
             email = get_user_email(job.user_id)
             query_filter = {"nexus": {
@@ -121,6 +121,12 @@ class Command(BaseCommand):
                 family_name, given_name = get_user_name(job.user_id)
                 user = Person(email=email, given_name=given_name, family_name=family_name)
                 user.save(kg_client)
+
+            # a bit of a hack, since we don't have a proper place to store
+            # the user id
+            user.instance.data["user_id"] = job.user_id
+            kg_client.update_instance(user.instance)
+
             print(user)
             # todo: we need to distinguish the user account that was used, not just the person
             #       (mainly for where we use different accounts for testing)
