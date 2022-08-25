@@ -76,7 +76,7 @@ class CollabService(object):
         collab_info_url = f"{settings.HBP_COLLAB_SERVICE_URL}collabs/{collab_id}"
         headers = {'Authorization': request.META.get("HTTP_AUTHORIZATION")}
         try:
-            res = requests.get(collab_info_url, headers=headers)
+            res = requests.get(collab_info_url, headers=headers, timeout=5)
         except requests.exceptions.ConnectionError as err:
             response = {
                 "error": {
