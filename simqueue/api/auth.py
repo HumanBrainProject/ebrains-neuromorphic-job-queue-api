@@ -77,7 +77,7 @@ class CollabService(object):
         try:
             int(collab_id)
         except ValueError:
-            perms = cls.get_permissions(request, collab_id, check_public=True)
+            perms = cls._get_permissions(request, collab_id, check_public=True)
             return perms.get('VIEW', False)
         else:
             return False
@@ -87,7 +87,7 @@ class CollabService(object):
         try:
             int(collab_id)
         except ValueError:
-            perms = cls.get_permissions(request, collab_id, check_public=False)
+            perms = cls._get_permissions(request, collab_id, check_public=False)
             return perms.get('UPDATE', False)
         else:
             return False
