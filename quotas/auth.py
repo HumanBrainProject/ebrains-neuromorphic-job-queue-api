@@ -30,7 +30,7 @@ class CollabService(object):
             logger.error("Must provide collab_id")
         else:
             self.permissions = CollabService._get_permissions(request, collab_id, check_public)
-        logger.debug(str(self.permissions))
+        logger.debug(f"{collab_id}: {self.permissions} (check_public={check_public})")
 
     @classmethod
     def _get_permissions(cls, request, collab_id, check_public):
@@ -84,6 +84,7 @@ class CollabService(object):
                     "message": f"Error getting collab info for {collab_id}: {err}"
                 }
             }
+            logger.error(f"Error connecting to Collaboratory API: {err}")
         else:
             if res.status_code != 200:
                 response = {
