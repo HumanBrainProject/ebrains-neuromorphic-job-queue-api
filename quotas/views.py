@@ -173,7 +173,7 @@ class ProjectResource(BaseResource):
             project = self._get_project(kwargs["project_id"])
             if project is None:
                 return HttpResponseNotFound()
-            collab = CollabService(request, collab_id=project.collab)
+            collab = CollabService(request, collab_id=project.collab, check_public=False)
             if not collab.is_team_member:
                 logger.info(collab.permissions)
                 return json_err(HttpResponseForbidden, "You do not have permission to modify this project.")
@@ -260,7 +260,7 @@ class ProjectListResource(BaseResource):
         form = ProposalForm(json.loads(request.body))
         if form.is_valid():
             logger.debug("Form is valid")
-            collab = CollabService(request, collab_id=form.cleaned_data["collab"])
+            collab = CollabService(request, collab_id=form.cleaned_data["collab"], check_public=False)
             if not collab.is_team_member:
                 return json_err(HttpResponseForbidden, "You do not have permission to create a project.")
             project = form.save()
@@ -302,7 +302,7 @@ class QuotaResource(BaseResource):
             return json_err(HttpResponseNotFound, "No such project")
 
         if not is_admin(request):
-            collab = CollabService(request, collab_id=project.collab)
+            collab = CollabService(request, collab_id=project.collab, check_public=False)
             if not collab.is_team_member:
                 return json_err(HttpResponseForbidden, "You do not have permission to view this resource.")
 
@@ -336,7 +336,7 @@ class QuotaListResource(BaseResource):
         if project is None:
             return json_err(HttpResponseNotFound, "No such project")
         if not is_admin(request):
-            collab = CollabService(request, collab_id=project.collab)
+            collab = CollabService(request, collab_id=project.collab, check_public=False)
             if not collab.is_team_member:
                 return json_err(HttpResponseForbidden, "You do not have permission to view this resource.")
         quotas = Quota.objects.filter(project=project)

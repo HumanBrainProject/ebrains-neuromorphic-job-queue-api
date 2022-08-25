@@ -11,7 +11,9 @@ logger = logging.getLogger("quotas")
 
 def is_admin(request):
     # v2
-    admin_collab = CollabService(request, collab_id="neuromorphic-platform-admin")
+    admin_collab = CollabService(request,
+                                 collab_id="neuromorphic-platform-admin",
+                                 check_public=False)
     if admin_collab.is_team_member:
         return True
     else:
@@ -20,16 +22,18 @@ def is_admin(request):
 
 class CollabService(object):
 
-    def __init__(self, request, collab_id=None):
+    def __init__(self, request, collab_id=None, check_public=True):
+        # if we know the CollabService will only be used to check for edit/admin permissions
+        # we can use "check_public=False" to avoid the query that checks if a collab is public
         if collab_id is None:
             self.permissions = {}
             logger.error("Must provide collab_id")
         else:
-            self.permissions = CollabService._get_permissions(request, collab_id)
+            self.permissions = CollabService._get_permissions(request, collab_id, check_public)
         logger.debug(str(self.permissions))
 
     @classmethod
-    def _get_permissions(cls, request, collab_id):
+    def _get_permissions(cls, request, collab_id, check_public):
         url = f"{settings.HBP_IDENTITY_SERVICE_URL}/userinfo"
         auth = request.META.get("HTTP_AUTHORIZATION", None)
         if auth is None:
@@ -45,7 +49,7 @@ class CollabService(object):
         userinfo = res.json()
 
         target_team_names = {role: f"collab-{collab_id}-{role}"
-                            for role in ("viewer", "editor", "administrator")}
+                             for role in ("viewer", "editor", "administrator")}
 
         highest_collab_role = None
         for role, team_name in target_team_names.items():
@@ -56,29 +60,40 @@ class CollabService(object):
             permissions = {"VIEW": True, "UPDATE": False}
         elif highest_collab_role in ("editor", "administrator"):
             permissions = {"VIEW": True, "UPDATE": True}
-        else:
+        elif check_public:
             assert highest_collab_role is None
             collab_info = cls.get_collab_info(request, collab_id)
             if collab_info.get("isPublic", False):
                 permissions = {"VIEW": True, "UPDATE": False}
             else:
                 permissions = {"VIEW": False, "UPDATE": False}
+        else:
+            permissions = {"VIEW": False, "UPDATE": False}
         return permissions
 
     @classmethod
     def get_collab_info(cls, request, collab_id):
         collab_info_url = f"{settings.HBP_COLLAB_SERVICE_URL}collabs/{collab_id}"
         headers = {'Authorization': request.META.get("HTTP_AUTHORIZATION")}
-        res = requests.get(collab_info_url, headers=headers)
-        if res.status_code != 200:
+        try:
+            res = requests.get(collab_info_url, headers=headers)
+        except requests.exceptions.ConnectionError as err:
             response = {
                 "error": {
-                    "status_code": res.status_code,
-                    "message": f"Error getting collab info for {collab_id}: {res.content}"
+                    "status_code": 500,
+                    "message": f"Error getting collab info for {collab_id}: {err}"
                 }
             }
         else:
-            response = res.json()
+            if res.status_code != 200:
+                response = {
+                    "error": {
+                        "status_code": res.status_code,
+                        "message": f"Error getting collab info for {collab_id}: {res.content}"
+                    }
+                }
+            else:
+                response = res.json()
         return response
 
     @property
