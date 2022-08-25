@@ -13,7 +13,7 @@ logger = logging.getLogger("simqueue")
 class CollabService(object):
 
     @classmethod
-    def _get_permissions_v2(cls, request, collab_id):
+    def _get_permissions(cls, request, collab_id, check_public=True):
         url = f"{settings.HBP_IDENTITY_SERVICE_URL_V2}/userinfo"
         headers = {'Authorization': request.META["HTTP_AUTHORIZATION"]}
         logger.debug("Requesting EBRAINS user information for given access token")
@@ -35,24 +35,41 @@ class CollabService(object):
             permissions = {"VIEW": True, "UPDATE": False}
         elif highest_collab_role in ("editor", "administrator"):
             permissions = {"VIEW": True, "UPDATE": True}
-        else:
+        elif check_public:
             assert highest_collab_role is None
             collab_info = cls.get_collab_info(request, collab_id)
             if collab_info["isPublic"]:
                 permissions = {"VIEW": True, "UPDATE": False}
             else:
                 permissions = {"VIEW": False, "UPDATE": False}
+        else:
+            permissions = {"VIEW": False, "UPDATE": False}
         return permissions
 
     @classmethod
     def get_collab_info(cls, request, collab_id):
         collab_info_url = f"{settings.HBP_COLLAB_SERVICE_URL_V2}collabs/{collab_id}"
         headers = {'Authorization': request.META["HTTP_AUTHORIZATION"]}
-        res = requests.get(collab_info_url, headers=headers)
-        if res.status_code != 200:
-            raise Exception("Error getting collab info")
+        try:
+            res = requests.get(collab_info_url, headers=headers, timeout=5)
+        except requests.exceptions.ConnectionError as err:
+            response = {
+                "error": {
+                    "status_code": 500,
+                    "message": f"Error getting collab info for {collab_id}: {err}"
+                }
+            }
+            logger.error(f"Error connecting to Collaboratory API: {err}")
         else:
-            response = res.json()
+            if res.status_code != 200:
+                response = {
+                    "error": {
+                        "status_code": res.status_code,
+                        "message": f"Error getting collab info for {collab_id}: {res.content}"
+                    }
+                }
+            else:
+                response = res.json()
         return response
 
     @classmethod
@@ -60,8 +77,7 @@ class CollabService(object):
         try:
             int(collab_id)
         except ValueError:
-            get_permissions = cls._get_permissions_v2
-            perms = get_permissions(request, collab_id)
+            perms = cls.get_permissions(request, collab_id, check_public=True)
             return perms.get('VIEW', False)
         else:
             return False
@@ -71,8 +87,7 @@ class CollabService(object):
         try:
             int(collab_id)
         except ValueError:
-            get_permissions = cls._get_permissions_v2
-            perms = get_permissions(request, collab_id)
+            perms = cls.get_permissions(request, collab_id, check_public=False)
             return perms.get('UPDATE', False)
         else:
             return False
