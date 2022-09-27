@@ -5,16 +5,25 @@ import json
 import uuid
 
 import databases
-from sqlalchemy import Column, ForeignKey, Integer, Float, String, Boolean, DateTime, Date, Table, MetaData, literal_column
+from sqlalchemy import Column, ForeignKey, Integer, Float, String, Boolean, DateTime, Date, Table, create_engine, MetaData, literal_column
 from sqlalchemy.dialects.postgresql import UUID
 
-from .data_models import ProjectStatus
+from .data_models import ProjectStatus, Project
 from . import settings
 from .globals import RESOURCE_USAGE_UNITS
+from sqlalchemy.ext.declarative import declarative_base
 
-SQLALCHEMY_DATABASE_URL = f"postgresql://{settings.DATABASE_USERNAME}:{settings.DATABASE_PASSWORD}@{settings.DATABASE_HOST}:{settings.DATABASE_PORT}/nmpi?ssl=false"
+from sqlalchemy.orm import sessionmaker
+from sqlalchemy.sql import operators, extract
+
+SQLALCHEMY_DATABASE_URL = f"postgresql://{settings.DATABASE_USERNAME}:{settings.DATABASE_PASSWORD}@{settings.DATABASE_HOST}:{settings.DATABASE_PORT}/nmpi"
 
 database = databases.Database(SQLALCHEMY_DATABASE_URL)
+engine = create_engine(
+    SQLALCHEMY_DATABASE_URL)
+SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+
+Base = declarative_base()
 metadata = MetaData()
 
 
@@ -103,6 +112,30 @@ quotas = Table(
 
 
 
+    
+async def put_project_2(project_id, sstart_date, accepted):
+     
+     status: ProjectStatus = None,
+     collab_id: List[str] = None,
+     
+     
+     #date_range_start: date = None,
+     #date_range_end: date = None,
+     from_index: int = 0,
+     size: int = 1000
+     filters = []
+     
+     
+     ins = projects.update().where(projects.c.context == project_id).values( decision_date = sstart_date, accepted= accepted)
+     await database.execute(ins)
+     
+   
+     
+     """
+     results = await database.fetch_all(query=projects.select().where(extract("year", projects.c.start_date)<= 2022))
+     return [transform_project_fields(dict(result)) for result in results]
+     """
+    
 
 def transform_fields(job):
     """Change certain fields that are stored as strings or floats into richer Python types"""
@@ -137,6 +170,14 @@ async def follow_relationships(job):
     job["output_data"] = [dict(row) for row in results]
     return job
 
+async def follow_relationships_quotas(id):
+    # input data
+    query = quotas.select().where(quotas.c.project_id == id)
+    await database.execute(query)
+    results = await database.fetch_all(query)
+   
+ 
+    return [dict(result) for result in results]
 
 def get_list_filter(attr, value):
     if len(value) > 0:
@@ -153,7 +194,7 @@ async def query_jobs(
     hardware_platform: List[str] = None,
     date_range_start: date = None,
     date_range_end: date = None,
-    fields: List[str] = None,
+    
     from_index: int = 0,
     size: int = 10
 ):
@@ -174,10 +215,9 @@ async def query_jobs(
     elif date_range_end:
         filters.append(jobs.c.timestamp_submission <= date_range_end)
 
-    if fields is None:
-        select = jobs.select()
-    else:
-        select = jobs.select(*[literal_column(field) for field in fields])
+    
+    select = jobs.select()
+   
     if filters:
         query = select.where(*filters).offset(from_index).limit(size)
     else:
@@ -243,21 +283,95 @@ async def query_projects(
     results = await database.fetch_all(query)
     return [transform_project_fields(dict(result)) for result in results]
 
-
-async def get_project(project_id: UUID):
-    query = projects.select().where(projects.c.context == project_id)
-    result = await database.fetch_one(query)
-    return dict(result)
-
-
-async def query_quotas(
-    project_id: List[str] = None,
+async def post_project(project_id,  rcollab, rtitle, rabstract, rdescription, rowner, rduration, raccepted, submitted):
+     
+     status: ProjectStatus = None,
+     collab_id: List[str] = None,
+     
+     #date_range_start: date = None,
+     #date_range_end: date = None,
+     from_index: int = 0,
+     size: int = 1000
+     filters = []
+     if submitted==True:
+       Ssubmission_date = date.today()
+     else:
+       Ssubmission_date = None
+     ins = projects.insert().values( context  = project_id,  collab = rcollab, owner= rowner, title = rtitle , abstract = rabstract, description= rdescription, duration = rduration,  accepted = raccepted, submission_date=Ssubmission_date)
+     await database.execute(ins)
+     
+     query = projects.select().where(projects.c.context == project_id)
+     result = await database.fetch_one(query)
+    
+     """
+     results = await database.fetch_all(query=projects.select().where(extract("year", projects.c.start_date)<= 2022))
+     return [transform_project_fields(dict(result)) for result in results]
+     """
+     return transform_project_fields(dict(result))
+async def get_all_quotas(
+    status: ProjectStatus = None,
+    collab_id: List[str] = None,
+    owner_id: List[str] = None,
+    #date_range_start: date = None,
+    #date_range_end: date = None,
     from_index: int = 0,
     size: int = 10
 ):
+
     query = quotas.select()
+    await database.execute(query)
+    results = await database.fetch_all(query)
+    return [dict(result) for result in results]
+async def put_project(project_id,  projectR):
+     
+     status: ProjectStatus = None,
+     collab_id: List[str] = None,
+     
+     
+     #date_range_start: date = None,
+     #date_range_end: date = None,
+     from_index: int = 0,
+     size: int = 1000
+     filters = []
+     
+     
+     ins = projects.update().where(projects.c.context == project_id).values(  collab = projectR['collab'], owner= projectR['owner'], title = projectR['title'] , abstract = projectR['abstract'], description= projectR['description'], duration = projectR['duration'], start_date=projectR['start_date'],   accepted = projectR['accepted'], submission_date= projectR['submission_date'],  decision_date= projectR['decision_date'])
+     await database.execute(ins)
+     
+    
+     
+     
+     """
+     results = await database.fetch_all(query=projects.select().where(extract("year", projects.c.start_date)<= 2022))
+     return [transform_project_fields(dict(result)) for result in results]
+     """
+    
+async def get_project(project_id):
+    query = projects.select().where(projects.c.context == project_id)
+    
+    result = await database.fetch_one(query)
+    return transform_project_fields(dict(result))
+
+
+async def query_quotas(
+    project_id,
+    from_index: int = 0,
+    size: int = 10
+):
+    query = quotas.select().where(quotas.c.id==7)
+    """
     if project_id:
         query = query.where(get_list_filter(quotas.c.project_id, project_id))
     query = query.offset(from_index).limit(size)
-    results = await database.fetch_all(query)
-    return [dict(result) for result in results]
+    """
+    results = await database.fetch_one(query)
+    return [dict(results)]
+    
+async def post_quotas( project_id, units, limit, usage, platform, from_index: int = 0,
+    size: int = 1000):
+    
+    
+    ins= quotas.insert().values( project_id  = project_id,  units=units, limit=limit, usage=usage, platform=platform)
+    await database.execute(ins)
+    
+    
