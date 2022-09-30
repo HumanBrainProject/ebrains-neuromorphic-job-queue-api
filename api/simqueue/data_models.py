@@ -157,6 +157,24 @@ class Project(ProjectSubmission):
         else:
             return ProjectStatus.rejected
 
+class ProjectR(ProjectSubmission):
+   
+    owner: str
+    duration: int = None
+    
+    accepted: bool = False
+  
+
+    def status(self):
+        if self.submission_date is None:
+            return ProjectStatus.in_prep
+        elif self.accepted:
+            return ProjectStatus.accepted
+        elif self.decision_date is None:
+            return ProjectStatus.under_review
+        else:
+            return ProjectStatus.rejected
+
 
 class Quota(BaseModel):
     units: str     # core-hours, wafer-hours, GB
@@ -164,6 +182,13 @@ class Quota(BaseModel):
     usage: float   # "Quantity of resources used"
     platform: str  # "System to which quota applies")
     project: UUID
+
+class Quotapr(BaseModel):
+    units: str     # core-hours, wafer-hours, GB
+    limit: float   # "Quantity of resources granted"
+    usage: float   # "Quantity of resources used"
+    platform: str  # "System to which quota applies")
+      
 class QuotasSerial(Quota):
     
     
