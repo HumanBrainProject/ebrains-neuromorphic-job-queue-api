@@ -9,7 +9,7 @@ from fastapi import APIRouter, Depends, Query, Path, HTTPException, status as st
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 
 from ..data_models import (
-    Project, ProjectSubmission, ProjectStatus, Quota, ProjectN, ProjectI, ProjectSerial, QuotaI
+    Project, ProjectSubmission, ProjectStatus, Quota, ProjectN, ProjectI, ProjectSerial, QuotaI, QuotasSerial, ProjectR, Quotapr
 )
 from .. import db, oauth
 
@@ -51,7 +51,42 @@ def to_dict(project: Project):
         return data
 
 
-             
+def to_dictR(project: ProjectR):
+        
+        data = {}
+       
+        
+        for field in ("collab", "owner", "title", "abstract",
+                      "description", "duration", "accepted"):
+        
+            if getattr(project, field) is not None:            
+               data[field] = getattr(project, field)
+               
+        print('data')  
+        print (data)
+        print('data')  
+         
+        return data
+
+
+def to_dictQ(quota: Quotapr):
+        
+        data = {}
+       
+        
+        for field in ("units", "limit", "usage", "platform"):
+        
+            if getattr(quota, field) is not None:            
+               data[field] = getattr(quota, field)
+               
+        print('data')  
+        print (data)
+        print('data')  
+         
+        return data 
+        
+        
+                    
 def to_dictSerial(project: Project, quotas: List[QuotaI]):
         
         data = {}
@@ -201,9 +236,9 @@ async def get_project(
         detail=f"Either there is no project with id {project_id}, or you do not have access to it"
     )
     
-@router.post("/projects/", response_model=Project)
-async def create_item(rollab: str, rtitle: str, rabstract: str, rdescription: str, rowner: str, rduration: int, raccepted: bool,  status: ProjectStatus = Query(None, description="status"),
- 
+@router.post("/projects/", status_code=status_codes.HTTP_200_OK)
+async def create_item(
+    projectR: ProjectR, 
  
     submitted: bool = Query(False, description="Submitted Project state"),
     
@@ -222,24 +257,24 @@ async def create_item(rollab: str, rtitle: str, rabstract: str, rdescription: st
     get_user_task = asyncio.create_task(oauth.User.from_token(token.credentials))
    
     user = await get_user_task
-    
-    if not ((as_admin and user.is_admin) or await user.can_view(rcollab)):
+    contentR = to_dictR(projectR)
+    if not ((as_admin and user.is_admin) or await user.can_view(contentR['collab'])):
         raise HTTPException(
             status_code=status_codes.HTTP_404_NOT_FOUND,
             detail=f"You can not create a project"
         )
     project_id = uuid.uuid1();
+    print(project_id)
     detail=f"id project {project_id}"
-    project = await db.post_project(project_id,  rcollab, rtitle, rabstract, rdescription, rowner, rduration, raccepted, submitted)
+    await db.post_project(project_id,  contentR, submitted)
       
-      
-    return project
+
 
    
            
 
 
-@router.get("/projects/{project_id}/quotas/", response_model=List[Quota])
+@router.get("/projects/{project_id}/quotas/", response_model=List[QuotasSerial])
 async def query_quotas(
     project_id: UUID = Path(..., title="Project ID", description="ID of the project whose quotas should be retrieved"),
     as_admin: bool = Query(False, description="Run this query with admin privileges, if you have them"),
@@ -260,11 +295,63 @@ async def query_quotas(
             status_code=status_codes.HTTP_404_NOT_FOUND,
             detail=f"Either there is no project with id {project_id}, or you do not have access to it"
         )
-    quotas = await db.query_quotas(project_id=[project_id], size=size, from_index=from_index)
-    return quotas
+    quotas = await db.query_quotas(project_id, size=size, from_index=from_index)
+    
+    
+    
+    contentQ=[]
+    for quota in quotas:
+             
+          contentQ.append(to_dictSerialQuota(quota, project))
+    print(contentQ)
+                 
+    return contentQ
+
+
+@router.get("/projects/{project_id}/quotas/{id}", response_model= QuotasSerial)
+async def query_onequota(
+    project_id: UUID = Path(..., title="Project ID", description="ID of the project whose quotas should be retrieved"),
+    id: int = Path(..., title="Quota ID", description="ID of the quota thats should be retrieved"),
+    as_admin: bool = Query(False, description="Run this query with admin privileges, if you have them"),
+    size: int = Query(10, description="Number of projects to return"),
+    from_index: int = Query(0, description="Index of the first project to return"),
+    # from header
+    token: HTTPAuthorizationCredentials = Depends(auth),
+):
+    """
+    Return a list of quotas for a given project
+    """
+    get_user_task = asyncio.create_task(oauth.User.from_token(token.credentials))
+    get_project_task = asyncio.create_task(db.get_project(project_id))
+    user = await get_user_task
+    project = await get_project_task
+    if not ((as_admin and user.is_admin) or await user.can_view(project["collab"])):
+        raise HTTPException(
+            status_code=status_codes.HTTP_404_NOT_FOUND,
+            detail=f"Either there is no project with id {project_id}, or you do not have access to it"
+        )
+    quotas = await db.query_onequota(project_id, id)
+    
+    
+    
+    
+    
+  
+    
+    contentQ  = (to_dictSerialQuota(quotas, project))
+    print(contentQ)
+    """
+    for quota in quotas:
+             
+          contentQ.append(to_dictSerialQuota(quota, project))
+    print(contentQ)
+    """            
+    return contentQ
+    
 @router.post("/projects/{project_id}/quotas/", status_code=status_codes.HTTP_200_OK)
 async def create_quotas(
-    units: str, limit: float, usage: float, platform: str,    project_id: UUID = Path(..., title="Project ID", description="ID of the project whose quotas should be added"),
+    quota: Quotapr, 
+    project_id: UUID = Path(..., title="Project ID", description="ID of the project whose quotas should be added"),
     as_admin: bool = Query(False, description="Run this query with admin privileges, if you have them"),
     size: int = Query(10, description="Number of projects to return"),
     from_index: int = Query(0, description="Index of the first project to return"),
@@ -276,14 +363,41 @@ async def create_quotas(
     get_project_task = asyncio.create_task(db.get_project(project_id))
     user = await get_user_task
     project = await get_project_task
-    if not ((as_admin and user.is_admin) or await user.can_view(project["collab"])):
+    if not (as_admin and user.is_admin):
         raise HTTPException(
             status_code=status_codes.HTTP_404_NOT_FOUND,
-            detail=f"Either there is no project with id {project_id}, or you do not have access to it"
+            detail=f"you don not have permission to create quota"
         )
-    await db.post_quotas(project_id, units, limit, usage, platform)
+    await db.post_quotas(project_id, quota)
+
+
+@router.put("/projects/{project_id}/quotas/{id}", status_code=status_codes.HTTP_200_OK)
+async def update_quotas(
+    quota: Quotapr,
+    id: int, 
+    project_id: UUID = Path(..., title="Project ID", description="ID of the project whose quotas should be added"),
+    as_admin: bool = Query(False, description="Run this query with admin privileges, if you have them"),
+  
+    # from header
+    token: HTTPAuthorizationCredentials = Depends(auth),
+):
+   
+    get_user_task = asyncio.create_task(oauth.User.from_token(token.credentials))
+    get_project_task = asyncio.create_task(db.get_project(project_id))
+    user = await get_user_task
+    quota_old= await db.query_onequota(project_id, id)
     
-    
+    contentR = to_dictQ(quota)
+  
+   
+    if not (as_admin and user.is_admin):
+        raise HTTPException(
+            status_code=status_codes.HTTP_404_NOT_FOUND,
+            detail=f"you don not have permission to update quota"
+        )
+       
+    await db.put_quotas(project_id, contentR, id) 
+     
     
 @router.get("/collabs/", response_model=List[str])
 async def query_collabs(
