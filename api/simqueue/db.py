@@ -156,6 +156,10 @@ def transform_project_fields(project):
     return project
 
 
+def transform_quotas_fields(quotas):
+    quotas["project"] = quotas.pop("project_id")
+    return quotas
+
 async def follow_relationships(job):
     # input data
     query = data_items.select().where(data_items.c.id == job_input_data.c.dataitem_id,
@@ -283,7 +287,7 @@ async def query_projects(
     results = await database.fetch_all(query)
     return [transform_project_fields(dict(result)) for result in results]
 
-async def post_project(project_id,  rcollab, rtitle, rabstract, rdescription, rowner, rduration, raccepted, submitted):
+async def post_project(project_id,  project, submitted):
      
      status: ProjectStatus = None,
      collab_id: List[str] = None,
@@ -297,17 +301,9 @@ async def post_project(project_id,  rcollab, rtitle, rabstract, rdescription, ro
        Ssubmission_date = date.today()
      else:
        Ssubmission_date = None
-     ins = projects.insert().values( context  = project_id,  collab = rcollab, owner= rowner, title = rtitle , abstract = rabstract, description= rdescription, duration = rduration,  accepted = raccepted, submission_date=Ssubmission_date)
+     ins = projects.insert().values( context  = project_id,  collab = project['collab'], owner= project['owner'], title = project['title'] , abstract = project['abstract'], description= project['description'], duration = project['duration'],  accepted = project['accepted'], submission_date=Ssubmission_date)
      await database.execute(ins)
-     
-     query = projects.select().where(projects.c.context == project_id)
-     result = await database.fetch_one(query)
     
-     """
-     results = await database.fetch_all(query=projects.select().where(extract("year", projects.c.start_date)<= 2022))
-     return [transform_project_fields(dict(result)) for result in results]
-     """
-     return transform_project_fields(dict(result))
 async def get_all_quotas(
     status: ProjectStatus = None,
     collab_id: List[str] = None,
@@ -358,20 +354,35 @@ async def query_quotas(
     from_index: int = 0,
     size: int = 10
 ):
-    query = quotas.select().where(quotas.c.id==7)
-    """
+    
+    
     if project_id:
-        query = query.where(get_list_filter(quotas.c.project_id, project_id))
-    query = query.offset(from_index).limit(size)
-    """
+        query = quotas.select().where(quotas.c.project_id == project_id)
+        query = query.offset(from_index).limit(size)
+    
+    results = await database.fetch_all(query)
+    return [(dict(result)) for result in results]
+async def query_onequota(
+    project_id,
+    id
+):
+    
+    
+    
+    query = quotas.select().where(quotas.c.id == id) 
+        
+    
     results = await database.fetch_one(query)
-    return [dict(results)]
+    return dict(results)
+        
+async def post_quotas( project_id, quota):
     
-async def post_quotas( project_id, units, limit, usage, platform, from_index: int = 0,
-    size: int = 1000):
     
-    
-    ins= quotas.insert().values( project_id  = project_id,  units=units, limit=limit, usage=usage, platform=platform)
+    ins= quotas.insert().values( project_id  = project_id,  units=quota.units, limit=quota.limit, usage=quota.usage, platform=quota.platform)
     await database.execute(ins)
     
+async def put_quotas( project_id, quota, id):
     
+    
+    ins= quotas.update().where(quotas.c.id == id).values( project_id  = project_id,  id= id,  units=quota['units'], limit=quota['limit'], usage=quota['usage'], platform=quota['platform'])
+    await database.execute(ins)    
