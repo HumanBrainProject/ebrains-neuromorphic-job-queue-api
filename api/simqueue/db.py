@@ -176,11 +176,18 @@ async def follow_relationships(job):
 
 async def follow_relationships_quotas(id):
     # input data
+    print("~~~~~~")
+    print(id)
     query = quotas.select().where(quotas.c.project_id == id)
+    await database.connect()
     await database.execute(query)
+    
     results = await database.fetch_all(query)
-   
- 
+    await database.disconnect()
+    for result in results:
+       print("#####") 
+       print (dict(result))
+       print("#####")
     return [dict(result) for result in results]
 
 def get_list_filter(attr, value):
@@ -283,13 +290,15 @@ async def query_projects(
         query = projects.select().where(*filters).offset(from_index).limit(size)
     else:
         query = projects.select().offset(from_index).limit(size)
-
+    await database.connect()
+    await database.execute(query)
     results = await database.fetch_all(query)
+    
     return [transform_project_fields(dict(result)) for result in results]
 
-async def post_project(project_id,  project, submitted):
+async def post_project(project):
      
-     status: ProjectStatus = None,
+    
      collab_id: List[str] = None,
      
      #date_range_start: date = None,
@@ -297,13 +306,18 @@ async def post_project(project_id,  project, submitted):
      from_index: int = 0,
      size: int = 1000
      filters = []
-     if submitted==True:
+     if project['submitted']==True:
        Ssubmission_date = date.today()
      else:
        Ssubmission_date = None
-     ins = projects.insert().values( context  = project_id,  collab = project['collab'], owner= project['owner'], title = project['title'] , abstract = project['abstract'], description= project['description'], duration = project['duration'],  accepted = project['accepted'], submission_date=Ssubmission_date)
+     ins = projects.insert().values( context  = project['context'],  collab = project['collab'], owner= project['owner'], title = project['title'] , abstract = project['abstract'], description= project['description'], duration = project['duration'],  accepted = project['accepted'], submission_date=Ssubmission_date)
+     await database.connect()
      await database.execute(ins)
+     
+     
     
+
+
 async def get_all_quotas(
     status: ProjectStatus = None,
     collab_id: List[str] = None,
@@ -315,8 +329,10 @@ async def get_all_quotas(
 ):
 
     query = quotas.select()
+    await database.connect()
     await database.execute(query)
     results = await database.fetch_all(query)
+    
     return [dict(result) for result in results]
 async def put_project(project_id,  projectR):
      
@@ -332,7 +348,9 @@ async def put_project(project_id,  projectR):
      
      
      ins = projects.update().where(projects.c.context == project_id).values(  collab = projectR['collab'], owner= projectR['owner'], title = projectR['title'] , abstract = projectR['abstract'], description= projectR['description'], duration = projectR['duration'], start_date=projectR['start_date'],   accepted = projectR['accepted'], submission_date= projectR['submission_date'],  decision_date= projectR['decision_date'])
+     await database.connect()
      await database.execute(ins)
+     
      
     
      
@@ -344,11 +362,27 @@ async def put_project(project_id,  projectR):
     
 async def get_project(project_id):
     query = projects.select().where(projects.c.context == project_id)
-    
+    await database.connect()
+    await database.execute(query)
     result = await database.fetch_one(query)
-    return transform_project_fields(dict(result))
+    await database.disconnect()
+    if result  is not None:
+       return transform_project_fields(dict(result))
+       
+    else:
+         result= None
+         return result   
+
+async def delete_project(project_id):
+      
+      query= projects.delete().where(projects.c.context == project_id)
+      await database.connect()
+      await database.execute(query)
+      
+      await database.disconnect()
 
 
+    
 async def query_quotas(
     project_id,
     from_index: int = 0,
@@ -359,9 +393,24 @@ async def query_quotas(
     if project_id:
         query = quotas.select().where(quotas.c.project_id == project_id)
         query = query.offset(from_index).limit(size)
-    
+    await database.connect()
+    await database.execute(query)
     results = await database.fetch_all(query)
+    
     return [(dict(result)) for result in results]
+    
+    
+    
+async def delete_quotas_project(project_id):
+
+  query = quotas.select().where(quotas.c.project_id == project_id)
+  await database.connect()
+  await database.execute(query)
+  results = await database.fetch_all(query)
+  for result in results:
+     await  query_deleteonequota(project_id,result.id)
+
+    
 async def query_onequota(
     project_id,
     id
@@ -371,18 +420,41 @@ async def query_onequota(
     
     query = quotas.select().where(quotas.c.id == id) 
         
-    
+    await database.connect()
+    await database.execute(query)
     results = await database.fetch_one(query)
-    return dict(results)
+    await database.disconnect()
+    if results  is not None:
+          return dict(results)
+    else:
+         
+         return None      
+async def query_deleteonequota(
+    project_id,
+    id
+):
+    
+    
+    
+    query = quotas.delete().where(quotas.c.id == id) 
         
+    await database.connect()
+    await database.execute(query)
+    results = await database.fetch_one(query)
+  
+    
+           
 async def post_quotas( project_id, quota):
     
-    
+    await database.connect()
     ins= quotas.insert().values( project_id  = project_id,  units=quota.units, limit=quota.limit, usage=quota.usage, platform=quota.platform)
+    
     await database.execute(ins)
     
 async def put_quotas( project_id, quota, id):
     
     
     ins= quotas.update().where(quotas.c.id == id).values( project_id  = project_id,  id= id,  units=quota['units'], limit=quota['limit'], usage=quota['usage'], platform=quota['platform'])
-    await database.execute(ins)    
+    await database.connect()
+    await database.execute(ins)
+       
