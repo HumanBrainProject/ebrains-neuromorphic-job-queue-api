@@ -9,7 +9,7 @@ from fastapi import APIRouter, Depends, Query, Path, HTTPException, status as st
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 
 from ..data_models import (
-    Project, ProjectSubmission, ProjectStatus, Quota, ProjectN, ProjectI, ProjectSerial, QuotaI, QuotasSerial, ProjectR, Quotapr
+    Project, ProjectSubmission, ProjectStatus, Quota, ProjectN, ProjectI, ProjectSerial, QuotaI, QuotasSerial, ProjectR, Quotapr, ProjectD, ProjectRequestBody
 )
 from .. import db, oauth
 
@@ -68,7 +68,22 @@ def to_dictR(project: ProjectR):
          
         return data
 
-
+def to_dictRequestBody(projectRB: ProjectRequestBody):
+        
+        data = {}
+       
+        
+        for field in ("context", "collab", "owner", "title", "abstract",
+                      "description", "duration", "status", "submitted"):
+        
+            if getattr(projectRB, field) is not None:            
+               data[field] = getattr(projectRB, field)
+               
+        print('data')  
+        print (data)
+        print('data')  
+         
+        return data
 def to_dictQ(quota: Quotapr):
         
         data = {}
@@ -138,7 +153,7 @@ def to_dictSerialQuota(quota: QuotaI, project: Project):
        
         data["units"]=quota["units"]
         
-        data["usage"]=quota["usage"]              
+        data["usage"]=quota["usage"]               
         print('data')  
         print (data)
         print('data')  
@@ -154,7 +169,7 @@ async def query_projects(
     owner_id: List[str] = Query(None, description="owner id"),
     #date_range_start: date = Query(None, description="projects which started after this date"),
     #date_range_end: date = Query(None, description="projects which started before this date"),
-    size: int = Query(1000, description="Number of projects to return"),
+    size: int = Query(10, description="Number of projects to return"),
     from_index: int = Query(0, description="Index of the first project to return"),
     as_admin: bool = Query(False, description="Run this query with admin privileges, if you have them"),
     # from header
@@ -197,7 +212,9 @@ async def query_projects(
         )
     projects = await db.query_projects(status, collab_id, owner_id, from_index, size)
     for project in projects:
+       print("*******")
        quotas= await db.follow_relationships_quotas(project["id"])
+       print(project["id"])
        contentR= to_dictSerial(project, quotas)
     
     return projects
@@ -213,7 +230,57 @@ async def get_project(
     """
     Return an individual project
     """ 
+    user = await oauth.User.from_token(token.credentials)
+    if not as_admin:
+        if owner_id[0] != user.username:  # todo: also support user_id_v1
+                raise HTTPException(
+                    status_code=status_codes.HTTP_403_FORBIDDEN,
+                    detail=f"Owner id provided ({owner_id[0]}) does not match authentication token ({user.username})",
+                )
+    get_user_task = asyncio.create_task(oauth.User.from_token(token.credentials))
     
+   
+    get_project_task = db.get_project(project_id)
+    
+    user = await get_user_task
+    
+    project = await get_project_task
+    if project is not None:
+       quotas= await db.follow_relationships_quotas(project["id"])
+       contentR= to_dictSerial(project, quotas)
+       if (as_admin and user.is_admin) or await user.can_view(project["collab"]):
+            return contentR
+       else:
+              raise HTTPException(
+              status_code=status_codes.HTTP_401_UNAUTHORIZED,
+              detail=f" You do not have access to this project"
+              )
+            
+    else: 
+        raise HTTPException(
+        status_code=status_codes.HTTP_404_NOT_FOUND,
+        detail=f"There is no project with id {project_id}"
+       )
+    
+    
+    
+    
+@router.delete("/projects/{project_id}", status_code=status_codes.HTTP_200_OK)
+async def delete_project(
+    
+    project_id: UUID = Path(..., title="Project ID", description="ID of the project to be retrieved"),
+    as_admin: bool = Query(False, description="Run this query with admin privileges, if you have them"),
+    token: HTTPAuthorizationCredentials = Depends(auth),
+):
+    """
+    Return an individual project
+    """ 
+    if not as_admin:
+        if owner_id[0] != user.username:  # todo: also support user_id_v1
+                raise HTTPException(
+                    status_code=status_codes.HTTP_403_FORBIDDEN,
+                    detail=f"Owner id provided ({owner_id[0]}) does not match authentication token ({user.username})",
+                )
     get_user_task = asyncio.create_task(oauth.User.from_token(token.credentials))
     
    
@@ -223,22 +290,93 @@ async def get_project(
     
     project = await get_project_task
     
-    quotas= await db.follow_relationships_quotas(project["id"])
     
     
-    contentR= to_dictSerial(project, quotas)
-   
-    if (as_admin and user.is_admin) or await user.can_view(project["collab"]):
-        return contentR
-    
-    raise HTTPException(
+    if project is not None: 
+       
+      if (as_admin and user.is_admin) or  user.can_edit(project["collab"]):
+          
+          
+          if query_quotas(project_id) is not None:
+               
+             await db.delete_quotas_project(project_id)
+          await db.delete_project(project_id)   
+      else:
+           raise HTTPException(
+                status_code=status_codes.HTTP_404_NOT_FOUND,
+                detail=f"You do not allowed to delete this project"
+              )    
+    else:
+        
+        raise HTTPException(
         status_code=status_codes.HTTP_404_NOT_FOUND,
         detail=f"Either there is no project with id {project_id}, or you do not have access to it"
-    )
+      )    
+    
+@router.delete("/projects/{project_id}/quotas/{id}", status_code=status_codes.HTTP_200_OK)
+async def delete_onequota(
+    
+    project_id: UUID = Path(..., title="Project ID", description="ID of the project to be retrieved"),
+    id: int = Path(..., title="Quota ID", description="ID of the quota thats should be retrieved"),
+    as_admin: bool = Query(False, description="Run this query with admin privileges, if you have them"),
+    token: HTTPAuthorizationCredentials = Depends(auth),
+):
+    """
+    Return an individual project
+    """ 
+    if not as_admin:
+        if owner_id[0] != user.username:  # todo: also support user_id_v1
+                raise HTTPException(
+                    status_code=status_codes.HTTP_403_FORBIDDEN,
+                    detail=f"Owner id provided ({owner_id[0]}) does not match authentication token ({user.username})",
+                )
+    get_user_task = asyncio.create_task(oauth.User.from_token(token.credentials))
+    
+   
+    get_project_task = db.get_project(project_id)
+    
+    user = await get_user_task
+    
+    project = await get_project_task
+    
+    
+    
+    if project is  None: 
+      
+         raise HTTPException(
+           status_code=status_codes.HTTP_404_NOT_FOUND,
+           detail=f"Either there is no project with id {project_id}, or you do not have access to it"
+          )    
+        
+       
+    if not (as_admin and user.is_admin) :
+        raise HTTPException(
+                status_code=status_codes.HTTP_401_UNAUTHORIZED,
+                detail=f"You do not allowed to delete this project"
+              )       
+          
+    if (await db.query_onequota(project_id, id))is not None:            
+             
+             await db.query_deleteonequota(project_id, id)
+             
+             print("qqqq")
+             quota=  db.query_onequota(project_id, id)
+             print(quota)
+          
+    else:
+                raise HTTPException(
+                  status_code=status_codes.HTTP_404_NOT_FOUND,
+                  detail=f"There is no Quota with this id"  
+                  )
+           
+    
+        
+    
+    
     
 @router.post("/projects/", status_code=status_codes.HTTP_200_OK)
 async def create_item(
-    projectR: ProjectR, 
+    projectRB: ProjectRequestBody, 
  
     submitted: bool = Query(False, description="Submitted Project state"),
     
@@ -254,22 +392,52 @@ async def create_item(
     # from header
     token: HTTPAuthorizationCredentials = Depends(auth), ):
     
+    
+    if not as_admin:
+        if owner_id[0] != user.username:  # todo: also support user_id_v1
+                raise HTTPException(
+                    status_code=status_codes.HTTP_403_FORBIDDEN,
+                    detail=f"Owner id provided ({owner_id[0]}) does not match authentication token ({user.username})",
+                )
+    
     get_user_task = asyncio.create_task(oauth.User.from_token(token.credentials))
    
     user = await get_user_task
-    contentR = to_dictR(projectR)
-    if not ((as_admin and user.is_admin) or await user.can_view(contentR['collab'])):
+    
+    contentR = to_dictRequestBody(projectRB)
+    
+    contentR['accepted']= False
+    if 'submitted' not in contentR.keys():
+        contentR['submitted']= False
+    if not ((as_admin and user.is_admin) or   await user.can_view(contentR['collab'])):
         raise HTTPException(
-            status_code=status_codes.HTTP_404_NOT_FOUND,
-            detail=f"You can not create a project"
+            status_code=status_codes.HTTP_403_FORBIDDEN,
+            detail=f"You do not have permisson de create project in this Collab"
         )
-    project_id = uuid.uuid1();
-    print(project_id)
-    detail=f"id project {project_id}"
-    await db.post_project(project_id,  contentR, submitted)
+        
+    
+    
+    get_project =  await db.get_project(contentR['context'])
+    print(get_project)
+    
+    if get_project is None:
+         
+        await db.post_project(contentR)
+    
+    
+    
+    else:
+      raise HTTPException(
+                status_code= status_codes.HTTP_404_NOT_FOUND,
+                detail=f"You are not allowed to create a project with duplicate id."
+            )
       
-
-
+   
+            
+    
+    """
+    await db.post_project(project_id,  submitted)
+    """
    
            
 
@@ -286,23 +454,42 @@ async def query_quotas(
     """
     Return a list of quotas for a given project
     """
+    
+    if not as_admin:
+        if owner_id[0] != user.username:  # todo: also support user_id_v1
+                raise HTTPException(
+                    status_code=status_codes.HTTP_403_FORBIDDEN,
+                    detail=f"Owner id provided ({owner_id[0]}) does not match authentication token ({user.username})",
+                )
     get_user_task = asyncio.create_task(oauth.User.from_token(token.credentials))
     get_project_task = asyncio.create_task(db.get_project(project_id))
     user = await get_user_task
     project = await get_project_task
     if not ((as_admin and user.is_admin) or await user.can_view(project["collab"])):
         raise HTTPException(
-            status_code=status_codes.HTTP_404_NOT_FOUND,
-            detail=f"Either there is no project with id {project_id}, or you do not have access to it"
+            status_code=status_codes.HTTP_401_UNAUTHORIZED,
+            detail=f"You Can not view quotas"
         )
     quotas = await db.query_quotas(project_id, size=size, from_index=from_index)
     
-    
+    if project is  None: 
+      
+         raise HTTPException(
+           status_code=status_codes.HTTP_404_NOT_FOUND,
+           detail=f"Either there is no project with id {project_id}, or you do not have access to it"
+          )    
+       
     
     contentQ=[]
     for quota in quotas:
              
           contentQ.append(to_dictSerialQuota(quota, project))
+    if contentQ is  None: 
+      
+         raise HTTPException(
+           status_code=status_codes.HTTP_404_NOT_FOUND,
+           detail=f"There is no quota with this id"
+          )        
     print(contentQ)
                  
     return contentQ
@@ -321,32 +508,53 @@ async def query_onequota(
     """
     Return a list of quotas for a given project
     """
+    if not as_admin:
+        if owner_id[0] != user.username:  # todo: also support user_id_v1
+                raise HTTPException(
+                    status_code=status_codes.HTTP_403_FORBIDDEN,
+                    detail=f"Owner id provided ({owner_id[0]}) does not match authentication token ({user.username})",
+                )
     get_user_task = asyncio.create_task(oauth.User.from_token(token.credentials))
     get_project_task = asyncio.create_task(db.get_project(project_id))
     user = await get_user_task
     project = await get_project_task
-    if not ((as_admin and user.is_admin) or await user.can_view(project["collab"])):
-        raise HTTPException(
-            status_code=status_codes.HTTP_404_NOT_FOUND,
-            detail=f"Either there is no project with id {project_id}, or you do not have access to it"
-        )
-    quotas = await db.query_onequota(project_id, id)
+    if project is not None:
+       if not ((as_admin and user.is_admin) or await user.can_view(project["collab"])):
+            raise HTTPException(
+                status_code=status_codes.HTTP_401_UNAUTHORIZED,
+                detail=f" You do not have access to it"
+             )
+        
+        
+        
+       quotas = await db.query_onequota(project_id, id)
     
     
-    
+    else:
+      raise HTTPException(
+             status_code=status_codes.HTTP_404_NOT_FOUND,
+             detail=f"Either there is no project with id {project_id}, or you do not have access to it"
+             )
     
     
   
-    
-    contentQ  = (to_dictSerialQuota(quotas, project))
-    print(contentQ)
+    if quotas is not None:  
+            contentQ  = (to_dictSerialQuota(quotas, project))
+            print(contentQ)
+            return contentQ
+    else:
+      raise HTTPException(
+             status_code=status_codes.HTTP_404_NOT_FOUND,
+             detail=f"No Quota with this id was Found"
+             )        
+            
     """
     for quota in quotas:
              
           contentQ.append(to_dictSerialQuota(quota, project))
     print(contentQ)
     """            
-    return contentQ
+    
     
 @router.post("/projects/{project_id}/quotas/", status_code=status_codes.HTTP_200_OK)
 async def create_quotas(
@@ -358,6 +566,15 @@ async def create_quotas(
     # from header
     token: HTTPAuthorizationCredentials = Depends(auth),
 ):
+   
+   
+   
+    if not as_admin:
+        if owner_id[0] != user.username:  # todo: also support user_id_v1
+                raise HTTPException(
+                    status_code=status_codes.HTTP_403_FORBIDDEN,
+                    detail=f"Owner id provided ({owner_id[0]}) does not match authentication token ({user.username})",
+                )
    
     get_user_task = asyncio.create_task(oauth.User.from_token(token.credentials))
     get_project_task = asyncio.create_task(db.get_project(project_id))
@@ -382,6 +599,12 @@ async def update_quotas(
     token: HTTPAuthorizationCredentials = Depends(auth),
 ):
    
+    if not as_admin:
+        if owner_id[0] != user.username:  # todo: also support user_id_v1
+                raise HTTPException(
+                    status_code=status_codes.HTTP_403_FORBIDDEN,
+                    detail=f"Owner id provided ({owner_id[0]}) does not match authentication token ({user.username})",
+                )
     get_user_task = asyncio.create_task(oauth.User.from_token(token.credentials))
     get_project_task = asyncio.create_task(db.get_project(project_id))
     user = await get_user_task
@@ -395,15 +618,26 @@ async def update_quotas(
             status_code=status_codes.HTTP_404_NOT_FOUND,
             detail=f"you don not have permission to update quota"
         )
+    
+    
+    
+    if contentR is  None: 
+      
+         raise HTTPException(
+           status_code=status_codes.HTTP_404_NOT_FOUND,
+           detail=f"There is no quota with this id"
+          )  
+    
+    
        
     await db.put_quotas(project_id, contentR, id) 
      
     
 @router.get("/collabs/", response_model=List[str])
 async def query_collabs(
-    status: ProjectStatus, 
+    status: ProjectStatus = Query(None, description="project status"), 
     user_id: List[str] = Query(None, description="user id"),
-    size: int = Query(100, description="Number of collabs to return"),
+    size: int = Query(10, description="Number of collabs to return"),
     from_index: int = Query(0, description="Index of the first collab to return"),
     # todo: consider adding an option to filter by projects that have active quotas (accepted, not expired, and remaining quota > 0)
     as_admin: bool = Query(False, description="Run this query with admin privileges, if you have them"),
@@ -455,10 +689,10 @@ async def query_collabs(
     
 
 @router.put("/projects/{project_id}" , status_code=status_codes.HTTP_200_OK)
-async def update_item(projectR: Project,  raccepted: bool,  new_status: ProjectStatus= Query(None, description="status"),  project_id: UUID = Path(..., title="Project ID", description="ID of the project to be retrieved"),
+async def update_item(projectRB: ProjectRequestBody,     project_id: UUID = Path(..., title="Project ID", description="ID of the project to be retrieved"),
     collab_id: List[str] = Query(None, description="collab id"),
     owner_id: List[str] = Query(None, description="owner id"),
-    submitted: bool = Query(False, description="Run this query with admin privileges, if you have them"),
+    
     #date_range_start: date = Query(None, description="projects which started after this date"),
     #date_range_end: date = Query(None, description="projects which started before this date"),
    
@@ -469,35 +703,34 @@ async def update_item(projectR: Project,  raccepted: bool,  new_status: ProjectS
     token: HTTPAuthorizationCredentials = Depends(auth), ):
     
       
-      
+      if not as_admin:
+        if owner_id[0] != user.username:  # todo: also support user_id_v1
+                raise HTTPException(
+                    status_code=status_codes.HTTP_403_FORBIDDEN,
+                    detail=f"Owner id provided ({owner_id[0]}) does not match authentication token ({user.username})",
+                )
       get_user_task = asyncio.create_task(oauth.User.from_token(token.credentials))
       get_project_task = asyncio.create_task(db.get_project(project_id))
       user = await get_user_task
       project = await get_project_task
-      data= dict(projectR)
-      contentR = to_dict(projectR)
-      print('loop*****************:')
-      for field, value in project.items():
-               
-                print('loop*entrance!!!!:') 
-                print(contentR.keys())
-                if field not in contentR.keys():
-                   print(field)
-                   print(value)
-                   contentR[field] = value
+      
+      contentR = to_dictRequestBody(projectRB)
+   
+      
       print('loop************')              
-      projectt= {"id": project_id, **projectR.dict()}
+      
       if not ((as_admin and user.is_admin) or  user.can_edit(project["collab"])):
                
                 raise HTTPException(
-                status_code=status_codes.HTTP_403_NOT_FOUND,
+                status_code=status_codes.HTTP_404_NOT_FOUND,
                 detail=f"You do not have permission to modify this project."
              )
-      if new_status is not None:
+      new_status= contentR['status']      
+      if new_status in ('accepted', 'rejected'):
             logger.info("Changing status")
             if not (as_admin and user.is_admin):
                 raise HTTPException(
-                status_code=status_codes.HTTP_403_NOT_FOUND,
+                status_code=status_codes.HTTP_403_FORBIDDEN,
                 detail=f"You do not have permission to change the status of this project."
              )
           
@@ -537,9 +770,11 @@ async def update_item(projectR: Project,  raccepted: bool,  new_status: ProjectS
                 status_code=status_codes.HTTP_404_NOT_FOUND,
                 detail=f"Project Not Found"
             )
-            
-                
-            if project["submission_date"] is not None:
+            print('this is the project:')
+            print(project)
+            print('submission date:')
+            print(project["submission_date"] )    
+            if project["submission_date"] is  not None:
                 raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
                 detail=f"Can't edit a submitted form."
@@ -547,8 +782,17 @@ async def update_item(projectR: Project,  raccepted: bool,  new_status: ProjectS
               )
             
                  
-            if  submitted is True:
-                             contentR[submission_date] = date.today()        
+            if  contentR['submitted'] is True:
+                          project['submission_date'] = date.today() 
+            print('loop*****************:')        
+            for field, value in project.items():
+               
+                print('loop*entrance!!!!:') 
+                print(contentR.keys())
+                if field not in contentR.keys():
+                   print(field)
+                   print(value)
+                   contentR[field] = value                        
             await db.put_project(project_id, contentR )
             logger.info("Updating project")
             return status.HTTP_201_CREATED
