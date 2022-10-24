@@ -30,9 +30,17 @@ class Comment(BaseModel):
     timestamp: datetime = None
 
 
+class Tag(BaseModel):
+    tag_id: int = None
+    content: str = None
+
+
 class CommentBody(BaseModel):
     content: str
 
+class TimeSeries(BaseModel):
+    dates: List
+    values:List[int]
 
 class DataItem(BaseModel):
     url: AnyUrl
@@ -58,7 +66,7 @@ class SubmittedJob(BaseModel):
     input_data: List[DataItem] = None
     hardware_platform: str
     hardware_config: dict = None
-    #tags: List[str] = None
+    tags: List[Tag] = None
 
 
 class AcceptedJob(SubmittedJob):
@@ -140,3 +148,17 @@ class DateRangeCount(BaseModel):
     start: date
     end: date
     count: Dict[str, int]
+
+
+class QueueStatus(BaseModel):
+    queue_name:str
+    running:int
+    submitted:int
+
+class Histogram(BaseModel):
+    values:List
+    bins:List
+    platform:str
+    status:str
+    scale:str
+    max:int
