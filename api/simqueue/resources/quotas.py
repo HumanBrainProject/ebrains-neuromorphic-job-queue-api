@@ -231,12 +231,7 @@ async def get_project(
     Return an individual project
     """ 
     user = await oauth.User.from_token(token.credentials)
-    if not as_admin:
-        if owner_id[0] != user.username:  # todo: also support user_id_v1
-                raise HTTPException(
-                    status_code=status_codes.HTTP_403_FORBIDDEN,
-                    detail=f"Owner id provided ({owner_id[0]}) does not match authentication token ({user.username})",
-                )
+    
     get_user_task = asyncio.create_task(oauth.User.from_token(token.credentials))
     
    
@@ -275,12 +270,7 @@ async def delete_project(
     """
     Return an individual project
     """ 
-    if not as_admin:
-        if owner_id[0] != user.username:  # todo: also support user_id_v1
-                raise HTTPException(
-                    status_code=status_codes.HTTP_403_FORBIDDEN,
-                    detail=f"Owner id provided ({owner_id[0]}) does not match authentication token ({user.username})",
-                )
+    
     get_user_task = asyncio.create_task(oauth.User.from_token(token.credentials))
     
    
@@ -315,21 +305,16 @@ async def delete_project(
     
 @router.delete("/projects/{project_id}/quotas/{id}", status_code=status_codes.HTTP_200_OK)
 async def delete_onequota(
-    
+    as_admin: bool = Query(False, description="Run this query with admin privileges, if you have them"),
     project_id: UUID = Path(..., title="Project ID", description="ID of the project to be retrieved"),
     id: int = Path(..., title="Quota ID", description="ID of the quota thats should be retrieved"),
-    as_admin: bool = Query(False, description="Run this query with admin privileges, if you have them"),
+    
     token: HTTPAuthorizationCredentials = Depends(auth),
 ):
     """
     Return an individual project
     """ 
-    if not as_admin:
-        if owner_id[0] != user.username:  # todo: also support user_id_v1
-                raise HTTPException(
-                    status_code=status_codes.HTTP_403_FORBIDDEN,
-                    detail=f"Owner id provided ({owner_id[0]}) does not match authentication token ({user.username})",
-                )
+    
     get_user_task = asyncio.create_task(oauth.User.from_token(token.credentials))
     
    
@@ -378,27 +363,21 @@ async def delete_onequota(
 async def create_item(
     projectRB: ProjectRequestBody, 
  
-    submitted: bool = Query(False, description="Submitted Project state"),
     
+    as_admin: bool = Query(False, description="Run this query with admin privileges, if you have them"),
     collab_id: List[str] = Query(None, description="collab id"),
     owner_id: List[str] = Query(None, description="owner id"),
    
     #date_range_start: date = Query(None, description="projects which started after this date"),
     #date_range_end: date = Query(None, description="projects which started before this date"),
    
-    as_admin: bool = Query(False, description="Run this query with admin privileges, if you have them"),
+    
    
    
     # from header
     token: HTTPAuthorizationCredentials = Depends(auth), ):
     
     
-    if not as_admin:
-        if owner_id[0] != user.username:  # todo: also support user_id_v1
-                raise HTTPException(
-                    status_code=status_codes.HTTP_403_FORBIDDEN,
-                    detail=f"Owner id provided ({owner_id[0]}) does not match authentication token ({user.username})",
-                )
     
     get_user_task = asyncio.create_task(oauth.User.from_token(token.credentials))
    
@@ -455,12 +434,7 @@ async def query_quotas(
     Return a list of quotas for a given project
     """
     
-    if not as_admin:
-        if owner_id[0] != user.username:  # todo: also support user_id_v1
-                raise HTTPException(
-                    status_code=status_codes.HTTP_403_FORBIDDEN,
-                    detail=f"Owner id provided ({owner_id[0]}) does not match authentication token ({user.username})",
-                )
+    
     get_user_task = asyncio.create_task(oauth.User.from_token(token.credentials))
     get_project_task = asyncio.create_task(db.get_project(project_id))
     user = await get_user_task
@@ -508,12 +482,7 @@ async def query_onequota(
     """
     Return a list of quotas for a given project
     """
-    if not as_admin:
-        if owner_id[0] != user.username:  # todo: also support user_id_v1
-                raise HTTPException(
-                    status_code=status_codes.HTTP_403_FORBIDDEN,
-                    detail=f"Owner id provided ({owner_id[0]}) does not match authentication token ({user.username})",
-                )
+    
     get_user_task = asyncio.create_task(oauth.User.from_token(token.credentials))
     get_project_task = asyncio.create_task(db.get_project(project_id))
     user = await get_user_task
@@ -569,12 +538,7 @@ async def create_quotas(
    
    
    
-    if not as_admin:
-        if owner_id[0] != user.username:  # todo: also support user_id_v1
-                raise HTTPException(
-                    status_code=status_codes.HTTP_403_FORBIDDEN,
-                    detail=f"Owner id provided ({owner_id[0]}) does not match authentication token ({user.username})",
-                )
+    
    
     get_user_task = asyncio.create_task(oauth.User.from_token(token.credentials))
     get_project_task = asyncio.create_task(db.get_project(project_id))
@@ -593,18 +557,13 @@ async def update_quotas(
     quota: Quotapr,
     id: int, 
     project_id: UUID = Path(..., title="Project ID", description="ID of the project whose quotas should be added"),
+    
     as_admin: bool = Query(False, description="Run this query with admin privileges, if you have them"),
-  
     # from header
     token: HTTPAuthorizationCredentials = Depends(auth),
 ):
    
-    if not as_admin:
-        if owner_id[0] != user.username:  # todo: also support user_id_v1
-                raise HTTPException(
-                    status_code=status_codes.HTTP_403_FORBIDDEN,
-                    detail=f"Owner id provided ({owner_id[0]}) does not match authentication token ({user.username})",
-                )
+    
     get_user_task = asyncio.create_task(oauth.User.from_token(token.credentials))
     get_project_task = asyncio.create_task(db.get_project(project_id))
     user = await get_user_task
@@ -696,19 +655,14 @@ async def update_item(projectRB: ProjectRequestBody,     project_id: UUID = Path
     #date_range_start: date = Query(None, description="projects which started after this date"),
     #date_range_end: date = Query(None, description="projects which started before this date"),
    
-    as_admin: bool = Query(False, description="Run this query with admin privileges, if you have them"),
     
-   
+    
+    as_admin: bool = Query(False, description="Run this query with admin privileges, if you have them"),
     # from header
     token: HTTPAuthorizationCredentials = Depends(auth), ):
     
       
-      if not as_admin:
-        if owner_id[0] != user.username:  # todo: also support user_id_v1
-                raise HTTPException(
-                    status_code=status_codes.HTTP_403_FORBIDDEN,
-                    detail=f"Owner id provided ({owner_id[0]}) does not match authentication token ({user.username})",
-                )
+    
       get_user_task = asyncio.create_task(oauth.User.from_token(token.credentials))
       get_project_task = asyncio.create_task(db.get_project(project_id))
       user = await get_user_task
