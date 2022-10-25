@@ -156,7 +156,15 @@ class Project(ProjectSubmission):
             return ProjectStatus.under_review
         else:
             return ProjectStatus.rejected
-
+class ProjectRequestBody(ProjectSubmission):
+    context: UUID 
+    owner: str
+    duration: int = None
+    status: str
+    submitted: bool= False
+    
+    
+ 
 class ProjectR(ProjectSubmission):
    
     owner: str
@@ -175,7 +183,12 @@ class ProjectR(ProjectSubmission):
         else:
             return ProjectStatus.rejected
 
-
+class ProjectD(BaseModel):
+   
+   
+    duration: int = None
+    
+    
 class Quota(BaseModel):
     units: str     # core-hours, wafer-hours, GB
     limit: float   # "Quantity of resources granted"
