@@ -340,20 +340,19 @@ async def delete_onequota(
                 detail=f"You do not allowed to delete this project"
               )       
           
-    if (await db.query_onequota(project_id, id))is not None:            
-             
-             await db.query_deleteonequota(project_id, id)
-             
-             print("qqqq")
-             quota=  db.query_onequota(project_id, id)
-             print(quota)
-          
-    else:
-                raise HTTPException(
+    if (await db.query_onequota(project_id, id))is None:
+         raise HTTPException(
                   status_code=status_codes.HTTP_404_NOT_FOUND,
                   detail=f"There is no Quota with this id"  
-                  )
-           
+                  )            
+             
+    await db.query_deleteonequota(project_id, id)
+             
+    print("qqqq")
+    quota=  db.query_onequota(project_id, id)
+    print(quota)
+          
+   
     
         
     
@@ -506,7 +505,11 @@ async def query_onequota(
              )
     
     
-  
+    if (await db.query_onequota(project_id, id))is None:
+         raise HTTPException(
+                  status_code=status_codes.HTTP_404_NOT_FOUND,
+                  detail=f"There is no Quota with this id"  
+                  )
     if quotas is not None:  
             contentQ  = (to_dictSerialQuota(quotas, project))
             print(contentQ)
@@ -578,13 +581,17 @@ async def update_quotas(
             detail=f"you don not have permission to update quota"
         )
     
-    
+    if (await db.query_onequota(project_id, id))is None:
+         raise HTTPException(
+                  status_code=status_codes.HTTP_404_NOT_FOUND,
+                  detail=f"There is no Quota with this id"  
+                  )
     
     if contentR is  None: 
       
          raise HTTPException(
            status_code=status_codes.HTTP_404_NOT_FOUND,
-           detail=f"There is no quota with this id"
+           detail=f"No content to change"
           )  
     
     
