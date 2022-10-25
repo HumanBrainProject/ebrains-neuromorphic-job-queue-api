@@ -365,7 +365,7 @@ async def get_project(project_id):
     await database.connect()
     await database.execute(query)
     result = await database.fetch_one(query)
-    await database.disconnect()
+    
     if result  is not None:
        return transform_project_fields(dict(result))
        
@@ -379,7 +379,7 @@ async def delete_project(project_id):
       await database.connect()
       await database.execute(query)
       
-      await database.disconnect()
+     
 
 
     
@@ -418,12 +418,12 @@ async def query_onequota(
     
     
     
-    query = quotas.select().where(quotas.c.id == id) 
+    query = quotas.select().where((quotas.c.id == id) and (quotas.c.project_id == project_id))
         
     await database.connect()
     await database.execute(query)
     results = await database.fetch_one(query)
-    await database.disconnect()
+    
     if results  is not None:
           return dict(results)
     else:
@@ -436,7 +436,7 @@ async def query_deleteonequota(
     
     
     
-    query = quotas.delete().where(quotas.c.id == id) 
+    query = quotas.delete().where((quotas.c.id == id) and (quotas.c.project_id == project_id))
         
     await database.connect()
     await database.execute(query)
@@ -446,15 +446,15 @@ async def query_deleteonequota(
            
 async def post_quotas( project_id, quota):
     
-    await database.connect()
-    ins= quotas.insert().values( project_id  = project_id,  units=quota.units, limit=quota.limit, usage=quota.usage, platform=quota.platform)
     
+    ins= quotas.insert().values( project_id  = project_id,  units=quota.units, limit=quota.limit, usage=quota.usage, platform=quota.platform)
+    await database.connect()
     await database.execute(ins)
     
 async def put_quotas( project_id, quota, id):
     
     
-    ins= quotas.update().where(quotas.c.id == id).values( project_id  = project_id,  id= id,  units=quota['units'], limit=quota['limit'], usage=quota['usage'], platform=quota['platform'])
+    ins= quotas.update().where((quotas.c.id == id)and (quotas.c.project_id == project_id)).values( project_id  = project_id,  id= id,  units=quota['units'], limit=quota['limit'], usage=quota['usage'], platform=quota['platform'])
     await database.connect()
     await database.execute(ins)
        
