@@ -2,7 +2,7 @@ from datetime import date, datetime
 import pytz
 import pytest
 import pytest_asyncio
-from simqueue.db import database, query_jobs, get_job, query_projects, query_quotas, get_comments, get_log, post_project
+from simqueue.db import database, query_jobs, get_job, query_projects, query_quotas, get_comments, get_log, create_project
 from simqueue.data_models import ProjectStatus
 
 
@@ -16,7 +16,7 @@ async def database_connection():
 @pytest.mark.asyncio
 async def test_query_jobs_no_filters(database_connection):
     jobs = await query_jobs(size=5, from_index=5)
-    assert len(jobs) == 4
+    assert len(jobs) == 5
     expected_keys = {
         'id', 'input_data', 'provenance', 'resource_usage', 'status', 'user_id',
         'hardware_config', 'output_data', 'code', 'command', 'timestamp_submission',
@@ -115,13 +115,13 @@ async def test_query_projects_with_filters(database_connection):
     )
     assert len(projects) > 0
     assert projects[0]["accepted"] is False
-    assert projects[0]["decision_date"] 
+    assert projects[0]["decision_date"] is None
     assert projects[0]["submission_date"] is None
 
 """
 @pytest.mark.asyncio
 async def test_post_project(database_connection):
 
-    projects = await post_project( project_id= "b52ebde9-116b-4419-894a-5f330ec3b484",  rcollab = "test", rtitle = "test collab" , rabstract = "lorem ipsum", rdescription= "lorem ipsum lorem ipsum",rowner= "jonathan", rduration = 0  ,   raccepted = False  )
+    projects = await create_project( project_id= "b52ebde9-116b-4419-894a-5f330ec3b484",  rcollab = "test", rtitle = "test collab" , rabstract = "lorem ipsum", rdescription= "lorem ipsum lorem ipsum",rowner= "jonathan", rduration = 0  ,   raccepted = False  )
     assert response.status_code == 400
-"""    
+"""

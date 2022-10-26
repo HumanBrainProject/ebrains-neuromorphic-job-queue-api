@@ -4,7 +4,6 @@ from enum import Enum
 from typing import List, Dict
 from uuid import UUID
 import json
-import uuid
 #from fairgraph.brainsimulation import SimulationConfiguration
 
 from pydantic import BaseModel, HttpUrl, AnyUrl, validator, ValidationError
@@ -92,6 +91,22 @@ class JobPatch(BaseModel):
 
 # class Config #?
 
+class QuotaSubmission(BaseModel):
+    limit: float   # "Quantity of resources granted"
+    platform: str  # "System to which quota applies"
+
+
+class QuotaUpdate(BaseModel):
+    limit: float   # "Quantity of resources granted"
+    usage: float   # "Quantity of resources used"
+
+
+class Quota(QuotaSubmission, QuotaUpdate):
+    id: int
+    units: str     # core-hours, wafer-hours, GB
+    project_id: UUID
+    resource_uri: str= None
+
 
 class ProjectStatus(str, Enum):
     in_prep = "in preparation"
@@ -107,45 +122,17 @@ class ProjectSubmission(BaseModel):
     abstract: str
     description: str = None
 
-class ProjectN(ProjectSubmission):
-    owner: str
-    duration: int = None
-    start_date: date = None
-    accepted: bool = False
-    submission_date: date = None
-    decision_date: date = None
-    
-    
-    
-class ProjectI(ProjectSubmission):
-    context: UUID 
-    owner: str
-    duration: int = None
-    start_date: date = None
-    accepted: bool = False
-    submission_date: date = None
-    decision_date: date = None
-    
-    def status(self):
-        if self.submission_date is None:
-            return ProjectStatus.in_prep
-        elif self.accepted:
-            return ProjectStatus.accepted
-        elif self.decision_date is None:
-            return ProjectStatus.under_review
-        else:
-            return ProjectStatus.rejected
-
-
 
 class Project(ProjectSubmission):
-    id: UUID 
+    id: UUID
     owner: str
     duration: int = None
     start_date: date = None
     accepted: bool = False
     submission_date: date = None
     decision_date: date = None
+    resource_uri: str= None
+    quotas: List[Quota]=None
 
     def status(self):
         if self.submission_date is None:
@@ -156,75 +143,15 @@ class Project(ProjectSubmission):
             return ProjectStatus.under_review
         else:
             return ProjectStatus.rejected
-class ProjectRequestBody(ProjectSubmission):
-    context: UUID 
+
+
+class ProjectUpdate(ProjectSubmission):
     owner: str
     duration: int = None
     status: str
     submitted: bool= False
-    
-    
- 
-class ProjectR(ProjectSubmission):
-   
-    owner: str
-    duration: int = None
-    
-    accepted: bool = False
-  
 
-    def status(self):
-        if self.submission_date is None:
-            return ProjectStatus.in_prep
-        elif self.accepted:
-            return ProjectStatus.accepted
-        elif self.decision_date is None:
-            return ProjectStatus.under_review
-        else:
-            return ProjectStatus.rejected
 
-class ProjectD(BaseModel):
-   
-   
-    duration: int = None
-    
-    
-class Quota(BaseModel):
-    units: str     # core-hours, wafer-hours, GB
-    limit: float   # "Quantity of resources granted"
-    usage: float   # "Quantity of resources used"
-    platform: str  # "System to which quota applies")
-    project: UUID
-
-class Quotapr(BaseModel):
-    units: str     # core-hours, wafer-hours, GB
-    limit: float   # "Quantity of resources granted"
-    usage: float   # "Quantity of resources used"
-    platform: str  # "System to which quota applies")
-      
-class QuotasSerial(Quota):
-    
-    
-    resource_uri: str= None
-class ProjectSerial(ProjectSubmission):
-    id: UUID 
-    owner: str
-    duration: int = None
-    start_date: date = None
-    accepted: bool = False
-    submission_date: date = None
-    decision_date: date = None
-    status: str= None
-    resource_uri: str= None
-    quotas: List[QuotasSerial]=None
-     
-class QuotaI(BaseModel):
-    id: int
-    units: str     # core-hours, wafer-hours, GB
-    limit: float   # "Quantity of resources granted"
-    usage: float   # "Quantity of resources used"
-    platform: str  # "System to which quota applies")
-    project_id: UUID
 class DateRangeCount(BaseModel):
     start: date
     end: date
