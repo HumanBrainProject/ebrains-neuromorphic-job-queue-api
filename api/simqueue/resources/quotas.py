@@ -73,12 +73,13 @@ def to_dictRequestBody(projectRB: ProjectRequestBody):
         data = {}
        
         
-        for field in ("context", "collab", "owner", "title", "abstract",
+        for field in ("collab", "owner", "title", "abstract",
                       "description", "duration", "status", "submitted"):
         
             if getattr(projectRB, field) is not None:            
                data[field] = getattr(projectRB, field)
-               
+        if projectRB.context is not None:
+          data["context"]=  projectRB.context     
         print('data')  
         print (data)
         print('data')  
@@ -393,30 +394,29 @@ async def create_item(
             detail=f"You do not have permisson de create project in this Collab"
         )
         
+    if 'context' not in contentR.keys():
+        contentR['context']= None
+    if (contentR['context']) is not None:
+       get_project =  await db.get_project(contentR['context'])
+       print(get_project)
     
-    
-    get_project =  await db.get_project(contentR['context'])
-    print(get_project)
-    
-    if get_project is None:
+       if get_project is None:
          
-        await db.post_project(contentR)
+            await db.post_project(contentR)
     
-    
-    
-    else:
-      raise HTTPException(
-                status_code= status_codes.HTTP_404_NOT_FOUND,
+       else:
+           raise HTTPException(
+                status_code= status_codes.HTTP_401_UNAUTHORIZED,
                 detail=f"You are not allowed to create a project with duplicate id."
-            )
+                )
       
-   
+    else:
+       contentR['context']= uuid.uuid1()
+       print(contentR['context'])
+       await db.post_project(contentR)
             
     
-    """
-    await db.post_project(project_id,  submitted)
-    """
-   
+    
            
 
 
@@ -683,7 +683,7 @@ async def update_item(projectRB: ProjectRequestBody,     project_id: UUID = Path
       if not ((as_admin and user.is_admin) or  user.can_edit(project["collab"])):
                
                 raise HTTPException(
-                status_code=status_codes.HTTP_404_NOT_FOUND,
+                status_code=status_codes.HTTP_403_FORBIDDEN,
                 detail=f"You do not have permission to modify this project."
              )
       new_status= contentR['status']      
