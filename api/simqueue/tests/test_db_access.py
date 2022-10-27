@@ -1,7 +1,5 @@
 from datetime import date, datetime
-import pytz
-import pytest
-import pytest_asyncio
+
 from simqueue.db import database, query_jobs, get_job, query_projects, query_quotas, get_comments, get_log, post_project
 from simqueue.data_models import ProjectStatus
 
@@ -16,7 +14,7 @@ async def database_connection():
 @pytest.mark.asyncio
 async def test_query_jobs_no_filters(database_connection):
     jobs = await query_jobs(size=5, from_index=5)
-    assert len(jobs) == 4
+    assert len(jobs) == 5
     expected_keys = {
         'id', 'input_data', 'provenance', 'resource_usage', 'status', 'user_id',
         'hardware_config', 'output_data', 'code', 'command', 'timestamp_submission',
@@ -115,7 +113,7 @@ async def test_query_projects_with_filters(database_connection):
     )
     assert len(projects) > 0
     assert projects[0]["accepted"] is False
-    assert projects[0]["decision_date"] 
+    assert projects[0]["decision_date"] is None 
     assert projects[0]["submission_date"] is None
 
 """
