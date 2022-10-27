@@ -8,22 +8,16 @@ import databases
 from sqlalchemy import Column, ForeignKey, Integer, Float, String, Boolean, DateTime, Date, Table, create_engine, MetaData, literal_column
 from sqlalchemy.dialects.postgresql import UUID
 
-from .data_models import ProjectStatus, Project
+from .data_models import ProjectStatus
 from . import settings
 from .globals import RESOURCE_USAGE_UNITS
-from sqlalchemy.ext.declarative import declarative_base
 
-from sqlalchemy.orm import sessionmaker
-from sqlalchemy.sql import operators, extract
+
 
 SQLALCHEMY_DATABASE_URL = f"postgresql://{settings.DATABASE_USERNAME}:{settings.DATABASE_PASSWORD}@{settings.DATABASE_HOST}:{settings.DATABASE_PORT}/nmpi"
 
 database = databases.Database(SQLALCHEMY_DATABASE_URL)
-engine = create_engine(
-    SQLALCHEMY_DATABASE_URL)
-SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
-Base = declarative_base()
 metadata = MetaData()
 
 
@@ -113,29 +107,7 @@ quotas = Table(
 
 
     
-async def put_project_2(project_id, sstart_date, accepted):
-     
-     status: ProjectStatus = None,
-     collab_id: List[str] = None,
-     
-     
-     #date_range_start: date = None,
-     #date_range_end: date = None,
-     from_index: int = 0,
-     size: int = 1000
-     filters = []
-     
-     
-     ins = projects.update().where(projects.c.context == project_id).values( decision_date = sstart_date, accepted= accepted)
-     await database.execute(ins)
-     
-   
-     
-     """
-     results = await database.fetch_all(query=projects.select().where(extract("year", projects.c.start_date)<= 2022))
-     return [transform_project_fields(dict(result)) for result in results]
-     """
-    
+
 
 def transform_fields(job):
     """Change certain fields that are stored as strings or floats into richer Python types"""
@@ -156,9 +128,7 @@ def transform_project_fields(project):
     return project
 
 
-def transform_quotas_fields(quotas):
-    quotas["project"] = quotas.pop("project_id")
-    return quotas
+
 
 async def follow_relationships(job):
     # input data
@@ -175,9 +145,7 @@ async def follow_relationships(job):
     return job
 
 async def follow_relationships_quotas(id):
-    # input data
-    print("~~~~~~")
-    print(id)
+    
     query = quotas.select().where(quotas.c.project_id == id)
     await database.connect()
     await database.execute(query)
@@ -205,7 +173,7 @@ async def query_jobs(
     hardware_platform: List[str] = None,
     date_range_start: date = None,
     date_range_end: date = None,
-    
+    fields: List[str] = None,
     from_index: int = 0,
     size: int = 10
 ):
@@ -226,8 +194,10 @@ async def query_jobs(
     elif date_range_end:
         filters.append(jobs.c.timestamp_submission <= date_range_end)
 
-    
-    select = jobs.select()
+    if fields is None:
+        select = jobs.select()
+    else:
+        select = jobs.select(*[literal_column(field) for field in fields])
    
     if filters:
         query = select.where(*filters).offset(from_index).limit(size)
@@ -299,18 +269,11 @@ async def query_projects(
 async def post_project(project):
      
     
-     collab_id: List[str] = None,
-     
-     #date_range_start: date = None,
-     #date_range_end: date = None,
-     from_index: int = 0,
-     size: int = 1000
-     filters = []
-     if project['submitted']==True:
-       Ssubmission_date = date.today()
+     if project['submitted']:
+       submission_date = date.today()
      else:
-       Ssubmission_date = None
-     ins = projects.insert().values( context  = project['context'],  collab = project['collab'], owner= project['owner'], title = project['title'] , abstract = project['abstract'], description= project['description'], duration = project['duration'],  accepted = project['accepted'], submission_date=Ssubmission_date)
+       submission_date = None
+     ins = projects.insert().values( context  = project['context'],  collab = project['collab'], owner= project['owner'], title = project['title'] , abstract = project['abstract'], description= project['description'], duration = project['duration'],  accepted = project['accepted'], submission_date=submission_date)
      await database.connect()
      await database.execute(ins)
      
@@ -318,23 +281,8 @@ async def post_project(project):
     
 
 
-async def get_all_quotas(
-    status: ProjectStatus = None,
-    collab_id: List[str] = None,
-    owner_id: List[str] = None,
-    #date_range_start: date = None,
-    #date_range_end: date = None,
-    from_index: int = 0,
-    size: int = 10
-):
 
-    query = quotas.select()
-    await database.connect()
-    await database.execute(query)
-    results = await database.fetch_all(query)
-    
-    return [dict(result) for result in results]
-async def put_project(project_id,  projectR):
+async def put_project(project_id,  project_update):
      
      status: ProjectStatus = None,
      collab_id: List[str] = None,
@@ -347,7 +295,7 @@ async def put_project(project_id,  projectR):
      filters = []
      
      
-     ins = projects.update().where(projects.c.context == project_id).values(  collab = projectR['collab'], owner= projectR['owner'], title = projectR['title'] , abstract = projectR['abstract'], description= projectR['description'], duration = projectR['duration'], start_date=projectR['start_date'],   accepted = projectR['accepted'], submission_date= projectR['submission_date'],  decision_date= projectR['decision_date'])
+     ins = projects.update().where(projects.c.context == project_id).values(  collab = project_update['collab'], owner= project_update['owner'], title = project_update['title'] , abstract = project_update['abstract'], description= project_update['description'], duration = project_update['duration'], start_date=project_update['start_date'],   accepted = project_update['accepted'], submission_date= project_update['submission_date'],  decision_date= project_update['decision_date'])
      await database.connect()
      await database.execute(ins)
      
@@ -355,10 +303,7 @@ async def put_project(project_id,  projectR):
     
      
      
-     """
-     results = await database.fetch_all(query=projects.select().where(extract("year", projects.c.start_date)<= 2022))
-     return [transform_project_fields(dict(result)) for result in results]
-     """
+     
     
 async def get_project(project_id):
     query = projects.select().where(projects.c.context == project_id)
@@ -369,9 +314,7 @@ async def get_project(project_id):
     if result  is not None:
        return transform_project_fields(dict(result))
        
-    else:
-         result= None
-         return result   
+    
 
 async def delete_project(project_id):
       
@@ -389,7 +332,7 @@ async def query_quotas(
     size: int = 10
 ):
     
-    
+    query = quotas.select() 
     if project_id:
         query = quotas.select().where(quotas.c.project_id == project_id)
         query = query.offset(from_index).limit(size)
