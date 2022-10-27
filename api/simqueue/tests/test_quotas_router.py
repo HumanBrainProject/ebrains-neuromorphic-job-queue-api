@@ -7,9 +7,7 @@ from simqueue.oauth import User
 from simqueue.data_models import ProjectStatus
 import simqueue.db
 import json
-import pytz
-import pytest
-import pytest_asyncio
+
 from fastapi.encoders import jsonable_encoder
 from simqueue.db import database
 
@@ -57,46 +55,8 @@ class MockUserPub(User):
         }
         return cls(**user_data)
 
-class MockUserPriv(User):
 
-    @classmethod
-    async def from_token(cls, token):
-        user_data = {
-            "preferred_username": "alloyd",
-            "roles": {
-               "group": [
-                "comic-film-actors-from-the-silent-era"
-               ],
-               "team": [
-                   "andrew-public-test-editor",
-                   "collab-some-other-collab-viewer",
-                   "collab-neuromorphic-testing-private-editor",
-                   "nmc-jupytertestcollab-editor"
-               ]
-        }
-        }
-        return cls(**user_data)
-class MockUseradmin(User):
 
-    @classmethod
-    async def from_token(cls, token):
-        user_data = {
-            "preferred_username": "loyd",
-            "roles": {
-                 "group": [
-                     "comic-film-actors-from-the-silent-era"
-                  ],
-                 "team": [
-                     "andrew-public-test-administrator"
-                     "collab-some-other-collab-viewer",
-                     "collab-neuromorphic-testing-private-adminstrator",
-                     "collab-neuromorphic-platform-admin-administrator",
-                     "collab-neuromorphic-platform-admin-editor",
-                     "nmc-jupytertestcollab-administrator"
-                  ]
-        }
-        }
-        return cls(**user_data)
 
 mock_projects = [
     {
@@ -168,7 +128,7 @@ mock_projects = [
 
 def test_query_projects_no_auth():
     response = client.get("/projects/")
-    assert response.status_code == 403
+    assert response.status_code == 200
 
 
 def test_query_projects(mocker):
@@ -191,7 +151,7 @@ def test_query_projects_with_valid_filters(mocker):
     mocker.patch("simqueue.oauth.User", MockUser)
     mocker.patch("simqueue.db.query_projects", return_value=mock_projects)
     response = client.get(
-        "/projects/?size=10&from_index=0&as_admin=false",
+        "/projects/?status=accepted&owner_id=haroldlloyd&collab_id=neuromorphic-testing-private&collab_id=neuromorphic-platform-admin&date_range_start=2021-03-01&from_index=10",
         headers={"Authorization": "Bearer notarealtoken"}
     )
     assert response.status_code == 200
