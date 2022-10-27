@@ -9,7 +9,7 @@ from fastapi import APIRouter, Depends, Query, Path, HTTPException, status as st
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 
 from ..data_models import (
-    Project, ProjectSubmission, ProjectStatus, Quota, ProjectN, ProjectI, ProjectSerial, QuotaI, QuotasSerial, ProjectR, Quotapr, ProjectD, ProjectRequestBody
+    Project, ProjectSubmission, ProjectUpdate, ProjectStatus, Quota, QuotaSubmission, QuotaUpdate
 )
 from .. import db, oauth
 
@@ -22,51 +22,9 @@ router = APIRouter()
 
 
 
-def to_dict(project: Project):
-        
-        data = {}
-       
-        
-        for field in ("id", "collab", "owner", "title", "abstract",
-                      "description", "duration", "accepted"):
-        
-            if getattr(project, field) is not None:            
-               data[field] = getattr(project, field)
-        if project.start_date is not None:
-             data["start_date"] = project.start_date
-        else:
-             data["start_date"] = None   
-        if project.submission_date is not None:
-             data["submission_date"] = project.submission_date
-        else:
-             data["submission_date"] = None    
-        if project.decision_date is not None:
-             data["decision_date"] = project.decision_date
-        else:
-             data["decision_date"] = None            
-        print('data')  
-        print (data)
-        print('data')  
-         
-        return data
 
 
-def to_dictR(project: ProjectR):
-        
-        data = {}
-       
-        
-        for field in ("collab", "owner", "title", "abstract",
-                      "description", "duration", "accepted"):
-        
-            if getattr(project, field) is not None:            
-               data[field] = getattr(project, field)
-               
-        print('data')  
-        print (data)
-        print('data')  
-         
-        return data
+
 
 def to_dictRequestBody(projectRB: ProjectRequestBody):
         
@@ -95,9 +53,7 @@ def to_dictQ(quota: Quotapr):
             if getattr(quota, field) is not None:            
                data[field] = getattr(quota, field)
                
-        print('data')  
-        print (data)
-        print('data')  
+       
          
         return data 
         
@@ -112,13 +68,9 @@ def to_dictSerial(project: Project, quotas: List[QuotaI]):
         
         data["resource_uri"] = "/projects/"+str(project["id"])
         
-                      
-        print('data')  
-        print (data)
-        print('data')  
-        print("********************quota:")
+       
         quota = None
-        print(quotas)
+        
         i = 1
         contentQ=[]
         for quota in quotas:
@@ -126,9 +78,9 @@ def to_dictSerial(project: Project, quotas: List[QuotaI]):
            
                 
                  contentQ.append(to_dictSerialQuota(quota, project))
-                 print(contentQ)
+               
                  
-        print(":quota********************") 
+       
         
         data["quotas"]= contentQ
         
@@ -155,9 +107,7 @@ def to_dictSerialQuota(quota: QuotaI, project: Project):
         data["units"]=quota["units"]
         
         data["usage"]=quota["usage"]               
-        print('data')  
-        print (data)
-        print('data')  
+        
          
         return data
 
@@ -213,9 +163,9 @@ async def query_projects(
         )
     projects = await db.query_projects(status, collab_id, owner_id, from_index, size)
     for project in projects:
-       print("*******")
+      
        quotas= await db.follow_relationships_quotas(project["id"])
-       print(project["id"])
+      
        contentR= to_dictSerial(project, quotas)
     
     return projects
@@ -248,7 +198,7 @@ async def get_project(
             return contentR
        else:
               raise HTTPException(
-              status_code=status_codes.HTTP_401_UNAUTHORIZED,
+              status_code=status_codes.HTTP_403_FORBIDDEN,
               detail=f" You do not have access to this project"
               )
             
@@ -264,12 +214,12 @@ async def get_project(
 @router.delete("/projects/{project_id}", status_code=status_codes.HTTP_200_OK)
 async def delete_project(
     
-    project_id: UUID = Path(..., title="Project ID", description="ID of the project to be retrieved"),
+    project_id: UUID = Path(..., title="Project ID", description="ID of the project to be deleted"),
     as_admin: bool = Query(False, description="Run this query with admin privileges, if you have them"),
     token: HTTPAuthorizationCredentials = Depends(auth),
 ):
     """
-    Return an individual project
+    Delete an individual project
     """ 
     
     get_user_task = asyncio.create_task(oauth.User.from_token(token.credentials))
@@ -294,8 +244,8 @@ async def delete_project(
           await db.delete_project(project_id)   
       else:
            raise HTTPException(
-                status_code=status_codes.HTTP_404_NOT_FOUND,
-                detail=f"You do not allowed to delete this project"
+                status_code=status_codes.HTTP_403_FORBIDDEN,
+                detail=f"You are not allowed to delete this project"
               )    
     else:
         
@@ -307,13 +257,13 @@ async def delete_project(
 @router.delete("/projects/{project_id}/quotas/{id}", status_code=status_codes.HTTP_200_OK)
 async def delete_onequota(
     as_admin: bool = Query(False, description="Run this query with admin privileges, if you have them"),
-    project_id: UUID = Path(..., title="Project ID", description="ID of the project to be retrieved"),
-    id: int = Path(..., title="Quota ID", description="ID of the quota thats should be retrieved"),
+    project_id: UUID = Path(..., title="Project ID", description="ID of the project from which the quota should be removed"),
+    id: int = Path(..., title="Quota ID", description="ID of the quota thats should be deleted"),
     
     token: HTTPAuthorizationCredentials = Depends(auth),
 ):
     """
-    Return an individual project
+    Delete an individual project
     """ 
     
     get_user_task = asyncio.create_task(oauth.User.from_token(token.credentials))
@@ -337,8 +287,8 @@ async def delete_onequota(
        
     if not (as_admin and user.is_admin) :
         raise HTTPException(
-                status_code=status_codes.HTTP_401_UNAUTHORIZED,
-                detail=f"You do not allowed to delete this project"
+                status_code=status_codes.HTTP_403_FORBIDDEN,
+                detail=f"You are not allowed to delete quotas from this project"
               )       
           
     if (await db.query_onequota(project_id, id))is None:
@@ -349,28 +299,23 @@ async def delete_onequota(
              
     await db.query_deleteonequota(project_id, id)
              
-    print("qqqq")
-    quota=  db.query_onequota(project_id, id)
-    print(quota)
-          
+   
    
     
         
     
     
     
-@router.post("/projects/", status_code=status_codes.HTTP_200_OK)
+@router.post("/projects/", status_code=status_codes.HTTP_201_CREATED)
 async def create_item(
     projectRB: ProjectRequestBody, 
  
     
     as_admin: bool = Query(False, description="Run this query with admin privileges, if you have them"),
-    collab_id: List[str] = Query(None, description="collab id"),
+   
     owner_id: List[str] = Query(None, description="owner id"),
    
-    #date_range_start: date = Query(None, description="projects which started after this date"),
-    #date_range_end: date = Query(None, description="projects which started before this date"),
-   
+    
     
    
    
@@ -388,7 +333,7 @@ async def create_item(
     contentR['accepted']= False
     if 'submitted' not in contentR.keys():
         contentR['submitted']= False
-    if not ((as_admin and user.is_admin) or   await user.can_view(contentR['collab'])):
+    if not ((as_admin and user.is_admin) or  user.can_edit(contentR['collab'])):
         raise HTTPException(
             status_code=status_codes.HTTP_403_FORBIDDEN,
             detail=f"You do not have permisson de create project in this Collab"
@@ -406,7 +351,7 @@ async def create_item(
     
        else:
            raise HTTPException(
-                status_code= status_codes.HTTP_401_UNAUTHORIZED,
+                status_code= status_codes.HTTP_403_FORBIDDEN,
                 detail=f"You are not allowed to create a project with duplicate id."
                 )
       
@@ -424,8 +369,8 @@ async def create_item(
 async def query_quotas(
     project_id: UUID = Path(..., title="Project ID", description="ID of the project whose quotas should be retrieved"),
     as_admin: bool = Query(False, description="Run this query with admin privileges, if you have them"),
-    size: int = Query(10, description="Number of projects to return"),
-    from_index: int = Query(0, description="Index of the first project to return"),
+    size: int = Query(10, description="Number of quotas to return"),
+    from_index: int = Query(0, description="Index of the first quota to return"),
     # from header
     token: HTTPAuthorizationCredentials = Depends(auth),
 ):
@@ -438,32 +383,28 @@ async def query_quotas(
     get_project_task = asyncio.create_task(db.get_project(project_id))
     user = await get_user_task
     project = await get_project_task
-    if not ((as_admin and user.is_admin) or await user.can_view(project["collab"])):
-        raise HTTPException(
-            status_code=status_codes.HTTP_401_UNAUTHORIZED,
-            detail=f"You Can not view quotas"
-        )
-    quotas = await db.query_quotas(project_id, size=size, from_index=from_index)
-    
-    if project is  None: 
+	
+	if project is  None: 
       
          raise HTTPException(
            status_code=status_codes.HTTP_404_NOT_FOUND,
            detail=f"Either there is no project with id {project_id}, or you do not have access to it"
-          )    
+          ) 
+    if not ((as_admin and user.is_admin) or await user.can_view(project["collab"])):
+        raise HTTPException(
+            status_code=status_codes.HTTP_403_FORBIDDEN,
+            detail=f"You Can not view quotas"
+        )
+    quotas = await db.query_quotas(project_id, size=size, from_index=from_index)
+    
+       
        
     
     contentQ=[]
     for quota in quotas:
              
           contentQ.append(to_dictSerialQuota(quota, project))
-    if contentQ is  None: 
-      
-         raise HTTPException(
-           status_code=status_codes.HTTP_404_NOT_FOUND,
-           detail=f"There is no quota with this id"
-          )        
-    print(contentQ)
+    
                  
     return contentQ
 
@@ -512,29 +453,15 @@ async def query_onequota(
                   )
     if quotas is not None:  
             contentQ  = (to_dictSerialQuota(quotas, project))
-            print(contentQ)
-            return contentQ
-    else:
-      raise HTTPException(
-             status_code=status_codes.HTTP_404_NOT_FOUND,
-             detail=f"No Quota with this id was Found"
-             )        
-            
-    """
-    for quota in quotas:
-             
-          contentQ.append(to_dictSerialQuota(quota, project))
-    print(contentQ)
-    """            
+           
     
     
-@router.post("/projects/{project_id}/quotas/", status_code=status_codes.HTTP_200_OK)
+@router.post("/projects/{project_id}/quotas/", status_code=status_codes.HTTP_HTTP_201_CREATED)
 async def create_quotas(
     quota: Quotapr, 
     project_id: UUID = Path(..., title="Project ID", description="ID of the project whose quotas should be added"),
-    as_admin: bool = Query(False, description="Run this query with admin privileges, if you have them"),
-    size: int = Query(10, description="Number of projects to return"),
-    from_index: int = Query(0, description="Index of the first project to return"),
+    
+   
     # from header
     token: HTTPAuthorizationCredentials = Depends(auth),
 ):
@@ -547,10 +474,16 @@ async def create_quotas(
     get_project_task = asyncio.create_task(db.get_project(project_id))
     user = await get_user_task
     project = await get_project_task
-    if not (as_admin and user.is_admin):
+    if not ( user.is_admin):
         raise HTTPException(
-            status_code=status_codes.HTTP_404_NOT_FOUND,
+            status_code=status_codes.HTTP_403_FORBIDDEN,
             detail=f"you don not have permission to create quota"
+        )
+		
+    if project is None:
+		raise HTTPException(
+            status_code=status_codes.HTTP_403_FORBIDDEN,
+            detail=f"you can not  create quota without project"
         )
     await db.post_quotas(project_id, quota)
 
@@ -569,7 +502,13 @@ async def update_quotas(
     
     get_user_task = asyncio.create_task(oauth.User.from_token(token.credentials))
     get_project_task = asyncio.create_task(db.get_project(project_id))
+	
     user = await get_user_task
+	if get_project_task is None:
+		raise HTTPException(
+            status_code=status_codes.HTTP_404_NOT_FOUND,
+            detail=f"Project not found"
+            )
     quota_old= await db.query_onequota(project_id, id)
     
     contentR = to_dictQ(quota)
@@ -577,15 +516,10 @@ async def update_quotas(
    
     if not (as_admin and user.is_admin):
         raise HTTPException(
-            status_code=status_codes.HTTP_404_NOT_FOUND,
+            status_code=status_codes.HTTP_403_FORBIDDEN,
             detail=f"you don not have permission to update quota"
         )
     
-    if (await db.query_onequota(project_id, id))is None:
-         raise HTTPException(
-                  status_code=status_codes.HTTP_404_NOT_FOUND,
-                  detail=f"There is no Quota with this id"  
-                  )
     
     if contentR is  None: 
       
@@ -656,16 +590,11 @@ async def query_collabs(
 
 @router.put("/projects/{project_id}" , status_code=status_codes.HTTP_200_OK)
 async def update_item(projectRB: ProjectRequestBody,     project_id: UUID = Path(..., title="Project ID", description="ID of the project to be retrieved"),
-    collab_id: List[str] = Query(None, description="collab id"),
-    owner_id: List[str] = Query(None, description="owner id"),
     
-    #date_range_start: date = Query(None, description="projects which started after this date"),
-    #date_range_end: date = Query(None, description="projects which started before this date"),
    
     
-    
     as_admin: bool = Query(False, description="Run this query with admin privileges, if you have them"),
-    # from header
+
     token: HTTPAuthorizationCredentials = Depends(auth), ):
     
       
@@ -678,7 +607,7 @@ async def update_item(projectRB: ProjectRequestBody,     project_id: UUID = Path
       contentR = to_dictRequestBody(projectRB)
    
       
-      print('loop************')              
+     
       
       if not ((as_admin and user.is_admin) or  user.can_edit(project["collab"])):
                
@@ -731,13 +660,10 @@ async def update_item(projectRB: ProjectRequestBody,     project_id: UUID = Path
                 status_code=status_codes.HTTP_404_NOT_FOUND,
                 detail=f"Project Not Found"
             )
-            print('this is the project:')
-            print(project)
-            print('submission date:')
-            print(project["submission_date"] )    
+               
             if project["submission_date"] is  not None:
                 raise HTTPException(
-                status_code=status.HTTP_401_UNAUTHORIZED,
+                status_code=status.HTTP_403_FORBIDDEN,
                 detail=f"Can't edit a submitted form."
                 
               )
@@ -745,25 +671,15 @@ async def update_item(projectRB: ProjectRequestBody,     project_id: UUID = Path
                  
             if  contentR['submitted'] is True:
                           project['submission_date'] = date.today() 
-            print('loop*****************:')        
+                 
             for field, value in project.items():
                
-                print('loop*entrance!!!!:') 
-                print(contentR.keys())
+                
                 if field not in contentR.keys():
-                   print(field)
-                   print(value)
+                   
                    contentR[field] = value                        
             await db.put_project(project_id, contentR )
             logger.info("Updating project")
             return status.HTTP_201_CREATED
-           
-            """
-            else:
-                    raise HTTPException(
-                    status_code=status_codes.HTTP_400_BAD_REQUEST,
-                    detail=f"BAD REQUEST" 
-                    )
-            """
 
     
