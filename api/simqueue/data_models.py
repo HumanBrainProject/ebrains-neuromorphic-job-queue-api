@@ -4,7 +4,7 @@ from enum import Enum
 from typing import List, Dict
 from uuid import UUID
 import json
-import uuid
+
 #from fairgraph.brainsimulation import SimulationConfiguration
 
 from pydantic import BaseModel, HttpUrl, AnyUrl, validator, ValidationError
@@ -107,35 +107,10 @@ class ProjectSubmission(BaseModel):
     abstract: str
     description: str = None
 
-class ProjectN(ProjectSubmission):
-    owner: str
-    duration: int = None
-    start_date: date = None
-    accepted: bool = False
-    submission_date: date = None
-    decision_date: date = None
-    
-    
-    
-class ProjectI(ProjectSubmission):
-    context: UUID 
-    owner: str
-    duration: int = None
-    start_date: date = None
-    accepted: bool = False
-    submission_date: date = None
-    decision_date: date = None
-    
-    def status(self):
-        if self.submission_date is None:
-            return ProjectStatus.in_prep
-        elif self.accepted:
-            return ProjectStatus.accepted
-        elif self.decision_date is None:
-            return ProjectStatus.under_review
-        else:
-            return ProjectStatus.rejected
 
+    
+    
+    
 
 
 class Project(ProjectSubmission):
@@ -183,10 +158,7 @@ class ProjectR(ProjectSubmission):
         else:
             return ProjectStatus.rejected
 
-class ProjectD(BaseModel):
-   
-   
-    duration: int = None
+
     
     
 class Quota(BaseModel):
