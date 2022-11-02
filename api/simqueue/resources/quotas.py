@@ -253,13 +253,13 @@ async def delete_onequota(
                 detail=f"You are not allowed to delete quotas from this project"
               )       
           
-    if await db.get_quota(quota_id) is None:
+    if await db.get_quota(quota_id, project_id) is None:
          raise HTTPException(
                   status_code=status_codes.HTTP_404_NOT_FOUND,
                   detail=f"There is no Quota with this id"  
                   )            
              
-    await db.query_deleteonequota(quota_id)
+    await db.query_deleteonequota(quota_id, project_id)
              
    
    
@@ -380,7 +380,7 @@ async def query_onequota(
         
         
         
-       quotas = await db.get_quota(quota_id)
+       quotas = await db.get_quota(quota_id, project_id)
      
     
     
@@ -391,13 +391,13 @@ async def query_onequota(
              )
     
     
-    if await db.get_quota(quota_id)is None:
+    if await db.get_quota(quota_id, project_id)is None:
          raise HTTPException(
                   status_code=status_codes.HTTP_404_NOT_FOUND,
-                  detail=f"There is no Quota with this id"  
+                  detail=f"There is no Quota  with this id that belongs to this project"  
                   )
                   
-    print(quotas)              
+                 
     if quotas is not None:  
             contentQ  = (to_dictSerialQuota(quotas, project))
     
@@ -458,17 +458,22 @@ async def update_quotas(
             detail=f"Project not found"
         )
 	 
-    quota_old= await db.get_quota(quota_id)
-    """
-    contentR = to_dictQ(quota)
-    """
+    quota_old= await db.get_quota(quota_id, project_id)
+    
+    
+    
     contentR = jsonable_encoder(quota)
     if not (as_admin and user.is_admin):
         raise HTTPException(
             status_code=status_codes.HTTP_403_FORBIDDEN,
             detail=f"you don not have permission to update quota"
         )
-    
+    if quota_old is  None: 
+      
+         raise HTTPException(
+           status_code=status_codes.HTTP_404_NOT_FOUND,
+           detail=f"No Quota to change"
+          )  
     
     if contentR is  None: 
       
