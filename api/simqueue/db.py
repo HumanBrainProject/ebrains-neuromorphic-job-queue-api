@@ -355,11 +355,11 @@ async def delete_quotas_from_project(project_id):
     
 async def get_quota(
   
-    quota_id
+    quota_id, project_id
 ):
     
     
-    query = quotas.select().where(quotas.c.id == quota_id) 
+    query = quotas.select().where(quotas.c.id == quota_id, quotas.c.project_id== project_id) 
         
     await database.connect()
     await database.execute(query)
@@ -367,18 +367,16 @@ async def get_quota(
     
     if results  is not None:
           return dict(results)
-    else:
-         
-         return None        
+            
           
 async def query_deleteonequota(
  
-    quota_id
+    quota_id, project_id
 ):
     
     
     
-    query = quotas.delete().where(quotas.c.id == quota_id) 
+    query = quotas.delete().where(quotas.c.id == quota_id, quotas.c.project_id== project_id)
         
     
     await database.execute(query)
@@ -396,7 +394,7 @@ async def post_quotas( project_id, quota):
 async def put_quotas( project_id, quota, quota_id):
     
     
-    ins= quotas.update().where((quotas.c.id == quota_id)and (quotas.c.project_id == project_id)).values( project_id  = project_id,  id= quota_id, limit=quota['limit'], usage=quota['usage'])
+    ins= quotas.update().where(quotas.c.id == quota_id , quotas.c.project_id == project_id).values(  limit=quota['limit'], usage=quota['usage'])
     await database.connect()
     await database.execute(ins)
        
