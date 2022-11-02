@@ -2,7 +2,7 @@ import logging
 import requests
 import json
 from authlib.integrations.starlette_client import OAuth
-from fastapi import HTTPException, status as status_codes
+from fastapi import HTTPException, status
 
 
 from . import settings
@@ -30,10 +30,7 @@ async def get_collab_info(collab_id, token):
     res = requests.get(collab_info_url, headers=headers)
     response = res.json()
     if isinstance(response, dict) and "code" in response and response["code"] == 404:
-        raise  HTTPException(
-            status_code=status_codes.HTTP_403_FORBIDDEN,
-            detail=f"Invalid Collab id"
-            )
+        raise ValueError("Invalid collab id")
     return response
 
 
@@ -72,14 +69,10 @@ class User:
         # if that fails, check if it's a public collab
         try:
             collab_info = await get_collab_info(collab_id, self.token["access_token"])
-        except:
-            raise HTTPException(
-            status_code=status_codes.HTTP_403_FORBIDDEN,
-            detail=f"User Object  has no attribute 'token"
-            )
+        except ValueError:
+            return False
         else:
             return collab_info.get("isPublic", False)
-            
 
     def can_edit(self, collab_id):
         target_team_names = {role: f"collab-{collab_id}-{role}"
