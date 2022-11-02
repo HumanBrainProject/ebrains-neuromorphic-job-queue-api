@@ -2,8 +2,8 @@ from datetime import date, datetime
 import pytz
 import pytest
 import pytest_asyncio
-from simqueue.db import database, query_jobs, get_job, query_projects, query_quotas, get_comments, get_log
-from simqueue.data_models import ProjectStatus
+from ..db import database, query_jobs, get_job, query_projects, query_quotas, get_comments, get_log
+from ..data_models import ProjectStatus
 
 
 @pytest_asyncio.fixture()
@@ -20,7 +20,7 @@ async def test_query_jobs_no_filters(database_connection):
     expected_keys = {
         'id', 'input_data', 'provenance', 'resource_usage', 'status', 'user_id',
         'hardware_config', 'output_data', 'code', 'command', 'timestamp_submission',
-         'timestamp_completion', 'collab_id', 'hardware_platform'
+         'timestamp_completion', 'collab_id', 'hardware_platform','tags'
     }
     assert set(jobs[0].keys()) == expected_keys
 
@@ -28,7 +28,7 @@ async def test_query_jobs_no_filters(database_connection):
 @pytest.mark.asyncio
 async def test_query_jobs_with_filters(database_connection):
     jobs = await query_jobs(
-        status="finished",
+        status=["finished"],
         collab_id=["neuromorphic-testing-private"],
         user_id=["adavison"],
         hardware_platform=["SpiNNaker"],

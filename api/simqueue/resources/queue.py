@@ -1,5 +1,4 @@
 from uuid import UUID
-import uuid
 from typing import List
 from datetime import date
 import logging
@@ -111,7 +110,7 @@ async def get_job(
 
 @router.get("/jobs/{job_id}/comments", response_model=List[Comment])
 async def get_comments(
-    job_id: str = Path(..., title="Job ID", description="ID of the job whose comments are to be retrieved"),
+    job_id: int = Path(..., title="Job ID", description="ID of the job whose comments are to be retrieved"),
     as_admin: bool = Query(False, description="Run this query with admin privileges, if you have them"),
     token: HTTPAuthorizationCredentials = Depends(auth),
 ):
@@ -137,7 +136,7 @@ async def get_comments(
 
 @router.get("/jobs/{job_id}/log", response_model=str)
 async def get_log(
-    job_id: str = Path(..., title="Job ID", description="ID of the job whose log is to be retrieved"),
+    job_id: int = Path(..., title="Job ID", description="ID of the job whose log is to be retrieved"),
     as_admin: bool = Query(False, description="Run this query with admin privileges, if you have them"),
     token: HTTPAuthorizationCredentials = Depends(auth),
 ):
@@ -164,13 +163,8 @@ async def get_log(
 
 @router.post("/jobs/", response_model=AcceptedJob, status_code=status_codes.HTTP_201_CREATED)
 async def create_job(
-    
-    
+
     job: SubmittedJob,
-    #tag: List[str] = Query(None, description="tags"),
-    #collab_id: List[str] = Query(None, description="collab id"),
-    #user_id: List[str] = Query(None, description="user id"),
-    #hardware_platform: List[str] = Query(None, description="hardware platform (e.g. SpiNNaker, BrainScales)"),
     as_admin: bool = Query(False, description="Run this query with admin privileges, if you have them"),
     token: HTTPAuthorizationCredentials = Depends(auth)
 ):
@@ -200,12 +194,12 @@ async def update_job(
     get_user_task = asyncio.create_task(oauth.User.from_token(token.credentials))
     get_job_task = asyncio.create_task(db.get_job(job_id))
     user = await get_user_task
-    oldJob = await get_job_task
-    if oldJob is None:
+    old_job = await get_job_task
+    if old_job is None:
         raise HTTPException(status_code=status_codes.HTTP_404_NOT_FOUND,
         detail=f"Either there is no job with id {job_id}, or you do not have access to it"
     )
-    if (as_admin and user.is_admin) or oldJob["user_id"] == user.username :
+    if (as_admin and user.is_admin) or old_job["user_id"] == user.username :
         result = await db.put_job(job_id,user.username,job)
         return result
 
@@ -265,7 +259,7 @@ async def add_comment(
         detail=f"Either there is no job with id {job_id}, or you do not have access to it"
     )
     if (as_admin and user.is_admin) or job["user_id"] == user.username or await user.can_view(job["collab_id"]):
-        return await db.post_comment(job_id,user.username ,comment)
+        return await db.create_comment(job_id,user.username ,comment)
         
     raise HTTPException(
         status_code=status_codes.HTTP_404_NOT_FOUND,
@@ -278,7 +272,6 @@ async def add_comment(
 async def put_comment(
     comment: CommentBody,
     comment_id: int = Query(..., title="Comment ID", description="ID of the comment being edited"),
-    #job_id: int = Path(..., title="Job ID", description="ID of the job being commented on"),
     as_admin: bool = Query(False, description="Run this query with admin privileges, if you have them"),
     token: HTTPAuthorizationCredentials = Depends(auth),
 ):
@@ -298,12 +291,10 @@ async def put_comment(
         detail=f"Either there is no job with id {job_id}, or you do not have access to it"
     )
 
-    # if (as_admin and user.is_admin) or job["user_id"] == user.username or await user.can_view(job["collab_id"]):
-    #     return await db.post_comment(job_id,user.username ,comment)
 
     if (as_admin and user.is_admin) or (old_comment["user"]== user.username and await user.can_view(job["collab_id"])):
-        return await db.put_comment(comment_id,job_id,user.username,old_comment["created_time"] ,comment)
-        #return await db.put_comment(comment_id,job_id,user.username,comment)
+        return await db.update_comment(comment_id,job_id,user.username,old_comment["created_time"] ,comment)
+
         
     raise HTTPException(
         status_code=status_codes.HTTP_404_NOT_FOUND,
@@ -315,7 +306,6 @@ async def put_comment(
 @router.delete("/jobs/{job_id}/comments/", status_code=status_codes.HTTP_200_OK)
 async def delete_comment(
     comment_id: int = Query(..., title="Comment ID", description="ID of the comment being edited"),
-    #job_id: int = Path(..., title="Job ID", description="ID of the job being commented on"),
     as_admin: bool = Query(False, description="Run this query with admin privileges, if you have them"),
     token: HTTPAuthorizationCredentials = Depends(auth),
 ):
@@ -334,12 +324,10 @@ async def delete_comment(
         raise HTTPException(status_code=status_codes.HTTP_404_NOT_FOUND,
         detail=f"Either there is no job with id {job_id}, or you do not have access to it"
     )
-    # if (as_admin and user.is_admin) or job["user_id"] == user.username or await user.can_view(job["collab_id"]):
-    #     return await db.post_comment(job_id,user.username ,comment)
 
     if (as_admin and user.is_admin) or (old_comment["user"]== user.username and await user.can_view(job["collab_id"])):
         return await db.delete_comment(comment_id)
-        #return await db.put_comment(comment_id,job_id,user.username,comment)
+
         
     raise HTTPException(
         status_code=status_codes.HTTP_404_NOT_FOUND,
@@ -365,7 +353,6 @@ async def get_tags(
         detail=f"Either there is no job with id {job_id}, or you do not have access to it"
     )
     if (as_admin and user.is_admin) or job["user_id"] == user.username or await user.can_view(job["collab_id"]):
-        #return await db.get_tags(job_id)
         return job["tags"]
 
     raise HTTPException(
@@ -392,42 +379,17 @@ async def add_tags(
         raise HTTPException(status_code=status_codes.HTTP_404_NOT_FOUND,
         detail=f"Either there is no job with id {job_id}, or you do not have access to it"
     )
-    if (as_admin and user.is_admin) or job["user_id"] == user.username or await user.can_edit(job["collab_id"]):
+    if (as_admin and user.is_admin) or job["user_id"] == user.username or user.can_edit(job["collab_id"]):
         if tags_ids is not None:
-            return await db.post_tags(job_id,tags_ids)
+            return await db.add_tags_to_job_by_tag_id(job_id,tags_ids)
         if tags_strings is not None:
-            return await db.post_tags_strings(job_id,tags_strings)
+            return await db.add_tags_to_job(job_id,tags_strings)
         
     raise HTTPException(
         status_code=status_codes.HTTP_404_NOT_FOUND,
         detail=f"Either there is no job with id {job_id}, or you do not have access to it"
     )
 
-# @router.post("/jobs/{job_id}/tags/", response_model=List[Tag])
-# async def add_tags_from_strings(
-#     tags: List[str],
-#     job_id: int = Path(..., title="Job ID", description="ID of the job being commented on"),
-#     as_admin: bool = Query(False, description="Run this query with admin privileges, if you have them"),
-#     token: HTTPAuthorizationCredentials = Depends(auth),
-# ):
-#     """
-#     Add tags from list to job
-#     """
-#     get_user_task = asyncio.create_task(oauth.User.from_token(token.credentials))
-#     get_job_task = asyncio.create_task(db.get_job(job_id))
-#     user = await get_user_task
-#     job = await get_job_task
-#     if job is None:
-#         raise HTTPException(status_code=status_codes.HTTP_404_NOT_FOUND,
-#         detail=f"Either there is no job with id {job_id}, or you do not have access to it"
-#     )
-#     if (as_admin and user.is_admin) or job["user_id"] == user.username or await user.can_edit(job["collab_id"]):
-#         return await db.post_tags_strings(job_id,tags)
-        
-#     raise HTTPException(
-#         status_code=status_codes.HTTP_404_NOT_FOUND,
-#         detail=f"Either there is no job with id {job_id}, or you do not have access to it"
-#     )
     
 @router.post("/tags/{collab_id}", response_model=List[Tag])
 async def add_tags_to_taglist(
@@ -441,7 +403,7 @@ async def add_tags_to_taglist(
     """
     get_user_task = asyncio.create_task(oauth.User.from_token(token.credentials))
     user = await get_user_task
-    if (as_admin and user.is_admin) or await user.can_edit(collab_id):
+    if (as_admin and user.is_admin) or  user.can_edit(collab_id):
         return await db.add_tags_to_taglist(tags)
         
     raise HTTPException(
@@ -469,7 +431,7 @@ async def remove_tags(
         raise HTTPException(status_code=status_codes.HTTP_404_NOT_FOUND,
         detail=f"Either there is no job with id {job_id}, or you do not have access to it"
     )
-    if (as_admin and user.is_admin) or job["user_id"] == user.username or await user.can_edit(job["collab_id"]):
+    if (as_admin and user.is_admin) or job["user_id"] == user.username or  ser.can_edit(job["collab_id"]):
         return await db.remove_tags(job_id,tags_ids)
         
     raise HTTPException(

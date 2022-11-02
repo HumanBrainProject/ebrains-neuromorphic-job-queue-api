@@ -61,9 +61,9 @@ jobs = Table(
 comments = Table(
     "simqueue_comment",
     metadata,
-    Column("id", Integer, primary_key=True,autoincrement=True),
+    Column("id", Integer, primary_key=True),
     Column("content", String),
-    Column("created_time", DateTime(timezone=True), default=now_in_utc(), nullable=False),
+    Column("created_time", DateTime(timezone=True), nullable=False),
     Column("user", String(36), nullable=False),
     Column("job_id", Integer, ForeignKey("simqueue_job.id"))
 )
@@ -163,93 +163,57 @@ async def follow_relationships(job):
     for tag_item in results:
         query = taglist.select().where(taglist.c.id == tag_item.tag_id)
         used_tag= await database.fetch_one(query)
-        compiled_query=str(query.compile(compile_kwargs={"literal_binds": True}))
         tags.append(Tag(tag_id=tag_item.tag_id,content=used_tag["name"]))
         
     job["tags"] = [item for item in tags or []]   
     
-    """     #logs 
-    
-    query = logs.select().where(logs.c.job_id == job["id"])
-    result = await database.fetch_one(query)
-    job["log"] = result or "" """
-    
-    
     return job
 
-async def delete_dataitems(job):
+async def delete_dataitems(job_id):
     # input data
     query = data_items.delete().where(data_items.c.id == job_input_data.c.dataitem_id,
-                                      job_input_data.c.job_id == job["id"])
-    await database.fetch_all(query)
-    query2 = job_input_data.delete().where(job_input_data.c.job_id == job["id"])
-    await database.fetch_all(query2)
+                                      job_input_data.c.job_id == job_id)
+    await database.execute(query)
+    query2 = job_input_data.delete().where(job_input_data.c.job_id == job_id)
+    await database.execute(query2)
 
     # output data
     query = data_items.delete().where(data_items.c.id == job_output_data.c.dataitem_id,
-                                      job_output_data.c.job_id == job["id"])
-    await database.fetch_all(query)
-    query2 = job_output_data.delete().where(job_output_data.c.job_id == job["id"])
-    await database.fetch_all(query2)
+                                      job_output_data.c.job_id == job_id)
+    await database.execute(query)
+    query2 = job_output_data.delete().where(job_output_data.c.job_id == job_id)
+    await database.execute(query2)
 
 
-    #logs 
-    
-    query = logs.delete().where(logs.c.job_id == job["id"])
-    await database.fetch_one(query)
-
-    #tags
-
-    query = tagged_items.delete().where(tagged_items.c.object_id == job["id"])
-    await database.fetch_all(query)
+ 
     
     return 
 
 async def create_job_input_data_item(job,job_id):
-    # input data
+
     for item in job.input_data:
         ins_data_item = data_items.insert().values(url=item.url)
         data_item_id = await database.execute(ins_data_item)
         ins_job_input = job_input_data.insert().values(job_id=job_id,dataitem_id=data_item_id)
         await database.execute(ins_job_input)
 
-    """     query = data_items.select().where(data_items.c.id == job_input_data.c.dataitem_id,
-                                        job_input_data.c.job_id == job_id)
-        results = await database.fetch_all(query)
-        job["input_data"] = [dict(row) for row in results or []]
-    """
-    # output data
-    """     query = data_items.select().where(data_items.c.id == job_output_data.c.dataitem_id,
-                                      job_output_data.c.job_id == job["id"])
-    results = await database.fetch_all(query)
-    job["output_data"] = [dict(row) for row in results or []] """
-    
+
     return 
 
 
 async def update_job_output_data_item(job,jobPatch):
-    # input data
+
     for item in jobPatch.output_data:
         ins_data_item = data_items.insert().values(url=item.url)
         data_item_id = await database.execute(ins_data_item)
         ins_job_output = job_output_data.insert().values(job_id=job.id,dataitem_id=data_item_id)
         await database.execute(ins_job_output)
 
-    """     query = data_items.select().where(data_items.c.id == job_output_data.c.dataitem_id,
-                                      job_output_data.c.job_id == job["id"])
-    results = await database.fetch_all(query)
-    job["output_data"] = [dict(row) for row in results or []] """
 
-    # output data
-    """     query = data_items.select().where(data_items.c.id == job_output_data.c.dataitem_id,
-                                      job_output_data.c.job_id == job["id"])
-    results = await database.fetch_all(query)
-    job["output_data"] = [dict(row) for row in results or []] """
-    
     return 
 
 async def update_log(job,jobPatch):
-    # input data
+
     query = logs.select().where(logs.c.job_id == job.id)
     result = await database.fetch_one(query)
     if result is None:  
@@ -259,7 +223,7 @@ async def update_log(job,jobPatch):
         ins = logs.update().where(jobs.c.id == job.id).values(content=jobPatch.log)
         await database.execute(ins)
 
-    #result = await database.fetch_one(query)
+
     
     return 
 
@@ -302,31 +266,18 @@ async def query_jobs(
     if fields is None:
         select = jobs.select()
     else:
-        #list_fields =["jobs.c."+field for field in fields]
+
         list_fields =["jobs.c."+field for field in fields]
-        ####
-        #list_fields =[text(field) for field in fields]
-        
-        #select = jobs.select().with_only_columns(*[Column(field) for field in fields])
         select = jobs.select().with_only_columns(*[literal_column(field) for field in fields])
-        ###
-        
-        #select = jobs.select().with_only_columns([jobs.c.timestamp_completion])
-        #select = jobs.select(*[literal_column(field) for field in fields])
-        compiled_query=str(select.compile(compile_kwargs={"literal_binds": True}))
+
     if filters:
-        compiled_query=str(select.compile(compile_kwargs={"literal_binds": True}))
         query = select.where(*filters).offset(from_index).limit(size)
-        #compiled_query=str(query.compile(compile_kwargs={"literal_binds": True}))
-        #print(compiled_query)
+
     else:
         query = select.offset(from_index).limit(size)
-    compiled_query=str(query.compile(compile_kwargs={"literal_binds": True}))
+
     results = await database.fetch_all(query)
-    #print(results)
-    #compiled_query=str(results.compile(compile_kwargs={"literal_binds": True}))
-    #return(results)
-    #return [dict(result) for result in results]
+
     if fields:
         return [dict(result) for result in results]
     return [transform_fields(await follow_relationships(dict(result))) for result in results]
@@ -339,13 +290,12 @@ async def get_job(job_id: int):
         intermediate_result =dict(result)
         return transform_fields(await follow_relationships(intermediate_result))
     else:
-        raise HTTPException(status_code=status_codes.HTTP_404_NOT_FOUND,
-        detail=f"Either there is no job with id {job_id}, or you do not have access to it"
-    )
+        return None
 
 async def post_job(user_id:str,job:SubmittedJob):
 
     ins = jobs.insert().values( code=job.code,command=job.command,collab_id=job.collab_id,user_id=user_id,status="submitted",hardware_platform=job.hardware_platform,hardware_config=job.hardware_config,timestamp_submission=now_in_utc())
+    compiled_query=str(ins.compile(compile_kwargs={"literal_binds": True}))
     job_id = await database.execute(ins)
     
     query = jobs.select().where(jobs.c.id == job_id)
@@ -361,8 +311,6 @@ async def put_job(job_id:int,user_id:str,jobPatch:JobPatch):
     query = jobs.select().where(jobs.c.id == job_id)
     job = await database.fetch_one(query)
     ins = jobs.update().where(jobs.c.id == job_id).values(provenance=jobPatch.provenance,resource_usage=jobPatch.resource_usage)
-    #ins = jobs.update().where(jobs.c.id == job_id).values(id=job_id,code=job.code,command=job.command,collab_id=job.collab_id,user_id=user_id,status=jobPatch.status,hardware_platform=job.hardware_platform,hardware_config=job.hardware_config,timestamp_submission=job.timestamp_submission,timestamp_completion=job.timestamp_completion,provenance=jobPatch.provenance,resource_usage=jobPatch.resource_usage,log=jobPatch.log,output_data=jobPatch.output_data)
-    #ins = jobs.insert().values( code=job.code,command=job.command,collab_id=job.collab_id,user_id=user_id,status="submitted",hardware_platform=job.hardware_platform,hardware_config=job.hardware_config,timestamp_submission=now_in_utc())
     await database.execute(ins)
     
     query = jobs.select().where(jobs.c.id == job_id)
@@ -374,9 +322,21 @@ async def put_job(job_id:int,user_id:str,jobPatch:JobPatch):
     return transform_fields(await follow_relationships(dict(result)))
 
 async def delete_job(job_id: int):
-    query = jobs.select().where(jobs.c.id == job_id)
-    job = await database.fetch_one(query)
-    await delete_dataitems(job)
+
+    await delete_dataitems(job_id)
+    
+    # delete job's logs 
+    
+    query = logs.delete().where(logs.c.job_id == job_id)
+    await database.fetch_one(query)
+
+    # delete job's tags
+
+    query = tagged_items.delete().where(tagged_items.c.object_id == job_id)
+    await database.fetch_all(query)
+    
+    # delete the job 
+    
     ins = jobs.delete().where(jobs.c.id == job_id)
     result = await database.execute(ins)
     
@@ -404,13 +364,9 @@ async def get_users_count(status: List[str] = None,
     elif date_range_end:
         filters.append(jobs.c.timestamp_submission <= date_range_end)
 
-    #select = jobs.select().with_only_columns([jobs.c.user_id]).distinct().count()
-    #select = jobs.select().with_only_columns([jobs.c.user_id]).distinct()
     select_query = slct(func.count(distinct(jobs.c.user_id)))
     query = select_query.where(*filters)
-    #query = select.where(*filters).offset(from_index).limit(size)
-    #query = jobs.select().column([jobs.c.user_id]).distinct()
-    compiled_query=str(query.compile(compile_kwargs={"literal_binds": True}))
+
     users_count =  await database.execute(query)
     return int(users_count)
 
@@ -436,13 +392,10 @@ async def get_users_list(status: List[str] = None,
     elif date_range_end:
         filters.append(jobs.c.timestamp_submission <= date_range_end)
 
-    #select = jobs.select().with_only_columns([jobs.c.user_id]).distinct().count()
-    #select = jobs.select().with_only_columns([jobs.c.user_id]).distinct()
+
     select_query = slct(distinct(jobs.c.user_id))
     query = select_query.where(*filters)
-    #query = select.where(*filters).offset(from_index).limit(size)
-    #query = jobs.select().column([jobs.c.user_id]).distinct()
-    compiled_query=str(query.compile(compile_kwargs={"literal_binds": True}))
+
     users_list =  await database.fetch_all(query)
     return users_list
 
@@ -462,8 +415,7 @@ def daterange(start_date, end_date, interval=1):
     for n in range(0, int((end_date - start_date).days), interval):
         yield start_date + timedelta(n)
 
-# async def get_first_job_date(user_id:str,hardware_platform: List[str] = None,):
-#     #query = jobs.select().where(jobs.c.user_id == user_id and jobs.c.hardware_platform in hardware_platform)
+
 
 async def get_tags(job_id: int):
     query = tagged_items.select().where(tagged_items.c.object_id == job_id)
@@ -476,7 +428,7 @@ async def get_tags(job_id: int):
         tags.append(Tag(tag_id=tag_item.tag_id,content=used_tag["name"]))
     return tags
 
-async def post_tags(job_id: int,tagsList:List[int]):
+async def add_tags_to_job_by_tag_id(job_id: int,tagsList:List[int]):
 
     for tag_id in tagsList:
         query = tagged_items.select().where(tagged_items.c.tag_id == tag_id,tagged_items.c.object_id==job_id)
@@ -500,7 +452,7 @@ async def remove_tags(job_id: int,tagsList:List[int]):
     return 
 
 
-async def post_tags_strings(job_id: int,tagsList:List[str]):
+async def add_tags_to_job(job_id: int,tagsList:List[str]):
     results = await add_tags_to_taglist(tagsList)
     for tag in results:
         query = tagged_items.select().where(tagged_items.c.tag_id == tag.tag_id,tagged_items.c.object_id==job_id)
@@ -537,7 +489,7 @@ async def get_comment(comment_id: int):
     result = await database.fetch_one(query)
     return dict(result)
 
-async def post_comment(job_id: int,user_id:str,new_comment:CommentBody):
+async def create_comment(job_id: int,user_id:str,new_comment:CommentBody):
 
     ins = comments.insert().values( content=new_comment.content,created_time=now_in_utc(),user=user_id,job_id=job_id)
     comment_id = await database.execute(ins)
@@ -546,7 +498,7 @@ async def post_comment(job_id: int,user_id:str,new_comment:CommentBody):
     result = await database.fetch_one(query)
     return dict(result)
 
-async def put_comment(comment_id: int,job_id: int,user_id:str,created_time:DateTime(timezone=True),new_comment:CommentBody):
+async def update_comment(comment_id: int,job_id: int,user_id:str,created_time:DateTime(timezone=True),new_comment:CommentBody):
 
     ins = comments.update().where(comments.c.id == comment_id).values( id=comment_id,content=new_comment.content,created_time=created_time,user=user_id,job_id=job_id)
     await database.execute(ins)
