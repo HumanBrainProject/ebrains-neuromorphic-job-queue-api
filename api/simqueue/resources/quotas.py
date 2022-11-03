@@ -43,17 +43,17 @@ def to_dictSerial(project: Project, quotas: List[Quota]):
         quota = None
         
         i = 1
-        contentQ=[]
+        content=[]
         for quota in quotas:
              
            
                 
-                 contentQ.append(to_dictSerialQuota(quota, project))
+                 content.append(to_dictSerialQuota(quota, project))
                
                  
        
         
-        data["quotas"]= contentQ
+        data["quotas"]= content
         
         return data
 
@@ -126,10 +126,13 @@ async def query_projects(
             detail=f"The token provided does not give admin privileges"
         )
     projects = await db.query_projects(status, collab_id, owner_id, from_index, size)
+    
     projects_with_quotas = []
     for project in projects:
-       quotas = await db.follow_relationships_quotas(project["id"])
+       print(project['id'])
+       quotas = await db.query_quotas(project['id'], 0, 10)
        projects_with_quotas= to_dictSerial(project, quotas)
+     
     return projects
 
 
@@ -154,10 +157,10 @@ async def get_project(
     
     project = await get_project_task
     if project is not None:
-       quotas= await db.follow_relationships_quotas(project["id"])
-       contentR= to_dictSerial(project, quotas)
+       quotas= await db.query_quotas(project['id'], 0, 10)
+       content= to_dictSerial(project, quotas)
        if (as_admin and user.is_admin) or await user.can_view(project["collab"]):
-            return contentR
+            return content
        else:
               raise HTTPException(
               status_code=status_codes.HTTP_403_FORBIDDEN,
@@ -290,21 +293,19 @@ async def create_project(
    
     user = await get_user_task
     
-    """
-    contentR = to_dictRequestBody(projectRB)
-    """
-    contentR = jsonable_encoder(projectRB)
-    contentR['accepted']= False
-    if 'submitted' not in contentR.keys():
-        contentR['submitted']= False
-    if not ((as_admin and user.is_admin) or  user.can_edit(contentR['collab'])):
+    
+    content = jsonable_encoder(projectRB)
+    content['accepted']= False
+    if 'submitted' not in content.keys():
+        content['submitted']= False
+    if not ((as_admin and user.is_admin) or  user.can_edit(content['collab'])):
         raise HTTPException(
             status_code=status_codes.HTTP_403_FORBIDDEN,
             detail=f"You do not have permisson de create project in this Collab")
-    contentR['id']= uuid.uuid1()
-    contentR['owner' ]= user.username
+    content['id']= uuid.uuid1()
+    content['owner' ]= user.username
    
-    await db.post_project(contentR)
+    await db.post_project(content)
     
     
            
@@ -344,13 +345,13 @@ async def query_quotas(
        
        
     
-    contentQ=[]
+    content=[]
     for quota in quotas:
              
-          contentQ.append(to_dictSerialQuota(quota, project))
+          content.append(to_dictSerialQuota(quota, project))
     
                  
-    return contentQ
+    return content
 
 
 @router.get("/projects/{project_id}/quotas/{quota_id}", response_model= Quota)
@@ -399,9 +400,9 @@ async def query_onequota(
                   
                  
     if quotas is not None:  
-            contentQ  = (to_dictSerialQuota(quotas, project))
+            content  = (to_dictSerialQuota(quotas, project))
     
-    return  contentQ      
+    return  content      
     
     
 @router.post("/projects/{project_id}/quotas/", status_code=status_codes.HTTP_201_CREATED)
@@ -462,7 +463,7 @@ async def update_quotas(
     
     
     
-    contentR = jsonable_encoder(quota)
+    content = jsonable_encoder(quota)
     if not (as_admin and user.is_admin):
         raise HTTPException(
             status_code=status_codes.HTTP_403_FORBIDDEN,
@@ -475,7 +476,7 @@ async def update_quotas(
            detail=f"No Quota to change"
           )  
     
-    if contentR is  None: 
+    if content is  None: 
       
          raise HTTPException(
            status_code=status_codes.HTTP_404_NOT_FOUND,
@@ -484,7 +485,7 @@ async def update_quotas(
     
     
        
-    await db.put_quotas(project_id, contentR, quota_id) 
+    await db.put_quotas(project_id, content, quota_id) 
      
     
 @router.get("/collabs/", response_model=List[str])
@@ -557,10 +558,8 @@ async def update_project(projectRB: ProjectUpdate,     project_id: UUID = Path(.
       get_project_task = asyncio.create_task(db.get_project(project_id))
       user = await get_user_task
       project = await get_project_task
-      """
-      contentR = to_dictRequestBody(projectRB)
-      """
-      contentR = jsonable_encoder(projectRB)
+     
+      content = jsonable_encoder(projectRB)
      
       
       if not ((as_admin and user.is_admin) or  user.can_edit(project["collab"])):
@@ -569,7 +568,7 @@ async def update_project(projectRB: ProjectUpdate,     project_id: UUID = Path(.
                 status_code=status_codes.HTTP_403_FORBIDDEN,
                 detail=f"You do not have permission to modify this project."
              )
-      new_status= contentR['status']      
+      new_status= content['status']      
       if new_status in ('accepted', 'rejected'):
             logger.info("Changing status")
             if not (as_admin and user.is_admin):
@@ -579,7 +578,7 @@ async def update_project(projectRB: ProjectUpdate,     project_id: UUID = Path(.
              )
           
             current_status = Project(**project).status()
-            contentR['owner']=project['owner']
+            content['owner']=project['owner']
       
             if new_status == current_status :
                 raise HTTPException(
@@ -623,16 +622,16 @@ async def update_project(projectRB: ProjectUpdate,     project_id: UUID = Path(.
               )
             
                  
-            if  contentR['submitted'] is True:
+            if  content['submitted'] is True:
                           project['submission_date'] = date.today() 
                  
             for field, value in project.items():
                
                 
-                if field not in contentR.keys():
+                if field not in content.keys():
                    
-                   contentR[field] = value                        
-            await db.put_project(project_id, contentR )
+                   content[field] = value                        
+            await db.put_project(project_id, content )
             logger.info("Updating project")
             return status.HTTP_201_CREATED
 
