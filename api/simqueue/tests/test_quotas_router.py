@@ -128,7 +128,7 @@ mock_projects = [
 
 def test_query_projects_no_auth():
     response = client.get("/projects/")
-    assert response.status_code == 200
+    assert response.status_code == 403
 
 
 def test_query_projects(mocker):
@@ -218,17 +218,12 @@ def test_create_item_asmember(mocker):
                    "title": "testing Collaboratory v2 integration",
                    "abstract": "abstract goes here",
                    "description": "dddddd",
-                   "context": "3da3e111-6a73-4a78-a850-67fabd524cba",
-                   "owner": "haroldlloyd",
-                   "duration": 0,
-                  
-                   "status": "in preparation",
-                   "submitted": False
+                   
                    }
            mocker.patch("simqueue.db.post_project")
           
            json_compatible_item_data = jsonable_encoder(datap)           
-           
+          
            response = client.post(
                 "/projects/?as_admin=false", 
               
@@ -237,10 +232,8 @@ def test_create_item_asmember(mocker):
                 
            )
           
-           assert response.status_code == 200
-           """
-           reste à vérifier qu'on doit ou pas mettre response comme dict
-           """
+           assert response.status_code == 201
+          
  
         
 def test_create_item_asNon_member(mocker): 
@@ -250,20 +243,17 @@ def test_create_item_asNon_member(mocker):
                    "title": "testing Collaboratory v2 integration",
                    "abstract": "abstract goes here",
                    "description": "dddddd",
-                   "context": "02461c47-1262-4f8a-ad23-e58d67bdd6db",
-                   "owner": "haroldlloyd",
-                   "duration": 0,
-                   "status": "in preparation",
-                   "submited": False
+                   
            }
            
            mocker.patch("simqueue.db.post_project")
           
-   
+          
 
            json_compatible_item_data = jsonable_encoder(datap)           
            y = json.dumps(datap)
            json_compatible_item_data = jsonable_encoder(datap)
+           
            response = client.post(
                 "/projects/?as_admin=false", 
               
@@ -272,13 +262,10 @@ def test_create_item_asNon_member(mocker):
                 
            )
           
-           assert response.status_code == 301
-           """
-           reste à vérifier qu'on doit ou pas mettre response comme dict
-           """  
+           assert response.status_code == 403
+          
            
  
-                    
 def test_update_item(mocker): 
            mocker.patch("simqueue.oauth.User", MockUser)
            data = {
@@ -286,8 +273,7 @@ def test_update_item(mocker):
                    "title": "testing Collaboratory v2 integration",
                    "abstract": "abstract goes here",
                    "description": "dddddd",
-                   "context": "2b79a1a8-5825-4359-9b2d-2b6a11537e6b",
-                   "owner": "haroldlloyd",
+                   
                    "duration": 0,
                    "status": "in preparation",
                    "submited": False
@@ -295,7 +281,7 @@ def test_update_item(mocker):
                    }
            mocker.patch("simqueue.db.put_project")
          
-   
+           
 
            json_compatible_item_data = jsonable_encoder(data)
            response = client.put(
@@ -306,11 +292,8 @@ def test_update_item(mocker):
                 
            )
           
-           assert response.status_code == 301
-           """
-           reste à vérifier qu'on doit ou pas mettre response comme dict
-           """
-   
+           assert response.status_code == 201
+          
    
 
    
@@ -322,8 +305,7 @@ def test_only_admins_can_edit_accepted_rejected_projects(mocker):
                    "title": "fff lorem ipsum lorme ipsum",
                    "abstract": "lorem ipsum vvvvv fff",
                    "description": "lorem ipsum",
-                   "context": "ff4e494f-6f44-47c6-9a85-7091ff788b17",
-                   "owner": "haroldlloyd",
+                  
                    "duration": 0,
                    "status": "accepted",
                    "submitted": True
@@ -342,10 +324,8 @@ def test_only_admins_can_edit_accepted_rejected_projects(mocker):
                 
            )
           
-           assert response.status_code == 301
-           """
-           reste à vérifier qu'on doit ou pas mettre response comme dict
-           """
+           assert response.status_code == 403
+           
    
 def test_editing_forbidden_after_submission(mocker): 
            mocker.patch("simqueue.oauth.User", MockUser)
@@ -354,8 +334,7 @@ def test_editing_forbidden_after_submission(mocker):
                    "title": "testing Collaboratory v2 integration",
                    "abstract": "abstract goes here lorem ipsum",
                    "description": "lorem ipsum lorem ipsum testing private  lorem ipsum idadad lorem ipsummmm",
-                   "context": "4948a906-2488-11ed-8c74-e5cdf4879499",
-                   "owner": "haroldlloyd",
+                   
                    "duration": 0,
                    "status": "under review",
                    "submitted": True
@@ -374,6 +353,6 @@ def test_editing_forbidden_after_submission(mocker):
                 
            )
           
-           assert response.status_code == 301
+           assert response.status_code == 403
               
        
