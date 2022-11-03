@@ -163,6 +163,7 @@ async def get_project(
     if project is not None:
        quotas= await db.query_quotas(project['id'], size=size_q, from_index=from_index_q)
        content= to_dictSerial(project, quotas)
+       
        if (as_admin and user.is_admin) or await user.can_view(project["collab"]):
             return content
        else:
@@ -203,19 +204,24 @@ async def delete_project(
     
     
     if project is not None: 
-       
-      if (as_admin and user.is_admin) or  user.can_edit(project["collab"]):
-          
-          
-          if query_quotas(project_id) is not None:
+    
+      try:
+         if (as_admin and user.is_admin) or  user.can_edit(project["collab"]):
                
-             await db.delete_quotas_from_project(project_id)
-          await db.delete_project(project_id)   
-      else:
+           if query_quotas(project_id) is not None:
+               
+              await db.delete_quotas_from_project(project_id)
+           await db.delete_project(project_id)   
+         else:
            raise HTTPException(
                 status_code=status_codes.HTTP_403_FORBIDDEN,
                 detail=f"You are not allowed to delete this project"
-              )    
+              ) 
+      except:
+            raise HTTPException(
+            status_code=status_codes.HTTP_403_FORBIDDEN,
+            detail=f"User Object  has no attribute 'token"
+            )          
     else:
         
         raise HTTPException(
@@ -302,10 +308,21 @@ async def create_project(
     content['accepted']= False
     if 'submitted' not in content.keys():
         content['submitted']= False
-    if not ((as_admin and user.is_admin) or  user.can_edit(content['collab'])):
-        raise HTTPException(
+        
+    try:
+         if not ((as_admin and user.is_admin) or  user.can_edit(content['collab'])):
+               
+                raise HTTPException(
+                status_code=status_codes.HTTP_403_FORBIDDEN,
+                detail=f"You do not have permisson de create project in this Collab"
+                )
+    except:
+            raise HTTPException(
             status_code=status_codes.HTTP_403_FORBIDDEN,
-            detail=f"You do not have permisson de create project in this Collab")
+            detail=f"User Object  has no attribute 'token"
+            )    
+        
+    
     content['id']= uuid.uuid1()
     content['owner' ]= user.username
    
@@ -338,12 +355,21 @@ async def query_quotas(
          raise HTTPException(
            status_code=status_codes.HTTP_404_NOT_FOUND,
            detail=f"Either there is no project with id {project_id}, or you do not have access to it"
+    
           ) 
-    if not ((as_admin and user.is_admin) or await user.can_view(project["collab"])):
-        raise HTTPException(
+    try:
+         if not ((as_admin and user.is_admin) or await user.can_view(project["collab"])):
+               
+                raise HTTPException(
+                status_code=status_codes.HTTP_403_FORBIDDEN,
+                detail=f"You Can not view quotas"
+                )
+    except:
+            raise HTTPException(
             status_code=status_codes.HTTP_403_FORBIDDEN,
-            detail=f"You Can not view quotas"
-        )
+            detail=f"User Object  has no attribute 'token"
+            )       
+    
     quotas = await db.query_quotas(project_id, size=size, from_index=from_index)
     
        
@@ -565,13 +591,18 @@ async def update_project(projectRB: ProjectUpdate,     project_id: UUID = Path(.
      
       content = jsonable_encoder(projectRB)
      
-      
-      if not ((as_admin and user.is_admin) or  user.can_edit(project["collab"])):
+      try:
+         if not ((as_admin and user.is_admin) or  user.can_edit(project["collab"])):
                
                 raise HTTPException(
                 status_code=status_codes.HTTP_403_FORBIDDEN,
                 detail=f"You do not have permission to modify this project."
-             )
+                )
+      except:
+            raise HTTPException(
+            status_code=status_codes.HTTP_403_FORBIDDEN,
+            detail=f"User Object  has no attribute 'token"
+            )       
       new_status= content['status']      
       if new_status in ('accepted', 'rejected'):
             logger.info("Changing status")
