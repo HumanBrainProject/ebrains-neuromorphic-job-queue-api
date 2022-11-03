@@ -144,19 +144,7 @@ async def follow_relationships(job):
     job["output_data"] = [dict(row) for row in results]
     return job
 
-async def follow_relationships_quotas(id):
-    
-    query = quotas.select().where(quotas.c.project_id == id)
-    await database.connect()
-    await database.execute(query)
-    
-    results = await database.fetch_all(query)
-    await database.disconnect()
-    for result in results:
-       print("#####") 
-       print (dict(result))
-       print("#####")
-    return [dict(result) for result in results]
+
 
 def get_list_filter(attr, value):
     if len(value) > 0:
