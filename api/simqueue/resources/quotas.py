@@ -88,6 +88,8 @@ async def query_projects(
     from_index: int = Query(0, description="Index of the first project to return"),
     as_admin: bool = Query(False, description="Run this query with admin privileges, if you have them"),
     # from header
+    size_q: int = Query(10, description="Number of quotas to return"),
+    from_index_q: int = Query(0, description="Index of the first quota to return"),
     token: HTTPAuthorizationCredentials = Depends(auth),
 ):
     """
@@ -129,8 +131,8 @@ async def query_projects(
     
     projects_with_quotas = []
     for project in projects:
-       print(project['id'])
-       quotas = await db.query_quotas(project['id'], 0, 10)
+      
+       quotas = await db.query_quotas(project['id'],size=size_q, from_index=from_index_q)
        projects_with_quotas= to_dictSerial(project, quotas)
      
     return projects
@@ -142,6 +144,8 @@ async def get_project(
     project_id: UUID = Path(..., title="Project ID", description="ID of the project to be retrieved"),
     as_admin: bool = Query(False, description="Run this query with admin privileges, if you have them"),
     token: HTTPAuthorizationCredentials = Depends(auth),
+    size_q: int = Query(10, description="Number of quotas to return"),
+    from_index_q: int = Query(0, description="Index of the first quota to return"),
 ):
     """
     Return an individual project
@@ -157,7 +161,7 @@ async def get_project(
     
     project = await get_project_task
     if project is not None:
-       quotas= await db.query_quotas(project['id'], 0, 10)
+       quotas= await db.query_quotas(project['id'], size=size_q, from_index=from_index_q)
        content= to_dictSerial(project, quotas)
        if (as_admin and user.is_admin) or await user.can_view(project["collab"]):
             return content
