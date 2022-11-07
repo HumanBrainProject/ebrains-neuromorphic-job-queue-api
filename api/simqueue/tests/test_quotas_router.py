@@ -60,66 +60,19 @@ class MockUserPub(User):
 
 mock_projects = [
     {
+        "id": uuid4(),
+    
         "collab": "neuromorphic-testing-private",
-        "title": "fff lorem ipsum lorme ipsum",
-        "abstract": "lorem ipsum",
-        "description": "lorem ipsum",
-        "id": "ff4e494f-6f44-47c6-9a85-7091ff788b17",
-        "owner": "haroldlloyd",
-        "duration": 0,
-        "start_date": "2022-10-15",
-        "accepted": True,
-        "submission_date": "2022-10-15",
-        "decision_date": "2022-10-15"
-    },
-    {
-        "collab": "neuromorphic-testing-private ssss",
         "title": "testing Collaboratory v2 integration",
-        "abstract": "abstract goes here lorem ipsum",
-        "description": "lorem ipsum lorem ipsum testing private  lorem ipsum idadad lorem ipsummmm",
-        "id": "4948a906-2488-11ed-8c74-e5cdf4879499",
+        "abstract": "abstract goes here",
+        "description": "dddddd",
+        
         "owner": "haroldlloyd",
         "duration": 0,
         "start_date": None,
-        "accepted": False,
-        "submission_date": "2022-10-15",
+        "accepted": True, 
+        "submission_date": None,
         "decision_date": None
-    },
-    
-    
-    {
-    
-        "collab": "neuromorphic-testing-private",
-        "title": "fff lorem ipsum lorme ipsum",
-        "abstract": "lorem ipsum vvvvv fff",
-        "description": "lorem ipsum",
-        "id": "d9cab5a4-16f0-43a6-8141-5f3683042ea4",
-        "owner": "haroldlloyd",
-        "duration": 0,
-        "start_date": None,
-        "accepted": False,
-        "submission_date": "2022-10-15",
-        "decision_date": None
-    
-    
-    },
-    
-    
-    
-    
-    
-    {
-       "collab": "neuromorphic-testing-private",
-       "title": "testing Collaboratory v2 integration",
-       "abstract": "abstract goes here",
-       "description": "dddddd",
-       "context": "2b79a1a8-5825-4359-9b2d-2b6a11537e6b",
-       "owner": "haroldlloyd",
-       "duration": 0,
-       "status": "in preparation",
-       "submited": False
-    
-    
     
     }
     
@@ -136,10 +89,10 @@ def test_query_projects(mocker):
     mocker.patch("simqueue.db.query_projects", return_value=mock_projects)
     response = client.get("/projects/",
                           headers={"Authorization": "Bearer notarealtoken"})
-    assert response.status_code == 403
+    assert response.status_code == 200
 
     status = None
-    collab_id = ["neuromorphic-platform-admin", "neuromorphic-testing-private"]  # user can_edit
+    collab_id = ['neuromorphic-platform-admin', 'neuromorphic-testing-private'] # user can_edit
     owner_id = None
     from_index = 0
     size = 10
@@ -151,34 +104,36 @@ def test_query_projects_with_valid_filters(mocker):
     mocker.patch("simqueue.oauth.User", MockUser)
     mocker.patch("simqueue.db.query_projects", return_value=mock_projects)
     response = client.get(
-        "/projects/?status=accepted&owner_id=haroldlloyd&collab_id=neuromorphic-testing-private&collab_id=neuromorphic-platform-admin&date_range_start=2021-03-01&from_index=10",
+        "/projects/?size=10&from_index=0&as_admin=false",
         headers={"Authorization": "Bearer notarealtoken"}
     )
     assert response.status_code == 200
 
     status = None
-    collab_id = ['neuromorphic-platform-admin', 'neuromorphic-testing-private']
+    collab_id =['neuromorphic-platform-admin', 'neuromorphic-testing-private']
     owner_id = None
     from_index = 0
     size = 10
-    expected_args = (status, collab_id, owner_id, from_index, size)
+    
+    expected_args = (status, collab_id, owner_id,from_index,  size )
     assert simqueue.db.query_projects.await_args.args == expected_args
 
 
 def test_query_collabs(mocker):
     mocker.patch("simqueue.oauth.User", MockUser)
     mocker.patch("simqueue.db.query_projects", return_value=mock_projects)
-    response = client.get("/collabs/?size=100&from_index=0&as_admin=false",
+    response = client.get("/collabs/",
                           headers={"Authorization": "Bearer notarealtoken"})
                           
     assert response.status_code == 200
 
     status = None
-    collab_id = ['neuromorphic-platform-admin', 'neuromorphic-testing-private']  # user can_edit
+    collab_id =['neuromorphic-platform-admin', 'neuromorphic-testing-private']
     owner_id = None
     from_index = 0
     size = 10
-    expected_args = (status,  collab_id)
+    
+    expected_args = (status, collab_id)
     assert simqueue.db.query_projects.await_args.args == expected_args
   
   
@@ -285,14 +240,14 @@ def test_update_item(mocker):
 
            json_compatible_item_data = jsonable_encoder(data)
            response = client.put(
-                "/projects/2b79a1a8-5825-4359-9b2d-2b6a11537e6b?as_admin=false",
+                "/projects/fe326dcc-5aaf-11ed-937f-89eb17b89281?as_admin=false",
               
                 headers={"accept": "application/json","Authorization": "Bearer notarealtoken", "Content-Type": "application/json"},
                 json = json_compatible_item_data
                 
            )
           
-           assert response.status_code == 201
+           assert response.status_code == 200
           
    
 
@@ -305,7 +260,7 @@ def test_only_admins_can_edit_accepted_rejected_projects(mocker):
                    "title": "fff lorem ipsum lorme ipsum",
                    "abstract": "lorem ipsum vvvvv fff",
                    "description": "lorem ipsum",
-                  
+                   
                    "duration": 0,
                    "status": "accepted",
                    "submitted": True
@@ -330,7 +285,7 @@ def test_only_admins_can_edit_accepted_rejected_projects(mocker):
 def test_editing_forbidden_after_submission(mocker): 
            mocker.patch("simqueue.oauth.User", MockUser)
            data = {
-                   "collab": "neuromorphic-testing-private ssss",
+                   "collab": "neuromorphic-testing-private",
                    "title": "testing Collaboratory v2 integration",
                    "abstract": "abstract goes here lorem ipsum",
                    "description": "lorem ipsum lorem ipsum testing private  lorem ipsum idadad lorem ipsummmm",
@@ -346,7 +301,7 @@ def test_editing_forbidden_after_submission(mocker):
 
            json_compatible_item_data = jsonable_encoder(data)
            response = client.put(
-                "/projects/4948a906-2488-11ed-8c74-e5cdf4879499?as_admin=false",
+                "/projects/6709066e-90f8-4d81-b9f4-503b18f2452a?as_admin=false",
               
                 headers={"accept": "application/json","Authorization": "Bearer notarealtoken", "Content-Type": "application/json"},
                 json = json_compatible_item_data
@@ -354,5 +309,3 @@ def test_editing_forbidden_after_submission(mocker):
            )
           
            assert response.status_code == 403
-              
-       
