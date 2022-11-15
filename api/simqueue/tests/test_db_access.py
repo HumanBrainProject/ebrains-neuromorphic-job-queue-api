@@ -2,7 +2,7 @@ from datetime import date, datetime
 import pytz
 import pytest
 import pytest_asyncio
-from ..db import database, query_jobs, get_job, query_projects, query_quotas, get_comments, get_log, post_project
+from ..db import database, query_jobs, get_job, query_projects, query_quotas, get_comments, get_log, create_project
 from ..data_models import ProjectStatus
 
 

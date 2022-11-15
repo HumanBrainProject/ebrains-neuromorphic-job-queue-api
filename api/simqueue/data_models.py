@@ -3,14 +3,7 @@ from datetime import datetime, date
 from enum import Enum
 from typing import List, Dict
 from uuid import UUID
-import json
-
-#from fairgraph.brainsimulation import SimulationConfiguration
-
-from pydantic import BaseModel, HttpUrl, AnyUrl, validator, ValidationError
-from fastapi.encoders import jsonable_encoder
-from fastapi import HTTPException, status
-
+from pydantic import BaseModel, AnyUrl
 
 
 class JobStatus(str, Enum):
@@ -38,9 +31,11 @@ class Tag(BaseModel):
 class CommentBody(BaseModel):
     content: str
 
+
 class TimeSeries(BaseModel):
     dates: List
     values:List[int]
+
 
 class DataItem(BaseModel):
     url: AnyUrl
@@ -101,6 +96,26 @@ class JobPatch(BaseModel):
 # class Config #?
 
 
+# --- Data models for projects and quotas -----
+
+
+class QuotaSubmission(BaseModel):
+    limit: float   # "Quantity of resources granted"
+    platform: str  # "System to which quota applies"
+    units: str     # core-hours, wafer-hours, GB
+
+
+class QuotaUpdate(BaseModel):
+    limit: float  # "Quantity of resources granted"
+    usage: float  # "Quantity of resources used"
+
+
+class Quota(QuotaSubmission, QuotaUpdate):
+    id: int
+    project_id: UUID
+    resource_uri: str = None
+
+
 class ProjectStatus(str, Enum):
     in_prep = "in preparation"
     accepted = "accepted"
@@ -115,33 +130,9 @@ class ProjectSubmission(BaseModel):
     abstract: str
     description: str = None
 
-class ProjectUpdate(ProjectSubmission):
-   
-    
-    duration: int = None
-    status: str
-    submitted: bool= False
-class QuotaSubmission(BaseModel):
-    limit: float   # "Quantity of resources granted"
-    platform: str  # "System to which quota applies"
-    units: str
 
-class QuotaUpdate(BaseModel):
-    limit: float  # "Quantity of resources granted"
-    usage: float  # "Quantity of resources used"
-    
-class Quota(QuotaSubmission, QuotaUpdate):
-    
-    
-    
-    resource_uri: str= None     
-    
-    
-class QuotaPK(Quota):
-     id: UUID
-     project_id: UUID
 class Project(ProjectSubmission):
-    id:UUID
+    id: UUID
     owner: str
     duration: int = None
     start_date: date = None
@@ -150,6 +141,7 @@ class Project(ProjectSubmission):
     decision_date: date = None
     resource_uri: str= None
     quotas: List[Quota]=None
+
     def status(self):
         if self.submission_date is None:
             return ProjectStatus.in_prep
@@ -161,10 +153,15 @@ class Project(ProjectSubmission):
             return ProjectStatus.rejected
 
 
-    
+class ProjectUpdate(ProjectSubmission):
+    owner: str
+    duration: int = None
+    status: str
+    submitted: bool= False
 
 
-  
+# --- Data models for statistics -----
+
 
 class DateRangeCount(BaseModel):
     start: date
@@ -176,6 +173,7 @@ class QueueStatus(BaseModel):
     queue_name:str
     running:int
     submitted:int
+
 
 class Histogram(BaseModel):
     values:List
