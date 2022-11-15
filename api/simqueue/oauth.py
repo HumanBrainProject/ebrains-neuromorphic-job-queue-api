@@ -32,7 +32,6 @@ async def get_collab_info(collab_id, token):
 
 
 class User:
-
     def __init__(self, **kwargs):
         for key, value in kwargs.items():
             setattr(self, key, value)
@@ -58,8 +57,9 @@ class User:
 
     async def can_view(self, collab_id):
         # first of all, check team permissions
-        target_team_names = {role: f"collab-{collab_id}-{role}"
-                             for role in ("viewer", "editor", "administrator")}
+        target_team_names = {
+            role: f"collab-{collab_id}-{role}" for role in ("viewer", "editor", "administrator")
+        }
         for role, team_name in target_team_names.items():
             if team_name in self.roles["team"]:
                 return True
@@ -72,8 +72,9 @@ class User:
             return collab_info.get("isPublic", False)
 
     def can_edit(self, collab_id):
-        target_team_names = {role: f"collab-{collab_id}-{role}"
-                             for role in ("editor", "administrator")}
+        target_team_names = {
+            role: f"collab-{collab_id}-{role}" for role in ("editor", "administrator")
+        }
         for role, team_name in target_team_names.items():
             if team_name in self.roles["team"]:
                 return True

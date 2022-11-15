@@ -33,9 +33,7 @@ def about_this_api():
     return {
         "about": "This is the EBRAINS Neuromorphic Computing Job Queue API.",
         "version": "3",
-        "links": {
-            "documentation": "/docs"
-        }
+        "links": {"documentation": "/docs"},
     }
 
 

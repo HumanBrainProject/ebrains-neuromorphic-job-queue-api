@@ -1,4 +1,3 @@
-
 from datetime import datetime, date
 from enum import Enum
 from typing import List, Dict
@@ -34,7 +33,7 @@ class CommentBody(BaseModel):
 
 class TimeSeries(BaseModel):
     dates: List
-    values:List[int]
+    values: List[int]
 
 
 class DataItem(BaseModel):
@@ -55,6 +54,7 @@ class SubmittedJob(BaseModel):
 
     Each job has an entry with all the required information to be run on the hardware.
     """
+
     code: str
     command: str = None
     collab_id: str
@@ -82,6 +82,7 @@ class CompletedJob(AcceptedJob):
 
 class Job(CompletedJob):
     """Used where we want to return jobs with different statuses"""
+
     pass
 
 
@@ -100,9 +101,9 @@ class JobPatch(BaseModel):
 
 
 class QuotaSubmission(BaseModel):
-    limit: float   # "Quantity of resources granted"
+    limit: float  # "Quantity of resources granted"
     platform: str  # "System to which quota applies"
-    units: str     # core-hours, wafer-hours, GB
+    units: str  # core-hours, wafer-hours, GB
 
 
 class QuotaUpdate(BaseModel):
@@ -139,8 +140,8 @@ class Project(ProjectSubmission):
     accepted: bool = False
     submission_date: date = None
     decision_date: date = None
-    resource_uri: str= None
-    quotas: List[Quota]=None
+    resource_uri: str = None
+    quotas: List[Quota] = None
 
     def status(self):
         if self.submission_date is None:
@@ -157,7 +158,7 @@ class ProjectUpdate(ProjectSubmission):
     owner: str
     duration: int = None
     status: str
-    submitted: bool= False
+    submitted: bool = False
 
 
 # --- Data models for statistics -----
@@ -170,15 +171,15 @@ class DateRangeCount(BaseModel):
 
 
 class QueueStatus(BaseModel):
-    queue_name:str
-    running:int
-    submitted:int
+    queue_name: str
+    running: int
+    submitted: int
 
 
 class Histogram(BaseModel):
-    values:List
-    bins:List
-    platform:str
-    status:str
-    scale:str
-    max:int
+    values: List
+    bins: List
+    platform: str
+    status: str
+    scale: str
+    max: int

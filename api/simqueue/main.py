@@ -17,7 +17,9 @@ copy the <i>access_token</i> into the "HTTPBearer" box
 (this process will be streamlined for the beta release).
 """
 
-app = FastAPI(title="EBRAINS Neuromorphic Computing Job Queue API", description=description, version="3.0")
+app = FastAPI(
+    title="EBRAINS Neuromorphic Computing Job Queue API", description=description, version="3.0"
+)
 
 
 @app.on_event("startup")

@@ -8,20 +8,19 @@ from simqueue.oauth import User, get_collab_info
 def token():
     return os.environ["EBRAINS_AUTH_TOKEN"]
 
+
 @pytest.fixture
 def fake_user_data():
     return {
         "preferred_username": "haroldlloyd",
         "roles": {
-            "group": [
-                "comic-film-actors-from-the-silent-era"
-            ],
+            "group": ["comic-film-actors-from-the-silent-era"],
             "team": [
                 "collab-some-other-collab-viewer",
                 "collab-neuromorphic-testing-private-editor",
-                "collab-neuromorphic-platform-admin-administrator"
-            ]
-        }
+                "collab-neuromorphic-platform-admin-administrator",
+            ],
+        },
     }
 
 
@@ -36,7 +35,7 @@ def test_user_get_collabs(fake_user_data):
     assert user.get_collabs() == [
         "neuromorphic-platform-admin",
         "neuromorphic-testing-private",
-        "some-other-collab"
+        "some-other-collab",
     ]
 
 

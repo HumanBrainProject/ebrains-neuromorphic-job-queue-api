@@ -12,7 +12,5 @@ def test_read_main():
     assert response.json() == {
         "about": "This is the EBRAINS Neuromorphic Computing Job Queue API.",
         "version": "3",
-        "links": {
-            "documentation": "/docs"
-        }
+        "links": {"documentation": "/docs"},
     }
