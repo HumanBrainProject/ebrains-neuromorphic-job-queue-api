@@ -134,41 +134,6 @@ async def get_job(
     )
 
 
-@router.get("/jobs/{job_id}/comments", response_model=List[Comment])
-async def get_comments(
-    job_id: int = Path(
-        ..., title="Job ID", description="ID of the job whose comments are to be retrieved"
-    ),
-    as_admin: bool = Query(
-        False, description="Run this query with admin privileges, if you have them"
-    ),
-    token: HTTPAuthorizationCredentials = Depends(auth),
-):
-    """
-    Return the comments on an individual job
-    """
-    get_user_task = asyncio.create_task(oauth.User.from_token(token.credentials))
-    get_job_task = asyncio.create_task(db.get_job(job_id))
-    user = await get_user_task
-    job = await get_job_task
-    if job is None:
-        raise HTTPException(
-            status_code=status_codes.HTTP_404_NOT_FOUND,
-            detail=f"Either there is no job with id {job_id}, or you do not have access to it",
-        )
-    if (
-        (as_admin and user.is_admin)
-        or job["user_id"] == user.username
-        or await user.can_view(job["collab_id"])
-    ):
-        return await db.get_comments(job_id)
-
-    raise HTTPException(
-        status_code=status_codes.HTTP_404_NOT_FOUND,
-        detail=f"Either there is no job with id {job_id}, or you do not have access to it",
-    )
-
-
 @router.get("/jobs/{job_id}/log", response_model=str)
 async def get_log(
     job_id: int = Path(
@@ -198,6 +163,41 @@ async def get_log(
     ):
         log = await db.get_log(job_id)
         return log["content"]
+
+    raise HTTPException(
+        status_code=status_codes.HTTP_404_NOT_FOUND,
+        detail=f"Either there is no job with id {job_id}, or you do not have access to it",
+    )
+
+
+@router.get("/jobs/{job_id}/comments", response_model=List[Comment])
+async def get_comments(
+    job_id: int = Path(
+        ..., title="Job ID", description="ID of the job whose comments are to be retrieved"
+    ),
+    as_admin: bool = Query(
+        False, description="Run this query with admin privileges, if you have them"
+    ),
+    token: HTTPAuthorizationCredentials = Depends(auth),
+):
+    """
+    Return the comments on an individual job
+    """
+    get_user_task = asyncio.create_task(oauth.User.from_token(token.credentials))
+    get_job_task = asyncio.create_task(db.get_job(job_id))
+    user = await get_user_task
+    job = await get_job_task
+    if job is None:
+        raise HTTPException(
+            status_code=status_codes.HTTP_404_NOT_FOUND,
+            detail=f"Either there is no job with id {job_id}, or you do not have access to it",
+        )
+    if (
+        (as_admin and user.is_admin)
+        or job["user_id"] == user.username
+        or await user.can_view(job["collab_id"])
+    ):
+        return await db.get_comments(job_id)
 
     raise HTTPException(
         status_code=status_codes.HTTP_404_NOT_FOUND,
@@ -323,10 +323,15 @@ async def add_comment(
     )
 
 
-@router.put("/jobs/{job_id}/comments/", response_model=Comment)
-async def put_comment(
+# todo: endpoint to get individual comment
+# @router.get("/jobs/{job_id}/comments/{comment_id}", response_model=Comment)
+
+
+@router.put("/jobs/{job_id}/comments/{comment_id}", response_model=Comment)
+async def update_comment(
     comment: CommentBody,
-    comment_id: int = Query(..., title="Comment ID", description="ID of the comment being edited"),
+    job_id: int = Path(..., title="Job ID", description="ID of the job being commented on"),
+    comment_id: int = Path(..., title="Comment ID", description="ID of the comment being edited"),
     as_admin: bool = Query(
         False, description="Run this query with admin privileges, if you have them"
     ),
@@ -362,9 +367,10 @@ async def put_comment(
     )
 
 
-@router.delete("/jobs/{job_id}/comments/", status_code=status_codes.HTTP_200_OK)
+@router.delete("/jobs/{job_id}/comments/{comment_id}", status_code=status_codes.HTTP_200_OK)
 async def delete_comment(
-    comment_id: int = Query(..., title="Comment ID", description="ID of the comment being edited"),
+    job_id: int = Path(..., title="Job ID", description="ID of the job being commented on"),
+    comment_id: int = Path(..., title="Comment ID", description="ID of the comment being edited"),
     as_admin: bool = Query(
         False, description="Run this query with admin privileges, if you have them"
     ),
