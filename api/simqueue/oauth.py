@@ -2,7 +2,7 @@ import logging
 import requests
 import json
 from authlib.integrations.starlette_client import OAuth
-from fastapi import HTTPException, status
+from fastapi import HTTPException, status as status_codes
 
 
 from . import settings
@@ -71,6 +71,10 @@ class User:
             collab_info = await get_collab_info(collab_id, self.token["access_token"])
         except ValueError:
             return False
+            # raise HTTPException(
+            # status_code=status_codes.HTTP_403_FORBIDDEN,
+            # detail=f"User Object  has no attribute 'token"
+            # )
         else:
             return collab_info.get("isPublic", False)
 
