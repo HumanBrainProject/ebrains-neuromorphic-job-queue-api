@@ -39,7 +39,7 @@ from . import settings
 from .globals import RESOURCE_USAGE_UNITS
 
 
-SQLALCHEMY_DATABASE_URL = f"postgresql://{settings.DATABASE_USERNAME}:{settings.DATABASE_PASSWORD}@{settings.DATABASE_HOST}:{settings.DATABASE_PORT}/nmpi"
+SQLALCHEMY_DATABASE_URL = f"postgresql://{settings.DATABASE_USERNAME}:{settings.DATABASE_PASSWORD}@{settings.DATABASE_HOST}:{settings.DATABASE_PORT}/nmpi?ssl=false"
 
 database = databases.Database(SQLALCHEMY_DATABASE_URL)
 
