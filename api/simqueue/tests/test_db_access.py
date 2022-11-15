@@ -4,6 +4,7 @@ from simqueue.db import database, query_jobs, get_job, query_projects, query_quo
 from simqueue.data_models import ProjectStatus
 import json
 import pytz
+import pytest
 import pytest_asyncio
 @pytest_asyncio.fixture()
 async def database_connection():
