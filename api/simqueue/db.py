@@ -6,16 +6,19 @@ import uuid
 from slugify import slugify
 
 import databases
-from sqlalchemy import Column, ForeignKey, Integer, Float, String, Boolean, DateTime, Date, Table, MetaData, literal_column,func,text,distinct,select as slct
+from sqlalchemy import Column, ForeignKey, Integer, Float, String, Boolean, DateTime, Date, Table, MetaData, literal_column, func, text, distinct, select as slct, create_engine
 from sqlalchemy.dialects.postgresql import UUID
 
 from .data_models import ProjectStatus, CommentBody,SubmittedJob, AcceptedJob, CompletedJob,JobPatch,Tag
 from . import settings
 from .globals import RESOURCE_USAGE_UNITS
 
-SQLALCHEMY_DATABASE_URL = f"postgresql://{settings.DATABASE_USERNAME}:{settings.DATABASE_PASSWORD}@{settings.DATABASE_HOST}:{settings.DATABASE_PORT}/nmpi?ssl=false"
+
+
+SQLALCHEMY_DATABASE_URL = f"postgresql://{settings.DATABASE_USERNAME}:{settings.DATABASE_PASSWORD}@{settings.DATABASE_HOST}:{settings.DATABASE_PORT}/nmpi"
 
 database = databases.Database(SQLALCHEMY_DATABASE_URL)
+
 metadata = MetaData()
 
 
@@ -122,6 +125,8 @@ quotas = Table(
 
 
 
+    
+
 
 def transform_fields(job):
     """Change certain fields that are stored as strings or floats into richer Python types"""
@@ -140,6 +145,8 @@ def transform_fields(job):
 def transform_project_fields(project):
     project["id"] = project.pop("context")
     return project
+
+
 
 
 async def follow_relationships(job):
@@ -226,6 +233,7 @@ async def update_log(job,jobPatch):
 
     
     return 
+
 
 def get_list_filter(attr, value):
     if len(value) > 0:
@@ -556,25 +564,141 @@ async def query_projects(
         query = projects.select().where(*filters).offset(from_index).limit(size)
     else:
         query = projects.select().offset(from_index).limit(size)
-
+    await database.connect()
+    await database.execute(query)
     results = await database.fetch_all(query)
+    
     return [transform_project_fields(dict(result)) for result in results]
 
+async def post_project(project):
+     
+    
+     if project['submitted']:
+       submission_date = date.today()
+     else:
+       submission_date = None
+     ins = projects.insert().values( context  = project['id'],  collab = project['collab'], owner= project['owner'], title = project['title'] , abstract = project['abstract'], description= project['description'], duration = 0,  accepted = project['accepted'], submission_date=submission_date)
+     await database.connect()
+     await database.execute(ins)
+     
+     
+    
 
-async def get_project(project_id: UUID):
+
+async def put_project(project_id,  project_update):
+     
+     status: ProjectStatus = None,
+     collab_id: List[str] = None,
+     
+     
+     #date_range_start: date = None,
+     #date_range_end: date = None,
+     from_index: int = 0,
+     size: int = 1000
+     filters = []
+     
+     
+     ins = projects.update().where(projects.c.context == project_id).values(  collab = project_update['collab'], owner= project_update['owner'], title = project_update['title'] , abstract = project_update['abstract'], description= project_update['description'], duration = project_update['duration'], start_date=project_update['start_date'],   accepted = project_update['accepted'], submission_date= project_update['submission_date'],  decision_date= project_update['decision_date'])
+     await database.connect()
+     await database.execute(ins)
+     
+     
+    
+     
+     
+     
+    
+async def get_project(project_id):
     query = projects.select().where(projects.c.context == project_id)
+    await database.connect()
+    await database.execute(query)
     result = await database.fetch_one(query)
-    return dict(result)
+    
+    if result  is not None:
+       return transform_project_fields(dict(result))
+       
+    
+
+async def delete_project(project_id):
+      
+      query= projects.delete().where(projects.c.context == project_id)
+      await database.connect()
+      await database.execute(query)
+      
+     
 
 
+    
 async def query_quotas(
-    project_id: List[str] = None,
+    project_id,
     from_index: int = 0,
     size: int = 10
 ):
-    query = quotas.select()
+    
+    query = quotas.select() 
     if project_id:
-        query = query.where(get_list_filter(quotas.c.project_id, project_id))
-    query = query.offset(from_index).limit(size)
+        query = quotas.select().where(quotas.c.project_id == project_id)
+        query = query.offset(from_index).limit(size)
+    await database.connect()
+    await database.execute(query)
     results = await database.fetch_all(query)
-    return [dict(result) for result in results]
+    
+    return [(dict(result)) for result in results]
+    
+    
+    
+async def delete_quotas_from_project(project_id):
+
+  query = quotas.select().where(quotas.c.project_id == project_id)
+  await database.connect()
+  await database.execute(query)
+  results = await database.fetch_all(query)
+  for result in results:
+     await  query_deleteonequota(project_id,result.id)
+
+    
+async def get_quota(
+  
+    quota_id, project_id
+):
+    
+    
+    query = quotas.select().where(quotas.c.id == quota_id, quotas.c.project_id== project_id) 
+        
+    await database.connect()
+    await database.execute(query)
+    results = await database.fetch_one(query)
+    
+    if results  is not None:
+          return dict(results)
+            
+          
+async def query_deleteonequota(
+ 
+    quota_id, project_id
+):
+    
+    
+    
+    query = quotas.delete().where(quotas.c.id == quota_id, quotas.c.project_id== project_id)
+        
+    
+    await database.execute(query)
+    
+  
+    
+           
+async def post_quotas( project_id, quota):
+    
+    
+    ins= quotas.insert().values( project_id  = project_id, limit=quota.limit, platform=quota.platform, units=quota.units, usage= 0)
+    await database.connect()
+    await database.execute(ins)
+    
+async def put_quotas( project_id, quota, quota_id):
+    
+    
+    ins= quotas.update().where(quotas.c.id == quota_id , quotas.c.project_id == project_id).values(  limit=quota['limit'], usage=quota['usage'])
+    await database.connect()
+    await database.execute(ins)
+       

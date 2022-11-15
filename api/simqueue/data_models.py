@@ -115,16 +115,41 @@ class ProjectSubmission(BaseModel):
     abstract: str
     description: str = None
 
+class ProjectUpdate(ProjectSubmission):
+   
+    
+    duration: int = None
+    status: str
+    submitted: bool= False
+class QuotaSubmission(BaseModel):
+    limit: float   # "Quantity of resources granted"
+    platform: str  # "System to which quota applies"
+    units: str
 
+class QuotaUpdate(BaseModel):
+    limit: float  # "Quantity of resources granted"
+    usage: float  # "Quantity of resources used"
+    
+class Quota(QuotaSubmission, QuotaUpdate):
+    
+    
+    
+    resource_uri: str= None     
+    
+    
+class QuotaPK(Quota):
+     id: UUID
+     project_id: UUID
 class Project(ProjectSubmission):
-    id: UUID
+    id:UUID
     owner: str
     duration: int = None
     start_date: date = None
     accepted: bool = False
     submission_date: date = None
     decision_date: date = None
-
+    resource_uri: str= None
+    quotas: List[Quota]=None
     def status(self):
         if self.submission_date is None:
             return ProjectStatus.in_prep
@@ -136,13 +161,10 @@ class Project(ProjectSubmission):
             return ProjectStatus.rejected
 
 
-class Quota(BaseModel):
-    units: str     # core-hours, wafer-hours, GB
-    limit: float   # "Quantity of resources granted"
-    usage: float   # "Quantity of resources used"
-    platform: str  # "System to which quota applies")
-    project_id: UUID
+    
 
+
+  
 
 class DateRangeCount(BaseModel):
     start: date
