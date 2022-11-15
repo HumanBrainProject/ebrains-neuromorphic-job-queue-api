@@ -22,7 +22,7 @@ router = APIRouter()
 
 @router.get("/jobs/", response_model=List[Job])
 async def query_jobs(
-    status: JobStatus = Query(None, description="status"),
+    status: List[JobStatus] = Query(None, description="status"),
     tag: List[str] = Query(None, description="tags"),
     collab_id: List[str] = Query(None, description="collab id"),
     user_id: List[str] = Query(None, description="user id"),
@@ -431,7 +431,7 @@ async def remove_tags(
         raise HTTPException(status_code=status_codes.HTTP_404_NOT_FOUND,
         detail=f"Either there is no job with id {job_id}, or you do not have access to it"
     )
-    if (as_admin and user.is_admin) or job["user_id"] == user.username or  ser.can_edit(job["collab_id"]):
+    if (as_admin and user.is_admin) or job["user_id"] == user.username or user.can_edit(job["collab_id"]):
         return await db.remove_tags(job_id,tags_ids)
         
     raise HTTPException(

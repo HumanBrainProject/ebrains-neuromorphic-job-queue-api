@@ -7,3 +7,6 @@ For local development, run:
 To run tests:
 
   pytest --cov=simqueue --cov-report=term --cov-report=html
+
+Certain tests require a valid EBRAINS IAM authorization token,
+provided via an environment variable `EBRAINS_AUTH_TOKEN`.

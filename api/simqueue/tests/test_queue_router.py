@@ -128,7 +128,7 @@ def test_query_jobs_with_valid_filters(mocker):
     )
     assert response.status_code == 200
 
-    status = JobStatus.finished
+    status = [JobStatus.finished]
     collab_id = ["neuromorphic-testing-private"]
     user_id = ["haroldlloyd"]
     hardware_platform = ["SpiNNaker", "BrainScaleS"]

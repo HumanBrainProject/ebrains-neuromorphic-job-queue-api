@@ -63,7 +63,7 @@ comments = Table(
     metadata,
     Column("id", Integer, primary_key=True),
     Column("content", String),
-    Column("created_time", DateTime(timezone=True), nullable=False),
+    Column("created_time", DateTime(timezone=True), default=now_in_utc, nullable=False),
     Column("user", String(36), nullable=False),
     Column("job_id", Integer, ForeignKey("simqueue_job.id"))
 )

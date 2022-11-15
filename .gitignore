@@ -27,3 +27,4 @@ letsencrypt
 ssl
 env_local.sh
 docker-compose.yml
+docker-compose-staging.yml
