@@ -218,7 +218,7 @@ async def create_job(
     user = await get_user_task
     if (as_admin and user.is_admin) or user.can_edit(job.collab_id):
 
-        accepted_job = await db.post_job(user.username, job)
+        accepted_job = await db.create_job(user.username, job)
         return accepted_job
     raise HTTPException(
         status_code=status_codes.HTTP_404_NOT_FOUND,

@@ -327,7 +327,7 @@ async def get_job(job_id: int):
         return None
 
 
-async def post_job(user_id: str, job: SubmittedJob):
+async def create_job(user_id: str, job: SubmittedJob):
 
     ins = jobs.insert().values(
         code=job.code,
