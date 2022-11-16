@@ -218,20 +218,20 @@ async def follow_relationships_quotas(id):
 
 async def delete_dataitems(job_id):
     # input data
-    query = data_items.delete().where(
+    query = job_input_data.delete().where(job_input_data.c.job_id == job_id)
+    await database.execute(query)
+    query2 = data_items.delete().where(
         data_items.c.id == job_input_data.c.dataitem_id, job_input_data.c.job_id == job_id
     )
-    await database.execute(query)
-    query2 = job_input_data.delete().where(job_input_data.c.job_id == job_id)
     await database.execute(query2)
 
     # output data
-    query = data_items.delete().where(
+    query3 = job_output_data.delete().where(job_output_data.c.job_id == job_id)
+    await database.execute(query3)
+    query4 = data_items.delete().where(
         data_items.c.id == job_output_data.c.dataitem_id, job_output_data.c.job_id == job_id
     )
-    await database.execute(query)
-    query2 = job_output_data.delete().where(job_output_data.c.job_id == job_id)
-    await database.execute(query2)
+    await database.execute(query4)
 
     return
 
