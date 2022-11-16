@@ -1,4 +1,5 @@
-from datetime import date, datetime
+from datetime import date, datetime, timezone
+from copy import deepcopy
 import pytz
 import pytest
 import pytest_asyncio
@@ -10,9 +11,16 @@ from ..db import (
     query_quotas,
     get_comments,
     get_log,
+    create_job,
+    update_job,
+    delete_job,
     create_project,
 )
-from ..data_models import ProjectStatus
+from ..data_models import ProjectStatus, SubmittedJob, JobPatch, ResourceUsage, DataItem
+
+
+TEST_COLLAB = "neuromorphic-testing-private"
+TEST_USER = "adavisontesting"
 
 
 @pytest_asyncio.fixture()
@@ -20,6 +28,21 @@ async def database_connection():
     await database.connect()
     yield
     await database.disconnect()
+
+
+@pytest_asyncio.fixture()
+async def submitted_job():
+    data = {
+        "code": "import antigravity\n",
+        "command": None,
+        "collab_id": TEST_COLLAB,
+        "status": "submitted",
+        "hardware_platform": "TestPlatform",
+        "hardware_config": {"answer": "42"},
+    }
+    response = await create_job(user_id=TEST_USER, job=SubmittedJob(**data))
+    yield response
+    response2 = await delete_job(response["id"])
 
 
 @pytest.mark.asyncio
@@ -106,6 +129,72 @@ async def test_get_log(database_connection):
     log = await get_log(142972)
     expected_keys = {"job_id", "content"}
     assert set(log.keys()) == expected_keys
+
+
+@pytest.mark.asyncio
+async def test_create_job(database_connection):
+    data = {
+        "code": "import antigravity\n",
+        "command": None,
+        "collab_id": TEST_COLLAB,
+        "status": "submitted",
+        "hardware_platform": "testPlatform",
+        "hardware_config": {"answer": "42"},
+    }
+    response = await create_job(user_id=TEST_USER, job=SubmittedJob(**data))
+    response2 = await get_job(response["id"])
+    assert response == response2
+    response3 = await delete_job(response["id"])
+    expected = {
+        "code": data["code"],
+        "command": "",
+        "collab_id": data["collab_id"],
+        "input_data": [],
+        "hardware_platform": data["hardware_platform"],
+        "hardware_config": data["hardware_config"],
+        "tags": [],
+        "id": response["id"],
+        "user_id": TEST_USER,
+        "status": "submitted",
+        "timestamp_completion": None,
+        "output_data": [],
+        "provenance": None,
+        "resource_usage": None,
+    }
+    assert response.pop("timestamp_submission")
+    assert response == expected
+
+
+@pytest.mark.asyncio
+async def test_update_job(database_connection, submitted_job):
+    data = {
+        "status": "error",
+        "output_data": [
+            dict(
+                url="http://example.com/datafile1.txt",
+                content_type="text/plain",
+                size=42,
+                hash="fedcba9876543210",
+            ),
+            dict(
+                url="http://example.com/datafile2.json",
+                content_type="application/json",
+                size=1234,
+                hash="edcba9876543210f",
+            ),
+        ],
+        "provenance": {"foo": "bar"},
+        "resource_usage": dict(value=999.0, units="bushels"),
+    }
+    response = await update_job(job_id=submitted_job["id"], job_patch=JobPatch(**data))
+    response.pop("timestamp_completion")
+    for data_item in response["output_data"]:
+        data_item.pop("id")
+    response["output_data"].sort(key=lambda item: item["url"])
+    expected = deepcopy(submitted_job)
+    expected.pop("timestamp_completion")
+    expected.update(data)
+    assert response == expected
 
 
 @pytest.mark.asyncio

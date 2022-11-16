@@ -1,4 +1,4 @@
-from datetime import datetime, date, timedelta
+from datetime import datetime, date, timedelta, timezone
 import pytz
 from typing import List
 import json
@@ -125,6 +125,8 @@ tagged_items = Table(
     Column("content_type_id", Integer, nullable=False),
     Column("tag_id", Integer, ForeignKey("taggit_tag.id"), nullable=False),
 )
+
+
 projects = Table(
     "quotas_project",
     metadata,
@@ -140,6 +142,7 @@ projects = Table(
     Column("submission_date", Date),
     Column("decision_date", Date),  # Value set when project is accepted/refused
 )
+
 
 quotas = Table(
     "quotas_quota",
@@ -241,7 +244,7 @@ async def delete_dataitems(job_id):
 async def create_job_input_data_item(job, job_id):
 
     for item in job.input_data:
-        ins_data_item = data_items.insert().values(url=item.url)
+        ins_data_item = data_items.insert().values(**dict(item))
         data_item_id = await database.execute(ins_data_item)
         ins_job_input = job_input_data.insert().values(job_id=job_id, dataitem_id=data_item_id)
         await database.execute(ins_job_input)
@@ -249,26 +252,26 @@ async def create_job_input_data_item(job, job_id):
     return
 
 
-async def update_job_output_data_item(job, jobPatch):
+async def update_job_output_data_item(job_id, job_patch):
 
-    for item in jobPatch.output_data:
-        ins_data_item = data_items.insert().values(url=item.url)
+    for item in job_patch.output_data:
+        ins_data_item = data_items.insert().values(**dict(item))
         data_item_id = await database.execute(ins_data_item)
-        ins_job_output = job_output_data.insert().values(job_id=job.id, dataitem_id=data_item_id)
+        ins_job_output = job_output_data.insert().values(job_id=job_id, dataitem_id=data_item_id)
         await database.execute(ins_job_output)
 
     return
 
 
-async def update_log(job, jobPatch):
+async def update_log(job_id, job_patch):
 
-    query = logs.select().where(logs.c.job_id == job.id)
+    query = logs.select().where(logs.c.job_id == job_id)
     result = await database.fetch_one(query)
     if result is None:
-        ins = logs.insert().values(job_id=job.id, content=jobPatch.log)
+        ins = logs.insert().values(job_id=job_id, content=job_patch.log)
         await database.execute(ins)
     else:
-        ins = logs.update().where(jobs.c.id == job.id).values(content=jobPatch.log)
+        ins = logs.update().where(jobs.c.id == job_id).values(content=job_patch.log)
         await database.execute(ins)
 
     return
@@ -356,12 +359,12 @@ async def create_job(user_id: str, job: SubmittedJob):
 
     ins = jobs.insert().values(
         code=job.code,
-        command=job.command,
+        command=job.command or "",
         collab_id=job.collab_id,
         user_id=user_id,
         status="submitted",
         hardware_platform=job.hardware_platform,
-        hardware_config=job.hardware_config,
+        hardware_config=json.dumps(job.hardware_config) if job.hardware_config else None,
         timestamp_submission=now_in_utc(),
     )
     job_id = await database.execute(ins)
@@ -376,23 +379,29 @@ async def create_job(user_id: str, job: SubmittedJob):
     return transform_fields(await follow_relationships(dict(result)))
 
 
-async def put_job(job_id: int, user_id: str, jobPatch: JobPatch):
-    query = jobs.select().where(jobs.c.id == job_id)
-    job = await database.fetch_one(query)
+async def update_job(job_id: int, job_patch: JobPatch):
+    if job_patch.status in ("error", "finished"):
+        # todo: check the status wasn't already one of these
+        timestamp_completion = datetime.now(timezone.utc)
+    else:
+        timestamp_completion = None
     ins = (
         jobs.update()
         .where(jobs.c.id == job_id)
-        .values(provenance=jobPatch.provenance, resource_usage=jobPatch.resource_usage)
+        .values(
+            provenance=json.dumps(job_patch.provenance),
+            resource_usage=job_patch.resource_usage.value,
+            status=job_patch.status,
+            timestamp_completion=timestamp_completion,
+        )
     )
     await database.execute(ins)
 
-    query = jobs.select().where(jobs.c.id == job_id)
-    result = await database.fetch_one(query)
-    if jobPatch.output_data is not None:
-        await update_job_output_data_item(result, jobPatch)
-    if jobPatch.log is not None:
-        await update_log(result, jobPatch)
-    return transform_fields(await follow_relationships(dict(result)))
+    if job_patch.output_data is not None:
+        await update_job_output_data_item(job_id, job_patch)
+    if job_patch.log is not None:
+        await update_log(job_id, job_patch)
+    return await get_job(job_id)
 
 
 async def delete_job(job_id: int):

@@ -6,4 +6,5 @@ RESOURCE_USAGE_UNITS = {
     "SpiNNaker": "core-hours",
     "BrainScaleS-ESS": "hours",
     "Spikey": "hours",
+    "TestPlatform": "bushels",
 }

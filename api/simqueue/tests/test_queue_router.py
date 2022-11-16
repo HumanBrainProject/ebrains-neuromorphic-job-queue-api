@@ -193,7 +193,7 @@ def test_post_job(mocker):
 def test_put_job(mocker):
     mocker.patch("simqueue.oauth.User", MockUser)
     mocker.patch("simqueue.db.get_job", return_value=mock_jobs[0])
-    mocker.patch("simqueue.db.put_job", return_value=mock_jobs[0])
+    mocker.patch("simqueue.db.update_job", return_value=mock_jobs[0])
     response = client.put(
         "/jobs/999999", json=mock_job_patch, headers={"Authorization": "Bearer notarealtoken"}
     )
