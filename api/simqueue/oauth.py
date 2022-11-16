@@ -1,8 +1,11 @@
 import logging
 import requests
 from authlib.integrations.starlette_client import OAuth
+from fastapi.security.api_key import APIKeyHeader
+from fastapi import Security, HTTPException, status as status_codes
 
-from . import settings
+from . import settings, db
+
 
 logger = logging.getLogger("simqueue")
 
@@ -89,3 +92,16 @@ class User:
             if role in access:
                 collabs.add(collab_id)
         return sorted(collabs)
+
+
+api_key_header = APIKeyHeader(name="x-api-key", auto_error=False)
+
+
+async def get_provider(api_key: str = Security(api_key_header)):
+    provider_name = db.get_provider(api_key)
+    if provider_name:
+        return provider_name
+    else:
+        raise HTTPException(
+            status_code=status_codes.HTTP_403_FORBIDDEN, detail="Could not validate API key"
+        )

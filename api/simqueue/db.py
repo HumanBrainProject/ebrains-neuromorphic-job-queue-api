@@ -152,6 +152,16 @@ quotas = Table(
 )
 
 
+api_keys = Table(
+    "tastypie_apikey",
+    metadata,
+    Column("id", Integer, primary_key=True),
+    Column("key", String(128), nullable=False),
+    Column("created", DateTime(timezone=True), nullable=False),
+    Column("user_id", Integer, nullable=False),
+)
+
+
 def transform_fields(job):
     """Change certain fields that are stored as strings or floats into richer Python types"""
     if job.get("hardware_config", None):
@@ -388,6 +398,25 @@ async def delete_job(job_id: int):
     result = await database.execute(ins)
 
     return
+
+
+async def get_provider(apikey):
+    provider_id_map = {
+        2: "uhei",
+        3: "uman",
+        4: "nmpi",
+        50: "benchmark_runner",
+        74: "uhei-jenkins-test-user",
+    }
+    # we could use the auth_user table in the database for mapping user_id to username,
+    # but since we only have five users with API keys, we take the simple
+    # approach for now
+    query = api_keys.select().where(api_keys.c.key == apikey)
+    result = await database.fetch_one(query)
+    if result:
+        return provider_id_map[result["user_id"]]
+    else:
+        return None
 
 
 async def get_users_count(

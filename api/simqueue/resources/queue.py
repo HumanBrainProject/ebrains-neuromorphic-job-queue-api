@@ -6,6 +6,8 @@ import asyncio
 
 from fastapi import APIRouter, Depends, Query, Path, HTTPException, status as status_codes
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
+from fastapi.security.api_key import APIKey
+
 
 from ..data_models import (
     SubmittedJob,
@@ -233,29 +235,22 @@ async def update_job(
     as_admin: bool = Query(
         False, description="Run this query with admin privileges, if you have them"
     ),
-    token: HTTPAuthorizationCredentials = Depends(auth),
+    api_key: APIKey = Depends(oauth.get_provider),
 ):
     """
     For use by job handlers to update job metadata
     """
 
-    get_user_task = asyncio.create_task(oauth.User.from_token(token.credentials))
-    get_job_task = asyncio.create_task(db.get_job(job_id))
-    user = await get_user_task
-    old_job = await get_job_task
+    provider_name = api_key
+    old_job = await db.get_job(job_id)
     if old_job is None:
         raise HTTPException(
             status_code=status_codes.HTTP_404_NOT_FOUND,
             detail=f"Either there is no job with id {job_id}, or you do not have access to it",
         )
-    if (as_admin and user.is_admin) or old_job["user_id"] == user.username:
-        result = await db.put_job(job_id, user.username, job)
-        return result
-
-    raise HTTPException(
-        status_code=status_codes.HTTP_404_NOT_FOUND,
-        detail=f"Either there is no job with id {job_id}, or you do not have access to it",
-    )
+    # todo: check provider_name matches old_job.platform
+    result = await db.update_job(job_id, job)
+    return result
 
 
 @router.delete("/jobs/{job_id}", status_code=status_codes.HTTP_200_OK)
