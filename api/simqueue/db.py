@@ -297,11 +297,9 @@ async def query_jobs(
             filters.append(jobs.c.timestamp_submission >= date_range_start)
     elif date_range_end:
         filters.append(jobs.c.timestamp_submission <= date_range_end)
-    compiled_query = ""
     if fields is None:
         select = jobs.select()
     else:
-
         list_fields = ["jobs.c." + field for field in fields]
         select = jobs.select().with_only_columns(*[literal_column(field) for field in fields])
 
@@ -339,7 +337,6 @@ async def create_job(user_id: str, job: SubmittedJob):
         hardware_config=job.hardware_config,
         timestamp_submission=now_in_utc(),
     )
-    compiled_query = str(ins.compile(compile_kwargs={"literal_binds": True}))
     job_id = await database.execute(ins)
 
     query = jobs.select().where(jobs.c.id == job_id)
@@ -460,7 +457,6 @@ async def count_jobs(
         filters.append(get_list_filter(jobs.c.hardware_platform, hardware_platform))
     select_query = slct(func.count(jobs.c.id))
     query = select_query.where(*filters)
-    compiled_query = str(query.compile(compile_kwargs={"literal_binds": True}))
     jobs_count = await database.execute(query)
     return int(jobs_count)
 
@@ -477,7 +473,6 @@ async def get_tags(job_id: int):
     for tag_item in results:
         query = taglist.select().where(taglist.c.id == tag_item.tag_id)
         used_tag = await database.fetch_one(query)
-        compiled_query = str(query.compile(compile_kwargs={"literal_binds": True}))
         tags.append(Tag(tag_id=tag_item.tag_id, content=used_tag["name"]))
     return tags
 
