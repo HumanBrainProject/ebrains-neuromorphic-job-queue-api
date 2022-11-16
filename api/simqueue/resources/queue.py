@@ -96,6 +96,28 @@ async def query_jobs(
     return jobs
 
 
+@router.get("/jobs/next/{hardware_platform}", response_model=Job)
+async def get_next_job(
+    hardware_platform: str = Path(
+        ...,
+        title="Hardware Platform",
+        description="hardware platform (e.g. SpiNNaker, BrainScales)",
+    ),
+    api_key: APIKey = Depends(oauth.get_provider),
+):
+    # todo: check api_key matches hardware_platform
+    provider_name = api_key
+    job = await db.get_next_job(hardware_platform)
+    if job:
+        raise NotImplementedError("todo: take the job off the queue")
+        return job
+    else:
+        raise HTTPException(
+            status_code=status_codes.HTTP_404_NOT_FOUND,
+            detail=f"No queued job for {hardware_platform}",
+        )
+
+
 @router.get("/jobs/{job_id}", response_model=Job)
 async def get_job(
     job_id: int = Path(..., title="Job ID", description="ID of the job to be retrieved"),

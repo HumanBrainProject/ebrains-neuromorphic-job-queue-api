@@ -19,10 +19,9 @@ from sqlalchemy import (
     MetaData,
     literal_column,
     func,
-    text,
     distinct,
     select as slct,
-    create_engine,
+    desc,
 )
 from sqlalchemy.dialects.postgresql import UUID
 
@@ -327,6 +326,21 @@ async def query_jobs(
 
 async def get_job(job_id: int):
     query = jobs.select().where(jobs.c.id == job_id)
+    result = await database.fetch_one(query)
+    if result is not None:
+        intermediate_result = dict(result)
+        return transform_fields(await follow_relationships(intermediate_result))
+    else:
+        return None
+
+
+async def get_next_job(hardware_platform: str):
+    query = (
+        jobs.select()
+        .where(jobs.c.hardware_platform == hardware_platform, jobs.c.status == "submitted")
+        .order_by(desc("timestamp_submission"))
+        .limit(1)
+    )
     result = await database.fetch_one(query)
     if result is not None:
         intermediate_result = dict(result)
