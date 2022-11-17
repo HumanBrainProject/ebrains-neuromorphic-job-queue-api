@@ -32,7 +32,7 @@ router = APIRouter()
 @router.get("/jobs/", response_model=List[Job])
 async def query_jobs(
     status: List[JobStatus] = Query(None, description="status"),
-    tag: List[str] = Query(None, description="tags"),
+    tag: List[Tag] = Query(None, description="tags"),
     collab_id: List[str] = Query(None, description="collab id"),
     user_id: List[str] = Query(None, description="user id"),
     hardware_platform: List[str] = Query(
@@ -421,7 +421,7 @@ async def delete_comment(
     )
 
 
-@router.get("/jobs/{job_id}/tags", response_model=List[Tag])
+@router.get("/jobs/{job_id}/tags/", response_model=List[Tag])
 async def get_tags(
     job_id: int = Path(
         ..., title="Job ID", description="ID of the job whose comments are to be retrieved"
@@ -458,8 +458,7 @@ async def get_tags(
 
 @router.post("/jobs/{job_id}/tags/", response_model=List[Tag])
 async def add_tags(
-    tags_ids: List[int] = None,
-    tags_strings: List[str] = None,
+    tags: List[Tag] = None,
     job_id: int = Path(..., title="Job ID", description="ID of the job being commented on"),
     as_admin: bool = Query(
         False, description="Run this query with admin privileges, if you have them"
@@ -467,7 +466,7 @@ async def add_tags(
     token: HTTPAuthorizationCredentials = Depends(auth),
 ):
     """
-    Add tags from the tagslist to a job with tags IDs
+    Add tags to a job
     """
     get_user_task = asyncio.create_task(oauth.User.from_token(token.credentials))
     get_job_task = asyncio.create_task(db.get_job(job_id))
@@ -483,10 +482,8 @@ async def add_tags(
         or job["user_id"] == user.username
         or user.can_edit(job["collab_id"])
     ):
-        if tags_ids is not None:
-            return await db.add_tags_to_job_by_tag_id(job_id, tags_ids)
-        if tags_strings is not None:
-            return await db.add_tags_to_job(job_id, tags_strings)
+        if tags is not None:
+            return await db.add_tags_to_job(job_id, tags)
 
     raise HTTPException(
         status_code=status_codes.HTTP_404_NOT_FOUND,
@@ -494,42 +491,17 @@ async def add_tags(
     )
 
 
-@router.post("/tags/{collab_id}", response_model=List[Tag])
-async def add_tags_to_taglist(
-    tags: List[str],
-    collab_id: str = Path(
-        ..., title="collab id", description="ID of the collab with the taglist to be added to"
-    ),
-    as_admin: bool = Query(
-        False, description="Run this query with admin privileges, if you have them"
-    ),
-    token: HTTPAuthorizationCredentials = Depends(auth),
-):
-    """
-    Add tags to taglist
-    """
-    get_user_task = asyncio.create_task(oauth.User.from_token(token.credentials))
-    user = await get_user_task
-    if (as_admin and user.is_admin) or user.can_edit(collab_id):
-        return await db.add_tags_to_taglist(tags)
-
-    raise HTTPException(
-        status_code=status_codes.HTTP_404_NOT_FOUND,
-        detail=f"Either there is no collab with id {collab_id},  you do not have access to it, or tag already exists",
-    )
-
-
 @router.delete("/jobs/{job_id}/tags/", status_code=status_codes.HTTP_200_OK)
 async def remove_tags(
-    tags_ids: List[int] = None,
-    job_id: int = Path(..., title="Job ID", description="ID of the job being commented on"),
+    tags: List[Tag] = None,
+    job_id: int = Path(..., title="Job ID", description="ID of the job to remove tags from"),
     as_admin: bool = Query(
         False, description="Run this query with admin privileges, if you have them"
     ),
     token: HTTPAuthorizationCredentials = Depends(auth),
 ):
     """
-    Add tags from the tagslist to a job with tags IDs
+    Remove tags from a job
     """
     get_user_task = asyncio.create_task(oauth.User.from_token(token.credentials))
     get_job_task = asyncio.create_task(db.get_job(job_id))
@@ -545,7 +517,7 @@ async def remove_tags(
         or job["user_id"] == user.username
         or user.can_edit(job["collab_id"])
     ):
-        return await db.remove_tags(job_id, tags_ids)
+        return await db.remove_tags(job_id, tags)
 
     raise HTTPException(
         status_code=status_codes.HTTP_404_NOT_FOUND,

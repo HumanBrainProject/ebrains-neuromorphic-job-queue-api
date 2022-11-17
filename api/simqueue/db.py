@@ -56,7 +56,6 @@ job_input_data = Table(
     Column("dataitem_id", ForeignKey("simqueue_dataitem.id"), primary_key=True),
 )
 
-
 job_output_data = Table(
     "simqueue_job_output_data",
     metadata,
@@ -116,7 +115,6 @@ taglist = Table(
     Column("slug", String(100), nullable=False),
 )
 
-
 tagged_items = Table(
     "taggit_taggeditem",
     metadata,
@@ -125,7 +123,6 @@ tagged_items = Table(
     Column("content_type_id", Integer, nullable=False),
     Column("tag_id", Integer, ForeignKey("taggit_tag.id"), nullable=False),
 )
-
 
 projects = Table(
     "quotas_project",
@@ -143,7 +140,6 @@ projects = Table(
     Column("decision_date", Date),  # Value set when project is accepted/refused
 )
 
-
 quotas = Table(
     "quotas_quota",
     metadata,
@@ -155,7 +151,6 @@ quotas = Table(
     Column("platform", String(20), nullable=False),
     Column("project_id", UUID, ForeignKey("quotas_project.context"), nullable=False),
 )
-
 
 api_keys = Table(
     "tastypie_apikey",
@@ -208,9 +203,8 @@ async def follow_relationships(job):
     for tag_item in results:
         query = taglist.select().where(taglist.c.id == tag_item.tag_id)
         used_tag = await database.fetch_one(query)
-        tags.append(Tag(tag_id=tag_item.tag_id, content=used_tag["name"]))
-
-    job["tags"] = [item for item in tags or []]
+        tags.append(Tag(used_tag["name"]))
+    job["tags"] = sorted([item for item in tags or []])
 
     return job
 
@@ -286,7 +280,7 @@ def get_list_filter(attr, value):
 
 async def query_jobs(
     status: List[str] = None,
-    # tag: List[str] = None,
+    tags: List[str] = None,
     collab_id: List[str] = None,
     user_id: List[str] = None,
     hardware_platform: List[str] = None,
@@ -312,10 +306,18 @@ async def query_jobs(
             filters.append(jobs.c.timestamp_submission >= date_range_start)
     elif date_range_end:
         filters.append(jobs.c.timestamp_submission <= date_range_end)
+    if tags:
+        # this is a simplistic implementation where we first fetch the tag ids
+        # todo: replace this with a single, more sophisticated SQL query
+        tag_query = taglist.select().where(taglist.c.name.in_(tags))
+        tag_ids = [row["id"] for row in await database.fetch_all(tag_query)]
+        tagged_item_query = tagged_items.select().where(tagged_items.c.tag_id.in_(tag_ids))
+        tagged_item_ids = [row["object_id"] for row in await database.fetch_all(tagged_item_query)]
+        filters.append(jobs.c.id.in_(tagged_item_ids))
+
     if fields is None:
         select = jobs.select()
     else:
-        list_fields = ["jobs.c." + field for field in fields]
         select = jobs.select().with_only_columns(*[literal_column(field) for field in fields])
 
     if filters:
@@ -374,8 +376,7 @@ async def create_job(user_id: str, job: SubmittedJob):
     if job.input_data is not None:
         await create_job_input_data_item(job, job_id)
     if job.tags is not None:
-        list_tags = [item["tag_id"] for item in job.tags or []]
-        await add_tags_to_job_by_tag_id(job_id, list_tags)
+        await add_tags_to_job(job_id, job.tags)
     return transform_fields(await follow_relationships(dict(result)))
 
 
@@ -528,64 +529,60 @@ async def get_tags(job_id: int):
     for tag_item in results:
         query = taglist.select().where(taglist.c.id == tag_item.tag_id)
         used_tag = await database.fetch_one(query)
-        tags.append(Tag(tag_id=tag_item.tag_id, content=used_tag["name"]))
-    return tags
+        tags.append(Tag(used_tag["name"]))
+    return sorted(tags)
 
 
-async def add_tags_to_job_by_tag_id(job_id: int, tagsList: List[int]):
+async def delete_tag(tag):
+    """Delete a tag entirely from the database"""
+    query = taglist.select().where(taglist.c.name == tag)
+    result = await database.fetch_one(query)
+    if result is None:
+        raise ValueError(f"tag '{tag}' not found")
+    else:
+        ins = tagged_items.delete().where(tagged_items.c.tag_id == result["id"])
+        await database.execute(ins)
+        ins = taglist.delete().where(taglist.c.id == result["id"])
+        await database.execute(ins)
 
-    for tag_id in tagsList:
-        query = tagged_items.select().where(
-            tagged_items.c.tag_id == tag_id, tagged_items.c.object_id == job_id
-        )
-        used_tag = await database.fetch_one(query)
-        if used_tag is None:
-            ins = tagged_items.insert().values(object_id=job_id, tag_id=tag_id, content_type_id=7)
-            await database.execute(ins)
 
-    return await get_tags(job_id)
-
-
-async def remove_tags(job_id: int, tagsList: List[int]):
-
-    for tag_id in tagsList:
-
+async def remove_tags(job_id: int, tags: List[str]):
+    tag_query = taglist.select().where(taglist.c.name.in_(tags))
+    tag_ids = [row["id"] for row in await database.fetch_all(tag_query)]
+    for tag_id in tag_ids:
         ins = tagged_items.delete().where(
             tagged_items.c.tag_id == tag_id, tagged_items.c.object_id == job_id
         )
         await database.execute(ins)
+    return await get_tags(job_id)
 
-    return
 
-
-async def add_tags_to_job(job_id: int, tagsList: List[str]):
-    results = await add_tags_to_taglist(tagsList)
-    for tag in results:
+async def add_tags_to_job(job_id: int, tags: List[str]):
+    results = await add_tags_to_taglist(tags)
+    for tag_obj in results:
         query = tagged_items.select().where(
-            tagged_items.c.tag_id == tag.tag_id, tagged_items.c.object_id == job_id
+            tagged_items.c.tag_id == tag_obj["id"], tagged_items.c.object_id == job_id
         )
-        used_tag = await database.fetch_one(query)
-        if used_tag is None:
+        tagged_item = await database.fetch_one(query)
+        if tagged_item is None:
             ins = tagged_items.insert().values(
-                object_id=job_id, tag_id=tag.tag_id, content_type_id=7
+                object_id=job_id, tag_id=tag_obj["id"], content_type_id=7
             )
             await database.execute(ins)
-
     return await get_tags(job_id)
 
 
 async def add_tags_to_taglist(tag_names: List[str]):
     results = []
     for tag in tag_names:
-        query = taglist.select().where(taglist.c.slug == slugify(tag))
+        query = taglist.select().where(taglist.c.name == tag)
         used_tag = await database.fetch_one(query)
         if used_tag is None:
             ins = taglist.insert().values(name=tag, slug=slugify(tag))
             await database.execute(ins)
-        query = taglist.select().where(taglist.c.slug == slugify(tag))
+        query = taglist.select().where(taglist.c.name == tag)
         returned_tag = await database.fetch_one(query)
-        results.append(Tag(tag_id=returned_tag["id"], content=returned_tag["name"]))
-
+        results.append(returned_tag)
     return results
 
 

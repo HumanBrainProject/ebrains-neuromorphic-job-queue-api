@@ -32,7 +32,7 @@ mock_jobs = [
         "user_id": "haroldlloyd",
         "hardware_platform": "SpiNNaker",
         "id": 999999,
-        "tags": [{"tag_id": 57, "content": "tag 1"}],
+        "tags": ["tag 1"],
     }
 ]
 mock_accepted_job = {
@@ -44,7 +44,7 @@ mock_accepted_job = {
     "user_id": "haguili",
     "status": "submitted",
     "timestamp_submission": "2022-10-11T02:44:23.746231+00:00",
-    "tags": [{"tag_id": 57, "content": "tag 1"}],
+    "tags": ["tag 1"],
 }
 mock_submitted_job = {
     "code": "test post",
@@ -53,7 +53,7 @@ mock_submitted_job = {
     "input_data": [],
     "hardware_platform": "Brainscales",
 }
-mock_tags = [{"tag_id": 100, "content": "first tag"}, {"tag_id": 101, "content": "second tag"}]
+mock_tags = ["first tag", "second tag"]
 mock_comments = [
     {
         "job_id": 999999,

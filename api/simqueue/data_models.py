@@ -2,7 +2,7 @@ from datetime import datetime, date
 from enum import Enum
 from typing import List, Dict
 from uuid import UUID
-from pydantic import BaseModel, AnyUrl
+from pydantic import BaseModel, AnyUrl, constr
 
 
 class JobStatus(str, Enum):
@@ -22,9 +22,7 @@ class Comment(BaseModel):
     timestamp: datetime = None
 
 
-class Tag(BaseModel):
-    tag_id: int = None
-    content: str = None
+Tag = constr(min_length=2, max_length=100, strip_whitespace=True)
 
 
 class CommentBody(BaseModel):

@@ -1,21 +1,12 @@
-from datetime import date, datetime, timezone
+import os
+from datetime import date, datetime
 from copy import deepcopy
+from uuid import uuid4
 import pytz
 import pytest
 import pytest_asyncio
-from ..db import (
-    database,
-    query_jobs,
-    get_job,
-    query_projects,
-    query_quotas,
-    get_comments,
-    get_log,
-    create_job,
-    update_job,
-    delete_job,
-    create_project,
-)
+
+from .. import db
 from ..data_models import ProjectStatus, SubmittedJob, JobPatch, ResourceUsage, DataItem
 
 
@@ -25,13 +16,13 @@ TEST_USER = "adavisontesting"
 
 @pytest_asyncio.fixture()
 async def database_connection():
-    await database.connect()
+    await db.database.connect()
     yield
-    await database.disconnect()
+    await db.database.disconnect()
 
 
 @pytest_asyncio.fixture()
-async def submitted_job():
+async def submitted_job(new_tag):
     data = {
         "code": "import antigravity\n",
         "command": None,
@@ -39,15 +30,23 @@ async def submitted_job():
         "status": "submitted",
         "hardware_platform": "TestPlatform",
         "hardware_config": {"answer": "42"},
+        "tags": sorted(["test", new_tag]),
     }
-    response = await create_job(user_id=TEST_USER, job=SubmittedJob(**data))
+    response = await db.create_job(user_id=TEST_USER, job=SubmittedJob(**data))
     yield response
-    response2 = await delete_job(response["id"])
+    response2 = await db.delete_job(response["id"])
+
+
+@pytest_asyncio.fixture()
+async def new_tag():
+    tag = str(uuid4())  # we create a random tag that is almost certainly new
+    yield tag
+    response = await db.delete_tag(tag)
 
 
 @pytest.mark.asyncio
 async def test_query_jobs_no_filters(database_connection):
-    jobs = await query_jobs(size=5, from_index=5)
+    jobs = await db.query_jobs(size=5, from_index=5)
     assert len(jobs) == 5
     expected_keys = {
         "id",
@@ -71,21 +70,24 @@ async def test_query_jobs_no_filters(database_connection):
 
 @pytest.mark.asyncio
 async def test_query_jobs_with_filters(database_connection):
-    jobs = await query_jobs(
+    jobs = await db.query_jobs(
         status=["finished"],
         collab_id=["neuromorphic-testing-private"],
         user_id=["adavison"],
         hardware_platform=["SpiNNaker"],
+        tags=["test"],
         date_range_start=date(2021, 3, 1),
         date_range_end=date(2021, 3, 31),
         size=100,
         from_index=0,
     )
+    assert len(jobs) > 0
     for job in jobs:
         assert job["status"] == "finished"
         assert job["collab_id"] == "neuromorphic-testing-private"
         assert job["user_id"] == "adavison"
         assert job["hardware_platform"] == "SpiNNaker"
+        assert "test" in job["tags"]
         assert (
             datetime(2021, 3, 1, 0, tzinfo=pytz.UTC)
             <= job["timestamp_submission"]
@@ -95,7 +97,7 @@ async def test_query_jobs_with_filters(database_connection):
 
 @pytest.mark.asyncio
 async def test_get_job(database_connection):
-    job = await get_job(142972)
+    job = await db.get_job(142972)
     expected_keys = (
         "id",
         "input_data",
@@ -117,8 +119,14 @@ async def test_get_job(database_connection):
 
 
 @pytest.mark.asyncio
+async def test_get_nonexistent_job(database_connection):
+    job = await db.get_job(-1)
+    assert job is None
+
+
+@pytest.mark.asyncio
 async def test_get_comments(database_connection):
-    comments = await get_comments(122685)
+    comments = await db.get_comments(122685)
     expected_keys = {"user", "content", "job_id", "id", "created_time"}
     assert len(comments) > 0
     assert set(comments[0].keys()) == expected_keys
@@ -126,13 +134,13 @@ async def test_get_comments(database_connection):
 
 @pytest.mark.asyncio
 async def test_get_log(database_connection):
-    log = await get_log(142972)
+    log = await db.get_log(142972)
     expected_keys = {"job_id", "content"}
     assert set(log.keys()) == expected_keys
 
 
 @pytest.mark.asyncio
-async def test_create_job(database_connection):
+async def test_create_job(database_connection, new_tag):
     data = {
         "code": "import antigravity\n",
         "command": None,
@@ -140,11 +148,12 @@ async def test_create_job(database_connection):
         "status": "submitted",
         "hardware_platform": "testPlatform",
         "hardware_config": {"answer": "42"},
+        "tags": sorted(["test", new_tag]),
     }
-    response = await create_job(user_id=TEST_USER, job=SubmittedJob(**data))
-    response2 = await get_job(response["id"])
+    response = await db.create_job(user_id=TEST_USER, job=SubmittedJob(**data))
+    response2 = await db.get_job(response["id"])
     assert response == response2
-    response3 = await delete_job(response["id"])
+    response3 = await db.delete_job(response["id"])
     expected = {
         "code": data["code"],
         "command": "",
@@ -152,7 +161,7 @@ async def test_create_job(database_connection):
         "input_data": [],
         "hardware_platform": data["hardware_platform"],
         "hardware_config": data["hardware_config"],
-        "tags": [],
+        "tags": sorted(["test", new_tag]),
         "id": response["id"],
         "user_id": TEST_USER,
         "status": "submitted",
@@ -185,8 +194,9 @@ async def test_update_job(database_connection, submitted_job):
         ],
         "provenance": {"foo": "bar"},
         "resource_usage": dict(value=999.0, units="bushels"),
+        "log": "Lorem ipsum dolor sit amet, consectetur adipiscing elit",
     }
-    response = await update_job(job_id=submitted_job["id"], job_patch=JobPatch(**data))
+    response = await db.update_job(job_id=submitted_job["id"], job_patch=JobPatch(**data))
     response.pop("timestamp_completion")
     for data_item in response["output_data"]:
         data_item.pop("id")
@@ -194,12 +204,45 @@ async def test_update_job(database_connection, submitted_job):
     expected = deepcopy(submitted_job)
     expected.pop("timestamp_completion")
     expected.update(data)
+    expected.pop("log")  # by default we don't include the log in responses
     assert response == expected
 
 
 @pytest.mark.asyncio
+async def test_add_and_remove_tags(database_connection, submitted_job):
+    original_tags = submitted_job["tags"]
+    assert "test2" not in original_tags
+    additional_tags = ["test2", "test3"]
+    response = await db.add_tags_to_job(submitted_job["id"], additional_tags)
+    assert response == sorted(original_tags + additional_tags)
+
+    response2 = await db.get_job(submitted_job["id"])
+    assert response2["tags"] == sorted(original_tags + additional_tags)
+
+    expected_tags = response2["tags"][:]
+    expected_tags.remove("test")
+    expected_tags.remove("test3")
+    response3 = await db.remove_tags(submitted_job["id"], ["test", "test3"])
+    assert response3 == expected_tags
+
+    response4 = await db.get_job(submitted_job["id"])
+    assert response4["tags"] == expected_tags
+
+
+@pytest.mark.asyncio
+async def test_get_provider(database_connection):
+    response = await db.get_provider("not-a-real-api-key")
+    assert response is None
+    if "NMPI_TESTING_APIKEY" in os.environ:
+        response = await db.get_provider(os.environ["NMPI_TESTING_APIKEY"])
+        assert response == "nmpi"
+    else:
+        pytest.skip("This test needs an environment variable 'NMPI_TESTING_APIKEY'")
+
+
+@pytest.mark.asyncio
 async def test_query_projects_no_filters(database_connection):
-    projects = await query_projects(size=5, from_index=5)
+    projects = await db.query_projects(size=5, from_index=5)
     assert len(projects) > 0
     expected_keys = {
         "abstract",
@@ -219,19 +262,19 @@ async def test_query_projects_no_filters(database_connection):
 
 @pytest.mark.asyncio
 async def test_query_projects_with_filters(database_connection):
-    projects = await query_projects(status=ProjectStatus.accepted, size=5, from_index=0)
+    projects = await db.query_projects(status=ProjectStatus.accepted, size=5, from_index=0)
     assert len(projects) > 0
     assert projects[0]["accepted"] is True
     assert projects[0]["decision_date"] is not None
     assert projects[0]["submission_date"] is not None
 
-    projects = await query_projects(status=ProjectStatus.rejected, size=5, from_index=0)
+    projects = await db.query_projects(status=ProjectStatus.rejected, size=5, from_index=0)
     assert len(projects) > 0
     assert projects[0]["accepted"] is False
     assert projects[0]["decision_date"] is not None
     assert projects[0]["submission_date"] is not None
 
-    projects = await query_projects(
+    projects = await db.query_projects(
         status=ProjectStatus.under_review,
         size=5,
         from_index=0,
@@ -243,7 +286,7 @@ async def test_query_projects_with_filters(database_connection):
     assert projects[0]["decision_date"] is None
     assert projects[0]["submission_date"] is not None
 
-    projects = await query_projects(status=ProjectStatus.in_prep, size=5, from_index=0)
+    projects = await db.query_projects(status=ProjectStatus.in_prep, size=5, from_index=0)
     assert len(projects) > 0
     assert projects[0]["accepted"] is False
     assert projects[0]["decision_date"] is None
@@ -252,7 +295,7 @@ async def test_query_projects_with_filters(database_connection):
 
 @pytest.mark.asyncio
 async def test_query_quotas_no_filters(database_connection):
-    quotas = await query_quotas(size=5, from_index=5)
+    quotas = await db.query_quotas(size=5, from_index=5)
     assert len(quotas) > 0
     expected_keys = ("id", "project_id", "usage", "limit", "units", "platform")
     assert set(quotas[0].keys()) == set(expected_keys)
