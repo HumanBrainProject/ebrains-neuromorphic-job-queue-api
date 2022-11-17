@@ -33,6 +33,7 @@ from .data_models import (
     CompletedJob,
     JobPatch,
     Tag,
+    ProjectSubmission,
 )
 from . import settings
 from .globals import RESOURCE_USAGE_UNITS
@@ -695,20 +696,24 @@ async def query_projects(
 
 
 async def create_project(project):
-    if project["submitted"]:
+    if project.get("submitted", False):
         submission_date = date.today()
     else:
         submission_date = None
+    project_id = str(uuid.uuid4())
     ins = projects.insert().values(
+        context=project_id,  # for historical reasons, the id is called 'context'
         collab=project["collab"],
         owner=project["owner"],
         title=project["title"],
         abstract=project["abstract"],
         description=project["description"],
         submission_date=submission_date,
+        duration=0,  # we're not using this field, projects are currently of unlimited duration
+        accepted=False,
     )
-    await database.connect()  # is this needed?
     await database.execute(ins)
+    return await get_project(project_id)
 
 
 async def update_project(project_id, project_update):
@@ -730,8 +735,8 @@ async def update_project(project_id, project_update):
             decision_date=project_update["decision_date"],
         )
     )
-    await database.connect()  # needed?
     await database.execute(ins)
+    return await get_project(project_id)
 
 
 async def get_project(project_id):
@@ -745,15 +750,15 @@ async def get_project(project_id):
 
 
 async def delete_project(project_id):
+    await delete_quotas_from_project(project_id)
     query = projects.delete().where(projects.c.context == project_id)
-    await database.connect()  # needed?
     await database.execute(query)
 
 
-async def query_quotas(project_id: List[str] = None, from_index: int = 0, size: int = 10):
+async def query_quotas(project_id: UUID = None, from_index: int = 0, size: int = 10):
     query = quotas.select()
     if project_id:
-        query = query.where(get_list_filter(quotas.c.project_id, project_id))
+        query = query.where(quotas.c.project_id == str(project_id))
     query = query.offset(from_index).limit(size)
     results = await database.fetch_all(query)
     return [(dict(result)) for result in results]
@@ -764,7 +769,7 @@ async def delete_quotas_from_project(project_id):
         project_id, size=1000
     )  # assume we won't have more than 1000 quotas per project
     for result in results:
-        await delete_quota(project_id, result["id"])
+        await delete_quota(result["id"])
 
 
 async def get_quota(quota_id):
@@ -777,35 +782,31 @@ async def get_quota(quota_id):
 
 
 async def delete_quota(quota_id):
-    query = quotas.delete().where(quotas.c.id == id)
-    await database.connect()
+    query = quotas.delete().where(quotas.c.id == quota_id)
     await database.execute(query)
 
 
 async def create_quota(project_id, quota):
     ins = quotas.insert().values(
         project_id=project_id,
-        units=quota.units,
-        limit=quota.limit,
-        usage=quota.usage,
-        platform=quota.platform,
+        units=quota["units"],
+        limit=quota["limit"],
+        usage=quota["usage"],
+        platform=quota["platform"],
     )
-    await database.connect()
-    await database.execute(ins)
+    quota_id = await database.execute(ins)
+    return await get_quota(quota_id)
 
 
-async def update_quota(project_id, quota, quota_id):
+async def update_quota(quota_id, quota_update):
     ins = (
         quotas.update()
-        .where((quotas.c.id == id) and (quotas.c.project_id == project_id))
+        .where(quotas.c.id == quota_id)
         .values(
-            project_id=project_id,
             id=quota_id,
-            units=quota["units"],
-            limit=quota["limit"],
-            usage=quota["usage"],
-            platform=quota["platform"],
+            limit=quota_update["limit"],
+            usage=quota_update["usage"],
         )
     )
-    await database.connect()
     await database.execute(ins)
+    return await get_quota(quota_id)

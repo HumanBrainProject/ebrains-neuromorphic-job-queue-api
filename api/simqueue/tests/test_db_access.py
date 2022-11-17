@@ -1,7 +1,7 @@
 import os
 from datetime import date, datetime
 from copy import deepcopy
-from uuid import uuid4
+from uuid import uuid4, UUID
 import pytz
 import pytest
 import pytest_asyncio
@@ -12,6 +12,9 @@ from ..data_models import ProjectStatus, SubmittedJob, JobPatch, ResourceUsage, 
 
 TEST_COLLAB = "neuromorphic-testing-private"
 TEST_USER = "adavisontesting"
+
+
+# ---- Define fixtures ------------------------------------
 
 
 @pytest_asyncio.fixture()
@@ -42,6 +45,23 @@ async def new_tag():
     tag = str(uuid4())  # we create a random tag that is almost certainly new
     yield tag
     response = await db.delete_tag(tag)
+
+
+@pytest_asyncio.fixture()
+async def new_project():
+    data = {
+        "collab": TEST_COLLAB,
+        "owner": TEST_USER,
+        "title": "Test Project - to delete",
+        "abstract": "this is the abstract",
+        "description": "this is the description",
+    }
+    response = await db.create_project(data)
+    yield response
+    response2 = await db.delete_project(response["id"])
+
+
+# ---- Test jobs, tags, comments --------------------------
 
 
 @pytest.mark.asyncio
@@ -122,6 +142,12 @@ async def test_get_job(database_connection):
 async def test_get_nonexistent_job(database_connection):
     job = await db.get_job(-1)
     assert job is None
+
+
+@pytest.mark.asyncio
+async def test_get_next_job(database_connection, submitted_job):
+    next_job = await db.get_next_job(submitted_job["hardware_platform"])
+    assert next_job["id"] == submitted_job["id"]
 
 
 @pytest.mark.asyncio
@@ -291,6 +317,9 @@ async def test_query_tags(database_connection):
     assert isinstance(tags_used_in_collab[0], str)
 
 
+# ---- Test projects/quotas -------------------------------
+
+
 @pytest.mark.asyncio
 async def test_query_projects_no_filters(database_connection):
     projects = await db.query_projects(size=5, from_index=5)
@@ -345,8 +374,69 @@ async def test_query_projects_with_filters(database_connection):
 
 
 @pytest.mark.asyncio
+async def test_create_project(database_connection, new_project):
+    expected = {
+        "abstract": "this is the abstract",
+        "accepted": False,
+        "collab": TEST_COLLAB,
+        "decision_date": None,
+        "description": "this is the description",
+        "duration": 0,
+        "id": new_project["id"],
+        "owner": TEST_USER,
+        "start_date": None,
+        "submission_date": None,
+        "title": "Test Project - to delete",
+    }
+    assert new_project == expected
+    assert isinstance(new_project["id"], UUID)
+
+
+@pytest.mark.asyncio
+async def test_update_project(database_connection, new_project):
+    updated_project = deepcopy(new_project)
+    updated_project["submission_date"] = date.today()
+    updated_project["abstract"] = "This is the abstract."
+
+    project = await db.update_project(new_project["id"], updated_project)
+
+    assert project["submission_date"] == updated_project["submission_date"]
+    assert project["abstract"] == updated_project["abstract"]
+    assert project["id"] == updated_project["id"]
+
+
+@pytest.mark.asyncio
 async def test_query_quotas_no_filters(database_connection):
     quotas = await db.query_quotas(size=5, from_index=5)
     assert len(quotas) > 0
     expected_keys = ("id", "project_id", "usage", "limit", "units", "platform")
     assert set(quotas[0].keys()) == set(expected_keys)
+
+
+@pytest.mark.asyncio
+async def test_create_quota(database_connection, new_project):
+    data = {"units": "bushels", "limit": 5000, "usage": 0, "platform": "TestPlatform"}
+    response = await db.create_quota(new_project["id"], data)
+    quota_id = response["id"]
+    assert isinstance(quota_id, int)
+
+    response2 = await db.query_quotas(new_project["id"])
+    assert len(response2) == 1
+    expected = deepcopy(data)
+    expected["id"] = quota_id
+    expected["project_id"] = new_project["id"]
+    assert response2[0] == expected
+
+
+@pytest.mark.asyncio
+async def test_update_quota(database_connection, new_project):
+    data = {"units": "bushels", "limit": 5000, "usage": 0, "platform": "TestPlatform"}
+    quota = await db.create_quota(new_project["id"], data)
+
+    update = {"limit": 10000, "usage": 999}
+    response2 = await db.update_quota(quota["id"], update)
+
+    expected = deepcopy(quota)
+    expected.update(update)
+    assert response2 == expected
+

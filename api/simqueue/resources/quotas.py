@@ -440,7 +440,7 @@ async def update_quotas(
             status_code=status_codes.HTTP_404_NOT_FOUND, detail=f"No content to change"
         )
 
-    await db.update_quota(project_id, content, quota_id)
+    await db.update_quota(quota_id, content)
 
 
 @router.get("/collabs/", response_model=List[str])
