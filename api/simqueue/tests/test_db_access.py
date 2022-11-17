@@ -440,3 +440,34 @@ async def test_update_quota(database_connection, new_project):
     expected.update(update)
     assert response2 == expected
 
+
+# ---- Test statistics access functions -------------------
+
+
+@pytest.mark.asyncio
+async def test_get_users_count(database_connection):
+    count = await db.get_users_count(
+        hardware_platform=["SpiNNaker"],
+        date_range_start=date(2018, 1, 1),
+        date_range_end=date(2018, 12, 31),
+    )
+    assert count > 0
+
+
+@pytest.mark.asyncio
+async def test_get_users_list(database_connection):
+    users = await db.get_users_list(
+        hardware_platform=["SpiNNaker"],
+        date_range_start=date(2018, 1, 1),
+        date_range_end=date(2018, 12, 31),
+    )
+    assert len(users) > 0
+    # to review - is this what we want this function to do?
+    #             shouldn't it just return a list of usernames?
+    assert "user_id" in users[0]
+
+
+@pytest.mark.asyncio
+async def test_count_jobs(database_connection):
+    count = await db.count_jobs(hardware_platform=["BrainScaleS"], status=["error", "finished"])
+    assert count > 0
