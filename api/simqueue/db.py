@@ -406,21 +406,22 @@ async def update_job(job_id: int, job_patch: JobPatch):
 
 
 async def delete_job(job_id: int):
-
+    # delete associated data items
     await delete_dataitems(job_id)
 
     # delete job's logs
-
     query = logs.delete().where(logs.c.job_id == job_id)
-    await database.fetch_one(query)
+    await database.execute(query)
 
     # delete job's tags
-
     query = tagged_items.delete().where(tagged_items.c.object_id == job_id)
-    await database.fetch_all(query)
+    await database.execute(query)
+
+    # delete comments
+    query = comments.delete().where(comments.c.job_id == job_id)
+    await database.execute(query)
 
     # delete the job
-
     ins = jobs.delete().where(jobs.c.id == job_id)
     result = await database.execute(ins)
 
@@ -587,9 +588,14 @@ async def add_tags_to_taglist(tag_names: List[str]):
 
 
 async def get_comments(job_id: int):
+    """Return all the comments for a given job, from newest to oldest"""
     query = comments.select().where(comments.c.job_id == job_id)
     results = await database.fetch_all(query)
-    return [dict(result) for result in results]
+    return sorted(
+        [dict(result) for result in results],
+        key=lambda comment: comment["created_time"],
+        reverse=True,
+    )
 
 
 async def get_comment(comment_id: int):
@@ -598,10 +604,10 @@ async def get_comment(comment_id: int):
     return dict(result)
 
 
-async def create_comment(job_id: int, user_id: str, new_comment: CommentBody):
+async def add_comment(job_id: int, user_id: str, new_comment: CommentBody):
 
     ins = comments.insert().values(
-        content=new_comment.content, created_time=now_in_utc(), user=user_id, job_id=job_id
+        content=new_comment, created_time=now_in_utc(), user=user_id, job_id=job_id
     )
     comment_id = await database.execute(ins)
 
@@ -612,28 +618,15 @@ async def create_comment(job_id: int, user_id: str, new_comment: CommentBody):
 
 async def update_comment(
     comment_id: int,
-    job_id: int,
-    user_id: str,
-    created_time: DateTime(timezone=True),
     new_comment: CommentBody,
 ):
-
     ins = (
         comments.update()
         .where(comments.c.id == comment_id)
-        .values(
-            id=comment_id,
-            content=new_comment.content,
-            created_time=created_time,
-            user=user_id,
-            job_id=job_id,
-        )
+        .values(id=comment_id, content=new_comment)
     )
     await database.execute(ins)
-
-    query = comments.select().where(comments.c.id == comment_id)
-    result = await database.fetch_one(query)
-    return dict(result)
+    return await get_comment(comment_id)
 
 
 async def delete_comment(comment_id: int):

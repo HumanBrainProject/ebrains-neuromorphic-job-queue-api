@@ -332,7 +332,7 @@ async def add_comment(
         or job["user_id"] == user.username
         or await user.can_view(job["collab_id"])
     ):
-        return await db.create_comment(job_id, user.username, comment)
+        return await db.add_comment(job_id, user.username, comment)
 
     raise HTTPException(
         status_code=status_codes.HTTP_404_NOT_FOUND,
@@ -385,7 +385,7 @@ async def update_comment(
 
 
 @router.delete("/jobs/{job_id}/comments/{comment_id}", status_code=status_codes.HTTP_200_OK)
-async def delete_comment(
+async def remove_comment(
     job_id: int = Path(..., title="Job ID", description="ID of the job being commented on"),
     comment_id: int = Path(..., title="Comment ID", description="ID of the comment being edited"),
     as_admin: bool = Query(
@@ -394,7 +394,7 @@ async def delete_comment(
     token: HTTPAuthorizationCredentials = Depends(auth),
 ):
     """
-    delete a comment
+    Remove a comment from a job
     """
     get_comment_task = asyncio.create_task(db.get_comment(comment_id))
     old_comment = await get_comment_task

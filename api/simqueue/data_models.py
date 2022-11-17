@@ -25,8 +25,7 @@ class Comment(BaseModel):
 Tag = constr(min_length=2, max_length=100, strip_whitespace=True)
 
 
-class CommentBody(BaseModel):
-    content: str
+CommentBody = constr(min_length=1, max_length=10000)
 
 
 class TimeSeries(BaseModel):

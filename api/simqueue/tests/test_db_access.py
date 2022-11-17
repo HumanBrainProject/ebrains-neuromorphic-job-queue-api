@@ -230,6 +230,45 @@ async def test_add_and_remove_tags(database_connection, submitted_job):
 
 
 @pytest.mark.asyncio
+async def test_add_update_and_remove_comments(database_connection, submitted_job):
+    comment1 = (
+        "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor "
+        "incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis "
+        "nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat."
+    )
+    comment2 = (
+        "Duis aute irure dolor in reprehenderit in voluptate velit esse cillum "
+        "dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, "
+        "sunt in culpa qui officia deserunt mollit anim id est laborum."
+    )
+    response = await db.add_comment(submitted_job["id"], TEST_USER, comment1)
+    assert response["job_id"] == submitted_job["id"]
+    assert response["user"] == TEST_USER
+    assert response["content"] == comment1
+
+    response2 = await db.get_comments(submitted_job["id"])
+    assert len(response2) == 1
+    assert response2[0]["content"] == comment1
+
+    response3 = await db.add_comment(submitted_job["id"], TEST_USER, comment2)
+    response4 = await db.get_comments(submitted_job["id"])
+    assert len(response4) == 2
+    assert response4[0]["content"] == comment2  # newest to oldest
+    assert response4[1]["content"] == comment1
+
+    modified_comment1 = comment1.upper()
+    response5 = await db.update_comment(response["id"], modified_comment1)
+    for key in ("id", "job_id", "user"):
+        assert response5[key] == response[key]
+        assert response5["content"] == modified_comment1
+
+    response6 = await db.delete_comment(response["id"])
+
+    response7 = await db.get_comments(submitted_job["id"])
+    assert len(response7) == 1
+
+
+@pytest.mark.asyncio
 async def test_get_provider(database_connection):
     response = await db.get_provider("not-a-real-api-key")
     assert response is None
