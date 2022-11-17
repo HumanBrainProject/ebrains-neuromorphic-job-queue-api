@@ -523,3 +523,25 @@ async def remove_tags(
         status_code=status_codes.HTTP_404_NOT_FOUND,
         detail=f"Either there is no job with id {job_id}, or you do not have access to it",
     )
+
+
+@router.get("/tags/", response_model=List[Tag])
+async def query_tags(
+    collab_id: List[str] = Query(None, description="collab id"),
+    token: HTTPAuthorizationCredentials = Depends(auth),
+):
+    """
+    Return a list of tags used by existing jobs
+    """
+    if collab_id:
+        user = oauth.User.from_token(token.credentials)
+        if not (user.is_admin or user.can_view(collab_id)):
+            raise HTTPException(
+                status_code=status_codes.HTTP_404_FORBIDDEN,
+                detail=f"Either collab {collab_id} does not exist, or you do not have access to it",
+            )
+    elif not user.is_admin:
+        raise HTTPException(
+            status_code=status_codes.HTTP_403_FORBIDDEN, detail="Please specify a collab_id"
+        )
+    return await db.query_tags(collab_id=collab_id)

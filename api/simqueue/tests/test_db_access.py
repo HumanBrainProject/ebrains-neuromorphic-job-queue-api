@@ -280,6 +280,18 @@ async def test_get_provider(database_connection):
 
 
 @pytest.mark.asyncio
+async def test_query_tags(database_connection):
+    all_tags = await db.query_tags()
+    assert len(all_tags) > 0
+    assert isinstance(all_tags[0], str)
+
+    tags_used_in_collab = await db.query_tags(collab_id=TEST_COLLAB)
+    assert len(tags_used_in_collab) > 0
+    assert len(tags_used_in_collab) < len(all_tags)
+    assert isinstance(tags_used_in_collab[0], str)
+
+
+@pytest.mark.asyncio
 async def test_query_projects_no_filters(database_connection):
     projects = await db.query_projects(size=5, from_index=5)
     assert len(projects) > 0

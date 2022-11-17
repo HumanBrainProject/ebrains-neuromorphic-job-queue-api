@@ -523,6 +523,18 @@ def daterange(start_date, end_date, interval=1):
         yield start_date + timedelta(n)
 
 
+async def query_tags(collab_id=None):
+    query = taglist.select()
+    if collab_id:
+        job_query = jobs.select().where(jobs.c.collab_id == collab_id)
+        job_ids = [row["id"] for row in await database.fetch_all(job_query)]
+        tag_id_query = tagged_items.select().where(tagged_items.c.object_id.in_(job_ids))
+        tag_ids = [row["tag_id"] for row in await database.fetch_all(tag_id_query)]
+        query = query.where(taglist.c.id.in_(tag_ids))
+    results = await database.fetch_all(query)
+    return sorted(result["name"] for result in results)
+
+
 async def get_tags(job_id: int):
     query = tagged_items.select().where(tagged_items.c.object_id == job_id)
     results = await database.fetch_all(query)
