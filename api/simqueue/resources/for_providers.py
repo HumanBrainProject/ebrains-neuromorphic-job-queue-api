@@ -70,16 +70,6 @@ async def update_job(
     return result
 
 
-def to_dictRequestBody(projectRB: Project):
-
-    data = {}
-    for field in ("collab", "title", "abstract", "description", "status", "submitted"):
-        if getattr(projectRB, field, None) is not None:
-            data[field] = getattr(projectRB, field)
-
-    return data
-
-
 def to_dictQ(quota):
 
     data = {}
@@ -87,30 +77,6 @@ def to_dictQ(quota):
         if getattr(quota, field, None) is not None:
             data[field] = getattr(quota, field)
 
-    return data
-
-
-def to_dictSerial(project: Project, quotas: List[Quota]):
-
-    data = dict(project)
-    data["status"] = Project(**project).status()
-    data["resource_uri"] = f"/projects/{project['id']}"
-    content = []
-    for quota in quotas:
-        content.append(to_dictSerialQuota(quota, project))
-    data["quotas"] = content
-    return data
-
-
-def to_dictSerialQuota(quota: Quota, project: Project):
-    data = {}
-    data["id"] = quota["id"]
-    data["limit"] = quota["limit"]
-    data["platform"] = quota["platform"]
-    data["project_id"] = quota["project_id"]
-    data["resource_uri"] = f"/projects/{project['id']}/quotas/{quota['id']}"
-    data["units"] = quota["units"]
-    data["usage"] = quota["usage"]
     return data
 
 

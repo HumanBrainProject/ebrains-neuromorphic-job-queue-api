@@ -818,54 +818,6 @@ async def get_quota(
     return content
 
 
-@router.put("/projects/{project_id}/quotas/{quota_id}", status_code=status_codes.HTTP_200_OK)
-async def update_quota(
-    quota: QuotaUpdate,
-    quota_id: int,
-    project_id: UUID = Path(
-        ...,
-        title="Project ID",
-        description="ID of the project whose quotas should be added",
-    ),
-    # from header
-    token: HTTPAuthorizationCredentials = Depends(auth),
-):
-
-    get_user_task = asyncio.create_task(oauth.User.from_token(token.credentials))
-    get_project_task = asyncio.create_task(db.get_project(project_id))
-    user = await get_user_task
-    project = await get_project_task
-    if project is None:
-        raise HTTPException(
-            status_code=status_codes.HTTP_404_NOT_FOUND,
-            detail=f"Either there is no project with id {project_id}, or you do not have access to it",
-        )
-
-    if not user.is_admin:
-        raise HTTPException(
-            status_code=status_codes.HTTP_404_NOT_FOUND,
-            detail=f"Only admins can update quotas",
-        )
-
-    quota_old = await db.get_quota(quota_id)
-
-    if quota_old is None:
-        raise HTTPException(
-            status_code=status_codes.HTTP_404_NOT_FOUND,
-            detail=f"There is no Quota with this id",
-        )
-
-    content = to_dictQ(quota)
-    # perhaps `to_dictQ` should compare `quota` and `quota_old`.
-    # If there are no changes we could avoid doing the database update.
-    if content is None:
-        raise HTTPException(
-            status_code=status_codes.HTTP_404_NOT_FOUND, detail=f"No content to change"
-        )
-
-    await db.update_quota(quota_id, content)
-
-
 @router.get("/collabs/", response_model=List[str])
 async def query_collabs(
     status: ProjectStatus = Query(None, description="project status"),
