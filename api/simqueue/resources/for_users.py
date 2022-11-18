@@ -104,7 +104,12 @@ async def query_jobs(
         from_index=from_index,
         size=size,
     )
-    return jobs
+
+    def add_resource_uri(job):
+        job["resource_uri"] = f"/jobs/{job['id']}"
+        return job
+
+    return [add_resource_uri(job) for job in jobs]
 
 
 @router.get("/jobs/{job_id}", response_model=Job)
@@ -139,6 +144,7 @@ async def get_job(
         if with_log:
             log = await db.get_log(job_id)
             job["log"] = log
+        job["resource_uri"] = f"/jobs/{job_id}"
         return job
 
     raise HTTPException(
