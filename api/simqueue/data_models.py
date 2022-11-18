@@ -25,7 +25,8 @@ class Comment(BaseModel):
 Tag = constr(min_length=2, max_length=100, strip_whitespace=True)
 
 
-CommentBody = constr(min_length=1, max_length=10000)
+class CommentBody(BaseModel):
+    comment: constr(min_length=1, max_length=10000)
 
 
 class TimeSeries(BaseModel):
@@ -104,7 +105,7 @@ class QuotaSubmission(BaseModel):
 
 
 class QuotaUpdate(BaseModel):
-    limit: float  # "Quantity of resources granted"
+    limit: float = None  # "Quantity of resources granted"
     usage: float  # "Quantity of resources used"
 
 

@@ -106,10 +106,10 @@ async def get_next_job(
     api_key: APIKey = Depends(oauth.get_provider),
 ):
     # todo: check api_key matches hardware_platform
-    provider_name = api_key
+    provider_name = await api_key
     job = await db.get_next_job(hardware_platform)
     if job:
-        raise NotImplementedError("todo: take the job off the queue")
+        # raise NotImplementedError("todo: take the job off the queue")
         return job
     else:
         raise HTTPException(
@@ -149,7 +149,7 @@ async def get_job(
             job["comments"] = await db.get_comments(job_id)
         if with_log:
             log = await db.get_log(job_id)
-            job["log"] = log["content"]
+            job["log"] = log
         return job
 
     raise HTTPException(
@@ -306,7 +306,9 @@ async def delete_job(
     )
 
 
-@router.post("/jobs/{job_id}/comments/", response_model=Comment)
+@router.post(
+    "/jobs/{job_id}/comments/", response_model=Comment, status_code=status_codes.HTTP_201_CREATED
+)
 async def add_comment(
     comment: CommentBody,
     job_id: int = Path(..., title="Job ID", description="ID of the job being commented on"),
@@ -332,7 +334,7 @@ async def add_comment(
         or job["user_id"] == user.username
         or await user.can_view(job["collab_id"])
     ):
-        return await db.add_comment(job_id, user.username, comment)
+        return await db.add_comment(job_id, user.username, comment.comment)
 
     raise HTTPException(
         status_code=status_codes.HTTP_404_NOT_FOUND,
@@ -372,11 +374,9 @@ async def update_comment(
         )
 
     if (as_admin and user.is_admin) or (
-        old_comment["user"] == user.username and await user.can_view(job["collab_id"])
+        old_comment["user_id"] == user.username and await user.can_view(job["collab_id"])
     ):
-        return await db.update_comment(
-            comment_id, job_id, user.username, old_comment["created_time"], comment
-        )
+        return await db.update_comment(comment_id, comment.comment)
 
     raise HTTPException(
         status_code=status_codes.HTTP_404_NOT_FOUND,
@@ -411,7 +411,7 @@ async def remove_comment(
         )
 
     if (as_admin and user.is_admin) or (
-        old_comment["user"] == user.username and await user.can_view(job["collab_id"])
+        old_comment["user_id"] == user.username and await user.can_view(job["collab_id"])
     ):
         return await db.delete_comment(comment_id)
 
@@ -477,6 +477,7 @@ async def add_tags(
             status_code=status_codes.HTTP_404_NOT_FOUND,
             detail=f"Either there is no job with id {job_id}, or you do not have access to it",
         )
+
     if (
         (as_admin and user.is_admin)
         or job["user_id"] == user.username
@@ -491,6 +492,8 @@ async def add_tags(
     )
 
 
+# this is not fully RESTful, maybe use "/jobs/{job_id}/tags/{tag}" for individual tags,
+# then this endpoint would remove _all_ tags from a job
 @router.delete("/jobs/{job_id}/tags/", status_code=status_codes.HTTP_200_OK)
 async def remove_tags(
     tags: List[Tag] = None,
@@ -527,14 +530,14 @@ async def remove_tags(
 
 @router.get("/tags/", response_model=List[Tag])
 async def query_tags(
-    collab_id: List[str] = Query(None, description="collab id"),
+    collab_id: str = Query(None, description="collab id"),
     token: HTTPAuthorizationCredentials = Depends(auth),
 ):
     """
     Return a list of tags used by existing jobs
     """
+    user = await oauth.User.from_token(token.credentials)
     if collab_id:
-        user = oauth.User.from_token(token.credentials)
         if not (user.is_admin or user.can_view(collab_id)):
             raise HTTPException(
                 status_code=status_codes.HTTP_404_FORBIDDEN,
@@ -544,4 +547,4 @@ async def query_tags(
         raise HTTPException(
             status_code=status_codes.HTTP_403_FORBIDDEN, detail="Please specify a collab_id"
         )
-    return await db.query_tags(collab_id=collab_id)
+    return await db.query_tags(collab_id)

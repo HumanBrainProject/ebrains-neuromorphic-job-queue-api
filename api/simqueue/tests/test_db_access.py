@@ -153,7 +153,7 @@ async def test_get_next_job(database_connection, submitted_job):
 @pytest.mark.asyncio
 async def test_get_comments(database_connection):
     comments = await db.get_comments(122685)
-    expected_keys = {"user", "content", "job_id", "id", "created_time"}
+    expected_keys = {"user_id", "content", "job_id", "id", "timestamp"}
     assert len(comments) > 0
     assert set(comments[0].keys()) == expected_keys
 
@@ -161,8 +161,7 @@ async def test_get_comments(database_connection):
 @pytest.mark.asyncio
 async def test_get_log(database_connection):
     log = await db.get_log(142972)
-    expected_keys = {"job_id", "content"}
-    assert set(log.keys()) == expected_keys
+    assert isinstance(log, str)
 
 
 @pytest.mark.asyncio
@@ -269,7 +268,7 @@ async def test_add_update_and_remove_comments(database_connection, submitted_job
     )
     response = await db.add_comment(submitted_job["id"], TEST_USER, comment1)
     assert response["job_id"] == submitted_job["id"]
-    assert response["user"] == TEST_USER
+    assert response["user_id"] == TEST_USER
     assert response["content"] == comment1
 
     response2 = await db.get_comments(submitted_job["id"])
@@ -284,7 +283,7 @@ async def test_add_update_and_remove_comments(database_connection, submitted_job
 
     modified_comment1 = comment1.upper()
     response5 = await db.update_comment(response["id"], modified_comment1)
-    for key in ("id", "job_id", "user"):
+    for key in ("id", "job_id", "user_id"):
         assert response5[key] == response[key]
         assert response5["content"] == modified_comment1
 

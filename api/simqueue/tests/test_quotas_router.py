@@ -1,4 +1,5 @@
 from datetime import date
+from copy import deepcopy
 import json
 from uuid import uuid4, UUID
 
@@ -7,7 +8,7 @@ from fastapi.encoders import jsonable_encoder
 
 from simqueue.main import app
 from simqueue.oauth import User
-from simqueue.data_models import ProjectStatus
+from simqueue.data_models import ProjectStatus, QuotaSubmission
 import simqueue.db
 
 
@@ -22,9 +23,9 @@ class MockUser(User):
             "roles": {
                 "group": ["comic-film-actors-from-the-silent-era"],
                 "team": [
-                    "collab-some-other-collab-viewer",
-                    "collab-neuromorphic-testing-private-editor",
-                    "collab-neuromorphic-platform-admin-administrator",
+                    "collab-charlie-viewer",
+                    "collab-my-collab-editor",
+                    "collab-some-other-collab-editor",
                 ],
             },
         }
@@ -35,10 +36,12 @@ class MockUserPub(User):
     @classmethod
     async def from_token(cls, token):
         user_data = {
-            "preferred_username": "roldlloyd",
+            "preferred_username": "charliechaplin",
             "roles": {
                 "group": ["comic-film-actors-from-the-silent-era"],
                 "team": [
+                    "collab-charlie-editor",
+                    "collab-my-collab-viewer",
                     "collab-some-other-collab-viewer",
                 ],
             },
@@ -46,38 +49,13 @@ class MockUserPub(User):
         return cls(**user_data)
 
 
-class MockUserPriv(User):
+class MockUserAdmin(User):
     @classmethod
     async def from_token(cls, token):
         user_data = {
-            "preferred_username": "alloyd",
+            "preferred_username": "admin",
             "roles": {
-                "group": ["comic-film-actors-from-the-silent-era"],
-                "team": [
-                    "andrew-public-test-editor",
-                    "collab-some-other-collab-viewer",
-                    "collab-neuromorphic-testing-private-editor",
-                    "nmc-jupytertestcollab-editor",
-                ],
-            },
-        }
-        return cls(**user_data)
-
-
-class MockUseradmin(User):
-    @classmethod
-    async def from_token(cls, token):
-        user_data = {
-            "preferred_username": "loyd",
-            "roles": {
-                "group": ["comic-film-actors-from-the-silent-era"],
-                "team": [
-                    "andrew-public-test-administrator" "collab-some-other-collab-viewer",
-                    "collab-neuromorphic-testing-private-adminstrator",
-                    "collab-neuromorphic-platform-admin-administrator",
-                    "collab-neuromorphic-platform-admin-editor",
-                    "nmc-jupytertestcollab-administrator",
-                ],
+                "team": ["collab-neuromorphic-platform-admin-administrator"],
             },
         }
         return cls(**user_data)
@@ -85,8 +63,8 @@ class MockUseradmin(User):
 
 mock_projects = [
     {
-        "collab": "neuromorphic-testing-private",
-        "title": "fff lorem ipsum lorme ipsum",
+        "collab": "my-collab",
+        "title": "Bughouse Bellhops",
         "abstract": "lorem ipsum",
         "description": "lorem ipsum",
         "id": "ff4e494f-6f44-47c6-9a85-7091ff788b17",
@@ -98,12 +76,25 @@ mock_projects = [
         "decision_date": "2022-10-15",
     },
     {
-        "collab": "neuromorphic-testing-private ssss",
-        "title": "testing Collaboratory v2 integration",
+        "collab": "some-other-collab",
+        "title": "Tinkering with Trouble",
         "abstract": "abstract goes here lorem ipsum",
         "description": "lorem ipsum lorem ipsum testing private  lorem ipsum idadad lorem ipsummmm",
         "id": "4948a906-2488-11ed-8c74-e5cdf4879499",
         "owner": "haroldlloyd",
+        "duration": 0,
+        "start_date": None,
+        "accepted": False,
+        "submission_date": "2022-10-15",
+        "decision_date": None,
+    },
+    {
+        "collab": "charlie",
+        "title": "The Dictator",
+        "abstract": "abstract goes here lorem ipsum",
+        "description": "lorem ipsum lorem ipsum testing private  lorem ipsum idadad lorem ipsummmm",
+        "id": "4948a906-2488-11ed-8c74-e5cdf4879499",
+        "owner": "charliechaplin",
         "duration": 0,
         "start_date": None,
         "accepted": False,
@@ -126,7 +117,7 @@ def test_query_projects(mocker):
     assert response.status_code == 200
 
     status = None
-    collab_id = ["neuromorphic-platform-admin", "neuromorphic-testing-private"]  # user can_edit
+    collab_id = ["my-collab", "some-other-collab"]  # user can_edit
     owner_id = None
     from_index = 0
     size = 10
@@ -139,13 +130,13 @@ def test_query_projects_with_valid_filters(mocker):
     mocker.patch("simqueue.db.query_projects", return_value=mock_projects)
     mocker.patch("simqueue.db.follow_relationships_quotas", return_value=[])
     response = client.get(
-        "/projects/?status=accepted&owner_id=haroldlloyd&collab_id=neuromorphic-testing-private&collab_id=neuromorphic-platform-admin&date_range_start=2021-03-01&from_index=10",
+        "/projects/?status=accepted&owner_id=haroldlloyd&collab_id=my-collab&collab_id=some-other-collab&date_range_start=2021-03-01&from_index=10",
         headers={"Authorization": "Bearer notarealtoken"},
     )
     assert response.status_code == 200
 
     status = ProjectStatus.accepted
-    collab_id = ["neuromorphic-testing-private", "neuromorphic-platform-admin"]
+    collab_id = ["my-collab", "some-other-collab"]
     owner_id = ["haroldlloyd"]
     from_index = 10
     size = 10
@@ -157,14 +148,14 @@ def test_query_collabs(mocker):
     mocker.patch("simqueue.oauth.User", MockUser)
     mocker.patch("simqueue.db.query_projects", return_value=mock_projects)
     response = client.get(
-        "/collabs/?size=100&from_index=0&as_admin=false",
+        "/collabs/?size=100&from_index=0",
         headers={"Authorization": "Bearer notarealtoken"},
     )
 
     assert response.status_code == 200
 
     status = None
-    collab_id = ["neuromorphic-platform-admin", "neuromorphic-testing-private"]  # user can_edit
+    collab_id = ["my-collab", "some-other-collab"]  # user can_edit
     owner_id = None
     from_index = 0
     size = 10
@@ -175,11 +166,11 @@ def test_query_collabs(mocker):
 def test_get_project(mocker):
     data = {
         "id": "b52ebde9-116b-4419-894a-5f330ec3b484",
-        "collab": "neuromorphic-testing-private",
+        "collab": "my-collab",
         "title": "testing Collaboratory v2 integration",
         "abstract": "for testing, created with Python client",
         "description": "",
-        "owner": "adavison",
+        "owner": "haroldlloyd",
         "duration": 0,
         "start_date": "2021-01-05",
         "accepted": True,
@@ -191,7 +182,7 @@ def test_get_project(mocker):
     mocker.patch("simqueue.db.follow_relationships_quotas", return_value=[])
 
     response = client.get(
-        "/projects/b52ebde9-116b-4419-894a-5f330ec3b484?as_admin=false",
+        "/projects/b52ebde9-116b-4419-894a-5f330ec3b484",
         headers={"Authorization": "Bearer notarealtoken"},
     )
     assert response.status_code == 200
@@ -206,7 +197,7 @@ def test_create_project_asmember(mocker):
     mocker.patch("simqueue.db.create_project")
 
     datap = {
-        "collab": "neuromorphic-testing-private",
+        "collab": "my-collab",
         "title": "testing Collaboratory v2 integration",
         "abstract": "abstract goes here",
         "description": "dddddd",
@@ -220,7 +211,7 @@ def test_create_project_asmember(mocker):
     json_compatible_item_data = jsonable_encoder(datap)
 
     response = client.post(
-        "/projects/?as_admin=false",
+        "/projects/",
         headers={
             "accept": "application/json",
             "Authorization": "Bearer notarealtoken",
@@ -235,17 +226,17 @@ def test_create_project_asmember(mocker):
            """
 
 
-def test_create_item_as_non_member(mocker):
+def test_create_project_as_non_member(mocker):
     mocker.patch("simqueue.oauth.User", MockUserPub)
     mocker.patch("simqueue.db.create_project")
 
     datap = {
-        "collab": "neuromorphic-testing-private",
+        "collab": "my-collab",
         "title": "testing Collaboratory v2 integration",
         "abstract": "abstract goes here",
         "description": "dddddd",
         "context": "02461c47-1262-4f8a-ad23-e58d67bdd6db",
-        "owner": "haroldlloyd",
+        "owner": "charliechaplin",
         "duration": 0,
         "status": "in preparation",
         "submited": False,
@@ -253,7 +244,7 @@ def test_create_item_as_non_member(mocker):
 
     json_compatible_item_data = jsonable_encoder(datap)
     response = client.post(
-        "/projects/?as_admin=false",
+        "/projects/",
         headers={
             "accept": "application/json",
             "Authorization": "Bearer notarealtoken",
@@ -268,10 +259,10 @@ def test_create_item_as_non_member(mocker):
            """
 
 
-def test_update_item(mocker):
+def test_update_project_as_user(mocker):
     mocker.patch("simqueue.oauth.User", MockUser)
     existing_project = {
-        "collab": "neuromorphic-testing-private",
+        "collab": "my-collab",
         "title": "testing Collaboratory v2 integration",
         "abstract": "abstract goes here",
         "description": "dddddd",
@@ -284,7 +275,7 @@ def test_update_item(mocker):
     mocker.patch("simqueue.db.get_project", return_value=existing_project)
 
     data = {
-        "collab": "neuromorphic-testing-private",
+        "collab": "my-collab",
         "title": "testing Collaboratory v2 integration...",
         "abstract": "this is the abstract",
         "description": "eeeeee",
@@ -295,7 +286,7 @@ def test_update_item(mocker):
 
     json_compatible_item_data = jsonable_encoder(data)
     response = client.put(
-        "/projects/2b79a1a8-5825-4359-9b2d-2b6a11537e6b?as_admin=false",
+        "/projects/2b79a1a8-5825-4359-9b2d-2b6a11537e6b",
         headers={
             "accept": "application/json",
             "Authorization": "Bearer notarealtoken",
@@ -310,10 +301,41 @@ def test_update_item(mocker):
     """
 
 
+def test_update_project_as_admin(mocker):
+    mocker.patch("simqueue.oauth.User", MockUserAdmin)
+    existing_project = {
+        "collab": "my-collab",
+        "title": "testing Collaboratory v2 integration",
+        "abstract": "abstract goes here",
+        "description": "dddddd",
+        "id": "2b79a1a8-5825-4359-9b2d-2b6a11537e6b",
+        "owner": "haroldlloyd",
+        "duration": 0,
+        "submission_date": "2021-01-05",
+    }
+    mocker.patch("simqueue.db.update_project")
+    mocker.patch("simqueue.db.get_project", return_value=existing_project)
+
+    data = deepcopy(existing_project)
+    data.update({"status": "accepted"})
+    json_compatible_item_data = jsonable_encoder(data)
+    response = client.put(
+        "/projects/2b79a1a8-5825-4359-9b2d-2b6a11537e6b?as_admin=true",
+        headers={
+            "accept": "application/json",
+            "Authorization": "Bearer notarealtoken",
+            "Content-Type": "application/json",
+        },
+        json=json_compatible_item_data,
+    )
+
+    assert response.status_code == 200
+
+
 def test_only_admins_can_edit_accepted_rejected_projects(mocker):
     mocker.patch("simqueue.oauth.User", MockUser)
     existing_project = {
-        "collab": "neuromorphic-testing-private",
+        "collab": "my-collab",
         "title": "testing Collaboratory v2 integration",
         "abstract": "abstract goes here",
         "description": "dddddd",
@@ -326,7 +348,7 @@ def test_only_admins_can_edit_accepted_rejected_projects(mocker):
     mocker.patch("simqueue.db.get_project", return_value=existing_project)
 
     data = {
-        "collab": "neuromorphic-testing-private",
+        "collab": "my-collab",
         "title": "fff lorem ipsum lorme ipsum",
         "abstract": "lorem ipsum vvvvv fff",
         "description": "lorem ipsum",
@@ -339,7 +361,7 @@ def test_only_admins_can_edit_accepted_rejected_projects(mocker):
 
     json_compatible_item_data = jsonable_encoder(data)
     response = client.put(
-        "/projects/ff4e494f-6f44-47c6-9a85-7091ff788b17?as_admin=false",
+        "/projects/ff4e494f-6f44-47c6-9a85-7091ff788b17",
         headers={
             "accept": "application/json",
             "Authorization": "Bearer notarealtoken",
@@ -360,7 +382,7 @@ def test_only_admins_can_edit_accepted_rejected_projects(mocker):
 def test_editing_forbidden_after_submission(mocker):
     mocker.patch("simqueue.oauth.User", MockUser)
     existing_project = {
-        "collab": "neuromorphic-testing-private",
+        "collab": "my-collab",
         "title": "testing Collaboratory v2 integration",
         "abstract": "abstract goes here",
         "description": "dddddd",
@@ -373,7 +395,7 @@ def test_editing_forbidden_after_submission(mocker):
     mocker.patch("simqueue.db.get_project", return_value=existing_project)
 
     data = {
-        "collab": "neuromorphic-testing-private ssss",
+        "collab": "my-collab ssss",
         "title": "testing Collaboratory v2 integration",
         "abstract": "abstract goes here lorem ipsum",
         "description": "lorem ipsum lorem ipsum testing private  lorem ipsum idadad lorem ipsummmm",
@@ -387,7 +409,7 @@ def test_editing_forbidden_after_submission(mocker):
 
     json_compatible_item_data = jsonable_encoder(data)
     response = client.put(
-        "/projects/4948a906-2488-11ed-8c74-e5cdf4879499?as_admin=false",
+        "/projects/4948a906-2488-11ed-8c74-e5cdf4879499",
         headers={
             "accept": "application/json",
             "Authorization": "Bearer notarealtoken",
@@ -398,3 +420,147 @@ def test_editing_forbidden_after_submission(mocker):
 
     assert response.status_code == 403
     assert response.json() == {"detail": "Can't edit a submitted form."}
+
+
+def test_delete_project(mocker):
+    mocker.patch("simqueue.oauth.User", MockUser)
+    mocker.patch("simqueue.db.get_project", return_value=mock_projects[0])
+    mocker.patch("simqueue.db.delete_quotas_from_project", return_value=None)
+    mocker.patch("simqueue.db.delete_project", return_value=None)
+    response = client.delete(
+        "/projects/b52ebde9-116b-4419-894a-5f330ec3b484",
+        headers={"Authorization": "Bearer notarealtoken"},
+    )
+    assert response.status_code == 200
+    assert simqueue.db.delete_quotas_from_project.await_args.args == (
+        "b52ebde9-116b-4419-894a-5f330ec3b484",
+    )
+    assert simqueue.db.delete_project.await_args.args == ("b52ebde9-116b-4419-894a-5f330ec3b484",)
+
+
+def test_query_quotas(mocker):
+    project_id = "b52ebde9-116b-4419-894a-5f330ec3b484"
+    mock_quotas = [
+        {
+            "id": 999,
+            "platform": "TestPlatform",
+            "limit": 5000,
+            "usage": 42,
+            "units": "bushels",
+            "project_id": project_id,
+        },
+        {
+            "id": 777,
+            "platform": "BrainScaleS",
+            "limit": 0.1,
+            "usage": 0.00123,
+            "units": "wafer-hours",
+            "project_id": project_id,
+        },
+    ]
+    mocker.patch("simqueue.oauth.User", MockUser)
+    mocker.patch("simqueue.db.get_project", return_value=mock_projects[0])
+    mocker.patch("simqueue.db.query_quotas", return_value=mock_quotas)
+    response = client.get(
+        f"/projects/{project_id}/quotas/",
+        headers={"Authorization": "Bearer notarealtoken"},
+    )
+    assert response.status_code == 200
+    assert simqueue.db.get_project.await_args.args == (UUID(project_id),)
+    assert simqueue.db.query_quotas.await_args.args == (UUID(project_id),)
+    assert simqueue.db.query_quotas.await_args.kwargs == {"size": 10, "from_index": 0}
+
+
+def test_get_quota(mocker):
+    project_id = "b52ebde9-116b-4419-894a-5f330ec3b484"
+    mock_quota = {
+        "id": 999,
+        "platform": "TestPlatform",
+        "limit": 5000,
+        "usage": 42,
+        "units": "bushels",
+        "project_id": project_id,
+    }
+    mocker.patch("simqueue.oauth.User", MockUser)
+    mocker.patch("simqueue.db.get_project", return_value=mock_projects[0])
+    mocker.patch("simqueue.db.get_quota", return_value=mock_quota)
+    response = client.get(
+        f"/projects/{project_id}/quotas/999",
+        headers={"Authorization": "Bearer notarealtoken"},
+    )
+    assert response.status_code == 200
+    assert simqueue.db.get_project.await_args.args == (UUID(project_id),)
+    assert simqueue.db.get_quota.await_args.args == (999,)
+
+
+def test_create_quota(mocker):
+    project_id = "b52ebde9-116b-4419-894a-5f330ec3b484"
+    new_quota = {
+        "platform": "TestPlatform",
+        "limit": 5000,
+        "usage": 42,
+        "units": "bushels",
+    }
+    mocker.patch("simqueue.oauth.User", MockUserAdmin)
+    mocker.patch("simqueue.db.get_project", return_value=mock_projects[0])
+    mocker.patch("simqueue.db.create_quota", return_value=new_quota)
+    response = client.post(
+        f"/projects/{project_id}/quotas/",
+        json=new_quota,
+        headers={"Authorization": "Bearer notarealtoken"},
+    )
+    assert response.status_code == 201
+    assert simqueue.db.get_project.await_args.args == (UUID(project_id),)
+    assert simqueue.db.create_quota.await_args.args == (
+        project_id,
+        QuotaSubmission(**new_quota),
+    )
+
+
+def test_update_quota(mocker):
+    project_id = "b52ebde9-116b-4419-894a-5f330ec3b484"
+    update = {
+        "usage": 63.0,
+    }
+    mocker.patch("simqueue.oauth.User", MockUserAdmin)
+    mocker.patch("simqueue.db.get_project", return_value=mock_projects[0])
+    mocker.patch("simqueue.db.get_quota", return_value={})
+    mocker.patch("simqueue.db.update_quota", return_value={})
+    response = client.put(
+        f"/projects/{project_id}/quotas/999",
+        json=update,
+        headers={"Authorization": "Bearer notarealtoken"},
+    )
+    assert response.status_code == 200
+    assert simqueue.db.get_project.await_args.args == (UUID(project_id),)
+    assert simqueue.db.get_quota.await_args.args == (999,)
+    assert simqueue.db.update_quota.await_args.args == (
+        999,
+        update,
+    )
+
+
+def test_remove_quota_as_normal_user(mocker):
+    mock_quota = {}
+    mocker.patch("simqueue.oauth.User", MockUser)
+    mocker.patch("simqueue.db.get_project", return_value=mock_projects[0])
+    mocker.patch("simqueue.db.get_quota", return_value=mock_quota)
+    mocker.patch("simqueue.db.delete_quota", return_value=None)
+    response = client.delete(
+        "/projects/b52ebde9-116b-4419-894a-5f330ec3b484/quotas/23",
+        headers={"Authorization": "Bearer notarealtoken"},
+    )
+    assert response.status_code == 403
+
+
+def test_remove_quota_as_admin_user(mocker):
+    mock_quota = {}
+    mocker.patch("simqueue.oauth.User", MockUserAdmin)
+    mocker.patch("simqueue.db.get_project", return_value=mock_projects[0])
+    mocker.patch("simqueue.db.get_quota", return_value=mock_quota)
+    mocker.patch("simqueue.db.delete_quota", return_value=None)
+    response = client.delete(
+        "/projects/b52ebde9-116b-4419-894a-5f330ec3b484/quotas/23",
+        headers={"Authorization": "Bearer notarealtoken"},
+    )
+    assert response.status_code == 200

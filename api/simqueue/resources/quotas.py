@@ -46,7 +46,7 @@ def to_dictQ(quota):
 
     data = {}
     for field in ("units", "limit", "usage", "platform"):
-        if getattr(quota, field) is not None:
+        if getattr(quota, field, None) is not None:
             data[field] = getattr(quota, field)
 
     return data
@@ -66,9 +66,10 @@ def to_dictSerial(project: Project, quotas: List[Quota]):
 
 def to_dictSerialQuota(quota: Quota, project: Project):
     data = {}
+    data["id"] = quota["id"]
     data["limit"] = quota["limit"]
     data["platform"] = quota["platform"]
-    data["project"] = quota["project_id"]
+    data["project_id"] = quota["project_id"]
     data["resource_uri"] = f"/projects/{project['id']}/quotas/{quota['id']}"
     data["units"] = quota["units"]
     data["usage"] = quota["usage"]
@@ -192,8 +193,8 @@ async def delete_project(
     if project is not None:
         if (as_admin and user.is_admin) or user.can_edit(project["collab"]):
             if db.query_quotas([project_id]) is not None:
-                await db.delete_quotas_from_project(project_id)
-            await db.delete_project(project_id)
+                await db.delete_quotas_from_project(str(project_id))
+            await db.delete_project(str(project_id))
         else:
             raise HTTPException(
                 status_code=status_codes.HTTP_403_FORBIDDEN,
@@ -208,9 +209,6 @@ async def delete_project(
 
 @router.delete("/projects/{project_id}/quotas/{quota_id}", status_code=status_codes.HTTP_200_OK)
 async def delete_quota(
-    as_admin: bool = Query(
-        False, description="Run this query with admin privileges, if you have them"
-    ),
     project_id: UUID = Path(
         ...,
         title="Project ID",
@@ -236,8 +234,7 @@ async def delete_quota(
             status_code=status_codes.HTTP_404_NOT_FOUND,
             detail=f"Either there is no project with id {project_id}, or you do not have access to it",
         )
-
-    if not (as_admin and user.is_admin):
+    if not user.is_admin:
         raise HTTPException(
             status_code=status_codes.HTTP_403_FORBIDDEN,
             detail=f"You are not allowed to delete quotas from this project",
@@ -367,7 +364,7 @@ async def get_quota(
 
 
 @router.post("/projects/{project_id}/quotas/", status_code=status_codes.HTTP_201_CREATED)
-async def create_quotas(
+async def create_quota(
     quota: QuotaSubmission,
     project_id: UUID = Path(
         ...,
@@ -392,11 +389,11 @@ async def create_quotas(
             status_code=status_codes.HTTP_404_NOT_FOUND,
             detail=f"Only admins can add quotas",
         )
-    await db.post_quota(project_id, quota)
+    await db.create_quota(str(project_id), quota)
 
 
 @router.put("/projects/{project_id}/quotas/{quota_id}", status_code=status_codes.HTTP_200_OK)
-async def update_quotas(
+async def update_quota(
     quota: QuotaUpdate,
     quota_id: int,
     project_id: UUID = Path(
@@ -508,7 +505,6 @@ async def update_project(
     # from header
     token: HTTPAuthorizationCredentials = Depends(auth),
 ):
-
     get_user_task = asyncio.create_task(oauth.User.from_token(token.credentials))
     get_project_task = asyncio.create_task(db.get_project(project_id))
     user = await get_user_task
@@ -531,7 +527,6 @@ async def update_project(
                 detail=f"You do not have permission to change the status of this project.",
             )
         current_status = Project(**project).status()
-
         if new_status == current_status:
             raise HTTPException(
                 status_code=status_codes.HTTP_204_NO_CONTENT, detail=f"Same Status"

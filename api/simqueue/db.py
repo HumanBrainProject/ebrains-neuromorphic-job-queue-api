@@ -182,6 +182,16 @@ def transform_project_fields(project):
     return project
 
 
+def transform_comment_fields(comment):
+    return {
+        "id": comment["id"],
+        "job_id": comment["job_id"],
+        "content": comment["content"],
+        "user_id": comment["user"],
+        "timestamp": comment["created_time"],
+    }
+
+
 async def follow_relationships(job):
     # input data
     query = data_items.select().where(
@@ -605,8 +615,8 @@ async def get_comments(job_id: int):
     query = comments.select().where(comments.c.job_id == job_id)
     results = await database.fetch_all(query)
     return sorted(
-        [dict(result) for result in results],
-        key=lambda comment: comment["created_time"],
+        [transform_comment_fields(result) for result in results],
+        key=lambda comment: comment["timestamp"],
         reverse=True,
     )
 
@@ -614,24 +624,21 @@ async def get_comments(job_id: int):
 async def get_comment(comment_id: int):
     query = comments.select().where(comments.c.id == comment_id)
     result = await database.fetch_one(query)
-    return dict(result)
+    return transform_comment_fields(result)
 
 
-async def add_comment(job_id: int, user_id: str, new_comment: CommentBody):
+async def add_comment(job_id: int, user_id: str, new_comment: str):
 
     ins = comments.insert().values(
         content=new_comment, created_time=now_in_utc(), user=user_id, job_id=job_id
     )
     comment_id = await database.execute(ins)
-
-    query = comments.select().where(comments.c.id == comment_id)
-    result = await database.fetch_one(query)
-    return dict(result)
+    return await get_comment(comment_id)
 
 
 async def update_comment(
     comment_id: int,
-    new_comment: CommentBody,
+    new_comment: str,
 ):
     ins = (
         comments.update()
@@ -646,14 +653,13 @@ async def delete_comment(comment_id: int):
 
     ins = comments.delete().where(comments.c.id == comment_id)
     result = await database.execute(ins)
-
     return result
 
 
 async def get_log(job_id: int):
     query = logs.select().where(logs.c.job_id == job_id)
     result = await database.fetch_one(query)
-    return dict(result)
+    return result["content"]
 
 
 async def query_projects(

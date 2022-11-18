@@ -2,7 +2,7 @@ from datetime import date
 from fastapi.testclient import TestClient
 from simqueue.main import app
 from simqueue.oauth import User
-from simqueue.data_models import JobStatus
+from simqueue.data_models import JobStatus, SubmittedJob
 import simqueue.db
 
 client = TestClient(app)
@@ -58,13 +58,13 @@ mock_comments = [
     {
         "job_id": 999999,
         "content": "comment 1",
-        "user_id": "haguili",
+        "user_id": "haroldlloyd",
         "timestamp": "2022-11-02T01:53:14.944Z",
     },
     {
         "job_id": 999999,
         "content": "comment 2",
-        "user_id": "haguili",
+        "user_id": "haroldlloyd",
         "timestamp": "2022-11-02T01:53:14.944Z",
     },
 ]
@@ -153,14 +153,81 @@ def test_get_job(mocker):
     mocker.patch("simqueue.db.get_job", return_value=mock_jobs[0])
     response = client.get("/jobs/999999", headers={"Authorization": "Bearer notarealtoken"})
     assert response.status_code == 200
+    assert simqueue.db.get_job.await_args.args == (999999,)
+
+
+def test_get_job_with_log_and_comments(mocker):
+    mocker.patch("simqueue.oauth.User", MockUser)
+    mocker.patch("simqueue.db.get_job", return_value=mock_jobs[0])
+    mocker.patch(
+        "simqueue.db.get_comments", return_value=[{"content": "comment1"}, {"content": "comment2"}]
+    )
+    mocker.patch("simqueue.db.get_log", return_value="...")
+    response = client.get(
+        "/jobs/999999?with_log=true&with_comments=true",
+        headers={"Authorization": "Bearer notarealtoken"},
+    )
+    assert response.status_code == 200
+    assert simqueue.db.get_job.await_args.args == (999999,)
+    assert simqueue.db.get_log.await_args.args == (999999,)
+    assert simqueue.db.get_comments.await_args.args == (999999,)
+
+
+def test_get_next_job(mocker):
+    mocker.patch("simqueue.db.get_next_job", return_value=mock_jobs[0])
+    mocker.patch("simqueue.db.get_provider", return_value="SpiNNaker")
+    response = client.get("/jobs/next/SpiNNaker", headers={"x-api-key": "valid-api-key"})
+    assert response.status_code == 200
+    assert simqueue.db.get_next_job.await_args.args == ("SpiNNaker",)
+    assert simqueue.db.get_provider.await_args.args == ("valid-api-key",)
 
 
 def test_get_tags(mocker):
     mocker.patch("simqueue.oauth.User", MockUser)
     mocker.patch("simqueue.db.get_job", return_value=mock_jobs[0])
-    mocker.patch("simqueue.db.get_tags", return_value=mock_tags)
     response = client.get("/jobs/999999/tags", headers={"Authorization": "Bearer notarealtoken"})
     assert response.status_code == 200
+    assert simqueue.db.get_job.await_args.args == (999999,)
+    assert response.json() == mock_jobs[0]["tags"]
+
+
+def test_add_tags(mocker):
+    new_tags = ["yellow", "green"]
+    mocker.patch("simqueue.oauth.User", MockUser)
+    mocker.patch("simqueue.db.get_job", return_value=mock_jobs[0])
+    mocker.patch("simqueue.db.add_tags_to_job", return_value=new_tags)
+    response = client.post(
+        "/jobs/999999/tags/", json=new_tags, headers={"Authorization": "Bearer notarealtoken"}
+    )
+    assert response.status_code == 200
+    assert simqueue.db.get_job.await_args.args == (999999,)
+    assert simqueue.db.add_tags_to_job.await_args.args == (999999, new_tags)
+    assert response.json() == new_tags
+
+
+def test_remove_tags(mocker):
+    mocker.patch("simqueue.oauth.User", MockUser)
+    mocker.patch("simqueue.db.get_job", return_value=mock_jobs[0])
+    mocker.patch("simqueue.db.remove_tags", return_value=[])
+    response = client.delete(
+        "/jobs/999999/tags/",
+        json=mock_jobs[0]["tags"],
+        headers={"Authorization": "Bearer notarealtoken"},
+    )
+    assert response.status_code == 200
+    assert simqueue.db.get_job.await_args.args == (999999,)
+    assert simqueue.db.remove_tags.await_args.args == (999999, mock_jobs[0]["tags"])
+
+
+def test_query_tags(mocker):
+    mocker.patch("simqueue.oauth.User", MockUser)
+    mocker.patch("simqueue.db.query_tags", return_value=["some", "tags"])
+    response = client.get(
+        "/tags/?collab_id=neuromorphic-testing-private",
+        headers={"Authorization": "Bearer notarealtoken"},
+    )
+    assert response.status_code == 200
+    assert simqueue.db.query_tags.await_args.args == ("neuromorphic-testing-private",)
 
 
 def test_get_comments(mocker):
@@ -171,6 +238,8 @@ def test_get_comments(mocker):
         "/jobs/999999/comments", headers={"Authorization": "Bearer notarealtoken"}
     )
     assert response.status_code == 200
+    assert simqueue.db.get_job.await_args.args == (999999,)
+    assert simqueue.db.get_comments.await_args.args == (999999,)
 
 
 def test_get_log(mocker):
@@ -179,6 +248,8 @@ def test_get_log(mocker):
     mocker.patch("simqueue.db.get_log", return_value=mock_log)
     response = client.get("/jobs/999999/log", headers={"Authorization": "Bearer notarealtoken"})
     assert response.status_code == 200
+    assert simqueue.db.get_job.await_args.args == (999999,)
+    assert simqueue.db.get_log.await_args.args == (999999,)
 
 
 def test_post_job(mocker):
@@ -188,6 +259,10 @@ def test_post_job(mocker):
         "/jobs/", json=mock_submitted_job, headers={"Authorization": "Bearer notarealtoken"}
     )
     assert response.status_code == 201
+    assert simqueue.db.create_job.await_args.args == (
+        "haroldlloyd",
+        SubmittedJob(**mock_submitted_job),
+    )
 
 
 def test_put_job(mocker):
@@ -198,3 +273,64 @@ def test_put_job(mocker):
         "/jobs/999999", json=mock_job_patch, headers={"Authorization": "Bearer notarealtoken"}
     )
     assert response.status_code == 200
+    assert simqueue.db.get_job.await_args.args == (999999,)
+    assert simqueue.db.update_job.await_args.args == (999999, mock_job_patch)
+
+
+def test_delete_job(mocker):
+    mocker.patch("simqueue.oauth.User", MockUser)
+    mocker.patch("simqueue.db.get_job", return_value=mock_jobs[0])
+    mocker.patch("simqueue.db.delete_job", return_value=None)
+    response = client.delete("/jobs/999999", headers={"Authorization": "Bearer notarealtoken"})
+    assert response.status_code == 200
+    assert simqueue.db.get_job.await_args.args == (999999,)
+    assert simqueue.db.delete_job.await_args.args == (999999,)
+
+
+def test_add_comment(mocker):
+    mocker.patch("simqueue.oauth.User", MockUser)
+    mocker.patch("simqueue.db.get_job", return_value=mock_jobs[0])
+    mocker.patch("simqueue.db.add_comment", return_value=mock_comments[0])
+    response = client.post(
+        "/jobs/999999/comments/",
+        json={"comment": mock_comments[0]["content"]},
+        headers={"Authorization": "Bearer notarealtoken"},
+    )
+    assert response.status_code == 201
+    assert simqueue.db.get_job.await_args.args == (999999,)
+    assert simqueue.db.add_comment.await_args.args == (
+        999999,
+        mock_comments[0]["user_id"],
+        mock_comments[0]["content"],
+    )
+
+
+def test_update_comment(mocker):
+    mocker.patch("simqueue.oauth.User", MockUser)
+    mocker.patch("simqueue.db.get_job", return_value=mock_jobs[0])
+    mocker.patch("simqueue.db.get_comment", return_value=mock_comments[0])
+    mocker.patch("simqueue.db.update_comment", return_value=mock_comments[0])
+    response = client.put(
+        "/jobs/999999/comments/42",
+        json={"comment": "this is an updated comment"},
+        headers={"Authorization": "Bearer notarealtoken"},
+    )
+    assert response.status_code == 200
+    assert simqueue.db.get_job.await_args.args == (999999,)
+    assert simqueue.db.get_comment.await_args.args == (42,)
+    assert simqueue.db.update_comment.await_args.args == (42, "this is an updated comment")
+
+
+def test_remove_comment(mocker):
+    mocker.patch("simqueue.oauth.User", MockUser)
+    mocker.patch("simqueue.db.get_job", return_value=mock_jobs[0])
+    mocker.patch("simqueue.db.get_comment", return_value=mock_comments[0])
+    mocker.patch("simqueue.db.delete_comment", return_value=None)
+    response = client.delete(
+        "/jobs/999999/comments/42",
+        headers={"Authorization": "Bearer notarealtoken"},
+    )
+    assert response.status_code == 200
+    assert simqueue.db.get_job.await_args.args == (999999,)
+    assert simqueue.db.get_comment.await_args.args == (42,)
+    assert simqueue.db.delete_comment.await_args.args == (42,)
