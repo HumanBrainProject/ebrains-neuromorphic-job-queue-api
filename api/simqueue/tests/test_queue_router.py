@@ -108,15 +108,18 @@ def test_query_jobs(mocker):
     size = 10
     # expected_args = (status, collab_id, user_id, hardware_platform,
     #                  date_range_start, date_range_end, from_index, size)
-    expected_args = (
-        status,
-        collab_id,
-        user_id,
-        hardware_platform,
-        date_range_start,
-        date_range_end,
-    )
-    assert simqueue.db.query_jobs.await_args.args == expected_args
+    expected_args = {
+        "status": status,
+        "collab_id": collab_id,
+        "user_id": user_id,
+        "hardware_platform": hardware_platform,
+        "date_range_start": date_range_start,
+        "date_range_end": date_range_end,
+        "size": size,
+        "from_index": from_index,
+        "tags": None,
+    }
+    assert simqueue.db.query_jobs.await_args.kwargs == expected_args
 
 
 def test_query_jobs_with_valid_filters(mocker):
@@ -136,15 +139,18 @@ def test_query_jobs_with_valid_filters(mocker):
     date_range_end = None
     from_index = 0
     size = 10
-    expected_args = (
-        status,
-        collab_id,
-        user_id,
-        hardware_platform,
-        date_range_start,
-        date_range_end,
-    )
-    assert simqueue.db.query_jobs.await_args.args == expected_args
+    expected_args = {
+        "status": status,
+        "collab_id": collab_id,
+        "user_id": user_id,
+        "hardware_platform": hardware_platform,
+        "date_range_start": date_range_start,
+        "date_range_end": date_range_end,
+        "size": size,
+        "from_index": from_index,
+        "tags": None,
+    }
+    assert simqueue.db.query_jobs.await_args.kwargs == expected_args
 
 
 def test_get_job(mocker):
@@ -258,10 +264,10 @@ def test_post_job(mocker):
         "/jobs/", json=mock_submitted_job, headers={"Authorization": "Bearer notarealtoken"}
     )
     assert response.status_code == 201
-    assert simqueue.db.create_job.await_args.args == (
-        "haroldlloyd",
-        SubmittedJob(**mock_submitted_job),
-    )
+    assert simqueue.db.create_job.await_args.kwargs == {
+        "user_id": "haroldlloyd",
+        "job": SubmittedJob(**mock_submitted_job),
+    }
 
 
 def test_put_job(mocker):
@@ -298,11 +304,11 @@ def test_add_comment(mocker):
     )
     assert response.status_code == 201
     assert simqueue.db.get_job.await_args.args == (999999,)
-    assert simqueue.db.add_comment.await_args.args == (
-        999999,
-        mock_comments[0]["user_id"],
-        mock_comments[0]["content"],
-    )
+    assert simqueue.db.add_comment.await_args.kwargs == {
+        "job_id": 999999,
+        "user_id": mock_comments[0]["user_id"],
+        "new_comment": mock_comments[0]["content"],
+    }
 
 
 def test_update_comment(mocker):

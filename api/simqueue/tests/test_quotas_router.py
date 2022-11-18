@@ -121,8 +121,14 @@ def test_query_projects(mocker):
     owner_id = None
     from_index = 0
     size = 10
-    expected_args = (status, collab_id, owner_id, from_index, size)
-    assert simqueue.db.query_projects.await_args.args == expected_args
+    expected_args = {
+        "status": status,
+        "collab_id": collab_id,
+        "owner_id": owner_id,
+        "from_index": from_index,
+        "size": size,
+    }
+    assert simqueue.db.query_projects.await_args.kwargs == expected_args
 
 
 def test_query_projects_with_valid_filters(mocker):
@@ -140,8 +146,14 @@ def test_query_projects_with_valid_filters(mocker):
     owner_id = ["haroldlloyd"]
     from_index = 10
     size = 10
-    expected_args = (status, collab_id, owner_id, from_index, size)
-    assert simqueue.db.query_projects.await_args.args == expected_args
+    expected_args = {
+        "status": status,
+        "collab_id": collab_id,
+        "owner_id": owner_id,
+        "from_index": from_index,
+        "size": size,
+    }
+    assert simqueue.db.query_projects.await_args.kwargs == expected_args
 
 
 def test_query_collabs(mocker):
@@ -158,9 +170,15 @@ def test_query_collabs(mocker):
     collab_id = ["my-collab", "some-other-collab"]  # user can_edit
     owner_id = None
     from_index = 0
-    size = 10
-    expected_args = (status, collab_id)
-    assert simqueue.db.query_projects.await_args.args == expected_args
+    size = 100
+    expected_args = {
+        "collab_id": collab_id,
+        "from_index": from_index,
+        "owner_id": owner_id,
+        "size": size,
+        "status": status,
+    }
+    assert simqueue.db.query_projects.await_args.kwargs == expected_args
 
 
 def test_get_project(mocker):
@@ -467,8 +485,11 @@ def test_query_quotas(mocker):
     )
     assert response.status_code == 200
     assert simqueue.db.get_project.await_args.args == (UUID(project_id),)
-    assert simqueue.db.query_quotas.await_args.args == (UUID(project_id),)
-    assert simqueue.db.query_quotas.await_args.kwargs == {"size": 10, "from_index": 0}
+    assert simqueue.db.query_quotas.await_args.kwargs == {
+        "project_id": UUID(project_id),
+        "size": 10,
+        "from_index": 0,
+    }
 
 
 def test_get_quota(mocker):

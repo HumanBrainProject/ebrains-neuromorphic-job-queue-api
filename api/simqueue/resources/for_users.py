@@ -42,7 +42,7 @@ def about_this_api():
 @router.get("/jobs/", response_model=List[Job])
 async def query_jobs(
     status: List[JobStatus] = Query(None, description="status"),
-    tag: List[Tag] = Query(None, description="tags"),
+    tags: List[Tag] = Query(None, description="tags"),
     collab_id: List[str] = Query(None, description="collab id"),
     user_id: List[str] = Query(None, description="user id"),
     hardware_platform: List[str] = Query(
@@ -94,12 +94,13 @@ async def query_jobs(
             detail=f"The token provided does not give admin privileges",
         )
     jobs = await db.query_jobs(
-        status,
-        collab_id,
-        user_id,
-        hardware_platform,
-        date_range_start,
-        date_range_end,
+        status=status,
+        tags=tags,
+        collab_id=collab_id,
+        user_id=user_id,
+        hardware_platform=hardware_platform,
+        date_range_start=date_range_start,
+        date_range_end=date_range_end,
         from_index=from_index,
         size=size,
     )
@@ -230,7 +231,7 @@ async def create_job(
     user = await get_user_task
     if (as_admin and user.is_admin) or user.can_edit(job.collab_id):
 
-        accepted_job = await db.create_job(user.username, job)
+        accepted_job = await db.create_job(user_id=user.username, job=job)
         return accepted_job
     raise HTTPException(
         status_code=status_codes.HTTP_404_NOT_FOUND,
@@ -266,7 +267,9 @@ async def add_comment(
         or job["user_id"] == user.username
         or await user.can_view(job["collab_id"])
     ):
-        return await db.add_comment(job_id, user.username, comment.comment)
+        return await db.add_comment(
+            job_id=job_id, user_id=user.username, new_comment=comment.comment
+        )
 
     raise HTTPException(
         status_code=status_codes.HTTP_404_NOT_FOUND,
@@ -576,7 +579,9 @@ async def query_projects(
             status_code=status_codes.HTTP_403_FORBIDDEN,
             detail=f"The token provided does not give admin privileges",
         )
-    projects = await db.query_projects(status, collab_id, owner_id, from_index, size)
+    projects = await db.query_projects(
+        status=status, collab_id=collab_id, owner_id=owner_id, from_index=from_index, size=size
+    )
     projects_with_quotas = []
     for project in projects:
         quotas = await db.follow_relationships_quotas(project["id"])
@@ -757,7 +762,7 @@ async def query_quotas(
             status_code=status_codes.HTTP_403_FORBIDDEN,
             detail=f"You cannot view quotas for this project",
         )
-    quotas = await db.query_quotas(project_id, size=size, from_index=from_index)
+    quotas = await db.query_quotas(project_id=project_id, size=size, from_index=from_index)
 
     content = []
     for quota in quotas:
@@ -908,7 +913,7 @@ async def query_collabs(
             detail=f"This option has not been implemented yet",
         )
     projects = await db.query_projects(
-        status, collab_id, owner_id=None, from_index=from_index, size=size
+        status=status, collab_id=collab_id, owner_id=None, from_index=from_index, size=size
     )
     collabs = set(prj["collab"] for prj in projects)
     return sorted(collabs)
