@@ -16,19 +16,24 @@ logger = logging.getLogger("simqueue")
 router = APIRouter()
 
 
+def normalize_start_end(start: date = None, end: date = None):
+    today = date.today()
+    if (start is None) and (end is None):
+        end = today
+        start = end - timedelta(30)
+    elif start is None:
+        start = end - timedelta(30)
+    elif end is None:
+        end = today
+    return start, end
+
+
 @router.get("/statistics/job-count", response_model=List[DateRangeCount])
 async def job_count(start: date = None, end: date = None, interval: int = 7):
     """
     Number of jobs for each backend in a given time period
     """
-    today = date.today()
-    if (start is None) and (end is None):
-        end = date(today.year, today.month, today.day)
-        start = end - timedelta(30)
-    elif start is None:
-        start = end - timedelta(30)
-    else:
-        end = date(today.year, today.month, today.day)
+    start, end = normalize_start_end(start, end)
 
     results = []
     counts = defaultdict(lambda: 0)
@@ -41,16 +46,17 @@ async def job_count(start: date = None, end: date = None, interval: int = 7):
             size=100000,
             fields=["timestamp_completion"],
         )
+
         completed = np.array(
             [
                 (timestamp["timestamp_completion"].date() - start).days
                 for timestamp in completion_timestamps
-            ]
+            ],
+            dtype=int,
         )
         counts[platform], bin_edges = np.histogram(
-            completed, bins=np.arange(0, (end - start).days, interval)
-        )
-
+            completed, bins=np.arange(0, (end - start).days + 1, interval)
+        )  # the + 1 is because `bins` must include the right-most edge
     for i, days in enumerate(bin_edges[:-1]):
         count = {}
         for platform in counts:
@@ -66,52 +72,17 @@ async def job_count(start: date = None, end: date = None, interval: int = 7):
 
 
 @router.get("/statistics/cumulative-job-count", response_model=List[DateRangeCount])
-async def job_count(start: date = None, end: date = None, interval: int = 7):
+async def cumulative_job_count(start: date = None, end: date = None, interval: int = 7):
     """
     Cumulative number of jobs for each backend in a given time period
     """
-    today = date.today()
-    if (start is None) and (end is None):
-        end = date(today.year, today.month, today.day)
-        start = end - timedelta(30)
-    elif start is None:
-        start = end - timedelta(30)
-    else:
-        end = date(today.year, today.month, today.day)
-
-    results = []
-    counts = defaultdict(lambda: 0)
-    for platform in STANDARD_QUEUES:
-        completion_timestamps = await db.query_jobs(
-            status=["finished", "error"],
-            hardware_platform=[platform],
-            date_range_start=start,
-            date_range_end=end,
-            size=100000,
-            fields=["timestamp_completion"],
-        )
-        completed = np.array(
-            [
-                (timestamp["timestamp_completion"].date() - start).days
-                for timestamp in completion_timestamps
-            ]
-        )
-        counts[platform], bin_edges = np.histogram(
-            completed, bins=np.arange(0, (end - start).days, interval)
-        )
+    cumulative_job_counts = await job_count(start=start, end=end, interval=interval)
     count_cumul = defaultdict(lambda: 0)
-    for i, days in enumerate(bin_edges[:-1]):
-        for platform in counts:
-            count_cumul[platform] += counts[platform][i]
-        results.append(
-            {
-                "start": start + timedelta(int(days)),  # timedelta doesn't like numpy int64
-                "end": start + timedelta(int(interval + days)),
-                "count": count_cumul,
-            }
-        )
-
-    return results
+    for entry in cumulative_job_counts:
+        for platform, value in entry["count"].items():
+            count_cumul[platform] += value
+            entry["count"][platform] = count_cumul[platform]
+    return cumulative_job_counts
 
 
 @router.get("/statistics/cumulative-user-count", response_model=TimeSeries)
@@ -146,25 +117,19 @@ async def users_count(start: date = None, end: date = None, interval: int = 7):
     """
     Number of platform users who have submitted at least one job in the last 90 days
     """
-    today = date.today()
-    if (start is None) and (end is None):
-        end = date(today.year, today.month, today.day)
-        start = end - timedelta(30)
-    elif start is None:
-        start = end - timedelta(30)
-    else:
-        end = date(today.year, today.month, today.day)
+    start, end = normalize_start_end(start, end)
     results = []
     counts = defaultdict(lambda: 0)
     date_list = list(db.daterange(start, end, interval))
     date_list.append(end)
-
-    for enddate in date_list[:-1]:
-        startdate = enddate - timedelta(90)
+    for start_date, end_date in zip(date_list[:-1], date_list[1:]):
+        start_active_period = end_date - timedelta(90)
         active_users = {}
         for platform in STANDARD_QUEUES:
             active_users[platform] = await db.get_users_count(
-                hardware_platform=[platform], date_range_start=startdate, date_range_end=enddate
+                hardware_platform=[platform],
+                date_range_start=start_active_period,
+                date_range_end=end_date,
             )
         # note that the "total" value may be less than the sum of the per-platform values, since some users use multiple platforms
         # active_users["total"] = Job.objects.filter(timestamp_completion__range=(start, end)).values("user_id").distinct().count()
@@ -172,8 +137,8 @@ async def users_count(start: date = None, end: date = None, interval: int = 7):
         # results.append(new_obj)
         results.append(
             {
-                "start": startdate,  # timedelta doesn't like numpy int64
-                "end": enddate,
+                "start": start_date,  # timedelta doesn't like numpy int64
+                "end": end_date,
                 "count": active_users,
             }
         )
@@ -197,7 +162,7 @@ async def queue_length():
 
 
 @router.get("/statistics/job-duration", response_model=List[Histogram])
-async def job_duartion(requested_max: int = None, n_bins: int = 50, scale: str = "linear"):
+async def job_duration(requested_max: int = None, n_bins: int = 50, scale: str = "linear"):
     """
     Histograms of total job duration (from submission to completion)
     for completed jobs and for error jobs
@@ -212,9 +177,7 @@ async def job_duartion(requested_max: int = None, n_bins: int = 50, scale: str =
 
             durations = np.array(
                 [
-                    (
-                        job["timestamp_completion"].date() - job["timestamp_submission"].date()
-                    ).seconds
+                    (job["timestamp_completion"] - job["timestamp_submission"]).seconds
                     for job in completed_jobs
                     if (job["timestamp_completion"] is not None)
                     and (job["timestamp_submission"] is not None)

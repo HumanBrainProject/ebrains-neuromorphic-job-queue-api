@@ -41,7 +41,6 @@ mock_accepted_job = {
     "user_id": "haroldlloyd",
     "hardware_platform": "SpiNNaker",
     "id": 999999,
-    "user_id": "haguili",
     "status": "submitted",
     "timestamp_submission": "2022-10-11T02:44:23.746231+00:00",
     "tags": ["tag 1"],
