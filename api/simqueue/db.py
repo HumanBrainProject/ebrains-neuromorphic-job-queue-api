@@ -553,7 +553,8 @@ async def get_tags(job_id: int):
     for tag_item in results:
         query = taglist.select().where(taglist.c.id == tag_item.tag_id)
         used_tag = await database.fetch_one(query)
-        tags.append(Tag(used_tag["name"]))
+        if len(used_tag["name"]) > 1:
+            tags.append(Tag(used_tag["name"]))
     return sorted(tags)
 
 
