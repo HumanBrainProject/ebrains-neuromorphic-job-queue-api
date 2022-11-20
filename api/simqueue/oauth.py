@@ -24,8 +24,8 @@ oauth.register(
 )
 
 
-async def get_collab_info(collab_id, token):
-    collab_info_url = f"{settings.HBP_COLLAB_SERVICE_URL}collabs/{collab_id}"
+async def get_collab_info(collab, token):
+    collab_info_url = f"{settings.HBP_COLLAB_SERVICE_URL}collabs/{collab}"
     headers = {"Authorization": f"Bearer {token}"}
     res = requests.get(collab_info_url, headers=headers)
     response = res.json()
@@ -58,25 +58,25 @@ class User:
     def username(self):
         return self.preferred_username
 
-    async def can_view(self, collab_id):
+    async def can_view(self, collab):
         # first of all, check team permissions
         target_team_names = {
-            role: f"collab-{collab_id}-{role}" for role in ("viewer", "editor", "administrator")
+            role: f"collab-{collab}-{role}" for role in ("viewer", "editor", "administrator")
         }
         for role, team_name in target_team_names.items():
             if team_name in self.roles["team"]:
                 return True
         # if that fails, check if it's a public collab
         try:
-            collab_info = await get_collab_info(collab_id, self.token["access_token"])
+            collab_info = await get_collab_info(collab, self.token["access_token"])
         except ValueError:
             return False
         else:
             return collab_info.get("isPublic", False)
 
-    def can_edit(self, collab_id):
+    def can_edit(self, collab):
         target_team_names = {
-            role: f"collab-{collab_id}-{role}" for role in ("editor", "administrator")
+            role: f"collab-{collab}-{role}" for role in ("editor", "administrator")
         }
         for role, team_name in target_team_names.items():
             if team_name in self.roles["team"]:
@@ -87,10 +87,10 @@ class User:
         for team_access in self.roles["team"]:
             parts = team_access.split("-")
             assert parts[0] == "collab"
-            collab_id = "-".join(parts[1:-1])
+            collab = "-".join(parts[1:-1])
             role = parts[-1]
             if role in access:
-                collabs.add(collab_id)
+                collabs.add(collab)
         return sorted(collabs)
 
 

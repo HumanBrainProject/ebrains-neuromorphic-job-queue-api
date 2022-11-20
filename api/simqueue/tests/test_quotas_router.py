@@ -117,14 +117,14 @@ def test_query_projects(mocker):
     assert response.status_code == 200
 
     status = None
-    collab_id = ["my-collab", "some-other-collab"]  # user can_edit
-    owner_id = None
+    collab = ["my-collab", "some-other-collab"]  # user can_edit
+    owner = None
     from_index = 0
     size = 10
     expected_args = {
         "status": status,
-        "collab_id": collab_id,
-        "owner_id": owner_id,
+        "collab": collab,
+        "owner": owner,
         "from_index": from_index,
         "size": size,
     }
@@ -136,20 +136,20 @@ def test_query_projects_with_valid_filters(mocker):
     mocker.patch("simqueue.db.query_projects", return_value=mock_projects)
     mocker.patch("simqueue.db.follow_relationships_quotas", return_value=[])
     response = client.get(
-        "/projects/?status=accepted&owner_id=haroldlloyd&collab_id=my-collab&collab_id=some-other-collab&date_range_start=2021-03-01&from_index=10",
+        "/projects/?status=accepted&owner=haroldlloyd&collab=my-collab&collab=some-other-collab&date_range_start=2021-03-01&from_index=10",
         headers={"Authorization": "Bearer notarealtoken"},
     )
     assert response.status_code == 200
 
     status = ProjectStatus.accepted
-    collab_id = ["my-collab", "some-other-collab"]
-    owner_id = ["haroldlloyd"]
+    collab = ["my-collab", "some-other-collab"]
+    owner = ["haroldlloyd"]
     from_index = 10
     size = 10
     expected_args = {
         "status": status,
-        "collab_id": collab_id,
-        "owner_id": owner_id,
+        "collab": collab,
+        "owner": owner,
         "from_index": from_index,
         "size": size,
     }
@@ -167,14 +167,14 @@ def test_query_collabs(mocker):
     assert response.status_code == 200
 
     status = None
-    collab_id = ["my-collab", "some-other-collab"]  # user can_edit
-    owner_id = None
+    collabs = ["my-collab", "some-other-collab"]  # user can_edit
+    owner = None
     from_index = 0
     size = 100
     expected_args = {
-        "collab_id": collab_id,
+        "collab": collabs,
         "from_index": from_index,
-        "owner_id": owner_id,
+        "owner": owner,
         "size": size,
         "status": status,
     }

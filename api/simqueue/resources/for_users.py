@@ -43,7 +43,7 @@ def about_this_api():
 async def query_jobs(
     status: List[JobStatus] = Query(None, description="status"),
     tags: List[Tag] = Query(None, description="tags"),
-    collab_id: List[str] = Query(None, description="collab id"),
+    collab: List[str] = Query(None, description="collab id"),
     user_id: List[str] = Query(None, description="user id"),
     hardware_platform: List[str] = Query(
         None, description="hardware platform (e.g. SpiNNaker, BrainScales)"
@@ -64,23 +64,23 @@ async def query_jobs(
     # If the user (from the token) is an admin there are no restrictions on the query
     # If the user is not an admin:
     #   - if user_id is provided, it must contain _only_ the user's id
-    #   - if collab_id is not provided, only the user's own jobs are returned
-    #   - if collab_id is provided the user must be a member of all collabs in the list
+    #   - if collab is not provided, only the user's own jobs are returned
+    #   - if collab is provided the user must be a member of all collabs in the list
     user = await oauth.User.from_token(token.credentials)
     if not as_admin:
         if user_id:
             if len(user_id) > 1:
                 raise HTTPException(
                     status_code=status_codes.HTTP_400_BAD_REQUEST,
-                    detail="Only admins can directly query other users' jobs, try querying by collab_id",
+                    detail="Only admins can directly query other users' jobs, try querying by collab",
                 )
             elif user_id[0] != user.username:  # todo: also support user_id_v1
                 raise HTTPException(
                     status_code=status_codes.HTTP_403_FORBIDDEN,
                     detail=f"User id provided ({user_id[0]}) does not match authentication token ({user.username})",
                 )
-        if collab_id:
-            for cid in collab_id:
+        if collab:
+            for cid in collab:
                 if not await user.can_view(cid):
                     raise HTTPException(
                         status_code=status_codes.HTTP_403_FORBIDDEN,
@@ -96,7 +96,7 @@ async def query_jobs(
     jobs = await db.query_jobs(
         status=status,
         tags=tags,
-        collab_id=collab_id,
+        collab=collab,
         user_id=user_id,
         hardware_platform=hardware_platform,
         date_range_start=date_range_start,
@@ -137,7 +137,7 @@ async def get_job(
     if (
         (as_admin and user.is_admin)
         or job["user_id"] == user.username
-        or await user.can_view(job["collab_id"])
+        or await user.can_view(job["collab"])
     ):
         if with_comments:
             job["comments"] = await db.get_comments(job_id)
@@ -178,7 +178,7 @@ async def get_log(
     if (
         (as_admin and user.is_admin)
         or job["user_id"] == user.username
-        or await user.can_view(job["collab_id"])
+        or await user.can_view(job["collab"])
     ):
         log = await db.get_log(job_id)
         return log["content"]
@@ -214,7 +214,7 @@ async def get_comments(
     if (
         (as_admin and user.is_admin)
         or job["user_id"] == user.username
-        or await user.can_view(job["collab_id"])
+        or await user.can_view(job["collab"])
     ):
         return await db.get_comments(job_id)
 
@@ -235,7 +235,7 @@ async def create_job(
 
     get_user_task = asyncio.create_task(oauth.User.from_token(token.credentials))
     user = await get_user_task
-    if (as_admin and user.is_admin) or user.can_edit(job.collab_id):
+    if (as_admin and user.is_admin) or user.can_edit(job.collab):
 
         accepted_job = await db.create_job(user_id=user.username, job=job)
         return accepted_job
@@ -271,7 +271,7 @@ async def add_comment(
     if (
         (as_admin and user.is_admin)
         or job["user_id"] == user.username
-        or await user.can_view(job["collab_id"])
+        or await user.can_view(job["collab"])
     ):
         return await db.add_comment(
             job_id=job_id, user_id=user.username, new_comment=comment.comment
@@ -315,7 +315,7 @@ async def update_comment(
         )
 
     if (as_admin and user.is_admin) or (
-        old_comment["user_id"] == user.username and await user.can_view(job["collab_id"])
+        old_comment["user_id"] == user.username and await user.can_view(job["collab"])
     ):
         return await db.update_comment(comment_id, comment.comment)
 
@@ -352,7 +352,7 @@ async def remove_comment(
         )
 
     if (as_admin and user.is_admin) or (
-        old_comment["user_id"] == user.username and await user.can_view(job["collab_id"])
+        old_comment["user_id"] == user.username and await user.can_view(job["collab"])
     ):
         return await db.delete_comment(comment_id)
 
@@ -387,7 +387,7 @@ async def get_tags(
     if (
         (as_admin and user.is_admin)
         or job["user_id"] == user.username
-        or await user.can_view(job["collab_id"])
+        or await user.can_view(job["collab"])
     ):
         return job["tags"]
 
@@ -422,7 +422,7 @@ async def add_tags(
     if (
         (as_admin and user.is_admin)
         or job["user_id"] == user.username
-        or user.can_edit(job["collab_id"])
+        or user.can_edit(job["collab"])
     ):
         if tags is not None:
             return await db.add_tags_to_job(job_id, tags)
@@ -459,7 +459,7 @@ async def remove_tags(
     if (
         (as_admin and user.is_admin)
         or job["user_id"] == user.username
-        or user.can_edit(job["collab_id"])
+        or user.can_edit(job["collab"])
     ):
         return await db.remove_tags(job_id, tags)
 
@@ -471,24 +471,24 @@ async def remove_tags(
 
 @router.get("/tags/", response_model=List[Tag])
 async def query_tags(
-    collab_id: str = Query(None, description="collab id"),
+    collab: str = Query(None, description="collab id"),
     token: HTTPAuthorizationCredentials = Depends(auth),
 ):
     """
     Return a list of tags used by existing jobs
     """
     user = await oauth.User.from_token(token.credentials)
-    if collab_id:
-        if not (user.is_admin or user.can_view(collab_id)):
+    if collab:
+        if not (user.is_admin or user.can_view(collab)):
             raise HTTPException(
                 status_code=status_codes.HTTP_404_FORBIDDEN,
-                detail=f"Either collab {collab_id} does not exist, or you do not have access to it",
+                detail=f"Either collab {collab} does not exist, or you do not have access to it",
             )
     elif not user.is_admin:
         raise HTTPException(
-            status_code=status_codes.HTTP_403_FORBIDDEN, detail="Please specify a collab_id"
+            status_code=status_codes.HTTP_403_FORBIDDEN, detail="Please specify a collab"
         )
-    return await db.query_tags(collab_id)
+    return await db.query_tags(collab)
 
 
 def to_dictRequestBody(projectRB: Project):
@@ -538,8 +538,8 @@ def to_dictSerialQuota(quota: Quota, project: Project):
 @router.get("/projects/", response_model=List[Project])
 async def query_projects(
     status: ProjectStatus = Query(None, description="status"),
-    collab_id: List[str] = Query(None, description="collab id"),
-    owner_id: List[str] = Query(None, description="owner id"),
+    collab: List[str] = Query(None, description="collab id"),
+    owner: List[str] = Query(None, description="owner id"),
     # date_range_start: date = Query(None, description="projects which started after this date"),
     # date_range_end: date = Query(None, description="projects which started before this date"),
     size: int = Query(10, description="Number of projects to return"),
@@ -555,38 +555,38 @@ async def query_projects(
     """
     # If the user (from the token) is an admin there are no restrictions on the query
     # If the user is not an admin:
-    #   - if owner_id is provided, it must contain _only_ the user's id
-    #   - if collab_id is not provided, projects for collabs for which the user has edit access are returned
-    #   - if collab_id is provided, the user must have edit access for all collabs in the list
+    #   - if owner is provided, it must contain _only_ the user's id
+    #   - if collab is not provided, projects for collabs for which the user has edit access are returned
+    #   - if collab is provided, the user must have edit access for all collabs in the list
     user = await oauth.User.from_token(token.credentials)
     if not as_admin:
-        if owner_id:
-            if len(owner_id) > 1:
+        if owner:
+            if len(owner) > 1:
                 raise HTTPException(
                     status_code=status_codes.HTTP_400_BAD_REQUEST,
-                    detail="Only admins can directly query projects they don't own, try querying by collab_id",
+                    detail="Only admins can directly query projects they don't own, try querying by collab",
                 )
-            elif owner_id[0] != user.username:  # todo: also support user_id_v1
+            elif owner[0] != user.username:  # todo: also support user_id_v1
                 raise HTTPException(
                     status_code=status_codes.HTTP_403_FORBIDDEN,
-                    detail=f"Owner id provided ({owner_id[0]}) does not match authentication token ({user.username})",
+                    detail=f"Owner id provided ({owner[0]}) does not match authentication token ({user.username})",
                 )
-        if collab_id:
-            for cid in collab_id:
+        if collab:
+            for cid in collab:
                 if not user.can_edit(cid):
                     raise HTTPException(
                         status_code=status_codes.HTTP_403_FORBIDDEN,
                         detail="You do not have permission to view collab {cid}",
                     )
         else:
-            collab_id = user.get_collabs(access=["editor", "administrator"])
+            collab = user.get_collabs(access=["editor", "administrator"])
     elif not user.is_admin:
         raise HTTPException(
             status_code=status_codes.HTTP_403_FORBIDDEN,
             detail=f"The token provided does not give admin privileges",
         )
     projects = await db.query_projects(
-        status=status, collab_id=collab_id, owner_id=owner_id, from_index=from_index, size=size
+        status=status, collab=collab, owner=owner, from_index=from_index, size=size
     )
     projects_with_quotas = []
     for project in projects:
@@ -843,8 +843,8 @@ async def query_collabs(
     # If the user (from the token) is an admin there are no restrictions on the query
     # If the user is not an admin:
     #   - if user_id is provided, it must contain _only_ the user's id
-    #   - if collab_id is not provided, projects for collabs for which the user has edit access are returned
-    #   - if collab_id is provided, the user must have edit access for all collabs in the list
+    #   - if collab is not provided, projects for collabs for which the user has edit access are returned
+    #   - if collab is provided, the user must have edit access for all collabs in the list
     user = await oauth.User.from_token(token.credentials)
     if not as_admin:
         if user_id:
@@ -858,7 +858,7 @@ async def query_collabs(
                     status_code=status_codes.HTTP_403_FORBIDDEN,
                     detail=f"User id provided ({user_id[0]}) does not match authentication token ({user.username})",
                 )
-        collab_id = user.get_collabs(access=["editor", "administrator"])
+        collabs = user.get_collabs(access=["editor", "administrator"])
     elif not user.is_admin:
         raise HTTPException(
             status_code=status_codes.HTTP_403_FORBIDDEN,
@@ -871,7 +871,7 @@ async def query_collabs(
             detail=f"This option has not been implemented yet",
         )
     projects = await db.query_projects(
-        status=status, collab_id=collab_id, owner_id=None, from_index=from_index, size=size
+        status=status, collab=collabs, owner=None, from_index=from_index, size=size
     )
     collabs = set(prj["collab"] for prj in projects)
     return sorted(collabs)

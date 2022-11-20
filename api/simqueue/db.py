@@ -165,6 +165,7 @@ api_keys = Table(
 
 def transform_fields(job):
     """Change certain fields that are stored as strings or floats into richer Python types"""
+    job["collab"] = job.pop("collab_id")
     if job.get("hardware_config", None):
         job["hardware_config"] = json.loads(job["hardware_config"])
     if job.get("provenance", None):
@@ -292,7 +293,7 @@ def get_list_filter(attr, value):
 async def query_jobs(
     status: List[str] = None,
     tags: List[str] = None,
-    collab_id: List[str] = None,
+    collab: List[str] = None,
     user_id: List[str] = None,
     hardware_platform: List[str] = None,
     date_range_start: date = None,
@@ -308,8 +309,8 @@ async def query_jobs(
         filters.append(get_list_filter(jobs.c.user_id, user_id))
     if hardware_platform:
         filters.append(get_list_filter(jobs.c.hardware_platform, hardware_platform))
-    if collab_id:
-        filters.append(get_list_filter(jobs.c.collab_id, collab_id))
+    if collab:
+        filters.append(get_list_filter(jobs.c.collab_id, collab))
     if date_range_start:
         if date_range_end:
             filters.append(jobs.c.timestamp_submission.between(date_range_start, date_range_end))
@@ -373,7 +374,7 @@ async def create_job(user_id: str, job: SubmittedJob):
     ins = jobs.insert().values(
         code=job.code,
         command=job.command or "",
-        collab_id=job.collab_id,
+        collab_id=job.collab,
         user_id=user_id,
         status="submitted",
         hardware_platform=job.hardware_platform,
@@ -534,10 +535,10 @@ def daterange(start_date, end_date, interval=1):
         yield start_date + timedelta(n)
 
 
-async def query_tags(collab_id=None):
+async def query_tags(collab=None):
     query = taglist.select()
-    if collab_id:
-        job_query = jobs.select().where(jobs.c.collab_id == collab_id)
+    if collab:
+        job_query = jobs.select().where(jobs.c.collab_id == collab)
         job_ids = [row["id"] for row in await database.fetch_all(job_query)]
         tag_id_query = tagged_items.select().where(tagged_items.c.object_id.in_(job_ids))
         tag_ids = [row["tag_id"] for row in await database.fetch_all(tag_id_query)]
@@ -665,8 +666,8 @@ async def get_log(job_id: int):
 
 async def query_projects(
     status: ProjectStatus = None,
-    collab_id: List[str] = None,
-    owner_id: List[str] = None,
+    collab: List[str] = None,
+    owner: List[str] = None,
     # date_range_start: date = None,
     # date_range_end: date = None,
     from_index: int = 0,
@@ -687,10 +688,10 @@ async def query_projects(
             else:
                 assert status is ProjectStatus.in_prep
                 filters.append(projects.c.submission_date == None)
-    if collab_id:
-        filters.append(get_list_filter(projects.c.collab, collab_id))
-    if owner_id:
-        filters.append(get_list_filter(projects.c.owner, owner_id))
+    if collab:
+        filters.append(get_list_filter(projects.c.collab, collab))
+    if owner:
+        filters.append(get_list_filter(projects.c.owner, owner))
 
     if filters:
         query = projects.select().where(*filters).offset(from_index).limit(size)

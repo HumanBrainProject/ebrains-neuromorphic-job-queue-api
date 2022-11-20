@@ -55,7 +55,7 @@ class SubmittedJob(BaseModel):
 
     code: str
     command: str = None
-    collab_id: str
+    collab: str
     input_data: List[DataItem] = None
     hardware_platform: str
     hardware_config: dict = None

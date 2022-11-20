@@ -28,7 +28,7 @@ class MockUser(User):
 mock_jobs = [
     {
         "code": "import numpy",
-        "collab_id": "neuromorphic-testing-private",
+        "collab": "neuromorphic-testing-private",
         "user_id": "haroldlloyd",
         "hardware_platform": "SpiNNaker",
         "id": 999999,
@@ -37,7 +37,7 @@ mock_jobs = [
 ]
 mock_accepted_job = {
     "code": "import numpy",
-    "collab_id": "neuromorphic-testing-private",
+    "collab": "neuromorphic-testing-private",
     "user_id": "haroldlloyd",
     "hardware_platform": "SpiNNaker",
     "id": 999999,
@@ -48,7 +48,7 @@ mock_accepted_job = {
 mock_submitted_job = {
     "code": "test post",
     "command": "",
-    "collab_id": "neuromorphic-testing-private",
+    "collab": "neuromorphic-testing-private",
     "input_data": [],
     "hardware_platform": "Brainscales",
 }
@@ -99,18 +99,18 @@ def test_query_jobs(mocker):
     assert response.status_code == 200
 
     status = None
-    collab_id = None
+    collab = None
     user_id = ["haroldlloyd"]
     hardware_platform = None
     date_range_start = None
     date_range_end = None
     from_index = 0
     size = 10
-    # expected_args = (status, collab_id, user_id, hardware_platform,
+    # expected_args = (status, collab, user_id, hardware_platform,
     #                  date_range_start, date_range_end, from_index, size)
     expected_args = {
         "status": status,
-        "collab_id": collab_id,
+        "collab": collab,
         "user_id": user_id,
         "hardware_platform": hardware_platform,
         "date_range_start": date_range_start,
@@ -126,13 +126,13 @@ def test_query_jobs_with_valid_filters(mocker):
     mocker.patch("simqueue.oauth.User", MockUser)
     mocker.patch("simqueue.db.query_jobs", return_value=mock_jobs)
     response = client.get(
-        "/jobs/?status=finished&hardware_platform=SpiNNaker&hardware_platform=BrainScaleS&user_id=haroldlloyd&collab_id=neuromorphic-testing-private&date_range_start=2021-03-01",
+        "/jobs/?status=finished&hardware_platform=SpiNNaker&hardware_platform=BrainScaleS&user_id=haroldlloyd&collab=neuromorphic-testing-private&date_range_start=2021-03-01",
         headers={"Authorization": "Bearer notarealtoken"},
     )
     assert response.status_code == 200
 
     status = [JobStatus.finished]
-    collab_id = ["neuromorphic-testing-private"]
+    collab = ["neuromorphic-testing-private"]
     user_id = ["haroldlloyd"]
     hardware_platform = ["SpiNNaker", "BrainScaleS"]
     date_range_start = date(2021, 3, 1)
@@ -141,7 +141,7 @@ def test_query_jobs_with_valid_filters(mocker):
     size = 10
     expected_args = {
         "status": status,
-        "collab_id": collab_id,
+        "collab": collab,
         "user_id": user_id,
         "hardware_platform": hardware_platform,
         "date_range_start": date_range_start,
@@ -228,7 +228,7 @@ def test_query_tags(mocker):
     mocker.patch("simqueue.oauth.User", MockUser)
     mocker.patch("simqueue.db.query_tags", return_value=["some", "tags"])
     response = client.get(
-        "/tags/?collab_id=neuromorphic-testing-private",
+        "/tags/?collab=neuromorphic-testing-private",
         headers={"Authorization": "Bearer notarealtoken"},
     )
     assert response.status_code == 200

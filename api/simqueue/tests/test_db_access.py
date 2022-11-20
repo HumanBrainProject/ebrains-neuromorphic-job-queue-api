@@ -29,7 +29,7 @@ async def submitted_job(new_tag):
     data = {
         "code": "import antigravity\n",
         "command": None,
-        "collab_id": TEST_COLLAB,
+        "collab": TEST_COLLAB,
         "status": "submitted",
         "hardware_platform": "TestPlatform",
         "hardware_config": {"answer": "42"},
@@ -81,7 +81,7 @@ async def test_query_jobs_no_filters(database_connection):
         "command",
         "timestamp_submission",
         "timestamp_completion",
-        "collab_id",
+        "collab",
         "hardware_platform",
         "tags",
     }
@@ -92,7 +92,7 @@ async def test_query_jobs_no_filters(database_connection):
 async def test_query_jobs_with_filters(database_connection):
     jobs = await db.query_jobs(
         status=["finished"],
-        collab_id=["neuromorphic-testing-private"],
+        collab=["neuromorphic-testing-private"],
         user_id=["adavison"],
         hardware_platform=["SpiNNaker"],
         tags=["test"],
@@ -104,7 +104,7 @@ async def test_query_jobs_with_filters(database_connection):
     assert len(jobs) > 0
     for job in jobs:
         assert job["status"] == "finished"
-        assert job["collab_id"] == "neuromorphic-testing-private"
+        assert job["collab"] == "neuromorphic-testing-private"
         assert job["user_id"] == "adavison"
         assert job["hardware_platform"] == "SpiNNaker"
         assert "test" in job["tags"]
@@ -131,11 +131,11 @@ async def test_get_job(database_connection):
         "command",
         "timestamp_submission",
         "timestamp_completion",
-        "collab_id",
+        "collab",
         "hardware_platform",
     )
     assert job["id"] == 142972
-    assert job["collab_id"] == "neuromorphic-testing-private"
+    assert job["collab"] == "neuromorphic-testing-private"
 
 
 @pytest.mark.asyncio
@@ -169,7 +169,7 @@ async def test_create_job(database_connection, new_tag):
     data = {
         "code": "import antigravity\n",
         "command": None,
-        "collab_id": TEST_COLLAB,
+        "collab": TEST_COLLAB,
         "status": "submitted",
         "hardware_platform": "testPlatform",
         "hardware_config": {"answer": "42"},
@@ -182,7 +182,7 @@ async def test_create_job(database_connection, new_tag):
     expected = {
         "code": data["code"],
         "command": "",
-        "collab_id": data["collab_id"],
+        "collab": data["collab"],
         "input_data": [],
         "hardware_platform": data["hardware_platform"],
         "hardware_config": data["hardware_config"],
@@ -310,7 +310,7 @@ async def test_query_tags(database_connection):
     assert len(all_tags) > 0
     assert isinstance(all_tags[0], str)
 
-    tags_used_in_collab = await db.query_tags(collab_id=TEST_COLLAB)
+    tags_used_in_collab = await db.query_tags(collab=TEST_COLLAB)
     assert len(tags_used_in_collab) > 0
     assert len(tags_used_in_collab) < len(all_tags)
     assert isinstance(tags_used_in_collab[0], str)
@@ -357,13 +357,16 @@ async def test_query_projects_with_filters(database_connection):
         status=ProjectStatus.under_review,
         size=5,
         from_index=0,
-        collab_id=["neuromorphic-testing-private"],
-        owner_id=["adavison"],
+        collab=["neuromorphic-testing-private"],
+        owner=["adavison"],
     )
     assert len(projects) > 0
     assert projects[0]["accepted"] is False
     assert projects[0]["decision_date"] is None
     assert projects[0]["submission_date"] is not None
+    for project in projects:
+        assert project["collab"] == "neuromorphic-testing-private"
+        assert project["owner"] == "adavison"
 
     projects = await db.query_projects(status=ProjectStatus.in_prep, size=5, from_index=0)
     assert len(projects) > 0

@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, date
 from fastapi.testclient import TestClient
 from simqueue.main import app
 import simqueue.db
@@ -116,7 +116,7 @@ def test_cumulative_users_count(mocker):
     response = client.get("/statistics/cumulative-user-count?hardware_platform=SpiNNaker")
     assert response.status_code == 200
     assert response.json() == {
-        "dates": ["2022-10-03", "2022-10-03", "2022-11-18"],
+        "dates": ["2022-10-03", "2022-10-03", date.today().isoformat()],
         "values": [1, 2, 2],
     }
 
