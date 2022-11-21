@@ -528,7 +528,7 @@ def to_dictSerialQuota(quota: Quota, project: Project):
     data["id"] = quota["id"]
     data["limit"] = quota["limit"]
     data["platform"] = quota["platform"]
-    data["project_id"] = quota["project_id"]
+    data["project"] = quota["project"]
     data["resource_uri"] = f"/projects/{project['id']}/quotas/{quota['id']}"
     data["units"] = quota["units"]
     data["usage"] = quota["usage"]

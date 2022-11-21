@@ -465,7 +465,7 @@ def test_query_quotas(mocker):
             "limit": 5000,
             "usage": 42,
             "units": "bushels",
-            "project_id": project_id,
+            "project": f"/projects/{project_id}",
         },
         {
             "id": 777,
@@ -473,7 +473,7 @@ def test_query_quotas(mocker):
             "limit": 0.1,
             "usage": 0.00123,
             "units": "wafer-hours",
-            "project_id": project_id,
+            "project": f"/projects/{project_id}",
         },
     ]
     mocker.patch("simqueue.oauth.User", MockUser)
@@ -500,7 +500,7 @@ def test_get_quota(mocker):
         "limit": 5000,
         "usage": 42,
         "units": "bushels",
-        "project_id": project_id,
+        "project": f"/projects/{project_id}",
     }
     mocker.patch("simqueue.oauth.User", MockUser)
     mocker.patch("simqueue.db.get_project", return_value=mock_projects[0])

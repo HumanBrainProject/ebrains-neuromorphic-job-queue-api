@@ -183,6 +183,13 @@ def transform_project_fields(project):
     return project
 
 
+def transform_quota_fields(quota):
+    quota = dict(quota)
+    project_id = quota.pop("project_id")
+    quota["project"] = f"/projects/{project_id}"
+    return quota
+
+
 def transform_comment_fields(comment):
     return {
         "id": comment["id"],
@@ -769,7 +776,7 @@ async def query_quotas(project_id: UUID = None, from_index: int = 0, size: int =
         query = query.where(quotas.c.project_id == str(project_id))
     query = query.offset(from_index).limit(size)
     results = await database.fetch_all(query)
-    return [(dict(result)) for result in results]
+    return [(transform_quota_fields(result)) for result in results]
 
 
 async def delete_quotas_from_project(project_id):
@@ -784,7 +791,7 @@ async def get_quota(quota_id):
     query = quotas.select().where(quotas.c.id == quota_id)
     results = await database.fetch_one(query)
     if results is not None:
-        return dict(results)
+        return transform_quota_fields(results)
     else:
         return None
 

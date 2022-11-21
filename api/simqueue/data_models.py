@@ -111,7 +111,7 @@ class QuotaUpdate(BaseModel):
 
 class Quota(QuotaSubmission, QuotaUpdate):
     id: int
-    project_id: UUID
+    project: str
     resource_uri: str = None
 
 

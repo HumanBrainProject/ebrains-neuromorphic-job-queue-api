@@ -411,7 +411,7 @@ async def test_update_project(database_connection, new_project):
 async def test_query_quotas_no_filters(database_connection):
     quotas = await db.query_quotas(size=5, from_index=5)
     assert len(quotas) > 0
-    expected_keys = ("id", "project_id", "usage", "limit", "units", "platform")
+    expected_keys = ("id", "project", "usage", "limit", "units", "platform")
     assert set(quotas[0].keys()) == set(expected_keys)
 
 
@@ -426,7 +426,7 @@ async def test_create_quota(database_connection, new_project):
     assert len(response2) == 1
     expected = deepcopy(data)
     expected["id"] = quota_id
-    expected["project_id"] = new_project["id"]
+    expected["project"] = f"/projects/{new_project['id']}"
     assert response2[0] == expected
 
 
