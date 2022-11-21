@@ -2,7 +2,10 @@ from datetime import datetime, date
 from enum import Enum
 from typing import List, Dict
 from uuid import UUID
+import json
 from pydantic import BaseModel, AnyUrl, constr
+
+from .globals import RESOURCE_USAGE_UNITS
 
 
 class JobStatus(str, Enum):
@@ -20,6 +23,16 @@ class Comment(BaseModel):
     content: str
     user_id: str = None
     timestamp: datetime = None
+
+    @classmethod
+    def from_db(cls, comment):
+        return {
+            "id": comment["id"],
+            "job_id": comment["job_id"],
+            "content": comment["content"],
+            "user_id": comment["user"],
+            "timestamp": comment["created_time"],
+        }
 
 
 Tag = constr(min_length=2, max_length=100, strip_whitespace=True)
@@ -39,6 +52,14 @@ class DataItem(BaseModel):
     content_type: str = None
     size: int = None  # in bytes
     hash: str = None
+
+    def to_db(self):
+        return {
+            "url": str(self.url),
+            "hash": self.hash,
+            "size": self.size,
+            "content_type": self.content_type,
+        }
 
 
 class ResourceUsage(BaseModel):
@@ -61,12 +82,24 @@ class SubmittedJob(BaseModel):
     hardware_config: dict = None
     tags: List[Tag] = None
 
+    def to_db(self):
+        return {
+            "code": self.code,
+            "command": self.command,
+            "collab_id": self.collab,
+            "input_data": [data_item.to_db() for data_item in self.input_data],
+            "hardware_platform": self.hardware_platform,
+            "hardware_config": json.dumps(self.hardware_config) if self.hardware_config else None,
+            "tags": self.tags,
+        }
+
 
 class AcceptedJob(SubmittedJob):
     id: int
     user_id: str
     status: JobStatus = JobStatus.submitted
     timestamp_submission: datetime = None
+    resource_uri: str
 
 
 class CompletedJob(AcceptedJob):
@@ -81,7 +114,43 @@ class CompletedJob(AcceptedJob):
 class Job(CompletedJob):
     """Used where we want to return jobs with different statuses"""
 
-    pass
+    @classmethod
+    def from_db(cls, job):
+        """Change certain fields that are stored as strings or floats into richer Python types"""
+        data = {
+            "id": job["id"],
+            "code": job["code"],
+            "command": job["command"],
+            "collab": job["collab_id"],
+            "input_data": job["input_data"],
+            "hardware_platform": job["hardware_platform"],
+            "tags": job["tags"],
+        }
+        if job["hardware_config"]:
+            data["hardware_config"] = json.loads(job["hardware_config"])
+        if job["provenance"]:
+            data["provenance"] = json.loads(job["provenance"])
+        if job["resource_usage"] is not None:  # can be 0.0
+            data["resource_usage"] = {
+                "value": job["resource_usage"],
+                "units": RESOURCE_USAGE_UNITS.get(job["hardware_platform"], "hours"),
+            }
+        if job["id"]:
+            data["id"] = job["id"]
+            data["resource_uri"] = f"/jobs/{job['id']}"
+        if job["user_id"]:
+            data["user_id"] = job["user_id"]
+        if job["status"]:
+            data["status"] = job["status"]
+        if job["timestamp_submission"]:
+            data["timestamp_submission"] = job["timestamp_submission"]
+        if job["output_data"]:
+            data["output_data"] = job["output_data"]
+        if job.get("comments", None):
+            data["comments"] = [Comment.from_db(comment) for comment in job["comments"]]
+        if job.get("log", None):
+            data["log"] = job["log"]
+        return cls(**data)
 
 
 class JobPatch(BaseModel):
@@ -90,6 +159,20 @@ class JobPatch(BaseModel):
     provenance: dict = None
     resource_usage: ResourceUsage = None
     log: str = None
+
+    def to_db(self):
+        values = {
+            "status": self.status.value,
+        }
+        if self.output_data is not None:
+            values["output_data"] = [item.to_db() for item in self.output_data]
+        if self.provenance is not None:
+            values["provenance"] = json.dumps(self.provenance)
+        if self.resource_usage is not None:
+            values["resource_usage"] = self.resource_usage.values
+        if self.log is not None:
+            values["log"] = self.log
+        return values
 
 
 # class Config #?
@@ -103,16 +186,35 @@ class QuotaSubmission(BaseModel):
     platform: str  # "System to which quota applies"
     units: str  # core-hours, wafer-hours, GB
 
+    def to_db(self):
+        return {"limit": self.limit, "platform": self.platform, "units": self.units}
+
 
 class QuotaUpdate(BaseModel):
     limit: float = None  # "Quantity of resources granted"
     usage: float  # "Quantity of resources used"
 
+    def to_db(self):
+        return {"limit": self.limit, "usage": self.usage}
+
 
 class Quota(QuotaSubmission, QuotaUpdate):
-    id: int
+    # id: int  # do we need this? or just use resource_uri
     project: str
     resource_uri: str = None
+
+    @classmethod
+    def from_db(cls, quota):
+        data = {
+            # "id": quota["id"],
+            "limit": quota["limit"],
+            "platform": quota["platform"],
+            "units": quota["units"],
+            "usage": quota["usage"],
+            "resource_uri": f"/projects/{quota['project_id']}/quotas/{quota['id']}",
+            "project": f"/projects/{quota['project_id']}",
+        }
+        return cls(**data)
 
 
 class ProjectStatus(str, Enum):
@@ -128,35 +230,85 @@ class ProjectSubmission(BaseModel):
     title: str
     abstract: str
     description: str = None
+    status: ProjectStatus = ProjectStatus.in_prep
+
+    def to_db(self, owner):
+        values = {
+            "collab": self.collab,
+            "title": self.title,
+            "abstract": self.abstract,
+            "description": self.description,
+            "accepted": False,
+            "owner": owner,
+        }
+        if self.status == ProjectStatus.under_review:
+            values["submission_date"] = date.today()
+        return values
 
 
 class Project(ProjectSubmission):
     id: UUID
     owner: str
-    duration: int = None
-    start_date: date = None
-    accepted: bool = False
     submission_date: date = None
     decision_date: date = None
     resource_uri: str = None
+    status: ProjectStatus = ProjectStatus.in_prep
     quotas: List[Quota] = None
 
-    def status(self):
-        if self.submission_date is None:
+    @classmethod
+    def _get_status(cls, project):
+        if project["submission_date"] is None:
             return ProjectStatus.in_prep
-        elif self.accepted:
+        elif project["accepted"]:
             return ProjectStatus.accepted
-        elif self.decision_date is None:
+        elif project["decision_date"] is None:
             return ProjectStatus.under_review
         else:
             return ProjectStatus.rejected
 
+    @classmethod
+    def from_db(cls, project, quotas=None):
+        if project is None:
+            return None
+        if quotas is None:
+            quotas = []
+        data = {
+            "id": UUID(project["context"]),
+            "collab": project["collab"],
+            "title": project["title"],
+            "abstract": project["abstract"],
+            "description": project["description"],
+            "owner": project["owner"],
+            "submission_date": project["submission_date"],
+            "decision_date": project["decision_date"],
+            "status": cls._get_status(project),
+            "quotas": [Quota.from_db(quota) for quota in quotas],
+        }
+        return cls(**data)
 
-class ProjectUpdate(ProjectSubmission):
-    owner: str
-    duration: int = None
-    status: str
-    submitted: bool = False
+
+class ProjectUpdate(BaseModel):
+    title: str = None
+    abstract: str = None
+    description: str = None
+    owner: str = None
+    status: ProjectStatus = None
+
+    def to_db(self):
+        values = {}
+        for field in ("title", "abstract", "description", "owner"):
+            value = getattr(self, field)
+            if value is not None:
+                values[field] = value
+        if self.status == ProjectStatus.under_review:
+            values["submission_date"] = date.today()
+        elif self.status == ProjectStatus.accepted:
+            values["accepted"] = True
+            values["decision_date"] = date.today()
+        elif self.status == ProjectStatus.rejected:
+            values["accepted"] = False
+            values["decision_date"] = date.today()
+        return values
 
 
 # --- Data models for statistics -----

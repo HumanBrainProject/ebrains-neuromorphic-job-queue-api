@@ -36,7 +36,6 @@ from .data_models import (
     ProjectSubmission,
 )
 from . import settings
-from .globals import RESOURCE_USAGE_UNITS
 
 
 SQLALCHEMY_DATABASE_URL = f"postgresql://{settings.DATABASE_USERNAME}:{settings.DATABASE_PASSWORD}@{settings.DATABASE_HOST}:{settings.DATABASE_PORT}/nmpi?ssl=false"
@@ -163,43 +162,6 @@ api_keys = Table(
 )
 
 
-def transform_fields(job):
-    """Change certain fields that are stored as strings or floats into richer Python types"""
-    job["collab"] = job.pop("collab_id")
-    if job.get("hardware_config", None):
-        job["hardware_config"] = json.loads(job["hardware_config"])
-    if job.get("provenance", None):
-        job["provenance"] = json.loads(job["provenance"])
-    if job.get("resource_usage", None) is not None:  # can be 0.0
-        job["resource_usage"] = {
-            "value": job["resource_usage"],
-            "units": RESOURCE_USAGE_UNITS.get(job["hardware_platform"], "hours"),
-        }
-    return job
-
-
-def transform_project_fields(project):
-    project["id"] = project.pop("context")
-    return project
-
-
-def transform_quota_fields(quota):
-    quota = dict(quota)
-    project_id = quota.pop("project_id")
-    quota["project"] = f"/projects/{project_id}"
-    return quota
-
-
-def transform_comment_fields(comment):
-    return {
-        "id": comment["id"],
-        "job_id": comment["job_id"],
-        "content": comment["content"],
-        "user_id": comment["user"],
-        "timestamp": comment["created_time"],
-    }
-
-
 async def follow_relationships(job):
     # input data
     query = data_items.select().where(
@@ -254,9 +216,9 @@ async def delete_dataitems(job_id):
     return
 
 
-async def create_job_input_data_item(job, job_id):
+async def create_job_input_data_item(job_id, input_data):
 
-    for item in job.input_data:
+    for item in input_data:
         ins_data_item = data_items.insert().values(**dict(item))
         data_item_id = await database.execute(ins_data_item)
         ins_job_input = job_input_data.insert().values(job_id=job_id, dataitem_id=data_item_id)
@@ -265,10 +227,10 @@ async def create_job_input_data_item(job, job_id):
     return
 
 
-async def update_job_output_data_item(job_id, job_patch):
+async def update_job_output_data_item(job_id, output_data):
 
-    for item in job_patch.output_data:
-        ins_data_item = data_items.insert().values(**dict(item))
+    for item in output_data:
+        ins_data_item = data_items.insert().values(**item)
         data_item_id = await database.execute(ins_data_item)
         ins_job_output = job_output_data.insert().values(job_id=job_id, dataitem_id=data_item_id)
         await database.execute(ins_job_output)
@@ -276,15 +238,15 @@ async def update_job_output_data_item(job_id, job_patch):
     return
 
 
-async def update_log(job_id, job_patch):
+async def update_log(job_id, log):
 
     query = logs.select().where(logs.c.job_id == job_id)
     result = await database.fetch_one(query)
     if result is None:
-        ins = logs.insert().values(job_id=job_id, content=job_patch.log)
+        ins = logs.insert().values(job_id=job_id, content=log)
         await database.execute(ins)
     else:
-        ins = logs.update().where(jobs.c.id == job_id).values(content=job_patch.log)
+        ins = logs.update().where(jobs.c.id == job_id).values(content=log)
         await database.execute(ins)
 
     return
@@ -348,7 +310,7 @@ async def query_jobs(
 
     if fields:
         return [dict(result) for result in results]
-    return [transform_fields(await follow_relationships(dict(result))) for result in results]
+    return [await follow_relationships(dict(result)) for result in results]
 
 
 async def get_job(job_id: int):
@@ -356,7 +318,7 @@ async def get_job(job_id: int):
     result = await database.fetch_one(query)
     if result is not None:
         intermediate_result = dict(result)
-        return transform_fields(await follow_relationships(intermediate_result))
+        return await follow_relationships(intermediate_result)
     else:
         return None
 
@@ -371,56 +333,46 @@ async def get_next_job(hardware_platform: str):
     result = await database.fetch_one(query)
     if result is not None:
         intermediate_result = dict(result)
-        return transform_fields(await follow_relationships(intermediate_result))
+        return await follow_relationships(intermediate_result)
     else:
         return None
 
 
-async def create_job(user_id: str, job: SubmittedJob):
+async def create_job(user_id: str, job: dict):
 
     ins = jobs.insert().values(
-        code=job.code,
-        command=job.command or "",
-        collab_id=job.collab,
+        code=job["code"],
+        command=job["command"] or "",
+        collab_id=job["collab_id"],
         user_id=user_id,
         status="submitted",
-        hardware_platform=job.hardware_platform,
-        hardware_config=json.dumps(job.hardware_config) if job.hardware_config else None,
+        hardware_platform=job["hardware_platform"],
+        hardware_config=job["hardware_config"],
         timestamp_submission=now_in_utc(),
     )
     job_id = await database.execute(ins)
 
     query = jobs.select().where(jobs.c.id == job_id)
     result = await database.fetch_one(query)
-    if job.input_data is not None:
-        await create_job_input_data_item(job, job_id)
-    if job.tags is not None:
-        await add_tags_to_job(job_id, job.tags)
-    return transform_fields(await follow_relationships(dict(result)))
+    if job.get("input_data", None) is not None:
+        await create_job_input_data_item(job_id, job["input_data"])
+    if job.get("tags", None) is not None:
+        await add_tags_to_job(job_id, job["tags"])
+    return await follow_relationships(dict(result))
 
 
-async def update_job(job_id: int, job_patch: JobPatch):
-    if job_patch.status in ("error", "finished"):
-        # todo: check the status wasn't already one of these
-        timestamp_completion = datetime.now(timezone.utc)
-    else:
-        timestamp_completion = None
-    ins = (
-        jobs.update()
-        .where(jobs.c.id == job_id)
-        .values(
-            provenance=json.dumps(job_patch.provenance),
-            resource_usage=job_patch.resource_usage.value,
-            status=job_patch.status,
-            timestamp_completion=timestamp_completion,
-        )
-    )
+async def update_job(job_id: int, job_patch: dict):
+    job_patch = job_patch.copy()
+    output_data = job_patch.pop("output_data", None)
+    log = job_patch.pop("log", None)
+
+    ins = jobs.update().where(jobs.c.id == job_id).values(**job_patch)
     await database.execute(ins)
 
-    if job_patch.output_data is not None:
-        await update_job_output_data_item(job_id, job_patch)
-    if job_patch.log is not None:
-        await update_log(job_id, job_patch)
+    if output_data:
+        await update_job_output_data_item(job_id, output_data)
+    if log:
+        await update_log(job_id, log)
     return await get_job(job_id)
 
 
@@ -624,8 +576,8 @@ async def get_comments(job_id: int):
     query = comments.select().where(comments.c.job_id == job_id)
     results = await database.fetch_all(query)
     return sorted(
-        [transform_comment_fields(result) for result in results],
-        key=lambda comment: comment["timestamp"],
+        results,
+        key=lambda comment: comment["created_time"],
         reverse=True,
     )
 
@@ -633,7 +585,7 @@ async def get_comments(job_id: int):
 async def get_comment(comment_id: int):
     query = comments.select().where(comments.c.id == comment_id)
     result = await database.fetch_one(query)
-    return transform_comment_fields(result)
+    return result
 
 
 async def add_comment(job_id: int, user_id: str, new_comment: str):
@@ -707,14 +659,10 @@ async def query_projects(
 
     results = await database.fetch_all(query)
 
-    return [transform_project_fields(dict(result)) for result in results]
+    return results
 
 
 async def create_project(project):
-    if project.get("submitted", False):
-        submission_date = date.today()
-    else:
-        submission_date = None
     project_id = str(uuid.uuid4())
     ins = projects.insert().values(
         context=project_id,  # for historical reasons, the id is called 'context'
@@ -723,7 +671,7 @@ async def create_project(project):
         title=project["title"],
         abstract=project["abstract"],
         description=project["description"],
-        submission_date=submission_date,
+        submission_date=project.get("submission_date", None),
         duration=0,  # we're not using this field, projects are currently of unlimited duration
         accepted=False,
     )
@@ -734,22 +682,7 @@ async def create_project(project):
 async def update_project(project_id, project_update):
     # todo: allow only some fields to be updated
 
-    ins = (
-        projects.update()
-        .where(projects.c.context == project_id)
-        .values(
-            collab=project_update["collab"],
-            owner=project_update["owner"],
-            title=project_update["title"],
-            abstract=project_update["abstract"],
-            description=project_update["description"],
-            duration=project_update["duration"],
-            start_date=project_update["start_date"],
-            accepted=project_update["accepted"],
-            submission_date=project_update["submission_date"],
-            decision_date=project_update["decision_date"],
-        )
-    )
+    ins = projects.update().where(projects.c.context == project_id).values(**project_update)
     await database.execute(ins)
     return await get_project(project_id)
 
@@ -757,11 +690,7 @@ async def update_project(project_id, project_update):
 async def get_project(project_id):
     query = projects.select().where(projects.c.context == project_id)
     result = await database.fetch_one(query)
-
-    if result is not None:
-        return transform_project_fields(dict(result))
-    else:
-        return result
+    return result
 
 
 async def delete_project(project_id):
@@ -776,7 +705,7 @@ async def query_quotas(project_id: UUID = None, from_index: int = 0, size: int =
         query = query.where(quotas.c.project_id == str(project_id))
     query = query.offset(from_index).limit(size)
     results = await database.fetch_all(query)
-    return [(transform_quota_fields(result)) for result in results]
+    return results
 
 
 async def delete_quotas_from_project(project_id):
@@ -790,10 +719,7 @@ async def delete_quotas_from_project(project_id):
 async def get_quota(quota_id):
     query = quotas.select().where(quotas.c.id == quota_id)
     results = await database.fetch_one(query)
-    if results is not None:
-        return transform_quota_fields(results)
-    else:
-        return None
+    return results
 
 
 async def delete_quota(quota_id):

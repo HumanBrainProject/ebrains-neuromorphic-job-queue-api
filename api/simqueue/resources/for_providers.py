@@ -37,7 +37,7 @@ async def get_next_job(
     job = await db.get_next_job(hardware_platform)
     if job:
         # raise NotImplementedError("todo: take the job off the queue")
-        return job
+        return Job.from_db(job)
     else:
         raise HTTPException(
             status_code=status_codes.HTTP_404_NOT_FOUND,
@@ -47,7 +47,7 @@ async def get_next_job(
 
 @router.put("/jobs/{job_id}", status_code=status_codes.HTTP_200_OK)
 async def update_job(
-    job: JobPatch,
+    job_update: JobPatch,
     job_id: int = Path(..., title="Job ID", description="ID of the job to be retrieved"),
     as_admin: bool = Query(
         False, description="Run this query with admin privileges, if you have them"
@@ -66,23 +66,13 @@ async def update_job(
             detail=f"Either there is no job with id {job_id}, or you do not have access to it",
         )
     # todo: check provider_name matches old_job.platform
-    result = await db.update_job(job_id, job)
+    result = await db.update_job(job_id, job_update.to_db())
     return result
-
-
-def to_dictQ(quota):
-
-    data = {}
-    for field in ("units", "limit", "usage", "platform"):
-        if getattr(quota, field, None) is not None:
-            data[field] = getattr(quota, field)
-
-    return data
 
 
 @router.put("/projects/{project_id}/quotas/{quota_id}", status_code=status_codes.HTTP_200_OK)
 async def update_quota(
-    quota: QuotaUpdate,
+    quota_update: QuotaUpdate,
     quota_id: int,
     project_id: UUID = Path(
         ...,
@@ -117,12 +107,11 @@ async def update_quota(
             detail=f"There is no Quota with this id",
         )
 
-    content = to_dictQ(quota)
-    # perhaps `to_dictQ` should compare `quota` and `quota_old`.
+    # perhaps should compare `quota` and `quota_old`.
     # If there are no changes we could avoid doing the database update.
-    if content is None:
+    if quota_update is None:
         raise HTTPException(
             status_code=status_codes.HTTP_404_NOT_FOUND, detail=f"No content to change"
         )
 
-    await db.update_quota(quota_id, content)
+    await db.update_quota(quota_id, quota_update.to_db())

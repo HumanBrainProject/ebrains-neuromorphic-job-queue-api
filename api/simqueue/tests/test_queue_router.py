@@ -28,29 +28,45 @@ class MockUser(User):
 mock_jobs = [
     {
         "code": "import numpy",
-        "collab": "neuromorphic-testing-private",
+        "collab_id": "neuromorphic-testing-private",
+        "command": "",
         "user_id": "haroldlloyd",
         "hardware_platform": "SpiNNaker",
+        "hardware_config": None,
+        "provenance": None,
         "id": 999999,
+        "input_data": [],
+        "output_data": [],
         "tags": ["tag 1"],
+        "resource_usage": 0.0,
+        "status": "submitted",
+        "timestamp_submission": "2022-10-11T02:44:23.746231+00:00",
     }
 ]
 mock_accepted_job = {
     "code": "import numpy",
-    "collab": "neuromorphic-testing-private",
+    "collab_id": "neuromorphic-testing-private",
+    "command": "",
     "user_id": "haroldlloyd",
     "hardware_platform": "SpiNNaker",
+    "hardware_config": None,
+    "provenance": None,
     "id": 999999,
     "status": "submitted",
     "timestamp_submission": "2022-10-11T02:44:23.746231+00:00",
+    "input_data": [],
+    "output_data": [],
     "tags": ["tag 1"],
+    "resource_usage": 0.0,
+    "status": "finished",
 }
 mock_submitted_job = {
     "code": "test post",
     "command": "",
     "collab": "neuromorphic-testing-private",
     "input_data": [],
-    "hardware_platform": "Brainscales",
+    "hardware_platform": "BrainScaleS",
+    "hardware_config": None,
 }
 mock_tags = ["first tag", "second tag"]
 mock_comments = [
@@ -75,15 +91,15 @@ mock_job_patch = {
     "status": "submitted",
     "output_data": [
         {
-            "url": "https://brainscales-r.kip.uni-heidelberg.de:7443/nmpi/job_165928/run.py",
-            "content_type": "string",
+            "url": "https://BrainScaleS-r.kip.uni-heidelberg.de:7443/nmpi/job_165928/run.py",
+            "content_type": "application/x-python",
             "size": 1,
             "hash": "string",
         }
     ],
-    "log": None,
-    "resource_usage": None,
-    "provenance": None,
+    # "log": None,
+    # "resource_usage": None,
+    # "provenance": None,
 }
 
 
@@ -165,7 +181,23 @@ def test_get_job_with_log_and_comments(mocker):
     mocker.patch("simqueue.oauth.User", MockUser)
     mocker.patch("simqueue.db.get_job", return_value=mock_jobs[0])
     mocker.patch(
-        "simqueue.db.get_comments", return_value=[{"content": "comment1"}, {"content": "comment2"}]
+        "simqueue.db.get_comments",
+        return_value=[
+            {
+                "id": 888,
+                "job_id": 999999,
+                "user": "haroldlloyd",
+                "content": "comment1",
+                "created_time": "1938-01-01T12:00:00",
+            },
+            {
+                "id": 889,
+                "job_id": 999999,
+                "user": "charliechaplin",
+                "content": "comment2",
+                "created_time": "1938-01-01T12:00:01",
+            },
+        ],
     )
     mocker.patch("simqueue.db.get_log", return_value="...")
     response = client.get(
@@ -266,7 +298,15 @@ def test_post_job(mocker):
     assert response.status_code == 201
     assert simqueue.db.create_job.await_args.kwargs == {
         "user_id": "haroldlloyd",
-        "job": SubmittedJob(**mock_submitted_job),
+        "job": {
+            "code": mock_submitted_job["code"],
+            "command": mock_submitted_job["command"],
+            "collab_id": mock_submitted_job["collab"],
+            "input_data": mock_submitted_job["input_data"],
+            "hardware_platform": mock_submitted_job["hardware_platform"],
+            "hardware_config": mock_submitted_job["hardware_config"],
+            "tags": None,
+        },
     }
 
 

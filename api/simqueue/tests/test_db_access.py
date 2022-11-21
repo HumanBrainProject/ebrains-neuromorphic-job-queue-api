@@ -2,6 +2,7 @@ import os
 from datetime import date, datetime
 from copy import deepcopy
 from uuid import uuid4, UUID
+import json
 import pytz
 import pytest
 import pytest_asyncio
@@ -29,13 +30,13 @@ async def submitted_job(new_tag):
     data = {
         "code": "import antigravity\n",
         "command": None,
-        "collab": TEST_COLLAB,
+        "collab_id": TEST_COLLAB,
         "status": "submitted",
         "hardware_platform": "TestPlatform",
-        "hardware_config": {"answer": "42"},
+        "hardware_config": json.dumps({"answer": "42"}),
         "tags": sorted(["test", new_tag]),
     }
-    response = await db.create_job(user_id=TEST_USER, job=SubmittedJob(**data))
+    response = await db.create_job(user_id=TEST_USER, job=data)
     yield response
     response2 = await db.delete_job(response["id"])
 
@@ -58,7 +59,7 @@ async def new_project():
     }
     response = await db.create_project(data)
     yield response
-    response2 = await db.delete_project(response["id"])
+    response2 = await db.delete_project(response["context"])
 
 
 # ---- Test jobs, tags, comments --------------------------
@@ -81,7 +82,7 @@ async def test_query_jobs_no_filters(database_connection):
         "command",
         "timestamp_submission",
         "timestamp_completion",
-        "collab",
+        "collab_id",
         "hardware_platform",
         "tags",
     }
@@ -104,7 +105,7 @@ async def test_query_jobs_with_filters(database_connection):
     assert len(jobs) > 0
     for job in jobs:
         assert job["status"] == "finished"
-        assert job["collab"] == "neuromorphic-testing-private"
+        assert job["collab_id"] == "neuromorphic-testing-private"
         assert job["user_id"] == "adavison"
         assert job["hardware_platform"] == "SpiNNaker"
         assert "test" in job["tags"]
@@ -131,11 +132,11 @@ async def test_get_job(database_connection):
         "command",
         "timestamp_submission",
         "timestamp_completion",
-        "collab",
+        "collab_id",
         "hardware_platform",
     )
     assert job["id"] == 142972
-    assert job["collab"] == "neuromorphic-testing-private"
+    assert job["collab_id"] == "neuromorphic-testing-private"
 
 
 @pytest.mark.asyncio
@@ -153,7 +154,7 @@ async def test_get_next_job(database_connection, submitted_job):
 @pytest.mark.asyncio
 async def test_get_comments(database_connection):
     comments = await db.get_comments(122685)
-    expected_keys = {"user_id", "content", "job_id", "id", "timestamp"}
+    expected_keys = {"user", "content", "job_id", "id", "created_time"}
     assert len(comments) > 0
     assert set(comments[0].keys()) == expected_keys
 
@@ -169,20 +170,20 @@ async def test_create_job(database_connection, new_tag):
     data = {
         "code": "import antigravity\n",
         "command": None,
-        "collab": TEST_COLLAB,
+        "collab_id": TEST_COLLAB,
         "status": "submitted",
         "hardware_platform": "testPlatform",
-        "hardware_config": {"answer": "42"},
+        "hardware_config": json.dumps({"answer": "42"}),
         "tags": sorted(["test", new_tag]),
     }
-    response = await db.create_job(user_id=TEST_USER, job=SubmittedJob(**data))
+    response = await db.create_job(user_id=TEST_USER, job=data)
     response2 = await db.get_job(response["id"])
     assert response == response2
     response3 = await db.delete_job(response["id"])
     expected = {
         "code": data["code"],
         "command": "",
-        "collab": data["collab"],
+        "collab_id": data["collab_id"],
         "input_data": [],
         "hardware_platform": data["hardware_platform"],
         "hardware_config": data["hardware_config"],
@@ -217,11 +218,11 @@ async def test_update_job(database_connection, submitted_job):
                 hash="edcba9876543210f",
             ),
         ],
-        "provenance": {"foo": "bar"},
-        "resource_usage": dict(value=999.0, units="bushels"),
+        "provenance": json.dumps({"foo": "bar"}),
+        "resource_usage": 999.0,
         "log": "Lorem ipsum dolor sit amet, consectetur adipiscing elit",
     }
-    response = await db.update_job(job_id=submitted_job["id"], job_patch=JobPatch(**data))
+    response = await db.update_job(job_id=submitted_job["id"], job_patch=data)
     response.pop("timestamp_completion")
     for data_item in response["output_data"]:
         data_item.pop("id")
@@ -268,7 +269,7 @@ async def test_add_update_and_remove_comments(database_connection, submitted_job
     )
     response = await db.add_comment(submitted_job["id"], TEST_USER, comment1)
     assert response["job_id"] == submitted_job["id"]
-    assert response["user_id"] == TEST_USER
+    assert response["user"] == TEST_USER
     assert response["content"] == comment1
 
     response2 = await db.get_comments(submitted_job["id"])
@@ -283,7 +284,7 @@ async def test_add_update_and_remove_comments(database_connection, submitted_job
 
     modified_comment1 = comment1.upper()
     response5 = await db.update_comment(response["id"], modified_comment1)
-    for key in ("id", "job_id", "user_id"):
+    for key in ("id", "job_id", "user"):
         assert response5[key] == response[key]
         assert response5["content"] == modified_comment1
 
@@ -330,7 +331,7 @@ async def test_query_projects_no_filters(database_connection):
         "decision_date",
         "description",
         "duration",
-        "id",
+        "context",
         "owner",
         "start_date",
         "submission_date",
@@ -384,63 +385,63 @@ async def test_create_project(database_connection, new_project):
         "decision_date": None,
         "description": "this is the description",
         "duration": 0,
-        "id": new_project["id"],
+        "context": new_project["context"],
         "owner": TEST_USER,
         "start_date": None,
         "submission_date": None,
         "title": "Test Project - to delete",
     }
-    assert new_project == expected
-    assert isinstance(new_project["id"], UUID)
+    assert dict(new_project) == expected
+    assert isinstance(new_project["context"], UUID)
 
 
 @pytest.mark.asyncio
 async def test_update_project(database_connection, new_project):
-    updated_project = deepcopy(new_project)
+    updated_project = dict(new_project)
     updated_project["submission_date"] = date.today()
     updated_project["abstract"] = "This is the abstract."
 
-    project = await db.update_project(new_project["id"], updated_project)
+    project = await db.update_project(new_project["context"], updated_project)
 
     assert project["submission_date"] == updated_project["submission_date"]
     assert project["abstract"] == updated_project["abstract"]
-    assert project["id"] == updated_project["id"]
+    assert project["context"] == updated_project["context"]
 
 
 @pytest.mark.asyncio
 async def test_query_quotas_no_filters(database_connection):
     quotas = await db.query_quotas(size=5, from_index=5)
     assert len(quotas) > 0
-    expected_keys = ("id", "project", "usage", "limit", "units", "platform")
+    expected_keys = ("id", "project_id", "usage", "limit", "units", "platform")
     assert set(quotas[0].keys()) == set(expected_keys)
 
 
 @pytest.mark.asyncio
 async def test_create_quota(database_connection, new_project):
     data = {"units": "bushels", "limit": 5000, "usage": 0, "platform": "TestPlatform"}
-    response = await db.create_quota(new_project["id"], data)
+    response = await db.create_quota(new_project["context"], data)
     quota_id = response["id"]
     assert isinstance(quota_id, int)
 
-    response2 = await db.query_quotas(new_project["id"])
+    response2 = await db.query_quotas(new_project["context"])
     assert len(response2) == 1
     expected = deepcopy(data)
     expected["id"] = quota_id
-    expected["project"] = f"/projects/{new_project['id']}"
-    assert response2[0] == expected
+    expected["project_id"] = new_project["context"]
+    assert dict(response2[0]) == expected
 
 
 @pytest.mark.asyncio
 async def test_update_quota(database_connection, new_project):
     data = {"units": "bushels", "limit": 5000, "usage": 0, "platform": "TestPlatform"}
-    quota = await db.create_quota(new_project["id"], data)
+    quota = await db.create_quota(new_project["context"], data)
 
     update = {"limit": 10000, "usage": 999}
     response2 = await db.update_quota(quota["id"], update)
 
-    expected = deepcopy(quota)
+    expected = dict(quota)
     expected.update(update)
-    assert response2 == expected
+    assert dict(response2) == expected
 
 
 # ---- Test statistics access functions -------------------

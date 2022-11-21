@@ -67,7 +67,7 @@ mock_projects = [
         "title": "Bughouse Bellhops",
         "abstract": "lorem ipsum",
         "description": "lorem ipsum",
-        "id": "ff4e494f-6f44-47c6-9a85-7091ff788b17",
+        "context": "ff4e494f-6f44-47c6-9a85-7091ff788b17",
         "owner": "haroldlloyd",
         "duration": 0,
         "start_date": "2022-10-15",
@@ -80,7 +80,7 @@ mock_projects = [
         "title": "Tinkering with Trouble",
         "abstract": "abstract goes here lorem ipsum",
         "description": "lorem ipsum lorem ipsum testing private  lorem ipsum idadad lorem ipsummmm",
-        "id": "4948a906-2488-11ed-8c74-e5cdf4879499",
+        "context": "4948a906-2488-11ed-8c74-e5cdf4879499",
         "owner": "haroldlloyd",
         "duration": 0,
         "start_date": None,
@@ -93,7 +93,7 @@ mock_projects = [
         "title": "The Dictator",
         "abstract": "abstract goes here lorem ipsum",
         "description": "lorem ipsum lorem ipsum testing private  lorem ipsum idadad lorem ipsummmm",
-        "id": "4948a906-2488-11ed-8c74-e5cdf4879499",
+        "context": "4948a906-2488-11ed-8c74-e5cdf4879499",
         "owner": "charliechaplin",
         "duration": 0,
         "start_date": None,
@@ -183,7 +183,7 @@ def test_query_collabs(mocker):
 
 def test_get_project(mocker):
     data = {
-        "id": "b52ebde9-116b-4419-894a-5f330ec3b484",
+        "context": "b52ebde9-116b-4419-894a-5f330ec3b484",
         "collab": "my-collab",
         "title": "testing Collaboratory v2 integration",
         "abstract": "for testing, created with Python client",
@@ -284,10 +284,11 @@ def test_update_project_as_user(mocker):
         "title": "testing Collaboratory v2 integration",
         "abstract": "abstract goes here",
         "description": "dddddd",
-        "id": "2b79a1a8-5825-4359-9b2d-2b6a11537e6b",
+        "context": "2b79a1a8-5825-4359-9b2d-2b6a11537e6b",
         "owner": "haroldlloyd",
         "duration": 0,
         "submission_date": None,
+        "decision_date": None,
     }
     mocker.patch("simqueue.db.update_project")
     mocker.patch("simqueue.db.get_project", return_value=existing_project)
@@ -326,10 +327,12 @@ def test_update_project_as_admin(mocker):
         "title": "testing Collaboratory v2 integration",
         "abstract": "abstract goes here",
         "description": "dddddd",
-        "id": "2b79a1a8-5825-4359-9b2d-2b6a11537e6b",
+        "context": "2b79a1a8-5825-4359-9b2d-2b6a11537e6b",
         "owner": "haroldlloyd",
         "duration": 0,
         "submission_date": "2021-01-05",
+        "decision_date": None,
+        "accepted": False,
     }
     mocker.patch("simqueue.db.update_project")
     mocker.patch("simqueue.db.get_project", return_value=existing_project)
@@ -357,10 +360,12 @@ def test_only_admins_can_edit_accepted_rejected_projects(mocker):
         "title": "testing Collaboratory v2 integration",
         "abstract": "abstract goes here",
         "description": "dddddd",
-        "id": "2b79a1a8-5825-4359-9b2d-2b6a11537e6b",
+        "context": "2b79a1a8-5825-4359-9b2d-2b6a11537e6b",
         "owner": "haroldlloyd",
         "duration": 0,
         "submission_date": None,
+        "decision_date": None,
+        "accepted": False,
     }
     mocker.patch("simqueue.db.update_project")
     mocker.patch("simqueue.db.get_project", return_value=existing_project)
@@ -372,9 +377,7 @@ def test_only_admins_can_edit_accepted_rejected_projects(mocker):
         "description": "lorem ipsum",
         "context": "ff4e494f-6f44-47c6-9a85-7091ff788b17",
         "owner": "haroldlloyd",
-        "duration": 0,
         "status": "accepted",
-        "submitted": True,
     }
 
     json_compatible_item_data = jsonable_encoder(data)
@@ -404,10 +407,12 @@ def test_editing_forbidden_after_submission(mocker):
         "title": "testing Collaboratory v2 integration",
         "abstract": "abstract goes here",
         "description": "dddddd",
-        "id": "2b79a1a8-5825-4359-9b2d-2b6a11537e6b",
+        "context": "2b79a1a8-5825-4359-9b2d-2b6a11537e6b",
         "owner": "haroldlloyd",
         "duration": 0,
         "submission_date": date.today(),
+        "decision_date": None,
+        "accepted": False,
     }
     mocker.patch("simqueue.db.update_project")
     mocker.patch("simqueue.db.get_project", return_value=existing_project)
@@ -419,9 +424,6 @@ def test_editing_forbidden_after_submission(mocker):
         "description": "lorem ipsum lorem ipsum testing private  lorem ipsum idadad lorem ipsummmm",
         "context": "4948a906-2488-11ed-8c74-e5cdf4879499",
         "owner": "haroldlloyd",
-        "duration": 0,
-        "status": "under review",
-        "submitted": True,
     }
     mocker.patch("simqueue.db.update_project")
 
@@ -465,7 +467,7 @@ def test_query_quotas(mocker):
             "limit": 5000,
             "usage": 42,
             "units": "bushels",
-            "project": f"/projects/{project_id}",
+            "project_id": project_id,
         },
         {
             "id": 777,
@@ -473,7 +475,7 @@ def test_query_quotas(mocker):
             "limit": 0.1,
             "usage": 0.00123,
             "units": "wafer-hours",
-            "project": f"/projects/{project_id}",
+            "project_id": project_id,
         },
     ]
     mocker.patch("simqueue.oauth.User", MockUser)
@@ -500,7 +502,7 @@ def test_get_quota(mocker):
         "limit": 5000,
         "usage": 42,
         "units": "bushels",
-        "project": f"/projects/{project_id}",
+        "project_id": project_id,
     }
     mocker.patch("simqueue.oauth.User", MockUser)
     mocker.patch("simqueue.db.get_project", return_value=mock_projects[0])
@@ -540,9 +542,8 @@ def test_create_quota(mocker):
 
 def test_update_quota(mocker):
     project_id = "b52ebde9-116b-4419-894a-5f330ec3b484"
-    update = {
-        "usage": 63.0,
-    }
+    update = {"limit": None, "usage": 63.0}
+
     mocker.patch("simqueue.oauth.User", MockUserAdmin)
     mocker.patch("simqueue.db.get_project", return_value=mock_projects[0])
     mocker.patch("simqueue.db.get_quota", return_value={})

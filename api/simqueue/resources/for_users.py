@@ -105,11 +105,7 @@ async def query_jobs(
         size=size,
     )
 
-    def add_resource_uri(job):
-        job["resource_uri"] = f"/jobs/{job['id']}"
-        return job
-
-    return [add_resource_uri(job) for job in jobs]
+    return [Job.from_db(job) for job in jobs]
 
 
 @router.get("/jobs/{job_id}", response_model=Job)
@@ -144,8 +140,7 @@ async def get_job(
         if with_log:
             log = await db.get_log(job_id)
             job["log"] = log
-        job["resource_uri"] = f"/jobs/{job_id}"
-        return job
+        return Job.from_db(job)
 
     raise HTTPException(
         status_code=status_codes.HTTP_404_NOT_FOUND,
@@ -236,9 +231,8 @@ async def create_job(
     get_user_task = asyncio.create_task(oauth.User.from_token(token.credentials))
     user = await get_user_task
     if (as_admin and user.is_admin) or user.can_edit(job.collab):
-
-        accepted_job = await db.create_job(user_id=user.username, job=job)
-        return accepted_job
+        accepted_job = await db.create_job(user_id=user.username, job=job.to_db())
+        return Job.from_db(accepted_job)
     raise HTTPException(
         status_code=status_codes.HTTP_404_NOT_FOUND,
         detail=f"You do not have access to this collab or there is no collab with this id",
@@ -315,7 +309,7 @@ async def update_comment(
         )
 
     if (as_admin and user.is_admin) or (
-        old_comment["user_id"] == user.username and await user.can_view(job["collab"])
+        old_comment["user_id"] == user.username and await user.can_view(job["collab_id"])
     ):
         return await db.update_comment(comment_id, comment.comment)
 
@@ -352,7 +346,7 @@ async def remove_comment(
         )
 
     if (as_admin and user.is_admin) or (
-        old_comment["user_id"] == user.username and await user.can_view(job["collab"])
+        old_comment["user_id"] == user.username and await user.can_view(job["collab_id"])
     ):
         return await db.delete_comment(comment_id)
 
@@ -491,50 +485,6 @@ async def query_tags(
     return await db.query_tags(collab)
 
 
-def to_dictRequestBody(projectRB: Project):
-
-    data = {}
-    for field in ("collab", "title", "abstract", "description", "status", "submitted"):
-        if getattr(projectRB, field, None) is not None:
-            data[field] = getattr(projectRB, field)
-
-    return data
-
-
-def to_dictQ(quota):
-
-    data = {}
-    for field in ("units", "limit", "usage", "platform"):
-        if getattr(quota, field, None) is not None:
-            data[field] = getattr(quota, field)
-
-    return data
-
-
-def to_dictSerial(project: Project, quotas: List[Quota]):
-
-    data = dict(project)
-    data["status"] = Project(**project).status()
-    data["resource_uri"] = f"/projects/{project['id']}"
-    content = []
-    for quota in quotas:
-        content.append(to_dictSerialQuota(quota, project))
-    data["quotas"] = content
-    return data
-
-
-def to_dictSerialQuota(quota: Quota, project: Project):
-    data = {}
-    data["id"] = quota["id"]
-    data["limit"] = quota["limit"]
-    data["platform"] = quota["platform"]
-    data["project"] = quota["project"]
-    data["resource_uri"] = f"/projects/{project['id']}/quotas/{quota['id']}"
-    data["units"] = quota["units"]
-    data["usage"] = quota["usage"]
-    return data
-
-
 @router.get("/projects/", response_model=List[Project])
 async def query_projects(
     status: ProjectStatus = Query(None, description="status"),
@@ -590,8 +540,8 @@ async def query_projects(
     )
     projects_with_quotas = []
     for project in projects:
-        quotas = await db.follow_relationships_quotas(project["id"])
-        projects_with_quotas.append(to_dictSerial(project, quotas))
+        quotas = await db.follow_relationships_quotas(project["context"])
+        projects_with_quotas.append(Project.from_db(project, quotas))
     return projects_with_quotas
 
 
@@ -616,9 +566,8 @@ async def get_project(
 
     if project is not None:
         if (as_admin and user.is_admin) or await user.can_view(project["collab"]):
-            quotas = await db.follow_relationships_quotas(project["id"])
-            content = to_dictSerial(project, quotas)
-            return content
+            quotas = await db.follow_relationships_quotas(project["context"])
+            return Project.from_db(project, quotas)
         else:
             raise HTTPException(
                 status_code=status_codes.HTTP_403_FORBIDDEN,
@@ -722,18 +671,14 @@ async def create_project(
 
     get_user_task = asyncio.create_task(oauth.User.from_token(token.credentials))
     user = await get_user_task
-    content = to_dictRequestBody(projectRB)
 
-    content["accepted"] = False
-    if "submitted" not in content.keys():
-        content["submitted"] = False
-    if not ((as_admin and user.is_admin) or user.can_edit(content["collab"])):
+    project = projectRB.to_db(owner=user.username)
+    if not ((as_admin and user.is_admin) or user.can_edit(project["collab"])):
         raise HTTPException(
             status_code=status_codes.HTTP_403_FORBIDDEN,
             detail=f"You do not have permisson to create projects in this Collab",
         )
-    content["owner"] = user.username
-    await db.create_project(content)
+    await db.create_project(project)
 
 
 @router.get("/projects/{project_id}/quotas/", response_model=List[Quota])
@@ -769,12 +714,7 @@ async def query_quotas(
             detail=f"You cannot view quotas for this project",
         )
     quotas = await db.query_quotas(project_id=project_id, size=size, from_index=from_index)
-
-    content = []
-    for quota in quotas:
-        content.append(to_dictSerialQuota(quota, project))
-
-    return content
+    return [Quota.from_db(quota) for quota in quotas]
 
 
 @router.get("/projects/{project_id}/quotas/{quota_id}", response_model=Quota)
@@ -820,8 +760,7 @@ async def get_quota(
             status_code=status_codes.HTTP_404_NOT_FOUND,
             detail=f"There is no quota with this id",
         )
-    content = to_dictSerialQuota(quota, project)
-    return content
+    return Quota.from_db(quota)
 
 
 @router.get("/collabs/", response_model=List[str])
@@ -879,7 +818,7 @@ async def query_collabs(
 
 @router.put("/projects/{project_id}", status_code=status_codes.HTTP_200_OK)
 async def update_project(
-    projectRB: ProjectUpdate,
+    project_update: ProjectUpdate,
     project_id: UUID = Path(
         ..., title="Project ID", description="ID of the project to be retrieved"
     ),
@@ -892,17 +831,20 @@ async def update_project(
     get_user_task = asyncio.create_task(oauth.User.from_token(token.credentials))
     get_project_task = asyncio.create_task(db.get_project(project_id))
     user = await get_user_task
-    project = await get_project_task
+    original_project = Project.from_db(await get_project_task)
 
-    content = to_dictRequestBody(projectRB)
+    if original_project is None:
+        raise HTTPException(
+            status_code=status_codes.HTTP_404_NOT_FOUND, detail=f"Project Not Found"
+        )
 
-    if not ((as_admin and user.is_admin) or user.can_edit(project["collab"])):
+    if not ((as_admin and user.is_admin) or user.can_edit(original_project.collab)):
         raise HTTPException(
             status_code=status_codes.HTTP_403_FORBIDDEN,
             detail=f"You do not have permission to modify this project.",
         )
 
-    new_status = content["status"]
+    new_status = project_update.status
     if new_status in ("accepted", "rejected"):
         logger.info("Changing status")
         if not (as_admin and user.is_admin):
@@ -910,46 +852,28 @@ async def update_project(
                 status_code=status_codes.HTTP_403_FORBIDDEN,
                 detail=f"You do not have permission to change the status of this project.",
             )
-        current_status = Project(**project).status()
+        current_status = original_project.status
         if new_status == current_status:
             raise HTTPException(
                 status_code=status_codes.HTTP_204_NO_CONTENT, detail=f"Same Status"
             )
-        elif new_status in ("accepted", "rejected"):
-            project["decision_date"] = date.today()
-
-            if new_status == "accepted":
-                project["start_date"] = project["decision_date"]
-                project["accepted"] = True
-
-            await db.update_project(project_id, project)
-
+        else:
+            await db.update_project(project_id, project_update.to_db())
             status_code = status_codes.HTTP_201_CREATED
             return status_code
-        else:
-            raise HTTPException(
-                status_code=status_codes.HTTP_400_BAD_REQUEST,
-                detail="Status can only be changed to 'accepted' or 'rejected'",
-            )
 
     else:
-        if project is None:
+        if original_project is None:
             raise HTTPException(
                 status_code=status_codes.HTTP_404_NOT_FOUND, detail=f"Project Not Found"
             )
 
-        if project["submission_date"] is not None:
+        if original_project.submission_date is not None:
             raise HTTPException(
                 status_code=status_codes.HTTP_403_FORBIDDEN,
                 detail=f"Can't edit a submitted form.",
             )
 
-        if content["submitted"]:
-            project["submission_date"] = date.today()
-
-        for field, value in project.items():
-            if field not in content.keys():
-                content[field] = value
-        await db.update_project(project_id, content)
+        await db.update_project(project_id, project_update.to_db())
         logger.info("Updating project")
         return status_codes.HTTP_201_CREATED
