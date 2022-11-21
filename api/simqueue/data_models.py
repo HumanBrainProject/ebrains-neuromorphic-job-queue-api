@@ -273,7 +273,7 @@ class Project(ProjectSubmission):
         if quotas is None:
             quotas = []
         data = {
-            "id": UUID(project["context"]),
+            "id": project["context"],
             "collab": project["collab"],
             "title": project["title"],
             "abstract": project["abstract"],
