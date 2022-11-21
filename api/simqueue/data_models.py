@@ -251,7 +251,7 @@ class Project(ProjectSubmission):
     owner: str
     submission_date: date = None
     decision_date: date = None
-    resource_uri: str = None
+    resource_uri: str
     status: ProjectStatus = ProjectStatus.in_prep
     quotas: List[Quota] = None
 
@@ -282,6 +282,7 @@ class Project(ProjectSubmission):
             "submission_date": project["submission_date"],
             "decision_date": project["decision_date"],
             "status": cls._get_status(project),
+            "resource_uri": f"/projects/{project['context']}",
             "quotas": [Quota.from_db(quota) for quota in quotas],
         }
         return cls(**data)
