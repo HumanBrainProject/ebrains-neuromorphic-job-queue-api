@@ -12,6 +12,7 @@ from ..data_models import (
     AcceptedJob,
     Job,
     JobStatus,
+    DataSet,
     Comment,
     CommentBody,
     Tag,
@@ -218,6 +219,54 @@ async def get_comments(
         status_code=status_codes.HTTP_404_NOT_FOUND,
         detail=f"Either there is no job with id {job_id}, or you do not have access to it",
     )
+
+
+@router.get("/jobs/{job_id}/output_data", response_model=DataSet)
+async def get_output_data(
+    job_id: int = Path(
+        ..., title="Job ID", description="ID of the job whose output data are to be retrieved"
+    ),
+    as_admin: bool = Query(
+        False, description="Run this query with admin privileges, if you have them"
+    ),
+    token: HTTPAuthorizationCredentials = Depends(auth),
+):
+    get_user_task = asyncio.create_task(oauth.User.from_token(token.credentials))
+    get_job_task = asyncio.create_task(db.get_job(job_id))
+    user = await get_user_task
+    job = await get_job_task
+    if job is None:
+        raise HTTPException(
+            status_code=status_codes.HTTP_404_NOT_FOUND,
+            detail=f"Either there is no job with id {job_id}, or you do not have access to it",
+        )
+    if (
+        (as_admin and user.is_admin)
+        or job["user_id"] == user.username
+        or await user.can_view(job["collab"])
+    ):
+        job = await db.get_job(job_id)
+        # todo: implement a get_data_items() function in `db` module
+        return DataSet.from_db(job["output_data"])
+
+    raise HTTPException(
+        status_code=status_codes.HTTP_404_NOT_FOUND,
+        detail=f"Either there is no job with id {job_id}, or you do not have access to it",
+    )
+
+
+@router.put("/jobs/{job_id}/output_data", response_model=DataSet)
+async def update_output_data(
+    dataset: DataSet,
+    job_id: int = Path(
+        ..., title="Job ID", description="ID of the job whose output data are to be retrieved"
+    ),
+    as_admin: bool = Query(
+        False, description="Run this query with admin privileges, if you have them"
+    ),
+    token: HTTPAuthorizationCredentials = Depends(auth),
+):
+    pass
 
 
 @router.post("/jobs/", response_model=AcceptedJob, status_code=status_codes.HTTP_201_CREATED)

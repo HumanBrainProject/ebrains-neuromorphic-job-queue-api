@@ -18,6 +18,7 @@ API_KEY = os.environ["NMPI_TESTING_APIKEY"]
 AUTH_TOKEN = os.environ["EBRAINS_AUTH_TOKEN"]
 TEST_COLLAB = "neuromorphic-testing-private"
 TEST_USER = "adavisontesting"
+TEST_REPOSITORY = "Fake repository used for testing"
 TEST_PLATFORM = "nmpi"
 
 
@@ -126,14 +127,18 @@ async def test_job_lifetime(database_connection, adequate_quota):
         job_update_data = {
             "status": "finished",
             "log": "Job started\nJob completed successfully",
-            "output_data": [
-                {
-                    "url": "https://example.com/job_id/results.json",
-                    "content_type": "application/json",
-                    "size": 423,
-                    "hash": "abcdef0123456789",
-                }
-            ],
+            "output_data": {
+                "repository": TEST_REPOSITORY,
+                "files": [
+                    {
+                        "url": "https://example.com/job_id/results.json",
+                        "path": "job_id/results.json",
+                        "content_type": "application/json",
+                        "size": 423,
+                        "hash": "abcdef0123456789",
+                    }
+                ],
+            },
             "provenance": {"platform_version": "1.2.3"},
             "resource_usage": {"value": 42, "units": "litres"},
         }
