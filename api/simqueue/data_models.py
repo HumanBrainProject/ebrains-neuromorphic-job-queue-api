@@ -144,6 +144,8 @@ class Job(CompletedJob):
             data["status"] = job["status"]
         if job["timestamp_submission"]:
             data["timestamp_submission"] = job["timestamp_submission"]
+        if job["timestamp_completion"]:
+            data["timestamp_completion"] = job["timestamp_completion"]
         if job["output_data"]:
             data["output_data"] = job["output_data"]
         if job.get("comments", None):
