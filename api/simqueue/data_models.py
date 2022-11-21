@@ -124,7 +124,7 @@ class Job(CompletedJob):
             "collab": job["collab_id"],
             "input_data": job["input_data"],
             "hardware_platform": job["hardware_platform"],
-            "tags": job["tags"],
+            "tags": [tag for tag in job["tags"] if len(tag) > 1],  # filter out invalid tags
         }
         if job["hardware_config"]:
             data["hardware_config"] = json.loads(job["hardware_config"])

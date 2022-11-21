@@ -41,6 +41,7 @@ mock_jobs = [
         "resource_usage": 0.0,
         "status": "submitted",
         "timestamp_submission": "2022-10-11T02:44:23.746231+00:00",
+        "timestamp_completion": "2022-10-11T02:46:23.746231+00:00",
     }
 ]
 mock_accepted_job = {
@@ -54,6 +55,7 @@ mock_accepted_job = {
     "id": 999999,
     "status": "submitted",
     "timestamp_submission": "2022-10-11T02:44:23.746231+00:00",
+    "timestamp_completion": "2022-10-11T02:46:23.746231+00:00",
     "input_data": [],
     "output_data": [],
     "tags": ["tag 1"],
