@@ -20,9 +20,10 @@ from ..data_models import (
     ProjectUpdate,
     ProjectStatus,
     Quota,
-    QuotaUpdate,
+    Session,
+    SessionStatus,
 )
-from .. import db, oauth
+from .. import db, oauth, utils
 
 logger = logging.getLogger("simqueue")
 
@@ -231,8 +232,15 @@ async def create_job(
     get_user_task = asyncio.create_task(oauth.User.from_token(token.credentials))
     user = await get_user_task
     if (as_admin and user.is_admin) or user.can_edit(job.collab):
-        accepted_job = await db.create_job(user_id=user.username, job=job.to_db())
-        return Job.from_db(accepted_job)
+        proceed = utils.check_quotas(job.collab, job.hardware_platform)
+        if proceed:
+            accepted_job = await db.create_job(user_id=user.username, job=job.to_db())
+            return Job.from_db(accepted_job)
+        else:
+            raise HTTPException(
+                status_code=status_codes.HTTP_403_FORBIDDEN,
+                detail=f"You do not have sufficient compute quota to submit this job",
+            )
     raise HTTPException(
         status_code=status_codes.HTTP_404_NOT_FOUND,
         detail=f"You do not have access to this collab or there is no collab with this id",
@@ -877,3 +885,70 @@ async def update_project(
         await db.update_project(project_id, project_update.to_db())
         logger.info("Updating project")
         return status_codes.HTTP_201_CREATED
+
+
+@router.get("/sessions/", response_model=List[Session])
+async def query_sessions(
+    status: List[SessionStatus] = Query(None, description="status"),
+    collab: List[str] = Query(None, description="collab id"),
+    user_id: List[str] = Query(None, description="user id"),
+    hardware_platform: List[str] = Query(
+        None, description="hardware platform (e.g. SpiNNaker, BrainScales)"
+    ),
+    date_range_start: date = Query(None, description="sessions started after this date"),
+    date_range_end: date = Query(None, description="sessions started before this date"),
+    size: int = Query(10, description="Number of sessions to return"),
+    from_index: int = Query(0, description="Index of the first session to return"),
+    as_admin: bool = Query(
+        False, description="Run this query with admin privileges, if you have them"
+    ),
+    # from header
+    token: HTTPAuthorizationCredentials = Depends(auth),
+):
+    """
+    Return a list of sessions
+    """
+    # If the user (from the token) is an admin there are no restrictions on the query
+    # If the user is not an admin:
+    #   - if user_id is provided, it must contain _only_ the user's id
+    #   - if collab is not provided, only the user's own sessions are returned
+    #   - if collab is provided the user must be a member of all collabs in the list
+    user = await oauth.User.from_token(token.credentials)
+    if not as_admin:
+        if user_id:
+            if len(user_id) > 1:
+                raise HTTPException(
+                    status_code=status_codes.HTTP_400_BAD_REQUEST,
+                    detail="Only admins can directly query other users' sessions, try querying by collab",
+                )
+            elif user_id[0] != user.username:  # todo: also support user_id_v1
+                raise HTTPException(
+                    status_code=status_codes.HTTP_403_FORBIDDEN,
+                    detail=f"User id provided ({user_id[0]}) does not match authentication token ({user.username})",
+                )
+        if collab:
+            for cid in collab:
+                if not await user.can_view(cid):
+                    raise HTTPException(
+                        status_code=status_codes.HTTP_403_FORBIDDEN,
+                        detail="You do not have permission to view collab {cid}",
+                    )
+        else:
+            user_id = [user.username]
+    elif not user.is_admin:
+        raise HTTPException(
+            status_code=status_codes.HTTP_403_FORBIDDEN,
+            detail=f"The token provided does not give admin privileges",
+        )
+    sessions = await db.query_sessions(
+        status=status,
+        collab=collab,
+        user_id=user_id,
+        hardware_platform=hardware_platform,
+        date_range_start=date_range_start,
+        date_range_end=date_range_end,
+        from_index=from_index,
+        size=size,
+    )
+
+    return [session.from_db(session) for session in sessions]

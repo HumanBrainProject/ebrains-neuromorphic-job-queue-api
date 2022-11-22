@@ -1,4 +1,4 @@
-from datetime import datetime, date
+from datetime import datetime, date, timezone
 from enum import Enum
 from typing import List, Dict
 from uuid import UUID
@@ -13,6 +13,13 @@ class JobStatus(str, Enum):
     validated = "validated"  # unused at the moment
     running = "running"
     mapped = "mapped"  # unused at the moment
+    finished = "finished"
+    error = "error"
+    removed = "removed"
+
+
+class SessionStatus(str, Enum):
+    running = "running"
     finished = "finished"
     error = "error"
     removed = "removed"
@@ -155,7 +162,7 @@ class Job(CompletedJob):
         return cls(**data)
 
 
-class JobPatch(BaseModel):
+class JobPatch(BaseModel):  # todo: rename to JobUpdate
     status: JobStatus
     output_data: List[DataItem] = None
     provenance: dict = None
@@ -174,6 +181,64 @@ class JobPatch(BaseModel):
             values["resource_usage"] = self.resource_usage.values
         if self.log is not None:
             values["log"] = self.log
+        return values
+
+
+class SessionCreation(BaseModel):
+    collab: str
+    user_id: str
+    hardware_config: dict = None
+
+    def to_db(self, hardware_platform):
+        return {
+            "collab_id": self.collab,
+            "hardware_platform": hardware_platform,
+            "hardware_config": json.dumps(self.hardware_config),
+            "user_id": self.user_id,
+            "timestamp_start": datetime.now(timezone.utc),
+        }
+
+
+class Session(SessionCreation):
+    id: int
+    user_id: str
+    status: SessionStatus = SessionStatus.running
+    timestamp_start: datetime = None
+    timestamp_end: datetime = None
+    resource_uri: str
+    resource_usage: ResourceUsage = None
+
+    @classmethod
+    def from_db(cls, session):
+        data = {
+            "id": session["id"],
+            "resource_uri": f"/sessions/{session['id']}",
+            "collab": session["collab_id"],
+            "status": session["status"],
+            "hardware_platform": session["hardware_platform"],
+            "user_id": session["user_id"],
+            "timestamp_start": session["timestamp_start"],
+        }
+        if session["hardware_config"]:
+            data["hardware_config"] = json.loads(session["hardware_config"])
+        if session["resource_usage"] is not None:  # can be 0.0
+            data["resource_usage"] = {
+                "value": session["resource_usage"],
+                "units": RESOURCE_USAGE_UNITS.get(session["hardware_platform"], "hours"),
+            }
+        if session["timestamp_end"]:
+            data["timestamp_end"] = session["timestamp_end"]
+        return cls(**data)
+
+
+class SessionUpdate(BaseModel):
+    status: SessionStatus = SessionStatus.running
+    resource_usage: ResourceUsage
+
+    def to_db(self):
+        values = {"status": self.status.value, "resource_usage": self.resource_usage.values}
+        if self.status in (SessionStatus.finished, SessionStatus.error):
+            values["timestamp_end"] = datetime.now(timezone.utc)
         return values
 
 

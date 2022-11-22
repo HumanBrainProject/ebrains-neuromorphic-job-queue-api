@@ -11,11 +11,14 @@ from fastapi.security.api_key import APIKey
 from ..data_models import (
     Job,
     JobPatch,
-    Project,
-    Quota,
     QuotaUpdate,
+    Session,
+    SessionUpdate,
+    SessionCreation,
+    SessionStatus,
+    ProjectStatus,
 )
-from .. import db, oauth
+from .. import db, oauth, utils
 
 logger = logging.getLogger("simqueue")
 
@@ -49,9 +52,6 @@ async def get_next_job(
 async def update_job(
     job_update: JobPatch,
     job_id: int = Path(..., title="Job ID", description="ID of the job to be retrieved"),
-    as_admin: bool = Query(
-        False, description="Run this query with admin privileges, if you have them"
-    ),
     api_key: APIKey = Depends(oauth.get_provider),
 ):
     """
@@ -67,6 +67,10 @@ async def update_job(
         )
     # todo: check provider_name matches old_job.platform
     result = await db.update_job(job_id, job_update.to_db())
+    if job_update.resource_usage:
+        await utils.update_quotas(
+            old_job["collab_id"], old_job["hardware_platform"], job_update.resource_usage
+        )
     return result
 
 
@@ -115,3 +119,61 @@ async def update_quota(
         )
 
     await db.update_quota(quota_id, quota_update.to_db())
+
+
+@router.post("/sessions/", response_model=Session, status_code=status_codes.HTTP_201_CREATED)
+async def start_session(
+    session: SessionCreation,
+    api_key: APIKey = Depends(oauth.get_provider),
+):
+
+    provider_name = await api_key
+    if session["hardware_platform"] != provider_name:
+        raise HTTPException(
+            status_code=status_codes.HTTP_403_FORBIDDEN,
+            detail=f"API key (for {provider_name}) does not match session (for {session['hardware_platform']})",
+        )
+    proceed = utils.check_quotas(session.collab, session.hardware_platform)
+    if proceed:
+        new_session = await db.create_session(
+            hardware_platform=provider_name, session=session.to_db()
+        )
+        return Session.from_db(new_session)
+    else:
+        raise HTTPException(
+            status_code=status_codes.HTTP_403_FORBIDDEN,
+            detail=f"The user does not have sufficient compute quota to start this session",
+        )
+
+
+@router.put("/sessions/{session_id}", status_code=status_codes.HTTP_200_OK)
+async def update_session(
+    session_update: SessionUpdate,
+    session_id: int = Path(
+        ..., title="session ID", description="ID of the session to be retrieved"
+    ),
+    api_key: APIKey = Depends(oauth.get_provider),
+):
+    """
+    For use by computing system providers to update session metadata
+    """
+
+    provider_name = await api_key
+    old_session = await db.get_session(session_id)
+    if old_session is None:
+        raise HTTPException(
+            status_code=status_codes.HTTP_404_NOT_FOUND,
+            detail=f"Either there is no session with id {session_id}, or you do not have access to it",
+        )
+    if provider_name != old_session["hardware_platform"]:
+        raise HTTPException(
+            status_code=status_codes.HTTP_403_FORBIDDEN,
+            detail=f"API key (for {provider_name}) does not match session (for {old_session['hardware_platform']})",
+        )
+    # todo: update quotas
+    if session_update.status in (SessionStatus.finished, SessionStatus.error):
+        await utils.update_quotas(
+            old_session.collab, old_session.hardware_platform, session_update.resource_usage
+        )
+
+    result = await db.update_session(session_id, session_update.to_db())

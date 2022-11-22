@@ -1,5 +1,5 @@
 import os
-from datetime import date, datetime
+from datetime import date, datetime, timezone
 from copy import deepcopy
 from uuid import uuid4, UUID
 import json
@@ -60,6 +60,22 @@ async def new_project():
     response = await db.create_project(data)
     yield response
     response2 = await db.delete_project(response["context"])
+
+
+@pytest_asyncio.fixture()
+async def new_session():
+    data = {
+        "collab_id": TEST_COLLAB,
+        "user_id": TEST_USER,
+        "status": "submitted",
+        "hardware_platform": "TestPlatform",
+        "hardware_config": json.dumps({"answer": "42"}),
+        "timestamp_start": datetime(2022, 11, 22, 12, 23, 45, tzinfo=timezone.utc),
+        "resource_usage": 0.0,
+    }
+    response = await db.create_session(data)
+    yield response
+    response2 = await db.delete_session(response["id"])
 
 
 # ---- Test jobs, tags, comments --------------------------
@@ -292,6 +308,29 @@ async def test_add_update_and_remove_comments(database_connection, submitted_job
 
     response7 = await db.get_comments(submitted_job["id"])
     assert len(response7) == 1
+
+
+# ---- Sessions -------------------------------------------
+
+
+@pytest.mark.asyncio
+async def test_create_session(database_connection, new_session):
+    expected = {
+        "collab_id": TEST_COLLAB,
+        "user_id": TEST_USER,
+        "status": "running",
+        "hardware_platform": "TestPlatform",
+        "hardware_config": json.dumps({"answer": "42"}),
+        "timestamp_start": datetime.fromisoformat("2022-11-22T12:23:45+00:00"),
+        "timestamp_end": None,
+        "resource_usage": 0.0,
+    }
+    new_session = dict(new_session)
+    new_session.pop("id")
+    assert new_session == expected
+
+
+# ---- Other ----------------------------------------------
 
 
 @pytest.mark.asyncio

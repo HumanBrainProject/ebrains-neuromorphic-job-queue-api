@@ -90,6 +90,21 @@ jobs = Table(
     Column("resource_usage", Float),
 )
 
+sessions = Table(
+    "simqueue_session",
+    metadata,
+    Column("id", Integer, primary_key=True, index=True),
+    Column("collab_id", String(40), nullable=False),
+    Column("user_id", String(36), nullable=False),
+    Column("status", String(15), default="submitted", nullable=False),
+    Column("hardware_platform", String(20), nullable=False),
+    Column("hardware_config", String),
+    Column("timestamp_start", DateTime(timezone=True), default=now_in_utc, nullable=False),
+    Column("timestamp_end", DateTime(timezone=True)),
+    Column("resource_usage", Float),
+)
+
+
 comments = Table(
     "simqueue_comment",
     metadata,
@@ -399,6 +414,87 @@ async def delete_job(job_id: int):
     return
 
 
+async def query_sessions(
+    status: List[str] = None,
+    collab: List[str] = None,
+    user_id: List[str] = None,
+    hardware_platform: List[str] = None,
+    date_range_start: date = None,
+    date_range_end: date = None,
+    fields: List[str] = None,
+    from_index: int = 0,
+    size: int = 10,
+):
+    filters = []
+    if status:
+        filters.append(get_list_filter(sessions.c.status, status))
+    if user_id:
+        filters.append(get_list_filter(sessions.c.user_id, user_id))
+    if hardware_platform:
+        filters.append(get_list_filter(sessions.c.hardware_platform, hardware_platform))
+    if collab:
+        filters.append(get_list_filter(sessions.c.collab_id, collab))
+    if date_range_start:
+        if date_range_end:
+            filters.append(sessions.c.timestamp_start.between(date_range_start, date_range_end))
+        else:
+            filters.append(sessions.c.timestamp_start >= date_range_start)
+    elif date_range_end:
+        filters.append(sessions.c.timestamp_start <= date_range_end)
+
+    if fields is None:
+        select = sessions.select()
+    else:
+        select = sessions.select().with_only_columns(*[literal_column(field) for field in fields])
+
+    if filters:
+        query = select.where(*filters).offset(from_index).limit(size)
+    else:
+        query = select.offset(from_index).limit(size)
+
+    results = await database.fetch_all(query)
+
+    if fields:
+        return [dict(result) for result in results]
+    return results
+
+
+async def get_session(session_id: int):
+    query = sessions.select().where(sessions.c.id == session_id)
+    result = await database.fetch_one(query)
+    return result
+
+
+async def create_session(session: dict):
+
+    ins = sessions.insert().values(
+        collab_id=session["collab_id"],
+        user_id=session["user_id"],
+        status="running",
+        hardware_platform=session["hardware_platform"],
+        hardware_config=session["hardware_config"],
+        timestamp_start=session["timestamp_start"],
+        resource_usage=session["resource_usage"],
+    )
+    session_id = await database.execute(ins)
+    query = sessions.select().where(sessions.c.id == session_id)
+    result = await database.fetch_one(query)
+    return result
+
+
+async def update_session(session_id: int, session_patch: dict):
+    session_patch = session_patch.copy()
+    ins = sessions.update().where(sessions.c.id == session_id).values(**session_patch)
+    await database.execute(ins)
+    return await get_session(session_id)
+
+
+async def delete_session(session_id: int):
+    ins = sessions.delete().where(sessions.c.id == session_id)
+    result = await database.execute(ins)
+    return
+
+
 async def get_provider(apikey):
     provider_id_map = {
         2: "uhei",
@@ -699,10 +795,14 @@ async def delete_project(project_id):
     await database.execute(query)
 
 
-async def query_quotas(project_id: UUID = None, from_index: int = 0, size: int = 10):
+async def query_quotas(
+    project_id: UUID = None, platform=None, from_index: int = 0, size: int = 10
+):
     query = quotas.select()
     if project_id:
         query = query.where(quotas.c.project_id == str(project_id))
+    if platform:
+        query = query.where(quotas.c.platform == platform)
     query = query.offset(from_index).limit(size)
     results = await database.fetch_all(query)
     return results
