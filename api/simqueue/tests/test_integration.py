@@ -54,6 +54,130 @@ async def adequate_quota(database_connection):
 
 
 @pytest.mark.asyncio
+async def test_job_lifetime(database_connection, adequate_quota):
+    """
+    In this test, a user submits a job, which is retrieved and handled by
+    the compute system provider.
+    While this is happening the user checks the job status.
+    When the job is finished the user retrieves the result.
+    """
+
+    user_auth = {"Authorization": f"Bearer {AUTH_TOKEN}"}
+    provider_auth = {"x-api-key": API_KEY}
+
+    # user submits a job
+    initial_job_data = {
+        "code": "import pyNN\n",
+        "command": "python run.py --with-figure",
+        "collab": TEST_COLLAB,
+        "input_data": None,
+        "hardware_platform": TEST_PLATFORM,
+        "hardware_config": {"python_version": "3.9"},
+        "tags": None,
+    }
+    async with AsyncClient(app=app, base_url="http://test") as client:
+        response1 = await client.post(
+            "/jobs/",
+            json=initial_job_data,
+            headers=user_auth,
+        )
+        assert response1.status_code == 201
+        queued_job = response1.json()
+        assert queued_job["resource_uri"] == f"/jobs/{queued_job['id']}"
+
+    # user checks the job status
+    async with AsyncClient(app=app, base_url="http://test") as client:
+        response2 = await client.get(
+            queued_job["resource_uri"],
+            headers=user_auth,
+        )
+        assert response2.status_code == 200
+        assert response2.json()["status"] == "submitted"
+
+    # provider picks up the job and sets it to "running"
+    async with AsyncClient(app=app, base_url="http://test") as client:
+        response3 = await client.get(f"/jobs/next/{TEST_PLATFORM}", headers=provider_auth)
+        assert response3.status_code == 200
+        retrieved_job = response3.json()
+        for field in ("code", "collab", "command", "hardware_config", "hardware_platform"):
+            assert retrieved_job[field] == initial_job_data[field]
+        assert retrieved_job["resource_uri"] == queued_job["resource_uri"]
+        assert retrieved_job["timestamp_submission"] is not None
+        assert retrieved_job["user_id"] == TEST_USER
+
+        response4 = await client.put(
+            retrieved_job["resource_uri"],
+            json={"status": "running", "log": "Job started"},
+            headers=provider_auth,
+        )
+        assert response4.status_code == 200
+
+    # user checks the job status again
+    async with AsyncClient(app=app, base_url="http://test") as client:
+        response5 = await client.get(
+            queued_job["resource_uri"],
+            headers=user_auth,
+        )
+        assert response5.status_code == 200
+        assert response5.json()["status"] == "running"
+
+    # provider finishes handling the job and uploads the results
+    async with AsyncClient(app=app, base_url="http://test") as client:
+        job_update_data = {
+            "status": "finished",
+            "log": "Job started\nJob completed successfully",
+            "output_data": [
+                {
+                    "url": "https://example.com/job_id/results.json",
+                    "content_type": "application/json",
+                    "size": 423,
+                    "hash": "abcdef0123456789",
+                }
+            ],
+            "provenance": {"platform_version": "1.2.3"},
+            "resource_usage": {"value": 42, "units": "litres"},
+        }
+        response6 = await client.put(
+            retrieved_job["resource_uri"],
+            json=job_update_data,
+            headers=provider_auth,
+        )
+        assert response6.status_code == 200
+
+    # user retrieves the results
+    async with AsyncClient(app=app, base_url="http://test") as client:
+        response7 = await client.get(
+            queued_job["resource_uri"] + "?with_log=true",
+            headers=user_auth,
+        )
+        assert response7.status_code == 200
+        final_job = response7.json()
+        assert final_job["status"] == "finished"
+        for field in ("code", "collab", "command", "hardware_config", "hardware_platform"):
+            assert final_job[field] == initial_job_data[field]
+        assert final_job["resource_uri"] == queued_job["resource_uri"]
+        assert final_job["timestamp_submission"] is not None
+        assert final_job["timestamp_completion"] is not None
+        assert final_job["user_id"] == TEST_USER
+        for field, expected_value in job_update_data.items():
+            assert final_job[field] == expected_value
+
+    # user checks their quota
+    async with AsyncClient(app=app, base_url="http://test") as client:
+        q = adequate_quota
+        response8 = await client.get(
+            f"/projects/{q['project_id']}/quotas/{q['id']}",
+            headers={"Authorization": f"Bearer {AUTH_TOKEN}"},
+        )
+        assert response8.status_code == 200
+        result = response8.json()
+        assert result["usage"] == 42
+
+    # todo: delete the job, which is not part of the normal lifecycle,
+    #       but it's good to clean up after tests
+
+
+@pytest.mark.asyncio
 async def test_session_lifetime(database_connection, adequate_quota):
     """
     In this test, a compute system provider starts a session
@@ -110,3 +234,6 @@ async def test_session_lifetime(database_connection, adequate_quota):
     assert response.status_code == 200
     result = response.json()
     assert result["usage"] == 25
+
+    # todo: delete the session, which is not part of the normal lifecycle,
+    #       but it's good to clean up after tests

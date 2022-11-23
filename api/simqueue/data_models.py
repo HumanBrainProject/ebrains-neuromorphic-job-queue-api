@@ -94,7 +94,9 @@ class SubmittedJob(BaseModel):
             "code": self.code,
             "command": self.command,
             "collab_id": self.collab,
-            "input_data": [data_item.to_db() for data_item in self.input_data],
+            "input_data": [data_item.to_db() for data_item in self.input_data]
+            if self.input_data is not None
+            else None,
             "hardware_platform": self.hardware_platform,
             "hardware_config": json.dumps(self.hardware_config) if self.hardware_config else None,
             "tags": self.tags,
@@ -178,9 +180,11 @@ class JobPatch(BaseModel):  # todo: rename to JobUpdate
         if self.provenance is not None:
             values["provenance"] = json.dumps(self.provenance)
         if self.resource_usage is not None:
-            values["resource_usage"] = self.resource_usage.values
+            values["resource_usage"] = self.resource_usage.value
         if self.log is not None:
             values["log"] = self.log
+        if self.status in (JobStatus.finished, JobStatus.error):
+            values["timestamp_completion"] = datetime.now(timezone.utc)
         return values
 
 
