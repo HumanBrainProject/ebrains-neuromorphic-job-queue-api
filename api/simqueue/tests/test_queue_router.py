@@ -294,6 +294,8 @@ def test_get_log(mocker):
 def test_post_job(mocker):
     mocker.patch("simqueue.oauth.User", MockUser)
     mocker.patch("simqueue.db.create_job", return_value=mock_accepted_job)
+    mocker.patch("simqueue.db.query_projects", return_value=[{"context": "xyz"}])
+    mocker.patch("simqueue.db.query_quotas", return_value=[{"usage": 0, "limit": 100}])
     response = client.post(
         "/jobs/", json=mock_submitted_job, headers={"Authorization": "Bearer notarealtoken"}
     )

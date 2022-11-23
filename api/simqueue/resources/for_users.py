@@ -232,7 +232,7 @@ async def create_job(
     get_user_task = asyncio.create_task(oauth.User.from_token(token.credentials))
     user = await get_user_task
     if (as_admin and user.is_admin) or user.can_edit(job.collab):
-        proceed = utils.check_quotas(job.collab, job.hardware_platform)
+        proceed = await utils.check_quotas(job.collab, job.hardware_platform)
         if proceed:
             accepted_job = await db.create_job(user_id=user.username, job=job.to_db())
             return Job.from_db(accepted_job)
@@ -610,7 +610,7 @@ async def delete_project(
 
     if project is not None:
         if (as_admin and user.is_admin) or user.can_edit(project["collab"]):
-            if db.query_quotas([project_id]) is not None:
+            if await db.query_quotas([project_id]) is not None:
                 await db.delete_quotas_from_project(str(project_id))
             await db.delete_project(str(project_id))
         else:

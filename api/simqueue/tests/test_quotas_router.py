@@ -445,6 +445,7 @@ def test_editing_forbidden_after_submission(mocker):
 def test_delete_project(mocker):
     mocker.patch("simqueue.oauth.User", MockUser)
     mocker.patch("simqueue.db.get_project", return_value=mock_projects[0])
+    mocker.patch("simqueue.db.query_quotas", return_value=[{"usage": 0, "limit": 100}])
     mocker.patch("simqueue.db.delete_quotas_from_project", return_value=None)
     mocker.patch("simqueue.db.delete_project", return_value=None)
     response = client.delete(
