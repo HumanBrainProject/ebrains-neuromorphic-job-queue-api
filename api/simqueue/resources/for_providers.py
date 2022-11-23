@@ -128,16 +128,14 @@ async def start_session(
 ):
 
     provider_name = await api_key
-    if session["hardware_platform"] != provider_name:
+    if session.hardware_platform != provider_name:
         raise HTTPException(
             status_code=status_codes.HTTP_403_FORBIDDEN,
             detail=f"API key (for {provider_name}) does not match session (for {session['hardware_platform']})",
         )
-    proceed = utils.check_quotas(session.collab, session.hardware_platform)
+    proceed = await utils.check_quotas(session.collab, session.hardware_platform)
     if proceed:
-        new_session = await db.create_session(
-            hardware_platform=provider_name, session=session.to_db()
-        )
+        new_session = await db.create_session(session=session.to_db())
         return Session.from_db(new_session)
     else:
         raise HTTPException(
@@ -173,7 +171,9 @@ async def update_session(
     # todo: update quotas
     if session_update.status in (SessionStatus.finished, SessionStatus.error):
         await utils.update_quotas(
-            old_session.collab, old_session.hardware_platform, session_update.resource_usage
+            old_session["collab_id"],
+            old_session["hardware_platform"],
+            session_update.resource_usage,
         )
 
     result = await db.update_session(session_id, session_update.to_db())

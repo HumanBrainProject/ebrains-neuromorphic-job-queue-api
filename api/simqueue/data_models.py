@@ -187,15 +187,17 @@ class JobPatch(BaseModel):  # todo: rename to JobUpdate
 class SessionCreation(BaseModel):
     collab: str
     user_id: str
+    hardware_platform: str
     hardware_config: dict = None
 
-    def to_db(self, hardware_platform):
+    def to_db(self):
         return {
             "collab_id": self.collab,
-            "hardware_platform": hardware_platform,
+            "hardware_platform": self.hardware_platform,
             "hardware_config": json.dumps(self.hardware_config),
             "user_id": self.user_id,
             "timestamp_start": datetime.now(timezone.utc),
+            "resource_usage": 0.0,
         }
 
 
@@ -236,7 +238,7 @@ class SessionUpdate(BaseModel):
     resource_usage: ResourceUsage
 
     def to_db(self):
-        values = {"status": self.status.value, "resource_usage": self.resource_usage.values}
+        values = {"status": self.status.value, "resource_usage": self.resource_usage.value}
         if self.status in (SessionStatus.finished, SessionStatus.error):
             values["timestamp_end"] = datetime.now(timezone.utc)
         return values

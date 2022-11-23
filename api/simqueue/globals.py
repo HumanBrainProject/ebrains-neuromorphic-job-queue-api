@@ -7,4 +7,5 @@ RESOURCE_USAGE_UNITS = {
     "BrainScaleS-ESS": "hours",
     "Spikey": "hours",
     "TestPlatform": "bushels",
+    "nmpi": "litres",
 }

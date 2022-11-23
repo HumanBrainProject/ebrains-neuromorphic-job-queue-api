@@ -805,7 +805,7 @@ async def query_quotas(
         query = query.where(quotas.c.platform == platform)
     query = query.offset(from_index).limit(size)
     results = await database.fetch_all(query)
-    return results
+    return [dict(result) for result in results]
 
 
 async def delete_quotas_from_project(project_id):
