@@ -7,6 +7,7 @@ from urllib.parse import urlparse
 from pydantic import BaseModel, AnyUrl, constr
 
 from .globals import RESOURCE_USAGE_UNITS
+from .data_repositories import repository_lookup_by_host, repository_lookup_by_name
 
 
 class JobStatus(str, Enum):
@@ -76,15 +77,6 @@ class DataItem(BaseModel):
         }
 
 
-repository_lookup = {
-    "drive.ebrains.eu": "EBRAINS Drive",
-    "data-proxy.ebrains.eu": "EBRAINS Bucket",
-    "brainscales-r.kip.uni-heidelberg.de:7443": "BrainScaleS temporary storage",
-    "spinnaker.cs.man.ac.uk": "SpiNNaker Manchester temporary storage",
-    "example.com": "Fake repository used for testing",
-}
-
-
 class DataSet(BaseModel):
     repository: str
     files: List[DataItem]
@@ -93,13 +85,24 @@ class DataSet(BaseModel):
     def from_db(cls, data_items):
         urls = [item["url"] for item in data_items]
         url_parts = urlparse(urls[0])
-        repository = repository_lookup[url_parts.hostname]
+        repository_obj = repository_lookup_by_host[url_parts.hostname]
         return cls(
-            repository=repository, files=[DataItem.from_db(data_item) for data_item in data_items]
+            repository=repository_obj.name,
+            files=[DataItem.from_db(data_item) for data_item in data_items],
         )
 
     def to_db(self):
         return [item.to_db() for item in self.files]
+
+    def move_to(self, new_repository, user):
+        if new_repository not in repository_lookup_by_name:
+            raise ValueError(f"Repository '{new_repository}' does not exist or is not supported")
+        repository_obj = repository_lookup_by_name[new_repository]
+        self.repository = new_repository
+        for file in self.files:
+            file.url = repository_obj.copy(file, user)
+            # todo: delete from old repository if possible
+        return self
 
 
 class ResourceUsage(BaseModel):

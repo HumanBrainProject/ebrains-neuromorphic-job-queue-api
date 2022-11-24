@@ -24,6 +24,7 @@ from ..data_models import (
     Session,
     SessionStatus,
 )
+from ..data_repositories import SourceFileDoesNotExist, SourceFileIsTooBig
 from .. import db, oauth, utils
 
 logger = logging.getLogger("simqueue")
@@ -257,7 +258,7 @@ async def get_output_data(
 
 @router.put("/jobs/{job_id}/output_data", response_model=DataSet)
 async def update_output_data(
-    dataset: DataSet,
+    updated_dataset: DataSet,
     job_id: int = Path(
         ..., title="Job ID", description="ID of the job whose output data are to be retrieved"
     ),
@@ -266,7 +267,41 @@ async def update_output_data(
     ),
     token: HTTPAuthorizationCredentials = Depends(auth),
 ):
-    pass
+    get_user_task = asyncio.create_task(oauth.User.from_token(token.credentials))
+    get_job_task = asyncio.create_task(db.get_job(job_id))
+    user = await get_user_task
+    job = await get_job_task
+    if job is None:
+        raise HTTPException(
+            status_code=status_codes.HTTP_404_NOT_FOUND,
+            detail=f"Either there is no job with id {job_id}, or you do not have access to it",
+        )
+    if (
+        (as_admin and user.is_admin)
+        or job["user_id"] == user.username
+        or await user.can_edit(job["collab"])
+    ):
+        original_dataset = DataSet.from_db(job["output_data"])
+        if updated_dataset.repository == original_dataset.repository:
+            raise HTTPException(
+                status_code=status_codes.HTTP_304_NOT_MODIFIED, detail="No change of repository"
+            )
+
+        try:
+            return original_dataset.move_to(updated_dataset.repository, user)
+        except ValueError as err:  # requested repository does not exist
+            raise HTTPException(
+                status_code=status_codes.HTTP_422_UNPROCESSABLE_ENTITY, detail=str(err)
+            )
+        except SourceFileIsTooBig as err:
+            raise HTTPException(status_code=status_codes.HTTP_406_NOT_ACCEPTABLE, detail=str(err))
+        except SourceFileDoesNotExist as err:
+            raise HTTPException(status_code=status_codes.HTTP_410_GONE, detail=str(err))
+
+    raise HTTPException(
+        status_code=status_codes.HTTP_404_NOT_FOUND,
+        detail=f"Either there is no job with id {job_id}, or you do not have access to it",
+    )
 
 
 @router.post("/jobs/", response_model=AcceptedJob, status_code=status_codes.HTTP_201_CREATED)
