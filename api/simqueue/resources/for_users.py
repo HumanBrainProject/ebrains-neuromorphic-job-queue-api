@@ -176,7 +176,7 @@ async def get_log(
     if (
         (as_admin and user.is_admin)
         or job["user_id"] == user.username
-        or await user.can_view(job["collab"])
+        or await user.can_view(job["collab_id"])
     ):
         log = await db.get_log(job_id)
         return log["content"]
@@ -212,7 +212,7 @@ async def get_comments(
     if (
         (as_admin and user.is_admin)
         or job["user_id"] == user.username
-        or await user.can_view(job["collab"])
+        or await user.can_view(job["collab_id"])
     ):
         return await db.get_comments(job_id)
 
@@ -244,7 +244,7 @@ async def get_output_data(
     if (
         (as_admin and user.is_admin)
         or job["user_id"] == user.username
-        or await user.can_view(job["collab"])
+        or await user.can_view(job["collab_id"])
     ):
         job = await db.get_job(job_id)
         # todo: implement a get_data_items() function in `db` module
@@ -279,7 +279,7 @@ async def update_output_data(
     if (
         (as_admin and user.is_admin)
         or job["user_id"] == user.username
-        or await user.can_edit(job["collab"])
+        or await user.can_edit(job["collab_id"])
     ):
         original_dataset = DataSet.from_db(job["output_data"])
         if updated_dataset.repository == original_dataset.repository:
@@ -473,7 +473,7 @@ async def get_tags(
     if (
         (as_admin and user.is_admin)
         or job["user_id"] == user.username
-        or await user.can_view(job["collab"])
+        or await user.can_view(job["collab_id"])
     ):
         return job["tags"]
 
@@ -508,7 +508,7 @@ async def add_tags(
     if (
         (as_admin and user.is_admin)
         or job["user_id"] == user.username
-        or user.can_edit(job["collab"])
+        or user.can_edit(job["collab_id"])
     ):
         if tags is not None:
             return await db.add_tags_to_job(job_id, tags)
@@ -545,7 +545,7 @@ async def remove_tags(
     if (
         (as_admin and user.is_admin)
         or job["user_id"] == user.username
-        or user.can_edit(job["collab"])
+        or user.can_edit(job["collab_id"])
     ):
         return await db.remove_tags(job_id, tags)
 

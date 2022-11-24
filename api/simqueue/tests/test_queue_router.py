@@ -349,7 +349,7 @@ def test_add_comment(mocker):
     mocker.patch("simqueue.db.add_comment", return_value=mock_comments[0])
     response = client.post(
         "/jobs/999999/comments/",
-        json={"comment": mock_comments[0]["content"]},
+        json={"content": mock_comments[0]["content"]},
         headers={"Authorization": "Bearer notarealtoken"},
     )
     assert response.status_code == 201
@@ -368,7 +368,7 @@ def test_update_comment(mocker):
     mocker.patch("simqueue.db.update_comment", return_value=mock_comments[0])
     response = client.put(
         "/jobs/999999/comments/42",
-        json={"comment": "this is an updated comment"},
+        json={"content": "this is an updated comment"},
         headers={"Authorization": "Bearer notarealtoken"},
     )
     assert response.status_code == 200
