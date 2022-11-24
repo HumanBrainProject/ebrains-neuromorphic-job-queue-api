@@ -66,7 +66,7 @@ class SpiNNakerTemporaryStorage:
 
 class BrainScaleSTemporaryStorage:
     name = "BrainScaleS temporary storage"
-    host = "brainscales-r.kip.uni-heidelberg.de:7443"
+    host = "brainscales-r.kip.uni-heidelberg.de"
     modes = ("read",)
 
     @classmethod
