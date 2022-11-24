@@ -57,11 +57,23 @@ class SpiNNakerTemporaryStorage:
     host = "spinnaker.cs.man.ac.uk"
     modes = ("read",)
 
+    @classmethod
+    def get_path(cls, url):
+        # example url: http://spinnaker.cs.man.ac.uk/services/rest/output/neuromorphic-testing-private/142973/reports.zip
+        prefix = "http://spinnaker.cs.man.ac.uk/services/rest/output/"
+        return url.lstrip(prefix)
+
 
 class BrainScaleSTemporaryStorage:
     name = "BrainScaleS temporary storage"
     host = "brainscales-r.kip.uni-heidelberg.de:7443"
     modes = ("read",)
+
+    @classmethod
+    def get_path(cls, url):
+        # example url: https://brainscales-r.kip.uni-heidelberg.de:7443/nmpi/job_165928/slurm-4215780.out
+        prefix = "https://brainscales-r.kip.uni-heidelberg.de:7443/nmpi/"
+        return url.lstrip(prefix)
 
 
 class EBRAINSDrive:

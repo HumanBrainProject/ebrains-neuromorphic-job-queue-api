@@ -58,13 +58,15 @@ class TimeSeries(BaseModel):
 
 class DataItem(BaseModel):
     url: AnyUrl
-    path: str
+    path: str = None
     content_type: str = None
     size: int = None  # in bytes
     hash: str = None
 
     @classmethod
-    def from_db(cls, data_item):
+    def from_db(cls, data_item, repository_obj=None):
+        if (data_item["path"] is None) and repository_obj:
+            data_item["path"] = repository_obj.get_path(data_item["url"])
         return cls(**data_item)
 
     def to_db(self):
@@ -88,7 +90,7 @@ class DataSet(BaseModel):
         repository_obj = repository_lookup_by_host[url_parts.hostname]
         return cls(
             repository=repository_obj.name,
-            files=[DataItem.from_db(data_item) for data_item in data_items],
+            files=[DataItem.from_db(data_item, repository_obj) for data_item in data_items],
         )
 
     def to_db(self):
