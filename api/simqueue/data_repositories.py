@@ -1,5 +1,6 @@
 import os
 from urllib.request import urlretrieve, urlcleanup, HTTPError
+from urllib.parse import urlparse
 from ebrains_drive.client import DriveApiClient, BucketApiClient
 from ebrains_drive.exceptions import DoesNotExist
 
@@ -164,6 +165,11 @@ class TestRepository:
 
     def copy(file, user):
         return "https://example.com/" + file.path
+
+    @classmethod
+    def get_path(cls, url):
+        parts = urlparse(url)
+        return parts.path
 
 
 available_repositories = (
