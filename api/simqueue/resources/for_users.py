@@ -357,7 +357,7 @@ async def add_comment(
     if (
         (as_admin and user.is_admin)
         or job["user_id"] == user.username
-        or await user.can_view(job["collab"])
+        or await user.can_view(job["collab_id"])
     ):
         return await db.add_comment(
             job_id=job_id, user_id=user.username, new_comment=comment.content
