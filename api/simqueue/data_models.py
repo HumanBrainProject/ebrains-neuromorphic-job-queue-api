@@ -48,7 +48,7 @@ Tag = constr(min_length=2, max_length=100, strip_whitespace=True)
 
 
 class CommentBody(BaseModel):
-    comment: constr(min_length=1, max_length=10000)
+    content: constr(min_length=1, max_length=10000)
 
 
 class TimeSeries(BaseModel):

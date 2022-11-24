@@ -360,7 +360,7 @@ async def add_comment(
         or await user.can_view(job["collab"])
     ):
         return await db.add_comment(
-            job_id=job_id, user_id=user.username, new_comment=comment.comment
+            job_id=job_id, user_id=user.username, new_comment=comment.content
         )
 
     raise HTTPException(
@@ -403,7 +403,7 @@ async def update_comment(
     if (as_admin and user.is_admin) or (
         old_comment["user_id"] == user.username and await user.can_view(job["collab_id"])
     ):
-        return await db.update_comment(comment_id, comment.comment)
+        return await db.update_comment(comment_id, comment.content)
 
     raise HTTPException(
         status_code=status_codes.HTTP_404_NOT_FOUND,
