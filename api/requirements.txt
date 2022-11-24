@@ -9,3 +9,4 @@ pytz
 requests
 numpy
 python-slugify
+ebrains-drive
