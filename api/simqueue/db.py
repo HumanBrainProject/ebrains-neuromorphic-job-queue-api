@@ -68,6 +68,7 @@ data_items = Table(
     metadata,
     Column("id", Integer, primary_key=True, index=True),
     Column("url", String(1000)),
+    Column("path", String(1000)),
     Column("hash", String(256)),
     Column("size", Integer),
     Column("content_type", String(100)),

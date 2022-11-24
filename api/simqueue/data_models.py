@@ -3,9 +3,11 @@ from enum import Enum
 from typing import List, Dict
 from uuid import UUID
 import json
+from urllib.parse import urlparse
 from pydantic import BaseModel, AnyUrl, constr
 
 from .globals import RESOURCE_USAGE_UNITS
+from .data_repositories import repository_lookup_by_host, repository_lookup_by_name
 
 
 class JobStatus(str, Enum):
@@ -56,17 +58,51 @@ class TimeSeries(BaseModel):
 
 class DataItem(BaseModel):
     url: AnyUrl
+    path: str
     content_type: str = None
     size: int = None  # in bytes
     hash: str = None
 
+    @classmethod
+    def from_db(cls, data_item):
+        return cls(**data_item)
+
     def to_db(self):
         return {
             "url": str(self.url),
+            "path": self.path,
             "hash": self.hash,
             "size": self.size,
             "content_type": self.content_type,
         }
+
+
+class DataSet(BaseModel):
+    repository: str
+    files: List[DataItem]
+
+    @classmethod
+    def from_db(cls, data_items):
+        urls = [item["url"] for item in data_items]
+        url_parts = urlparse(urls[0])
+        repository_obj = repository_lookup_by_host[url_parts.hostname]
+        return cls(
+            repository=repository_obj.name,
+            files=[DataItem.from_db(data_item) for data_item in data_items],
+        )
+
+    def to_db(self):
+        return [item.to_db() for item in self.files]
+
+    def move_to(self, new_repository, user):
+        if new_repository not in repository_lookup_by_name:
+            raise ValueError(f"Repository '{new_repository}' does not exist or is not supported")
+        repository_obj = repository_lookup_by_name[new_repository]
+        self.repository = new_repository
+        for file in self.files:
+            file.url = repository_obj.copy(file, user)
+            # todo: delete from old repository if possible
+        return self
 
 
 class ResourceUsage(BaseModel):
@@ -112,7 +148,7 @@ class AcceptedJob(SubmittedJob):
 
 
 class CompletedJob(AcceptedJob):
-    output_data: List[DataItem] = None
+    output_data: DataSet = None
     provenance: dict = None
     timestamp_completion: datetime = None
     resource_usage: ResourceUsage = None
@@ -156,7 +192,7 @@ class Job(CompletedJob):
         if job["timestamp_completion"]:
             data["timestamp_completion"] = job["timestamp_completion"]
         if job["output_data"]:
-            data["output_data"] = job["output_data"]
+            data["output_data"] = DataSet.from_db(job["output_data"])
         if job.get("comments", None):
             data["comments"] = [Comment.from_db(comment) for comment in job["comments"]]
         if job.get("log", None):
@@ -166,7 +202,7 @@ class Job(CompletedJob):
 
 class JobPatch(BaseModel):  # todo: rename to JobUpdate
     status: JobStatus
-    output_data: List[DataItem] = None
+    output_data: DataSet = None
     provenance: dict = None
     resource_usage: ResourceUsage = None
     log: str = None
@@ -176,7 +212,7 @@ class JobPatch(BaseModel):  # todo: rename to JobUpdate
             "status": self.status.value,
         }
         if self.output_data is not None:
-            values["output_data"] = [item.to_db() for item in self.output_data]
+            values["output_data"] = self.output_data.to_db()
         if self.provenance is not None:
             values["provenance"] = json.dumps(self.provenance)
         if self.resource_usage is not None:

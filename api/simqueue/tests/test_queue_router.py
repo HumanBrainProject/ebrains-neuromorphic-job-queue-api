@@ -35,8 +35,8 @@ mock_jobs = [
         "hardware_config": None,
         "provenance": None,
         "id": 999999,
-        "input_data": [],
-        "output_data": [],
+        "input_data": None,
+        "output_data": None,
         "tags": ["tag 1"],
         "resource_usage": 0.0,
         "status": "submitted",
@@ -56,8 +56,8 @@ mock_accepted_job = {
     "status": "submitted",
     "timestamp_submission": "2022-10-11T02:44:23.746231+00:00",
     "timestamp_completion": "2022-10-11T02:46:23.746231+00:00",
-    "input_data": [],
-    "output_data": [],
+    "input_data": None,
+    "output_data": None,
     "tags": ["tag 1"],
     "resource_usage": 0.0,
     "status": "finished",
@@ -66,7 +66,7 @@ mock_submitted_job = {
     "code": "test post",
     "command": "",
     "collab": "neuromorphic-testing-private",
-    "input_data": [],
+    "input_data": None,
     "hardware_platform": "BrainScaleS",
     "hardware_config": None,
 }
@@ -91,14 +91,18 @@ mock_log = {
 }
 mock_job_patch = {
     "status": "submitted",
-    "output_data": [
-        {
-            "url": "https://BrainScaleS-r.kip.uni-heidelberg.de:7443/nmpi/job_165928/run.py",
-            "content_type": "application/x-python",
-            "size": 1,
-            "hash": "string",
-        }
-    ],
+    "output_data": {
+        "repository": "data repository name/identifier",
+        "files": [
+            {
+                "url": "https://BrainScaleS-r.kip.uni-heidelberg.de:7443/nmpi/job_165928/run.py",
+                "path": "job_165928/run.py",
+                "content_type": "application/x-python",
+                "size": 1,
+                "hash": "string",
+            }
+        ],
+    },
     # "log": None,
     # "resource_usage": None,
     # "provenance": None,
@@ -324,7 +328,9 @@ def test_put_job(mocker):
     )
     assert response.status_code == 200
     assert simqueue.db.get_job.await_args.args == (999999,)
-    assert simqueue.db.update_job.await_args.args == (999999, mock_job_patch)
+    expected = mock_job_patch.copy()
+    expected["output_data"] = mock_job_patch["output_data"]["files"]
+    assert simqueue.db.update_job.await_args.args == (999999, expected)
 
 
 def test_delete_job(mocker):

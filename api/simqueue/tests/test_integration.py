@@ -5,11 +5,13 @@ Integration tests: exercise the full system from API requests to database access
 import os
 from time import sleep
 from datetime import datetime, date, timezone
+from tempfile import NamedTemporaryFile
 from fastapi.testclient import TestClient
 from httpx import AsyncClient
 import pytest
 import pytest_asyncio
 
+from simqueue.data_repositories import EBRAINSDrive
 from simqueue.main import app
 from simqueue import db
 
@@ -18,6 +20,7 @@ API_KEY = os.environ["NMPI_TESTING_APIKEY"]
 AUTH_TOKEN = os.environ["EBRAINS_AUTH_TOKEN"]
 TEST_COLLAB = "neuromorphic-testing-private"
 TEST_USER = "adavisontesting"
+TEST_REPOSITORY = "Fake repository used for testing"
 TEST_PLATFORM = "nmpi"
 
 
@@ -53,14 +56,26 @@ async def adequate_quota(database_connection):
     await db.delete_project(project_id)  # this also deletes the quota
 
 
+def fake_download(url):
+    if "example.com" in url:
+        fp = NamedTemporaryFile(delete=False, mode="w")
+        fp.write('{"foo": "bar"}\n')
+        fp.close()
+        return fp.name
+    else:
+        raise Exception(f"Unexpected url {url}")
+
+
 @pytest.mark.asyncio
-async def test_job_lifetime(database_connection, adequate_quota):
+async def test_job_lifetime(database_connection, adequate_quota, mocker):
     """
     In this test, a user submits a job, which is retrieved and handled by
     the compute system provider.
     While this is happening the user checks the job status.
     When the job is finished the user retrieves the result.
     """
+
+    mocker.patch("simqueue.data_repositories.download_file_to_tmp_dir", fake_download)
 
     user_auth = {"Authorization": f"Bearer {AUTH_TOKEN}"}
     provider_auth = {"x-api-key": API_KEY}
@@ -123,17 +138,22 @@ async def test_job_lifetime(database_connection, adequate_quota):
 
     # provider finishes handling the job and uploads the results
     async with AsyncClient(app=app, base_url="http://test") as client:
+        job_id = retrieved_job["id"]
         job_update_data = {
             "status": "finished",
             "log": "Job started\nJob completed successfully",
-            "output_data": [
-                {
-                    "url": "https://example.com/job_id/results.json",
-                    "content_type": "application/json",
-                    "size": 423,
-                    "hash": "abcdef0123456789",
-                }
-            ],
+            "output_data": {
+                "repository": TEST_REPOSITORY,
+                "files": [
+                    {
+                        "url": f"https://example.com/testing/job_{job_id}/results.json",
+                        "path": f"{TEST_COLLAB}/testing/job_{job_id}/results.json",
+                        "content_type": "application/json",
+                        "size": 423,
+                        "hash": "abcdef0123456789",
+                    }
+                ],
+            },
             "provenance": {"platform_version": "1.2.3"},
             "resource_usage": {"value": 42, "units": "litres"},
         }
@@ -162,17 +182,33 @@ async def test_job_lifetime(database_connection, adequate_quota):
         for field, expected_value in job_update_data.items():
             assert final_job[field] == expected_value
 
+    # user copies data to the Drive
+    async with AsyncClient(app=app, base_url="http://test") as client:
+        response8 = await client.put(
+            final_job["resource_uri"] + "/output_data",
+            json={
+                "repository": "EBRAINS Drive",
+                "files": [],  # doesn't matter what goes in 'files'
+            },
+            headers=user_auth,
+        )
+        assert response8.status_code == 200
+        for item in response8.json()["files"]:
+            assert item["url"].startswith("https://drive.ebrains.eu")
+
     # user checks their quota
     async with AsyncClient(app=app, base_url="http://test") as client:
         q = adequate_quota
-        response8 = await client.get(
+        response9 = await client.get(
             f"/projects/{q['project_id']}/quotas/{q['id']}",
             headers={"Authorization": f"Bearer {AUTH_TOKEN}"},
         )
-        assert response8.status_code == 200
-        result = response8.json()
+        assert response9.status_code == 200
+        result = response9.json()
         assert result["usage"] == 42
 
+    # cleanup
+    EBRAINSDrive._delete(TEST_COLLAB, f"/testing/job_{job_id}", AUTH_TOKEN)
     # todo: delete the job, which is not part of the normal lifecycle,
     #       but it's good to clean up after tests
 

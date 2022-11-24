@@ -223,12 +223,14 @@ async def test_update_job(database_connection, submitted_job):
         "output_data": [
             dict(
                 url="http://example.com/datafile1.txt",
+                path="datafile1.txt",
                 content_type="text/plain",
                 size=42,
                 hash="fedcba9876543210",
             ),
             dict(
                 url="http://example.com/datafile2.json",
+                path="datafile2.json",
                 content_type="application/json",
                 size=1234,
                 hash="edcba9876543210f",
