@@ -136,7 +136,7 @@ async def get_job(
     if (
         (as_admin and user.is_admin)
         or job["user_id"] == user.username
-        or await user.can_view(job["collab"])
+        or await user.can_view(job["collab_id"])
     ):
         if with_comments:
             job["comments"] = await db.get_comments(job_id)
