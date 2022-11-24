@@ -52,9 +52,22 @@ def download_file_to_tmp_dir(url):
     return local_path
 
 
+class SpiNNakerTemporaryStorage:
+    name = "SpiNNaker Manchester temporary storage"
+    host = "spinnaker.cs.man.ac.uk"
+    modes = ("read",)
+
+
+class BrainScaleSTemporaryStorage:
+    name = "BrainScaleS temporary storage"
+    host = "brainscales-r.kip.uni-heidelberg.de:7443"
+    modes = ("read",)
+
+
 class EBRAINSDrive:
     name = "EBRAINS Drive"
     host = "drive.ebrains.eu"
+    modes = ("read", "write")
     size_limit = 1.0  # GiB
 
     @classmethod
@@ -101,6 +114,7 @@ class EBRAINSDrive:
 class EBRAINSBucket:
     name = "EBRAINS Bucket"
     host = "data-proxy.ebrains.eu"
+    modes = ("read", "write")
 
     def copy(file, user):
 
@@ -134,12 +148,15 @@ class EBRAINSBucket:
 class TestRepository:
     name = "Fake repository used for testing"
     host = "example.com"
+    modes = ("read", "write")
 
     def copy(file, user):
         return "https://example.com/" + file.path
 
 
 available_repositories = (
+    SpiNNakerTemporaryStorage,
+    BrainScaleSTemporaryStorage,
     EBRAINSDrive,
     EBRAINSBucket,
     TestRepository,
