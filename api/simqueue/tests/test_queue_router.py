@@ -252,7 +252,8 @@ def test_remove_tags(mocker):
     mocker.patch("simqueue.oauth.User", MockUser)
     mocker.patch("simqueue.db.get_job", return_value=mock_jobs[0])
     mocker.patch("simqueue.db.remove_tags", return_value=[])
-    response = client.delete(
+    response = client.request(
+        "DELETE",
         "/jobs/999999/tags/",
         json=mock_jobs[0]["tags"],
         headers={"Authorization": "Bearer notarealtoken"},
