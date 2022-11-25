@@ -6,7 +6,10 @@ from simqueue.oauth import User, get_collab_info
 
 @pytest.fixture(scope="module")
 def token():
-    return os.environ["EBRAINS_AUTH_TOKEN"]
+    try:
+        return os.environ["EBRAINS_AUTH_TOKEN"]
+    except KeyError:
+        pytest.skip("Environment variable EBRAINS_AUTH_TOKEN is not set")
 
 
 @pytest.fixture

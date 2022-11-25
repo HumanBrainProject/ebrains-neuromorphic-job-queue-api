@@ -20,7 +20,10 @@ TEST_USER = "adavisontesting"
 
 @pytest_asyncio.fixture()
 async def database_connection():
-    await db.database.connect()
+    try:
+        await db.database.connect()
+    except Exception:
+        pytest.skip("Database not available. Are the necessary environment variables set?")
     yield
     await db.database.disconnect()
 

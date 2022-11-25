@@ -16,12 +16,28 @@ from simqueue.main import app
 from simqueue import db
 
 
-API_KEY = os.environ["NMPI_TESTING_APIKEY"]
-AUTH_TOKEN = os.environ["EBRAINS_AUTH_TOKEN"]
 TEST_COLLAB = "neuromorphic-testing-private"
 TEST_USER = "adavisontesting"
 TEST_REPOSITORY = "Fake repository used for testing"
 TEST_PLATFORM = "nmpi"
+
+
+@pytest.fixture(scope="module")
+def user_auth():
+    token = os.environ.get("EBRAINS_AUTH_TOKEN", None)
+    if token:
+        return {"Authorization": f"Bearer {token}"}
+    else:
+        pytest.skip("Environment variable NMPI_TESTING_APIKEY not set")
+
+
+@pytest.fixture(scope="module")
+def provider_auth():
+    api_key = os.environ.get("NMPI_TESTING_APIKEY", None)
+    if api_key:
+        return {"x-api-key": api_key}
+    else:
+        pytest.skip("Environment variable NMPI_TESTING_APIKEY not set")
 
 
 @pytest_asyncio.fixture()
@@ -67,7 +83,7 @@ def fake_download(url):
 
 
 @pytest.mark.asyncio
-async def test_job_lifetime(database_connection, adequate_quota, mocker):
+async def test_job_lifetime(database_connection, adequate_quota, mocker, provider_auth, user_auth):
     """
     In this test, a user submits a job, which is retrieved and handled by
     the compute system provider.
@@ -76,9 +92,6 @@ async def test_job_lifetime(database_connection, adequate_quota, mocker):
     """
 
     mocker.patch("simqueue.data_repositories.download_file_to_tmp_dir", fake_download)
-
-    user_auth = {"Authorization": f"Bearer {AUTH_TOKEN}"}
-    provider_auth = {"x-api-key": API_KEY}
 
     # user submits a job
     initial_job_data = {
@@ -201,20 +214,21 @@ async def test_job_lifetime(database_connection, adequate_quota, mocker):
         q = adequate_quota
         response9 = await client.get(
             f"/projects/{q['project_id']}/quotas/{q['id']}",
-            headers={"Authorization": f"Bearer {AUTH_TOKEN}"},
+            headers=user_auth,
         )
         assert response9.status_code == 200
         result = response9.json()
         assert result["usage"] == 42
 
     # cleanup
-    EBRAINSDrive._delete(TEST_COLLAB, f"/testing/job_{job_id}", AUTH_TOKEN)
+    auth_token = user_auth["Authorization"].split(" ")[1]
+    EBRAINSDrive._delete(TEST_COLLAB, f"/testing/job_{job_id}", auth_token)
     # todo: delete the job, which is not part of the normal lifecycle,
     #       but it's good to clean up after tests
 
 
 @pytest.mark.asyncio
-async def test_session_lifetime(database_connection, adequate_quota):
+async def test_session_lifetime(database_connection, adequate_quota, provider_auth, user_auth):
     """
     In this test, a compute system provider starts a session
     then closes it some time later, and reports on resource usage.
@@ -230,7 +244,7 @@ async def test_session_lifetime(database_connection, adequate_quota):
                 "hardware_platform": TEST_PLATFORM,
                 "hardware_config": {"python_version": "3.9"},
             },
-            headers={"x-api-key": API_KEY},
+            headers=provider_auth,
         )
     assert response1.status_code == 201
     result = response1.json()
@@ -253,7 +267,7 @@ async def test_session_lifetime(database_connection, adequate_quota):
         response = await client.put(
             session_uri,
             json={"status": "finished", "resource_usage": {"value": 25, "units": "litres"}},
-            headers={"x-api-key": API_KEY},
+            headers=provider_auth,
         )
     assert response.status_code == 200
     result = response.json()
@@ -265,7 +279,7 @@ async def test_session_lifetime(database_connection, adequate_quota):
         q = adequate_quota
         response = await client.get(
             f"/projects/{q['project_id']}/quotas/{q['id']}",
-            headers={"Authorization": f"Bearer {AUTH_TOKEN}"},
+            headers=user_auth,
         )
     assert response.status_code == 200
     result = response.json()
