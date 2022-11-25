@@ -1,7 +1,6 @@
 from datetime import date
 from copy import deepcopy
-import json
-from uuid import uuid4, UUID
+from uuid import UUID
 
 from fastapi.testclient import TestClient
 from fastapi.encoders import jsonable_encoder

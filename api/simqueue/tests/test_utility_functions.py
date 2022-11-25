@@ -1,5 +1,4 @@
 import pytest
-import pytest_asyncio
 
 from .. import utils
 from ..data_models import ResourceUsage

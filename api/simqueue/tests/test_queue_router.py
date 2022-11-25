@@ -2,7 +2,7 @@ from datetime import date
 from fastapi.testclient import TestClient
 from simqueue.main import app
 from simqueue.oauth import User
-from simqueue.data_models import JobStatus, SubmittedJob
+from simqueue.data_models import JobStatus
 import simqueue.db
 
 client = TestClient(app)
@@ -53,7 +53,6 @@ mock_accepted_job = {
     "hardware_config": None,
     "provenance": None,
     "id": 999999,
-    "status": "submitted",
     "timestamp_submission": "2022-10-11T02:44:23.746231+00:00",
     "timestamp_completion": "2022-10-11T02:46:23.746231+00:00",
     "input_data": None,

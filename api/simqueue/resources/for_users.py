@@ -94,7 +94,7 @@ async def query_jobs(
     elif not user.is_admin:
         raise HTTPException(
             status_code=status_codes.HTTP_403_FORBIDDEN,
-            detail=f"The token provided does not give admin privileges",
+            detail="The token provided does not give admin privileges",
         )
     jobs = await db.query_jobs(
         status=status,
@@ -323,11 +323,11 @@ async def create_job(
         else:
             raise HTTPException(
                 status_code=status_codes.HTTP_403_FORBIDDEN,
-                detail=f"You do not have sufficient compute quota to submit this job",
+                detail="You do not have sufficient compute quota to submit this job",
             )
     raise HTTPException(
         status_code=status_codes.HTTP_404_NOT_FOUND,
-        detail=f"You do not have access to this collab or there is no collab with this id",
+        detail="You do not have access to this collab or there is no collab with this id",
     )
 
 
@@ -625,7 +625,7 @@ async def query_projects(
     elif not user.is_admin:
         raise HTTPException(
             status_code=status_codes.HTTP_403_FORBIDDEN,
-            detail=f"The token provided does not give admin privileges",
+            detail="The token provided does not give admin privileges",
         )
     projects = await db.query_projects(
         status=status, collab=collab, owner=owner, from_index=from_index, size=size
@@ -663,7 +663,7 @@ async def get_project(
         else:
             raise HTTPException(
                 status_code=status_codes.HTTP_403_FORBIDDEN,
-                detail=f" You do not have access to this project",
+                detail="You do not have access to this project",
             )
     else:
         raise HTTPException(
@@ -700,7 +700,7 @@ async def delete_project(
         else:
             raise HTTPException(
                 status_code=status_codes.HTTP_403_FORBIDDEN,
-                detail=f"You are not allowed to delete this project",
+                detail="You are not allowed to delete this project",
             )
     else:
         raise HTTPException(
@@ -739,13 +739,13 @@ async def delete_quota(
     if not user.is_admin:
         raise HTTPException(
             status_code=status_codes.HTTP_403_FORBIDDEN,
-            detail=f"You are not allowed to delete quotas from this project",
+            detail="You are not allowed to delete quotas from this project",
         )
 
     if await db.get_quota(quota_id) is None:
         raise HTTPException(
             status_code=status_codes.HTTP_404_NOT_FOUND,
-            detail=f"There is no quota with this id",
+            detail="There is no quota with this id",
         )
 
     await db.delete_quota(project_id, id)
@@ -768,7 +768,7 @@ async def create_project(
     if not ((as_admin and user.is_admin) or user.can_edit(project["collab"])):
         raise HTTPException(
             status_code=status_codes.HTTP_403_FORBIDDEN,
-            detail=f"You do not have permisson to create projects in this Collab",
+            detail="You do not have permisson to create projects in this Collab",
         )
     await db.create_project(project)
 
@@ -803,7 +803,7 @@ async def query_quotas(
     if not ((as_admin and user.is_admin) or await user.can_view(project["collab"])):
         raise HTTPException(
             status_code=status_codes.HTTP_403_FORBIDDEN,
-            detail=f"You cannot view quotas for this project",
+            detail="You cannot view quotas for this project",
         )
     quotas = await db.query_quotas(project_id=project_id, size=size, from_index=from_index)
     return [Quota.from_db(quota) for quota in quotas]
@@ -843,14 +843,14 @@ async def get_quota(
     if not ((as_admin and user.is_admin) or await user.can_view(project["collab"])):
         raise HTTPException(
             status_code=status_codes.HTTP_403_FORBIDDEN,
-            detail=f" You do not have access to this project",
+            detail="You do not have access to this project",
         )
 
     quota = await db.get_quota(quota_id)
     if quota is None:
         raise HTTPException(
             status_code=status_codes.HTTP_404_NOT_FOUND,
-            detail=f"There is no quota with this id",
+            detail="There is no quota with this id",
         )
     return Quota.from_db(quota)
 
@@ -861,7 +861,8 @@ async def query_collabs(
     user_id: List[str] = Query(None, description="user id"),
     size: int = Query(10, description="Number of collabs to return"),
     from_index: int = Query(0, description="Index of the first collab to return"),
-    # todo: consider adding an option to filter by projects that have active quotas (accepted, not expired, and remaining quota > 0)
+    # todo: consider adding an option to filter by projects that have active quotas
+    # (accepted, not expired, and remaining quota > 0)
     as_admin: bool = Query(
         False, description="Run this query with admin privileges, if you have them"
     ),
@@ -893,13 +894,13 @@ async def query_collabs(
     elif not user.is_admin:
         raise HTTPException(
             status_code=status_codes.HTTP_403_FORBIDDEN,
-            detail=f"The token provided does not give admin privileges",
+            detail="The token provided does not give admin privileges",
         )
     else:
         # todo: if possible, obtain list of collab memberships for the provided user
         raise HTTPException(
             status_code=status_codes.HTTP_501_NOT_IMPLEMENTED,
-            detail=f"This option has not been implemented yet",
+            detail="This option has not been implemented yet",
         )
     projects = await db.query_projects(
         status=status, collab=collabs, owner=None, from_index=from_index, size=size
@@ -927,13 +928,13 @@ async def update_project(
 
     if original_project is None:
         raise HTTPException(
-            status_code=status_codes.HTTP_404_NOT_FOUND, detail=f"Project Not Found"
+            status_code=status_codes.HTTP_404_NOT_FOUND, detail="Project Not Found"
         )
 
     if not ((as_admin and user.is_admin) or user.can_edit(original_project.collab)):
         raise HTTPException(
             status_code=status_codes.HTTP_403_FORBIDDEN,
-            detail=f"You do not have permission to modify this project.",
+            detail="You do not have permission to modify this project.",
         )
 
     new_status = project_update.status
@@ -942,13 +943,11 @@ async def update_project(
         if not (as_admin and user.is_admin):
             raise HTTPException(
                 status_code=status_codes.HTTP_403_FORBIDDEN,
-                detail=f"You do not have permission to change the status of this project.",
+                detail="You do not have permission to change the status of this project.",
             )
         current_status = original_project.status
         if new_status == current_status:
-            raise HTTPException(
-                status_code=status_codes.HTTP_204_NO_CONTENT, detail=f"Same Status"
-            )
+            raise HTTPException(status_code=status_codes.HTTP_204_NO_CONTENT, detail="Same Status")
         else:
             await db.update_project(project_id, project_update.to_db())
             status_code = status_codes.HTTP_201_CREATED
@@ -957,13 +956,13 @@ async def update_project(
     else:
         if original_project is None:
             raise HTTPException(
-                status_code=status_codes.HTTP_404_NOT_FOUND, detail=f"Project Not Found"
+                status_code=status_codes.HTTP_404_NOT_FOUND, detail="Project Not Found"
             )
 
         if original_project.submission_date is not None:
             raise HTTPException(
                 status_code=status_codes.HTTP_403_FORBIDDEN,
-                detail=f"Can't edit a submitted form.",
+                detail="Can't edit a submitted form.",
             )
 
         await db.update_project(project_id, project_update.to_db())
@@ -1022,7 +1021,7 @@ async def query_sessions(
     elif not user.is_admin:
         raise HTTPException(
             status_code=status_codes.HTTP_403_FORBIDDEN,
-            detail=f"The token provided does not give admin privileges",
+            detail="The token provided does not give admin privileges",
         )
     sessions = await db.query_sessions(
         status=status,

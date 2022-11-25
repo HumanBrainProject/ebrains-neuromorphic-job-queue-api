@@ -1,7 +1,6 @@
-from datetime import datetime, date, timedelta, timezone
+from datetime import datetime, date, timedelta
 import pytz
 from typing import List
-import json
 import uuid
 from slugify import slugify
 
@@ -27,13 +26,7 @@ from sqlalchemy.dialects.postgresql import UUID
 
 from .data_models import (
     ProjectStatus,
-    CommentBody,
-    SubmittedJob,
-    AcceptedJob,
-    CompletedJob,
-    JobPatch,
     Tag,
-    ProjectSubmission,
 )
 from . import settings
 

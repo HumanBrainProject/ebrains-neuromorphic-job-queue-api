@@ -1,7 +1,6 @@
 import os
 import pytest
-from fastapi import HTTPException
-from simqueue.oauth import User, get_collab_info
+from simqueue.oauth import User
 
 
 @pytest.fixture(scope="module")

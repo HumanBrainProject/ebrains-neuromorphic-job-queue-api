@@ -3,10 +3,8 @@ Integration tests: exercise the full system from API requests to database access
 """
 
 import os
-from time import sleep
-from datetime import datetime, date, timezone
+from datetime import date
 from tempfile import NamedTemporaryFile
-from fastapi.testclient import TestClient
 from httpx import AsyncClient
 import pytest
 import pytest_asyncio

@@ -8,7 +8,7 @@ import pytest
 import pytest_asyncio
 
 from .. import db
-from ..data_models import ProjectStatus, SubmittedJob, JobPatch, ResourceUsage, DataItem
+from ..data_models import ProjectStatus
 
 
 TEST_COLLAB = "neuromorphic-testing-private"

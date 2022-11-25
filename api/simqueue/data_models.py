@@ -183,22 +183,14 @@ class Job(CompletedJob):
                 "units": RESOURCE_USAGE_UNITS.get(job["hardware_platform"], "hours"),
             }
         if job["id"]:
-            data["id"] = job["id"]
             data["resource_uri"] = f"/jobs/{job['id']}"
-        if job["user_id"]:
-            data["user_id"] = job["user_id"]
-        if job["status"]:
-            data["status"] = job["status"]
-        if job["timestamp_submission"]:
-            data["timestamp_submission"] = job["timestamp_submission"]
-        if job["timestamp_completion"]:
-            data["timestamp_completion"] = job["timestamp_completion"]
+        for field in ("user_id", "status", "timestamp_submission", "timestamp_completion", "log"):
+            if job.get(field, None):
+                data[field] = job[field]
         if job["output_data"]:
             data["output_data"] = DataSet.from_db(job["output_data"])
         if job.get("comments", None):
             data["comments"] = [Comment.from_db(comment) for comment in job["comments"]]
-        if job.get("log", None):
-            data["log"] = job["log"]
         return cls(**data)
 
 

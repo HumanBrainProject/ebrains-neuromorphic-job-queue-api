@@ -70,6 +70,6 @@ async def create_quota(
     if not user.is_admin:
         raise HTTPException(
             status_code=status_codes.HTTP_404_NOT_FOUND,
-            detail=f"Only admins can add quotas",
+            detail="Only admins can add quotas",
         )
     await db.create_quota(str(project_id), quota.to_db())

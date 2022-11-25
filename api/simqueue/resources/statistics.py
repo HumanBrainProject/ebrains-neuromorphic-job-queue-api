@@ -4,10 +4,10 @@ from collections import defaultdict
 import logging
 import numpy as np
 
-from fastapi import APIRouter, Depends, Query, Path
+from fastapi import APIRouter, Query
 
 from ..data_models import DateRangeCount, TimeSeries, QueueStatus, Histogram
-from .. import db, oauth
+from .. import db
 from ..globals import STANDARD_QUEUES
 
 
@@ -86,7 +86,7 @@ async def cumulative_job_count(start: date = None, end: date = None, interval: i
 
 
 @router.get("/statistics/cumulative-user-count", response_model=TimeSeries)
-async def users_count(
+async def cumulative_user_count(
     hardware_platform: List[str] = Query(
         None, description="hardware platform (e.g. SpiNNaker, BrainScales)"
     )
@@ -113,13 +113,12 @@ async def users_count(
 
 
 @router.get("/statistics/active-user-count", response_model=List[DateRangeCount])
-async def users_count(start: date = None, end: date = None, interval: int = 7):
+async def active_user_count(start: date = None, end: date = None, interval: int = 7):
     """
     Number of platform users who have submitted at least one job in the last 90 days
     """
     start, end = normalize_start_end(start, end)
     results = []
-    counts = defaultdict(lambda: 0)
     date_list = list(db.daterange(start, end, interval))
     date_list.append(end)
     for start_date, end_date in zip(date_list[:-1], date_list[1:]):
@@ -131,10 +130,8 @@ async def users_count(start: date = None, end: date = None, interval: int = 7):
                 date_range_start=start_active_period,
                 date_range_end=end_date,
             )
-        # note that the "total" value may be less than the sum of the per-platform values, since some users use multiple platforms
-        # active_users["total"] = Job.objects.filter(timestamp_completion__range=(start, end)).values("user_id").distinct().count()
-        # new_obj = DateRangeCount(startdate, enddate, active_users)
-        # results.append(new_obj)
+        # note that the "total" value may be less than the sum of the per-platform values,
+        # since some users use multiple platforms
         results.append(
             {
                 "start": start_date,  # timedelta doesn't like numpy int64

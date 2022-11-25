@@ -1,7 +1,6 @@
 from datetime import datetime, date
 from fastapi.testclient import TestClient
 from simqueue.main import app
-import simqueue.db
 
 
 client = TestClient(app)

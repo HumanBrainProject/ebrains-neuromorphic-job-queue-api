@@ -1,8 +1,6 @@
 """
 docstring goes here
-"""
 
-"""
    Copyright 2022 CNRS
 
    Licensed under the Apache License, Version 2.0 (the "License");
@@ -19,8 +17,8 @@ docstring goes here
 """
 
 from datetime import datetime
-from fastapi import APIRouter, Depends
-from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
+from fastapi import APIRouter
+from fastapi.security import HTTPBearer
 from starlette.requests import Request
 from ..oauth import oauth
 from ..settings import BASE_URL

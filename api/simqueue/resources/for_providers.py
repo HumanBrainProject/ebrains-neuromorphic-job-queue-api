@@ -1,9 +1,8 @@
 from uuid import UUID
-from typing import List
 import logging
 import asyncio
 
-from fastapi import APIRouter, Depends, Query, Path, HTTPException, status as status_codes
+from fastapi import APIRouter, Depends, Path, HTTPException, status as status_codes
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from fastapi.security.api_key import APIKey
 
@@ -16,7 +15,6 @@ from ..data_models import (
     SessionUpdate,
     SessionCreation,
     SessionStatus,
-    ProjectStatus,
 )
 from .. import db, oauth, utils
 
@@ -100,7 +98,7 @@ async def update_quota(
     if not user.is_admin:
         raise HTTPException(
             status_code=status_codes.HTTP_404_NOT_FOUND,
-            detail=f"Only admins can update quotas",
+            detail="Only admins can update quotas",
         )
 
     quota_old = await db.get_quota(quota_id)
@@ -108,14 +106,14 @@ async def update_quota(
     if quota_old is None:
         raise HTTPException(
             status_code=status_codes.HTTP_404_NOT_FOUND,
-            detail=f"There is no Quota with this id",
+            detail="There is no Quota with this id",
         )
 
     # perhaps should compare `quota` and `quota_old`.
     # If there are no changes we could avoid doing the database update.
     if quota_update is None:
         raise HTTPException(
-            status_code=status_codes.HTTP_404_NOT_FOUND, detail=f"No content to change"
+            status_code=status_codes.HTTP_404_NOT_FOUND, detail="No content to change"
         )
 
     await db.update_quota(quota_id, quota_update.to_db())
@@ -140,7 +138,7 @@ async def start_session(
     else:
         raise HTTPException(
             status_code=status_codes.HTTP_403_FORBIDDEN,
-            detail=f"The user does not have sufficient compute quota to start this session",
+            detail="The user does not have sufficient compute quota to start this session",
         )
 
 
