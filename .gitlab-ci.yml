@@ -82,8 +82,7 @@ test_job_queue_v3_staging:
     variables:
       - $CI_COMMIT_BRANCH == "api-v3"
   script:
-    - python3 -m pip install -r api/requirements.txt
-    - python3 -m pip install -r api/requirements_testing.txt
+    - python3 -m pip install -r api/requirements.txt.lock
     - cd api
     - python3 -m pytest --cov=simqueue --cov-report=term
   tags:
