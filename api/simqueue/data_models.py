@@ -290,7 +290,7 @@ class QuotaSubmission(BaseModel):
     units: str  # core-hours, wafer-hours, GB
 
     def to_db(self):
-        return {"limit": self.limit, "platform": self.platform, "units": self.units}
+        return {"limit": self.limit, "platform": self.platform, "units": self.units, "usage": 0.0}
 
 
 class QuotaUpdate(BaseModel):

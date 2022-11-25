@@ -521,7 +521,6 @@ def test_create_quota(mocker):
     new_quota = {
         "platform": "TestPlatform",
         "limit": 5000,
-        "usage": 42,
         "units": "bushels",
     }
     mocker.patch("simqueue.oauth.User", MockUserAdmin)
@@ -534,9 +533,11 @@ def test_create_quota(mocker):
     )
     assert response.status_code == 201
     assert simqueue.db.get_project.await_args.args == (UUID(project_id),)
+    expected = new_quota.copy()
+    expected["usage"] = 0.0
     assert simqueue.db.create_quota.await_args.args == (
         project_id,
-        QuotaSubmission(**new_quota),
+        expected,
     )
 
 
