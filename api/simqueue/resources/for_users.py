@@ -564,7 +564,7 @@ async def query_tags(
     Return a list of tags used by existing jobs
     """
     user = await oauth.User.from_token(token.credentials)
-    if collab:
+    if collab and collab != "null":
         if not (user.is_admin or user.can_view(collab)):
             raise HTTPException(
                 status_code=status_codes.HTTP_404_FORBIDDEN,
