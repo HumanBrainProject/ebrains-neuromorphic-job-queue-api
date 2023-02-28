@@ -178,8 +178,7 @@ async def get_log(
         or job["user_id"] == user.username
         or await user.can_view(job["collab_id"])
     ):
-        log = await db.get_log(job_id)
-        return log["content"]
+        return await db.get_log(job_id)
 
     raise HTTPException(
         status_code=status_codes.HTTP_404_NOT_FOUND,
