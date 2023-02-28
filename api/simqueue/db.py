@@ -593,7 +593,7 @@ async def query_tags(collab=None):
         tag_ids = [row["tag_id"] for row in await database.fetch_all(tag_id_query)]
         query = query.where(taglist.c.id.in_(tag_ids))
     results = await database.fetch_all(query)
-    return sorted(result["name"] for result in results)
+    return sorted(result["name"] for result in results if len(result["name"]) > 1)
 
 
 async def get_tags(job_id: int):
