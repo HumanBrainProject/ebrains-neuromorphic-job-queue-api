@@ -1,6 +1,7 @@
 import logging
 import requests
 from authlib.integrations.starlette_client import OAuth
+import httpx
 from fastapi.security.api_key import APIKeyHeader
 from fastapi import Security, HTTPException, status as status_codes
 
@@ -41,9 +42,18 @@ class User:
 
     @classmethod
     async def from_token(cls, token):
-        user_info = await oauth.ebrains.userinfo(
-            token={"access_token": token, "token_type": "bearer"}
-        )
+        try:
+            user_info = await oauth.ebrains.userinfo(
+                token={"access_token": token, "token_type": "bearer"}
+            )
+        except httpx.HTTPStatusError as err:
+            if "401" in str(err):
+                raise HTTPException(
+                    status_code=status_codes.HTTP_401_UNAUTHORIZED,
+                    detail=token,
+                )
+            else:
+                raise
         user_info["token"] = {"access_token": token, "token_type": "bearer"}
         return cls(**user_info)
 
