@@ -287,7 +287,9 @@ async def update_output_data(
             )
 
         try:
-            return original_dataset.move_to(updated_dataset.repository, user)
+            return original_dataset.move_to(
+                updated_dataset.repository, user, collab=job["collab_id"]
+            )
         except ValueError as err:  # requested repository does not exist
             raise HTTPException(
                 status_code=status_codes.HTTP_422_UNPROCESSABLE_ENTITY, detail=str(err)
@@ -563,7 +565,7 @@ async def query_tags(
     Return a list of tags used by existing jobs
     """
     user = await oauth.User.from_token(token.credentials)
-    if collab and collab != "null":
+    if collab and collab not in ("null", "undefined"):
         if not (user.is_admin or user.can_view(collab)):
             raise HTTPException(
                 status_code=status_codes.HTTP_404_FORBIDDEN,

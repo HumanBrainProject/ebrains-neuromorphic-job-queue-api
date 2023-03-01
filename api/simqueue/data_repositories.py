@@ -84,14 +84,18 @@ class EBRAINSDrive:
     size_limit = 1.0  # GiB
 
     @classmethod
-    def copy(cls, file, user):
+    def copy(cls, file, user, collab=None):
 
         access_token = user.token["access_token"]
         ebrains_drive_client = DriveApiClient(token=access_token)
 
-        path_parts = file.path.split("/")
-        collab_name = path_parts[0]
-        remote_path = "/".join([""] + path_parts[1:])
+        if collab:
+            collab_name = collab
+            remote_path = file.path
+        else:
+            path_parts = file.path.split("/")
+            collab_name = path_parts[0]
+            remote_path = "/".join([""] + path_parts[1:])
 
         target_repository = ebrains_drive_client.repos.get_repo_by_url(collab_name)
 
@@ -129,14 +133,18 @@ class EBRAINSBucket:
     host = "data-proxy.ebrains.eu"
     modes = ("read", "write")
 
-    def copy(file, user):
+    def copy(file, user, collab=None):
 
         access_token = user.token["access_token"]
         ebrains_bucket_client = BucketApiClient(token=access_token)
 
-        path_parts = file.path.split("/")
-        collab_name = path_parts[0]
-        remote_path = "/".join([""] + path_parts[1:])
+        if collab:
+            collab_name = collab
+            remote_path = file.path
+        else:
+            path_parts = file.path.split("/")
+            collab_name = path_parts[0]
+            remote_path = "/".join([""] + path_parts[1:])
 
         target_bucket = ebrains_bucket_client.buckets.get_bucket(collab_name)
         all_files = {dpf.name for dpf in target_bucket.ls()}
@@ -163,7 +171,7 @@ class TestRepository:
     host = "example.com"
     modes = ("read", "write")
 
-    def copy(file, user):
+    def copy(file, user, collab=None):
         return "https://example.com/" + file.path
 
     @classmethod

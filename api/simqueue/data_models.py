@@ -96,13 +96,13 @@ class DataSet(BaseModel):
     def to_db(self):
         return [item.to_db() for item in self.files]
 
-    def move_to(self, new_repository, user):
+    def move_to(self, new_repository, user, collab=None):
         if new_repository not in repository_lookup_by_name:
             raise ValueError(f"Repository '{new_repository}' does not exist or is not supported")
         repository_obj = repository_lookup_by_name[new_repository]
         self.repository = new_repository
         for file in self.files:
-            file.url = repository_obj.copy(file, user)
+            file.url = repository_obj.copy(file, user, collab=collab)
             # todo: delete from old repository if possible
         return self
 
