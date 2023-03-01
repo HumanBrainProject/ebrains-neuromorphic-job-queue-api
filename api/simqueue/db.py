@@ -662,14 +662,10 @@ async def add_tags_to_taglist(tag_names: List[str]):
 
 
 async def get_comments(job_id: int):
-    """Return all the comments for a given job, from newest to oldest"""
+    """Return all the comments for a given job, from oldest to newest"""
     query = comments.select().where(comments.c.job_id == job_id)
     results = await database.fetch_all(query)
-    return sorted(
-        results,
-        key=lambda comment: comment["created_time"],
-        reverse=True,
-    )
+    return sorted(results, key=lambda comment: comment["created_time"], reverse=False)
 
 
 async def get_comment(comment_id: int):
