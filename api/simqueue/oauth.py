@@ -48,9 +48,13 @@ class User:
             )
         except httpx.HTTPStatusError as err:
             if "401" in str(err):
+                if token:
+                    message = "Token may have expired"
+                else:
+                    message = "No token provided"
                 raise HTTPException(
                     status_code=status_codes.HTTP_401_UNAUTHORIZED,
-                    detail=token,
+                    detail=message,
                 )
             else:
                 raise
