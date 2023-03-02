@@ -315,7 +315,7 @@ async def query_jobs(
     else:
         query = select.offset(from_index).limit(size)
 
-    results = await database.fetch_all(query)
+    results = await database.fetch_all(query.order_by(desc("id")))
 
     if fields:
         return [dict(result) for result in results]
