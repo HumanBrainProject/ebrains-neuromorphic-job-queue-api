@@ -7,5 +7,13 @@ RESOURCE_USAGE_UNITS = {
     "BrainScaleS-ESS": "hours",
     "Spikey": "hours",
     "TestPlatform": "bushels",
-    "nmpi": "litres",
+    "Test": "litres",
+}
+
+PROVIDER_QUEUE_NAMES = {
+    "uhei": ["BrainScaleS", "BrainScaleS-2", "BrainScaleS-ESS", "Spikey"],
+    "uman": ["SpiNNaker"],
+    "nmpi": ["TestPlatform", "Test"],
+    "benchmark_runner": [],
+    "uhei-jenkins-test-user": ["BrainScaleS", "BrainScaleS-ESS", "BrainScaleS-2", "Spikey"],
 }

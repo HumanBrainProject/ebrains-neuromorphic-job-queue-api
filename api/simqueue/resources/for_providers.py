@@ -16,11 +16,12 @@ from ..data_models import (
     SessionCreation,
     SessionStatus,
 )
+from ..globals import PROVIDER_QUEUE_NAMES
 from .. import db, oauth, utils
 
 logger = logging.getLogger("simqueue")
 
-auth = HTTPBearer()
+auth = HTTPBearer(auto_error=False)
 router = APIRouter()
 
 
@@ -33,8 +34,8 @@ async def get_next_job(
     ),
     api_key: APIKey = Depends(oauth.get_provider),
 ):
-    # todo: check api_key matches hardware_platform
     provider_name = await api_key
+    utils.check_provider_matches_platform(provider_name, hardware_platform)
     job = await db.get_next_job(hardware_platform)
     if job:
         # raise NotImplementedError("todo: take the job off the queue")
@@ -63,7 +64,7 @@ async def update_job(
             status_code=status_codes.HTTP_404_NOT_FOUND,
             detail=f"Either there is no job with id {job_id}, or you do not have access to it",
         )
-    # todo: check provider_name matches old_job.platform
+    utils.check_provider_matches_platform(provider_name, old_job["hardware_platform"])
     result = await db.update_job(job_id, job_update.to_db())
     if job_update.resource_usage:
         await utils.update_quotas(
@@ -83,11 +84,9 @@ async def update_quota(
     ),
     # from header
     token: HTTPAuthorizationCredentials = Depends(auth),
+    api_key: APIKey = Depends(oauth.get_provider_optional),
 ):
-
-    get_user_task = asyncio.create_task(oauth.User.from_token(token.credentials))
     get_project_task = asyncio.create_task(db.get_project(project_id))
-    user = await get_user_task
     project = await get_project_task
     if project is None:
         raise HTTPException(
@@ -95,10 +94,20 @@ async def update_quota(
             detail=f"Either there is no project with id {project_id}, or you do not have access to it",
         )
 
-    if not user.is_admin:
+    if token:
+        get_user_task = asyncio.create_task(oauth.User.from_token(token.credentials))
+        user = await get_user_task
+        if not user.is_admin:
+            raise HTTPException(
+                status_code=status_codes.HTTP_404_NOT_FOUND,
+                detail="Only admins can update quotas",
+            )
+    elif api_key:
+        pass
+    else:
         raise HTTPException(
-            status_code=status_codes.HTTP_404_NOT_FOUND,
-            detail="Only admins can update quotas",
+            status_code=status_codes.HTTP_401_UNAUTHORIZED,
+            detail="You must provide either a token or an API key",
         )
 
     quota_old = await db.get_quota(quota_id)
@@ -108,6 +117,10 @@ async def update_quota(
             status_code=status_codes.HTTP_404_NOT_FOUND,
             detail="There is no Quota with this id",
         )
+
+    if api_key:
+        provider_name = await api_key
+        utils.check_provider_matches_platform(provider_name, quota_old["platform"])
 
     # perhaps should compare `quota` and `quota_old`.
     # If there are no changes we could avoid doing the database update.
@@ -124,13 +137,8 @@ async def start_session(
     session: SessionCreation,
     api_key: APIKey = Depends(oauth.get_provider),
 ):
-
     provider_name = await api_key
-    if session.hardware_platform != provider_name:
-        raise HTTPException(
-            status_code=status_codes.HTTP_403_FORBIDDEN,
-            detail=f"API key (for {provider_name}) does not match session (for {session['hardware_platform']})",
-        )
+    utils.check_provider_matches_platform(provider_name, session.hardware_platform)
     proceed = await utils.check_quotas(session.collab, session.hardware_platform)
     if proceed:
         new_session = await db.create_session(session=session.to_db())
@@ -161,11 +169,7 @@ async def update_session(
             status_code=status_codes.HTTP_404_NOT_FOUND,
             detail=f"Either there is no session with id {session_id}, or you do not have access to it",
         )
-    if provider_name != old_session["hardware_platform"]:
-        raise HTTPException(
-            status_code=status_codes.HTTP_403_FORBIDDEN,
-            detail=f"API key (for {provider_name}) does not match session (for {old_session['hardware_platform']})",
-        )
+    utils.check_provider_matches_platform(provider_name, old_session["hardware_platform"])
     # todo: update quotas
     if session_update.status in (SessionStatus.finished, SessionStatus.error):
         await utils.update_quotas(

@@ -17,7 +17,7 @@ from simqueue import db
 TEST_COLLAB = "neuromorphic-testing-private"
 TEST_USER = "adavisontesting"
 TEST_REPOSITORY = "Fake repository used for testing"
-TEST_PLATFORM = "nmpi"
+TEST_PLATFORM = "Test"
 
 
 @pytest.fixture(scope="module")
@@ -249,7 +249,7 @@ async def test_session_lifetime(database_connection, adequate_quota, provider_au
     expected = {
         "collab": "neuromorphic-testing-private",
         "hardware_config": {"python_version": "3.9"},
-        "hardware_platform": "nmpi",
+        "hardware_platform": "Test",
         "resource_usage": {"units": "litres", "value": 0.0},
         "status": "running",
         "timestamp_end": None,

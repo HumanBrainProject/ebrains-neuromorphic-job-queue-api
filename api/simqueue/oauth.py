@@ -108,10 +108,11 @@ class User:
         return sorted(collabs)
 
 
-api_key_header = APIKeyHeader(name="x-api-key", auto_error=False)
+api_key_header_optional = APIKeyHeader(name="x-api-key", auto_error=False)
+api_key_header = APIKeyHeader(name="x-api-key", auto_error=True)
 
 
-async def get_provider(api_key: str = Security(api_key_header)):
+async def _get_provider(api_key):
     provider_name = db.get_provider(api_key)
     if provider_name:
         return provider_name
@@ -119,3 +120,14 @@ async def get_provider(api_key: str = Security(api_key_header)):
         raise HTTPException(
             status_code=status_codes.HTTP_403_FORBIDDEN, detail="Could not validate API key"
         )
+
+
+async def get_provider(api_key: str = Security(api_key_header)):
+    return await _get_provider(api_key)
+
+
+async def get_provider_optional(api_key: str = Security(api_key_header_optional)):
+    if api_key:
+        return await _get_provider(api_key)
+    else:
+        return None

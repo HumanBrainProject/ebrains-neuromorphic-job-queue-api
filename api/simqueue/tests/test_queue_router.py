@@ -107,7 +107,7 @@ mock_job_patch = {
 
 def test_query_jobs_no_auth():
     response = client.get("/jobs/")
-    assert response.status_code == 403
+    assert response.status_code == 401
 
 
 def test_query_jobs(mocker):
@@ -214,7 +214,7 @@ def test_get_job_with_log_and_comments(mocker):
 
 def test_get_next_job(mocker):
     mocker.patch("simqueue.db.get_next_job", return_value=mock_jobs[0])
-    mocker.patch("simqueue.db.get_provider", return_value="SpiNNaker")
+    mocker.patch("simqueue.db.get_provider", return_value="uman")
     response = client.get("/jobs/next/SpiNNaker", headers={"x-api-key": "valid-api-key"})
     assert response.status_code == 200
     assert simqueue.db.get_next_job.await_args.args == ("SpiNNaker",)
@@ -319,9 +319,9 @@ def test_put_job(mocker):
     mocker.patch("simqueue.oauth.User", MockUser)
     mocker.patch("simqueue.db.get_job", return_value=mock_jobs[0])
     mocker.patch("simqueue.db.update_job", return_value=mock_jobs[0])
-    mocker.patch("simqueue.db.get_provider", return_value="SpiNNaker")
+    mocker.patch("simqueue.db.get_provider", return_value="uman")
     response = client.put(
-        "/jobs/999999", json=mock_job_patch, headers={"Authorization": "Bearer notarealtoken"}
+        "/jobs/999999", json=mock_job_patch, headers={"x-api-key": "notarealapikey"}
     )
     assert response.status_code == 200
     assert simqueue.db.get_job.await_args.args == (999999,)

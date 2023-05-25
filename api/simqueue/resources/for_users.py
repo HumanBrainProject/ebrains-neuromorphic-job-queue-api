@@ -6,6 +6,7 @@ import asyncio
 
 from fastapi import APIRouter, Depends, Query, Path, HTTPException, status as status_codes
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
+from fastapi.security.api_key import APIKey
 
 from ..data_models import (
     SubmittedJob,
@@ -26,9 +27,11 @@ from ..data_models import (
 )
 from ..data_repositories import SourceFileDoesNotExist, SourceFileIsTooBig
 from .. import db, oauth, utils
+from ..globals import PROVIDER_QUEUE_NAMES
 
 logger = logging.getLogger("simqueue")
 
+auth_optional = HTTPBearer(auto_error=False)
 auth = HTTPBearer()
 router = APIRouter()
 
@@ -59,7 +62,8 @@ async def query_jobs(
         False, description="Run this query with admin privileges, if you have them"
     ),
     # from header
-    token: HTTPAuthorizationCredentials = Depends(auth),
+    token: HTTPAuthorizationCredentials = Depends(auth_optional),
+    api_key: APIKey = Depends(oauth.get_provider_optional),
 ):
     """
     Return a list of jobs
@@ -69,32 +73,45 @@ async def query_jobs(
     #   - if user_id is provided, it must contain _only_ the user's id
     #   - if collab is not provided, only the user's own jobs are returned
     #   - if collab is provided the user must be a member of all collabs in the list
-    user = await oauth.User.from_token(token.credentials)
-    if not as_admin:
-        if user_id:
-            if len(user_id) > 1:
-                raise HTTPException(
-                    status_code=status_codes.HTTP_400_BAD_REQUEST,
-                    detail="Only admins can directly query other users' jobs, try querying by collab",
-                )
-            elif user_id[0] != user.username:  # todo: also support user_id_v1
-                raise HTTPException(
-                    status_code=status_codes.HTTP_403_FORBIDDEN,
-                    detail=f"User id provided ({user_id[0]}) does not match authentication token ({user.username})",
-                )
-        if collab:
-            for cid in collab:
-                if not await user.can_view(cid):
+    if token:
+        user = await oauth.User.from_token(token.credentials)
+        if not as_admin:
+            if user_id:
+                if len(user_id) > 1:
+                    raise HTTPException(
+                        status_code=status_codes.HTTP_400_BAD_REQUEST,
+                        detail="Only admins can directly query other users' jobs, try querying by collab",
+                    )
+                elif user_id[0] != user.username:  # todo: also support user_id_v1
                     raise HTTPException(
                         status_code=status_codes.HTTP_403_FORBIDDEN,
-                        detail="You do not have permission to view collab {cid}",
+                        detail=f"User id provided ({user_id[0]}) does not match authentication token ({user.username})",
                     )
+            if collab:
+                for cid in collab:
+                    if not await user.can_view(cid):
+                        raise HTTPException(
+                            status_code=status_codes.HTTP_403_FORBIDDEN,
+                            detail="You do not have permission to view collab {cid}",
+                        )
+            else:
+                user_id = [user.username]
+        elif not user.is_admin:
+            raise HTTPException(
+                status_code=status_codes.HTTP_403_FORBIDDEN,
+                detail="The token provided does not give admin privileges",
+            )
+    elif api_key:
+        provider_name = await api_key
+        if hardware_platform:
+            for hp in hardware_platform:
+                utils.check_provider_matches_platform(provider_name, hp)
         else:
-            user_id = [user.username]
-    elif not user.is_admin:
+            hardware_platform = PROVIDER_QUEUE_NAMES[provider_name]
+    else:
         raise HTTPException(
-            status_code=status_codes.HTTP_403_FORBIDDEN,
-            detail="The token provided does not give admin privileges",
+            status_code=status_codes.HTTP_401_UNAUTHORIZED,
+            detail="You must provide either a token or an API key",
         )
     jobs = await db.query_jobs(
         status=status,
@@ -119,25 +136,44 @@ async def get_job(
     as_admin: bool = Query(
         False, description="Run this query with admin privileges, if you have them"
     ),
-    token: HTTPAuthorizationCredentials = Depends(auth),
+    token: HTTPAuthorizationCredentials = Depends(auth_optional),
+    api_key: APIKey = Depends(oauth.get_provider_optional),
 ):
     """
     Return an individual job
     """
-    get_user_task = asyncio.create_task(oauth.User.from_token(token.credentials))
+    if token:
+        get_user_task = asyncio.create_task(oauth.User.from_token(token.credentials))
+        user = await get_user_task
+    elif api_key:
+        provider_name = await api_key
+    else:
+        raise HTTPException(
+            status_code=status_codes.HTTP_401_UNAUTHORIZED,
+            detail="You must provide either a token or an API key",
+        )
+
     get_job_task = asyncio.create_task(db.get_job(job_id))
-    user = await get_user_task
     job = await get_job_task
     if job is None:
         raise HTTPException(
             status_code=status_codes.HTTP_404_NOT_FOUND,
             detail=f"Either there is no job with id {job_id}, or you do not have access to it",
         )
-    if (
-        (as_admin and user.is_admin)
-        or job["user_id"] == user.username
-        or await user.can_view(job["collab_id"])
-    ):
+
+    if token:
+        access_allowed = (
+            (as_admin and user.is_admin)
+            or job["user_id"] == user.username
+            or await user.can_view(job["collab_id"])
+        )
+    else:
+        assert api_key is not None
+        access_allowed = utils.check_provider_matches_platform(
+            provider_name, job["hardware_platform"]
+        )
+
+    if access_allowed:
         if with_comments:
             job["comments"] = await db.get_comments(job_id)
         if with_log:
@@ -313,7 +349,6 @@ async def create_job(
     ),
     token: HTTPAuthorizationCredentials = Depends(auth),
 ):
-
     get_user_task = asyncio.create_task(oauth.User.from_token(token.credentials))
     user = await get_user_task
     if (as_admin and user.is_admin) or user.can_edit(job.collab):
@@ -761,7 +796,6 @@ async def create_project(
     # from header
     token: HTTPAuthorizationCredentials = Depends(auth),
 ):
-
     get_user_task = asyncio.create_task(oauth.User.from_token(token.credentials))
     user = await get_user_task
 

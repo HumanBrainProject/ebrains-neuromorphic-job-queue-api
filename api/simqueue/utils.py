@@ -2,7 +2,7 @@ from fastapi import HTTPException, status as status_codes
 
 from .data_models import ProjectStatus, ResourceUsage
 from . import db
-from .globals import RESOURCE_USAGE_UNITS
+from .globals import RESOURCE_USAGE_UNITS, PROVIDER_QUEUE_NAMES
 
 
 async def get_available_quotas(collab, hardware_platform):
@@ -46,3 +46,13 @@ async def update_quotas(collab: str, hardware_platform: str, resource_usage: Res
                 usage -= remaining
     for quota in quotas_to_update:
         await db.update_quota(quota["id"], quota)
+
+
+def check_provider_matches_platform(provider_name: str, hardware_platform: str) -> bool:
+    allowed_platforms = PROVIDER_QUEUE_NAMES[provider_name]
+    if hardware_platform not in allowed_platforms:
+        raise HTTPException(
+            status_code=status_codes.HTTP_403_FORBIDDEN,
+            detail=f"The provided API key does not allow access to jobs, sessions, or quotas for {hardware_platform}",
+        )
+    return True
