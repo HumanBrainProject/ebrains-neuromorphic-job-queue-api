@@ -8,13 +8,28 @@ from .db import database
 
 
 description = """
-This is a work in progress.
+The EBRAINS neuromorphic computing job queue allows users to run simulations/emulations
+on the [SpiNNaker](https://www.ebrains.eu/tools/spinnaker)
+and [BrainScaleS](https://www.ebrains.eu/tools/brainscales) systems
+by submitting a [PyNN](http://neuralensemble.org/docs/PyNN/) script
+and associated job configuration information to a central queue.
 
-Many of the endpoints work, but not all features have been implemented.
+The system consists of:
+- a web API (this service) [[Source code](https://github.com/HumanBrainProject/hbp_neuromorphic_platform)]
+- a GUI client (the [Job Manager app](https://job-manager.hbpneuromorphic.eu/))
+- a [Python/command-line client](https://github.com/HumanBrainProject/hbp-neuromorphic-client).
+
+Users can submit scripts stored locally on their own machine, in a Git repository,
+in the [EBRAINS Knowledge Graph](https://search.kg.ebrains.eu/?category=Model),
+or in [EBRAINS Collaboratory](https://wiki.ebrains.eu/) storage (Drive/Bucket).
+Users can track the progress of their job, and view and/or download the results,
+log files, and provenance information.
 
 To use the API, <a href="/login" target="_blank">login here</a>, click on "Authorize" then
-copy the <i>access_token</i> into the "HTTPBearer" box
-(this process will be streamlined for the beta release).
+copy the *access_token* into the "HTTPBearer" box
+(this process will be streamlined for the final release).
+
+For more information, visit the [EBRAINS website](https://www.ebrains.eu/modelling-simulation-and-computing/simulation/neuromorphic-computing-3).
 """
 
 app = FastAPI(
