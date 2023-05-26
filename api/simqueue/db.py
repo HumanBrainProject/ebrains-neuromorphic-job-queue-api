@@ -97,7 +97,19 @@ sessions = Table(
     Column("timestamp_end", DateTime(timezone=True)),
     Column("resource_usage", Float),
 )
-
+"""
+CREATE TABLE simqueue_session(
+    id integer PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
+    collab_id character varying(40) NOT NULL,
+    user_id character varying(36) NOT NULL,
+    status character varying(15) NOT NULL,
+    hardware_platform character varying(20) NOT NULL,
+    hardware_config text,
+    timestamp_start timestamp with time zone NOT NULL,
+    timestamp_end timestamp with time zone,
+    resource_usage double precision
+);
+"""
 
 comments = Table(
     "simqueue_comment",
@@ -226,7 +238,6 @@ async def delete_dataitems(job_id):
 
 
 async def create_job_input_data_item(job_id, input_data):
-
     for item in input_data:
         ins_data_item = data_items.insert().values(**dict(item))
         data_item_id = await database.execute(ins_data_item)
@@ -237,7 +248,6 @@ async def create_job_input_data_item(job_id, input_data):
 
 
 async def update_job_output_data_item(job_id, output_data):
-
     for item in output_data:
         ins_data_item = data_items.insert().values(**item)
         data_item_id = await database.execute(ins_data_item)
@@ -248,7 +258,6 @@ async def update_job_output_data_item(job_id, output_data):
 
 
 async def update_log(job_id, log):
-
     query = logs.select().where(logs.c.job_id == job_id)
     result = await database.fetch_one(query)
     if result is None:
@@ -348,7 +357,6 @@ async def get_next_job(hardware_platform: str):
 
 
 async def create_job(user_id: str, job: dict):
-
     ins = jobs.insert().values(
         code=job["code"],
         command=job["command"] or "",
@@ -460,7 +468,6 @@ async def get_session(session_id: int):
 
 
 async def create_session(session: dict):
-
     ins = sessions.insert().values(
         collab_id=session["collab_id"],
         user_id=session["user_id"],
@@ -675,7 +682,6 @@ async def get_comment(comment_id: int):
 
 
 async def add_comment(job_id: int, user_id: str, new_comment: str):
-
     ins = comments.insert().values(
         content=new_comment, created_time=now_in_utc(), user=user_id, job_id=job_id
     )
@@ -697,13 +703,12 @@ async def update_comment(
 
 
 async def delete_comment(comment_id: int):
-
     ins = comments.delete().where(comments.c.id == comment_id)
     result = await database.execute(ins)
     return result
 
 
-async def get_log(job_id: int):
+async def get_log(job_id: int) -> str:
     query = logs.select().where(logs.c.job_id == job_id)
     result = await database.fetch_one(query)
     return result["content"]

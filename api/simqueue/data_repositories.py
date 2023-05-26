@@ -42,7 +42,6 @@ def drive_mkdir_p(base_dir, relative_path):
 
 
 def download_file_to_tmp_dir(url):
-
     try:
         local_path, headers = urlretrieve(url)
     except HTTPError as err:
@@ -51,6 +50,12 @@ def download_file_to_tmp_dir(url):
         else:
             raise
     return local_path
+
+
+def ensure_path_from_root(path):
+    if not path.startswith("/"):
+        path = "/" + path
+    return path
 
 
 class SpiNNakerTemporaryStorage:
@@ -85,15 +90,14 @@ class EBRAINSDrive:
 
     @classmethod
     def copy(cls, file, user, collab=None):
-
         access_token = user.token["access_token"]
         ebrains_drive_client = DriveApiClient(token=access_token)
 
+        path_parts = file.path.split("/")
         if collab:
             collab_name = collab
-            remote_path = file.path
+            remote_path = ensure_path_from_root(file.path)
         else:
-            path_parts = file.path.split("/")
             collab_name = path_parts[0]
             remote_path = "/".join([""] + path_parts[1:])
 
@@ -134,13 +138,12 @@ class EBRAINSBucket:
     modes = ("read", "write")
 
     def copy(file, user, collab=None):
-
         access_token = user.token["access_token"]
         ebrains_bucket_client = BucketApiClient(token=access_token)
 
         if collab:
             collab_name = collab
-            remote_path = file.path
+            remote_path = ensure_path_from_root(file.path)
         else:
             path_parts = file.path.split("/")
             collab_name = path_parts[0]
@@ -155,7 +158,7 @@ class EBRAINSBucket:
             local_path = download_file_to_tmp_dir(file.url)
             target_bucket.upload(local_path, remote_path)
 
-        return f"https://data-proxy.ebrains.eu/api/v1/buckets/{collab_name}/{remote_path}"
+        return f"https://data-proxy.ebrains.eu/api/v1/buckets/{collab_name}{remote_path}"
 
     @classmethod
     def _delete(cls, collab_name, path, access_token):

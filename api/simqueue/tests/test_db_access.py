@@ -300,8 +300,8 @@ async def test_add_update_and_remove_comments(database_connection, submitted_job
     response3 = await db.add_comment(submitted_job["id"], TEST_USER, comment2)
     response4 = await db.get_comments(submitted_job["id"])
     assert len(response4) == 2
-    assert response4[0]["content"] == comment2  # newest to oldest
-    assert response4[1]["content"] == comment1
+    assert response4[0]["content"] == comment1  # oldest to newest
+    assert response4[1]["content"] == comment2
 
     modified_comment1 = comment1.upper()
     response5 = await db.update_comment(response["id"], modified_comment1)

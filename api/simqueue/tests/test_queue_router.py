@@ -84,10 +84,7 @@ mock_comments = [
         "timestamp": "2022-11-02T01:53:14.944Z",
     },
 ]
-mock_log = {
-    "job_id": 999999,
-    "content": "Running from /tmp/job3395001697060736013.tmp; changing to spinnaker",
-}
+mock_log = "Running from /tmp/job3395001697060736013.tmp; changing to spinnaker"
 mock_job_patch = {
     "status": "submitted",
     "output_data": {

@@ -93,8 +93,8 @@ class TestBucket:
             size=48,
         )
 
-        # normally we would copy from some other repository to the Drive
-        # here we are copying within the same Drive repository,
+        # normally we would copy from some other repository to the Bucket
+        # here we are copying within the same Bucket,
         # so we artificially change the path
         target_remote_dir = f"/api-testing-{datetime.now().isoformat()}"
         file.path = f"neuromorphic-testing-private{target_remote_dir}/test_file.md"
@@ -102,15 +102,22 @@ class TestBucket:
         updated_url = repo.copy(file, mock_user)
         assert updated_url != file.url
 
-        # read file contents from new URL and check contents
+        # get redirect URL
         response = requests.get(
-            updated_url, headers={"Authorization": f"Bearer {mock_user.token['access_token']}"}
+            updated_url + "?redirect=false",
+            headers={"Authorization": f"Bearer {mock_user.token['access_token']}"},
         )
         assert response.status_code == 200
-        assert response.text == "# test_file\n\n\n\nThis file is used for testing.\n\n\n"
+        redirect_url = response.json()["url"]
 
-        repo._delete(
-            "neuromorphic-testing-private",
-            f"{target_remote_dir}/test_file.md",
-            mock_user.token["access_token"],
-        )
+        # read file contents from redirect URL and check contents
+        response2 = requests.get(redirect_url)
+        assert response2.status_code == 200
+        assert response2.text == "# test_file\n\n\n\nThis file is used for testing.\n\n\n"
+
+        with pytest.raises(AssertionError):  # temporary, need fix in ebrains_drive
+            repo._delete(
+                "neuromorphic-testing-private",
+                f"{target_remote_dir}/test_file.md",
+                mock_user.token["access_token"],
+            )
