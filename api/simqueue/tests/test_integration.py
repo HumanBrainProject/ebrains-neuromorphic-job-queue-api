@@ -17,7 +17,7 @@ from simqueue import db, settings
 TEST_COLLAB = "neuromorphic-testing-private"
 TEST_USER = "adavisontesting"
 TEST_REPOSITORY = "Fake repository used for testing"
-TEST_PLATFORM = "Test"
+TEST_PLATFORM = "TestPlatform"
 EXPECTED_TEST_DB_ADDRESS = "148.187.148.64"
 
 
@@ -65,7 +65,7 @@ async def adequate_quota(database_connection):
         project_id, {"accepted": True, "decision_date": date.today()}
     )
     quota = await db.create_quota(
-        project_id, {"units": "litres", "limit": 100, "usage": 0, "platform": TEST_PLATFORM}
+        project_id, {"units": "bushels", "limit": 100, "usage": 0, "platform": TEST_PLATFORM}
     )
 
     yield quota
@@ -169,7 +169,7 @@ async def test_job_lifetime(database_connection, adequate_quota, mocker, provide
                 ],
             },
             "provenance": {"platform_version": "1.2.3"},
-            "resource_usage": {"value": 42, "units": "litres"},
+            "resource_usage": {"value": 42, "units": "bushels"},
         }
         response6 = await client.put(
             retrieved_job["resource_uri"],
@@ -252,8 +252,8 @@ async def test_session_lifetime(database_connection, adequate_quota, provider_au
     expected = {
         "collab": "neuromorphic-testing-private",
         "hardware_config": {"python_version": "3.9"},
-        "hardware_platform": "Test",
-        "resource_usage": {"units": "litres", "value": 0.0},
+        "hardware_platform": TEST_PLATFORM,
+        "resource_usage": {"units": "bushels", "value": 0.0},
         "status": "running",
         "timestamp_end": None,
         "user_id": "adavisontesting",
@@ -267,7 +267,7 @@ async def test_session_lifetime(database_connection, adequate_quota, provider_au
     async with AsyncClient(app=app, base_url="http://test") as client:
         response = await client.put(
             session_uri,
-            json={"status": "finished", "resource_usage": {"value": 25, "units": "litres"}},
+            json={"status": "finished", "resource_usage": {"value": 25, "units": "bushels"}},
             headers=provider_auth,
         )
     assert response.status_code == 200

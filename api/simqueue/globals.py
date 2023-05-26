@@ -6,8 +6,8 @@ RESOURCE_USAGE_UNITS = {
     "SpiNNaker": "core-hours",
     "BrainScaleS-ESS": "hours",
     "Spikey": "hours",
-    "TestPlatform": "bushels",
-    "Test": "litres",
+    "TestPlatform": "bushels",  # for API testing
+    "Test": "litres",  # for client testing
 }
 
 PROVIDER_QUEUE_NAMES = {
