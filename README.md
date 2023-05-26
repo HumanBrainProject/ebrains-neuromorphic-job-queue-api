@@ -1,6 +1,4 @@
-======================================================
-EBRAINS Neuromorphic Computing Job Queue and Quota API
-======================================================
+# EBRAINS Neuromorphic Computing Job Queue and Quota API
 
 The EBRAINS neuromorphic computing remote access service allows users to run simulations/emulations
 on the [SpiNNaker](https://www.ebrains.eu/tools/spinnaker)
@@ -27,11 +25,7 @@ All code is copyright 2015-2023 CNRS unless otherwise indicated.
 This repository previously contained code for all components of the service.
 Each of these is now developed in a separate repository.
 
-.. image: https://www.braincouncil.eu/wp-content/uploads/2018/11/wsi-imageoptim-EU-Logo.jpg
-   :alt: EU Logo
-   :height: 86
-   :width: 128
-   :align: right
+<div><img src="https://www.braincouncil.eu/wp-content/uploads/2018/11/wsi-imageoptim-EU-Logo.jpg" alt="EU Logo" height="23%" width="15%" align="right" style="margin-left: 10px"></div>
 
 This open source software code was developed in part or in whole in the Human Brain Project,
 funded from the European Union's Horizon 2020 Framework Programme for Research and Innovation
