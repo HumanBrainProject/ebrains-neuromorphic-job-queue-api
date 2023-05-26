@@ -88,6 +88,4 @@ test_job_queue_v3_staging:
     - python3 -m pytest --cov=simqueue --cov-report=term
   tags:
     - docker-runner
-  image:
-    name: python:3.10-alpine
-    pull_policy: if-not-present
+  image: docker-registry.ebrains.eu/neuromorphic/python:3.10-alpine
