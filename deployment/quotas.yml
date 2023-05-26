@@ -1,6 +1,0 @@
-image: cnrsunic/nmpi_resource_manager
-ports:
-    443: 443
-env: [DEBUG, NMPI_DATABASE_HOST, NMPI_DATABASE_PORT]
-volumes: ["/etc/letsencrypt"]
-dockerfile: resource_manager/Dockerfile

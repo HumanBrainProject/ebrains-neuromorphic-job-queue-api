@@ -1,4 +1,0 @@
-image: tutum/postgresql
-env: []
-ports:
-  5432: null
