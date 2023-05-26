@@ -21,7 +21,7 @@ EXPECTED_TEST_DB_ADDRESS = "148.187.148.64"
 @pytest_asyncio.fixture()
 async def database_connection():
     if settings.DATABASE_HOST != EXPECTED_TEST_DB_ADDRESS:
-        raise Exception("Database address does not match the expected one")
+        pytest.skip("Database address does not match the expected one")
     try:
         await db.database.connect()
     except Exception:

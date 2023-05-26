@@ -42,7 +42,7 @@ def provider_auth():
 @pytest_asyncio.fixture()
 async def database_connection():
     if settings.DATABASE_HOST != EXPECTED_TEST_DB_ADDRESS:
-        raise Exception("Database address does not match the expected one")
+        pytest.skip("Database address does not match the expected one")
     await db.database.connect()
     yield
     await db.database.disconnect()
