@@ -8,7 +8,7 @@ from .db import database
 
 
 description = """
-The EBRAINS neuromorphic computing job queue allows users to run simulations/emulations
+The EBRAINS neuromorphic computing remote access service allows users to run simulations/emulations
 on the [SpiNNaker](https://www.ebrains.eu/tools/spinnaker)
 and [BrainScaleS](https://www.ebrains.eu/tools/brainscales) systems
 by submitting a [PyNN](http://neuralensemble.org/docs/PyNN/) script
@@ -19,7 +19,7 @@ The system consists of:
 - a GUI client (the [Job Manager app](https://job-manager.hbpneuromorphic.eu/))
 - a [Python/command-line client](https://github.com/HumanBrainProject/hbp-neuromorphic-client).
 
-Users can submit scripts stored locally on their own machine, in a Git repository,
+Users can submit scripts stored locally on their own machine, in a public Git repository,
 in the [EBRAINS Knowledge Graph](https://search.kg.ebrains.eu/?category=Model),
 or in [EBRAINS Collaboratory](https://wiki.ebrains.eu/) storage (Drive/Bucket).
 Users can track the progress of their job, and view and/or download the results,

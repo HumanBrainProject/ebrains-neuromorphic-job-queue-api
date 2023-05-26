@@ -1,40 +1,38 @@
-===================================
-HBP Neuromorphic Computing Platform
-===================================
+======================================================
+EBRAINS Neuromorphic Computing Job Queue and Quota API
+======================================================
 
-This repository contains code related to the Human Brain Project Neuromorphic Computing Platform.
+The EBRAINS neuromorphic computing remote access service allows users to run simulations/emulations
+on the [SpiNNaker](https://www.ebrains.eu/tools/spinnaker)
+and [BrainScaleS](https://www.ebrains.eu/tools/brainscales) systems
+by submitting a [PyNN](http://neuralensemble.org/docs/PyNN/) script
+and associated job configuration information to a central queue.
 
-There are 6 main components:
+The service consists of:
+- a [web API](https://nmpi-v3-staging.hbpneuromorphic.eu/docs) (this repository)
+- a GUI client (the [Job Manager app](https://job-manager.hbpneuromorphic.eu/); https://github.com/HumanBrainProject/nmpi-job-manager-app)
+- a [Python/command-line client](https://github.com/HumanBrainProject/hbp-neuromorphic-client).
 
-(1) Job queue service
+Users can submit scripts stored locally on their own machine, in a public Git repository,
+in the [EBRAINS Knowledge Graph](https://search.kg.ebrains.eu/?category=Model),
+or in [EBRAINS Collaboratory](https://wiki.ebrains.eu/) storage (Drive/Bucket).
+Users can track the progress of their job, and view and/or download the results,
+log files, and provenance information.
 
-    This is a Django project which provides a REST API implemented in the "simqueue" app.
-
-(2) Job manager app
-
-    An AngularJS application which provides a Collaboratory app for the job queue service.
-
-(3) Quota service
-
-    This is a Django project which provides a REST API implemented in the quotas app.
-
-(4) Resource manager app
-
-    An AngularJS application which provides a Collaboratory app for the quota service.
-
-(5) Resource manager coordinator app
-
-    An AngularJS application which provides a Collaboratory app for administration of the quota service.
-
-(6) Documentation for developers
-
-    Documentation for developing and deploying the platform is in the "documentation" subdirectory
-    as a Sphinx project.  End-user documentation is provided by the Neuromorphic Platform Guidebook,
-    see git@gitviz.kip.uni-heidelberg.de:hbp-sp9-guidebook.git
+For more information, visit the [EBRAINS website](https://www.ebrains.eu/modelling-simulation-and-computing/simulation/neuromorphic-computing-3).
 
 
-All code is copyright 2015-2019 CNRS unless otherwise indicated.
+All code is copyright 2015-2023 CNRS unless otherwise indicated.
 
-This project was developed in the Human Brain Project, 
-funded from the European Union’s Horizon 2020 Framework Programme for Research and Innovation 
-under Specific Grant Agreements No. 720270 and No. 785907 (Human Brain Project SGA1 and SGA2).
+This repository previously contained code for all components of the service.
+Each of these is now developed in a separate repository.
+
+.. image: https://www.braincouncil.eu/wp-content/uploads/2018/11/wsi-imageoptim-EU-Logo.jpg
+   :alt: EU Logo
+   :height: 86
+   :width: 128
+   :align: right
+
+This open source software code was developed in part or in whole in the Human Brain Project,
+funded from the European Union's Horizon 2020 Framework Programme for Research and Innovation
+under Specific Grant Agreements No. 720270, No. 785907 and No. 945539 (Human Brain Project SGA1, SGA2 and SGA3).
