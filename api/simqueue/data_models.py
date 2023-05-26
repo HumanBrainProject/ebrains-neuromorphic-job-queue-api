@@ -28,10 +28,12 @@ class SessionStatus(str, Enum):
 
 
 class Comment(BaseModel):
+    id: int = None
     job_id: int = None
     content: str
     user_id: str = None
     timestamp: datetime = None
+    resource_uri: str = None
 
     @classmethod
     def from_db(cls, comment):
@@ -41,6 +43,7 @@ class Comment(BaseModel):
             "content": comment["content"],
             "user_id": comment["user"],
             "timestamp": comment["created_time"],
+            "resource_uri": f"/jobs/{comment['job_id']}/comments/{comment['id']}",
         }
 
 
