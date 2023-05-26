@@ -27,7 +27,7 @@ def user_auth():
     if token:
         return {"Authorization": f"Bearer {token}"}
     else:
-        pytest.skip("Environment variable NMPI_TESTING_APIKEY not set")
+        pytest.skip("Environment variable EBRAINS_AUTH_TOKEN not set")
 
 
 @pytest.fixture(scope="module")

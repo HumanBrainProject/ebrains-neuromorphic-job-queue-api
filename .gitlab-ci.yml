@@ -80,12 +80,12 @@ test_job_queue_v3_staging:
   stage: test
   only:
     variables:
-      - $CI_COMMIT_BRANCH == "ci-experiments"
+      - $CI_COMMIT_BRANCH == "api-v3"
   script:
     - python3 -m pip install -r api/requirements.txt.lock
     - python3 -m pip install -r api/requirements_testing.txt
     - cd api
-    - python3 -m pytest --cov=simqueue --cov-report=term
+    - python3 -m pytest -v --cov=simqueue --cov-report=term
   tags:
     - docker-runner
   image: docker-registry.ebrains.eu/neuromorphic/python:3.10-slim
