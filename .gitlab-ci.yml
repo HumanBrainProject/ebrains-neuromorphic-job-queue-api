@@ -80,11 +80,14 @@ test_job_queue_v3_staging:
   stage: test
   only:
     variables:
-      - $CI_COMMIT_BRANCH == "api-v3"
+      - $CI_COMMIT_BRANCH == "ci-experiments"
   script:
     - python3 -m pip install -r api/requirements.txt.lock
     - python3 -m pip install -r api/requirements_testing.txt
     - cd api
     - python3 -m pytest --cov=simqueue --cov-report=term
   tags:
-    - shell-runner
+    - docker-runner
+  image:
+    name: python:3.10-alpine
+    pull_policy: if-not-present
