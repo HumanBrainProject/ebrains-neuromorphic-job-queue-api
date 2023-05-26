@@ -72,16 +72,18 @@ mock_submitted_job = {
 mock_tags = ["first tag", "second tag"]
 mock_comments = [
     {
+        "id": 1,
         "job_id": 999999,
         "content": "comment 1",
-        "user_id": "haroldlloyd",
-        "timestamp": "2022-11-02T01:53:14.944Z",
+        "user": "haroldlloyd",
+        "created_time": "2022-11-02T01:53:14.944Z",
     },
     {
+        "id": 2,
         "job_id": 999999,
         "content": "comment 2",
-        "user_id": "haroldlloyd",
-        "timestamp": "2022-11-02T01:53:14.944Z",
+        "user": "haroldlloyd",
+        "created_time": "2022-11-02T01:53:14.944Z",
     },
 ]
 mock_log = "Running from /tmp/job3395001697060736013.tmp; changing to spinnaker"
@@ -353,7 +355,7 @@ def test_add_comment(mocker):
     assert simqueue.db.get_job.await_args.args == (999999,)
     assert simqueue.db.add_comment.await_args.kwargs == {
         "job_id": 999999,
-        "user_id": mock_comments[0]["user_id"],
+        "user_id": mock_comments[0]["user"],
         "new_comment": mock_comments[0]["content"],
     }
 

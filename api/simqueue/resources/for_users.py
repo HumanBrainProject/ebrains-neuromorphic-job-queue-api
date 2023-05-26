@@ -249,7 +249,7 @@ async def get_comments(
         or job["user_id"] == user.username
         or await user.can_view(job["collab_id"])
     ):
-        return await db.get_comments(job_id)
+        return [Comment.from_db(comment) for comment in await db.get_comments(job_id)]
 
     raise HTTPException(
         status_code=status_codes.HTTP_404_NOT_FOUND,
@@ -395,8 +395,8 @@ async def add_comment(
         or job["user_id"] == user.username
         or await user.can_view(job["collab_id"])
     ):
-        return await db.add_comment(
-            job_id=job_id, user_id=user.username, new_comment=comment.content
+        return Comment.from_db(
+            await db.add_comment(job_id=job_id, user_id=user.username, new_comment=comment.content)
         )
 
     raise HTTPException(
@@ -437,9 +437,9 @@ async def update_comment(
         )
 
     if (as_admin and user.is_admin) or (
-        old_comment["user_id"] == user.username and await user.can_view(job["collab_id"])
+        old_comment["user"] == user.username and await user.can_view(job["collab_id"])
     ):
-        return await db.update_comment(comment_id, comment.content)
+        return Comment.from_db(await db.update_comment(comment_id, comment.content))
 
     raise HTTPException(
         status_code=status_codes.HTTP_404_NOT_FOUND,
@@ -474,7 +474,7 @@ async def remove_comment(
         )
 
     if (as_admin and user.is_admin) or (
-        old_comment["user_id"] == user.username and await user.can_view(job["collab_id"])
+        old_comment["user"] == user.username and await user.can_view(job["collab_id"])
     ):
         return await db.delete_comment(comment_id)
 
