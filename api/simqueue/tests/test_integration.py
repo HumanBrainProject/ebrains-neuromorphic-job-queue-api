@@ -11,13 +11,14 @@ import pytest_asyncio
 
 from simqueue.data_repositories import EBRAINSDrive
 from simqueue.main import app
-from simqueue import db
+from simqueue import db, settings
 
 
 TEST_COLLAB = "neuromorphic-testing-private"
 TEST_USER = "adavisontesting"
 TEST_REPOSITORY = "Fake repository used for testing"
 TEST_PLATFORM = "Test"
+EXPECTED_TEST_DB_ADDRESS = "148.187.148.64"
 
 
 @pytest.fixture(scope="module")
@@ -40,6 +41,8 @@ def provider_auth():
 
 @pytest_asyncio.fixture()
 async def database_connection():
+    if settings.DATABASE_HOST != EXPECTED_TEST_DB_ADDRESS:
+        raise Exception("Database address does not match the expected one")
     await db.database.connect()
     yield
     await db.database.disconnect()

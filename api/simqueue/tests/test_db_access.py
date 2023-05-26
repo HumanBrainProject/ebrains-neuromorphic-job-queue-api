@@ -7,12 +7,12 @@ import pytz
 import pytest
 import pytest_asyncio
 
-from .. import db
+from .. import db, settings
 from ..data_models import ProjectStatus
-
 
 TEST_COLLAB = "neuromorphic-testing-private"
 TEST_USER = "adavisontesting"
+EXPECTED_TEST_DB_ADDRESS = "148.187.148.64"
 
 
 # ---- Define fixtures ------------------------------------
@@ -20,6 +20,8 @@ TEST_USER = "adavisontesting"
 
 @pytest_asyncio.fixture()
 async def database_connection():
+    if settings.DATABASE_HOST != EXPECTED_TEST_DB_ADDRESS:
+        raise Exception("Database address does not match the expected one")
     try:
         await db.database.connect()
     except Exception:
