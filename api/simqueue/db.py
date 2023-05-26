@@ -711,7 +711,10 @@ async def delete_comment(comment_id: int):
 async def get_log(job_id: int) -> str:
     query = logs.select().where(logs.c.job_id == job_id)
     result = await database.fetch_one(query)
-    return result["content"]
+    if result:
+        return result["content"]
+    else:
+        return ""
 
 
 async def query_projects(
