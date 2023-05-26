@@ -345,7 +345,7 @@ async def get_next_job(hardware_platform: str):
     query = (
         jobs.select()
         .where(jobs.c.hardware_platform == hardware_platform, jobs.c.status == "submitted")
-        .order_by(desc("timestamp_submission"))
+        .order_by("timestamp_submission")
         .limit(1)
     )
     result = await database.fetch_one(query)
