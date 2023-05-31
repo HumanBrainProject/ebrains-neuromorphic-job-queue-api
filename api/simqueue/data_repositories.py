@@ -82,6 +82,18 @@ class BrainScaleSTemporaryStorage:
         return url.lstrip(prefix)
 
 
+class DemoTemporaryStorage:
+    name = "Demo temporary storage"
+    host = "demo.hbpneuromorphic.eu"
+    modes = ("read",)
+
+    @classmethod
+    def get_path(cls, url):
+        # example url: https://demo.hbpneuromorphic.eu/data/my_collab/job_536538/results.txt
+        prefix = "https://demo.hbpneuromorphic.eu/data/"
+        return url.lstrip(prefix)
+
+
 class EBRAINSDrive:
     name = "EBRAINS Drive"
     host = "drive.ebrains.eu"
