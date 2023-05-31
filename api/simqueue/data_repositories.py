@@ -198,6 +198,7 @@ class TestRepository:
 available_repositories = (
     SpiNNakerTemporaryStorage,
     BrainScaleSTemporaryStorage,
+    DemoTemporaryStorage,
     EBRAINSDrive,
     EBRAINSBucket,
     TestRepository,

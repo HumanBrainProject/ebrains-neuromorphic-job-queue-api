@@ -90,9 +90,13 @@ class DataSet(BaseModel):
     def from_db(cls, data_items):
         urls = [item["url"] for item in data_items]
         url_parts = urlparse(urls[0])
-        repository_obj = repository_lookup_by_host[url_parts.hostname]
+        repository_obj = repository_lookup_by_host.get(url_parts.hostname, None)
+        if repository_obj:
+            repository_name = repository_obj.name
+        else:
+            repository_name = "unknown data repository"
         return cls(
-            repository=repository_obj.name,
+            repository=repository_name,
             files=[DataItem.from_db(data_item, repository_obj) for data_item in data_items],
         )
 
