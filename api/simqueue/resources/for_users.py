@@ -352,7 +352,7 @@ async def create_job(
     get_user_task = asyncio.create_task(oauth.User.from_token(token.credentials))
     user = await get_user_task
     if (as_admin and user.is_admin) or user.can_edit(job.collab):
-        proceed = await utils.check_quotas(job.collab, job.hardware_platform)
+        proceed = await utils.check_quotas(job.collab, job.hardware_platform, user=user.username)
         if proceed:
             accepted_job = await db.create_job(user_id=user.username, job=job.to_db())
             return Job.from_db(accepted_job)

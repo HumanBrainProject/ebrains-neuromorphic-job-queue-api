@@ -18,3 +18,11 @@ PROVIDER_QUEUE_NAMES = {
     "benchmark_runner": [],
     "uhei-jenkins-test-user": ["BrainScaleS", "BrainScaleS-ESS", "BrainScaleS-2", "Spikey"],
 }
+
+DEMO_QUOTA_SIZES = {
+    "BrainScaleS": 0.1,
+    "BrainScaleS-2": 1.0,
+    "SpiNNaker": 5000.0,
+    "Spikey": 1.0,
+    "Demo": 1.0,
+}
