@@ -202,16 +202,16 @@ class Job(CompletedJob):
 
 
 class JobPatch(BaseModel):  # todo: rename to JobUpdate
-    status: JobStatus
+    status: JobStatus = None
     output_data: DataSet = None
     provenance: dict = None
     resource_usage: ResourceUsage = None
     log: str = None
 
     def to_db(self):
-        values = {
-            "status": self.status.value,
-        }
+        values = {}
+        if self.status is not None:
+            values["status"] = self.status.value
         if self.output_data is not None:
             values["output_data"] = self.output_data.to_db()
         if self.provenance is not None:
