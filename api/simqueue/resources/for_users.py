@@ -626,7 +626,8 @@ async def query_projects(
         False, description="Run this query with admin privileges, if you have them"
     ),
     # from header
-    token: HTTPAuthorizationCredentials = Depends(auth),
+    token: HTTPAuthorizationCredentials = Depends(auth_optional),
+    api_key: APIKey = Depends(oauth.get_provider_optional),
 ):
     """
     Return a list of projects
@@ -636,32 +637,56 @@ async def query_projects(
     #   - if owner is provided, it must contain _only_ the user's id
     #   - if collab is not provided, projects for collabs for which the user has edit access are returned
     #   - if collab is provided, the user must have edit access for all collabs in the list
-    user = await oauth.User.from_token(token.credentials)
-    if not as_admin:
-        if owner:
-            if len(owner) > 1:
-                raise HTTPException(
-                    status_code=status_codes.HTTP_400_BAD_REQUEST,
-                    detail="Only admins can directly query projects they don't own, try querying by collab",
-                )
-            elif owner[0] != user.username:  # todo: also support user_id_v1
-                raise HTTPException(
-                    status_code=status_codes.HTTP_403_FORBIDDEN,
-                    detail=f"Owner id provided ({owner[0]}) does not match authentication token ({user.username})",
-                )
-        if collab:
-            for cid in collab:
-                if not user.can_edit(cid):
+    if token:
+        user = await oauth.User.from_token(token.credentials)
+        if not as_admin:
+            if owner:
+                if len(owner) > 1:
+                    raise HTTPException(
+                        status_code=status_codes.HTTP_400_BAD_REQUEST,
+                        detail="Only admins can directly query projects they don't own, try querying by collab",
+                    )
+                elif owner[0] != user.username:  # todo: also support user_id_v1
                     raise HTTPException(
                         status_code=status_codes.HTTP_403_FORBIDDEN,
-                        detail="You do not have permission to view collab {cid}",
+                        detail=f"Owner id provided ({owner[0]}) does not match authentication token ({user.username})",
                     )
-        else:
-            collab = user.get_collabs(access=["editor", "administrator"])
-    elif not user.is_admin:
+            if collab:
+                for cid in collab:
+                    if not user.can_edit(cid):
+                        raise HTTPException(
+                            status_code=status_codes.HTTP_403_FORBIDDEN,
+                            detail="You do not have permission to view collab {cid}",
+                        )
+            else:
+                collab = user.get_collabs(access=["editor", "administrator"])
+        elif not user.is_admin:
+            raise HTTPException(
+                status_code=status_codes.HTTP_403_FORBIDDEN,
+                detail="The token provided does not give admin privileges",
+            )
+    elif api_key:
+        provider_name = await api_key
+        if provider_name is None:
+            raise HTTPException(
+                status_code=status_codes.HTTP_403_FORBIDDEN,
+                detail=f"Invalid API key",
+            )
+        if not collab:
+            raise HTTPException(
+                status_code=status_codes.HTTP_400_BAD_REQUEST,
+                detail="If authenticating via API key, a collab must be specified",
+            )
+        if status and status != ProjectStatus.accepted:
+            raise HTTPException(
+                status_code=status_codes.HTTP_400_BAD_REQUEST,
+                detail="If authenticating via API key, status must be 'accepted'",
+            )
+        status = ProjectStatus.accepted
+    else:
         raise HTTPException(
-            status_code=status_codes.HTTP_403_FORBIDDEN,
-            detail="The token provided does not give admin privileges",
+            status_code=status_codes.HTTP_401_UNAUTHORIZED,
+            detail="You must provide either a token or an API key",
         )
     projects = await db.query_projects(
         status=status, collab=collab, owner=owner, from_index=from_index, size=size

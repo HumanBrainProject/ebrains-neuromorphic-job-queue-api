@@ -105,7 +105,7 @@ mock_projects = [
 
 def test_query_projects_no_auth():
     response = client.get("/projects/")
-    assert response.status_code == 403
+    assert response.status_code == 401
 
 
 def test_query_projects(mocker):
@@ -153,6 +153,45 @@ def test_query_projects_with_valid_filters(mocker):
         "size": size,
     }
     assert simqueue.db.query_projects.await_args.kwargs == expected_args
+
+
+def test_query_projects_with_api_key(mocker):
+    mocker.patch("simqueue.db.query_projects", return_value=mock_projects)
+    mocker.patch("simqueue.db.follow_relationships_quotas", return_value=[])
+    mocker.patch("simqueue.db.get_provider", return_value="uman")
+    response = client.get("/projects/?collab=my-collab", headers={"x-api-key": "valid-api-key"})
+    assert response.status_code == 200
+    assert simqueue.db.query_projects.await_args.kwargs == {
+        "status": ProjectStatus.accepted,
+        "collab": ["my-collab"],
+        "owner": None,
+        "from_index": 0,
+        "size": 10,
+    }
+    assert simqueue.db.get_provider.await_args.args == ("valid-api-key",)
+
+    response = client.get("/projects/", headers={"x-api-key": "valid-api-key"})
+    assert response.status_code == 400
+    assert "collab" in response.text  # must specify collab
+
+    response = client.get(
+        "/projects/?collab=my-collab&status=rejected", headers={"x-api-key": "valid-api-key"}
+    )
+    assert response.status_code == 400
+    assert "status" in response.text  # if provided, status can only be "accepted"
+
+    response = client.get(
+        "/projects/?collab=my-collab&status=accepted", headers={"x-api-key": "valid-api-key"}
+    )
+    assert response.status_code == 200
+
+
+def test_query_projects_with_invalid_api_key(mocker):
+    mocker.patch("simqueue.db.query_projects", return_value=mock_projects)
+    mocker.patch("simqueue.db.follow_relationships_quotas", return_value=[])
+    mocker.patch("simqueue.db.get_provider", return_value=None)
+    response = client.get("/projects/?collab=my-collab", headers={"x-api-key": "invalid-api-key"})
+    assert response.status_code == 403
 
 
 def test_query_collabs(mocker):
