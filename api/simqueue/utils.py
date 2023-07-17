@@ -17,7 +17,7 @@ async def get_available_quotas(collab, hardware_platform):
 
 async def check_quotas(collab, hardware_platform, user=None):
     available_quotas = await get_available_quotas(collab, hardware_platform)
-    if len(available_quotas) == 0 and user is not None:
+    if len(available_quotas) == 0 and user is not None and hardware_platform in DEMO_QUOTA_SIZES:
         # if this collab has never had a quota for this platform, we create a default test quota
         await create_test_quota(collab, hardware_platform, user)
         return True
