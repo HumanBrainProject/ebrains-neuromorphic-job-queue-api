@@ -2,6 +2,7 @@ import logging
 import requests
 from authlib.integrations.starlette_client import OAuth
 import httpx
+from httpx import Timeout
 from fastapi.security.api_key import APIKeyHeader
 from fastapi import Security, HTTPException, status as status_codes
 
@@ -21,6 +22,7 @@ oauth.register(
     client_kwargs={
         "scope": "openid profile collab.drive clb.drive:read clb.drive:write group team web-origins roles email",
         "trust_env": False,
+        "timeout": Timeout(timeout=settings.AUTHENTICATION_TIMEOUT),
     },
 )
 
