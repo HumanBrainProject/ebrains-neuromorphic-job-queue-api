@@ -23,6 +23,7 @@ from sqlalchemy import (
     desc,
 )
 from sqlalchemy.dialects.postgresql import UUID
+from asyncpg.exceptions import PostgresSyntaxError
 
 from .data_models import (
     ProjectStatus,
@@ -383,8 +384,12 @@ async def update_job(job_id: int, job_patch: dict):
     output_data = job_patch.pop("output_data", None)
     log = job_patch.pop("log", None)
 
-    ins = jobs.update().where(jobs.c.id == job_id).values(**job_patch)
-    await database.execute(ins)
+    if job_patch:
+        try:
+            ins = jobs.update().where(jobs.c.id == job_id).values(**job_patch)
+            await database.execute(ins)
+        except PostgresSyntaxError as err:
+            raise PostgresSyntaxError(f"job_patch was {job_patch}") from err
 
     if output_data:
         await update_job_output_data_item(job_id, output_data)
