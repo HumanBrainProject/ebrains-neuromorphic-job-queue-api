@@ -100,8 +100,8 @@ mock_job_patch = {
                 "hash": "string",
             }
         ],
+        "log": "This is the log\nIt can have many lines\n",
     },
-    # "log": None,
     # "resource_usage": None,
     # "provenance": None,
 }

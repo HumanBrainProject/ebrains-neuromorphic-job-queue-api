@@ -1,6 +1,6 @@
 Version 3 of the HBP/EBRAINS Neuromorphic Computing Job Queue API, incorporating the Quotas API.
 
-For local development, run:
+For local development, set environment variables (see settings.py) then run:
 
   uvicorn simqueue.main:app --reload
 

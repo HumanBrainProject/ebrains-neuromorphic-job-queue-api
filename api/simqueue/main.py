@@ -30,6 +30,11 @@ copy the *access_token* into the "HTTPBearer" box
 (this process will be streamlined for the final release).
 
 For more information, visit the [EBRAINS website](https://www.ebrains.eu/modelling-simulation-and-computing/simulation/neuromorphic-computing-3).
+
+This service was developed in the Human Brain Project,
+funded from the European Union’s Horizon 2020 Framework Programme for Research and Innovation
+under Specific Grant Agreements No. 720270, No. 785907 and No. 945539
+(Human Brain Project SGA1, SGA2 and SGA3).
 """
 
 app = FastAPI(
