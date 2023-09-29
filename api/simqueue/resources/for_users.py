@@ -92,7 +92,7 @@ async def query_jobs(
                     if not await user.can_view(cid):
                         raise HTTPException(
                             status_code=status_codes.HTTP_403_FORBIDDEN,
-                            detail="You do not have permission to view collab {cid}",
+                            detail=f"You do not have permission to view collab {cid}",
                         )
             else:
                 user_id = [user.username]
@@ -656,7 +656,7 @@ async def query_projects(
                     if not user.can_edit(cid):
                         raise HTTPException(
                             status_code=status_codes.HTTP_403_FORBIDDEN,
-                            detail="You do not have permission to view collab {cid}",
+                            detail=f"You do not have permission to view collab {cid}",
                         )
             else:
                 collab = user.get_collabs(access=["editor", "administrator"])
@@ -1074,7 +1074,7 @@ async def query_sessions(
                 if not await user.can_view(cid):
                     raise HTTPException(
                         status_code=status_codes.HTTP_403_FORBIDDEN,
-                        detail="You do not have permission to view collab {cid}",
+                        detail=f"You do not have permission to view collab {cid}",
                     )
         else:
             user_id = [user.username]
@@ -1094,4 +1094,4 @@ async def query_sessions(
         size=size,
     )
 
-    return [session.from_db(session) for session in sessions]
+    return [Session.from_db(session) for session in sessions]
