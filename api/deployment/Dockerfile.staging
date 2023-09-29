@@ -11,7 +11,7 @@
 # To check the content of the docker container:
 #   sudo docker run -it nmpi_server /bin/bash
 
-FROM debian:bullseye-slim
+FROM docker-registry.ebrains.eu/neuromorphic/debian:bullseye-slim
 MAINTAINER Andrew Davison <andrew.davison@cnrs.fr>
 
 ENV DEBIAN_FRONTEND noninteractive
