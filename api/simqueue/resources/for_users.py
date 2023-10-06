@@ -36,6 +36,50 @@ auth = HTTPBearer()
 router = APIRouter()
 
 
+async def _check_auth_for_list(token, api_key, collab, user_id, hardware_platform, as_admin):
+    if token:
+        user = await oauth.User.from_token(token.credentials)
+        if not as_admin:
+            if user_id:
+                if len(user_id) > 1:
+                    raise HTTPException(
+                        status_code=status_codes.HTTP_400_BAD_REQUEST,
+                        detail="Only admins can directly query other users' sessions, try querying by collab",
+                    )
+                elif user_id[0] != user.username:  # todo: also support user_id_v1
+                    raise HTTPException(
+                        status_code=status_codes.HTTP_403_FORBIDDEN,
+                        detail=f"User id provided ({user_id[0]}) does not match authentication token ({user.username})",
+                    )
+            if collab:
+                for cid in collab:
+                    if not await user.can_view(cid):
+                        raise HTTPException(
+                            status_code=status_codes.HTTP_403_FORBIDDEN,
+                            detail=f"You do not have permission to view collab {cid}",
+                        )
+            else:
+                user_id = [user.username]
+        elif not user.is_admin:
+            raise HTTPException(
+                status_code=status_codes.HTTP_403_FORBIDDEN,
+                detail="The token provided does not give admin privileges",
+            )
+    elif api_key:
+        provider_name = await api_key
+        if hardware_platform:
+            for hp in hardware_platform:
+                utils.check_provider_matches_platform(provider_name, hp)
+        else:
+            hardware_platform = PROVIDER_QUEUE_NAMES[provider_name]
+    else:
+        raise HTTPException(
+            status_code=status_codes.HTTP_401_UNAUTHORIZED,
+            detail="You must provide either a token or an API key",
+        )
+    return user_id, hardware_platform
+
+
 @router.get("/")
 def about_this_api():
     return {
@@ -73,46 +117,9 @@ async def query_jobs(
     #   - if user_id is provided, it must contain _only_ the user's id
     #   - if collab is not provided, only the user's own jobs are returned
     #   - if collab is provided the user must be a member of all collabs in the list
-    if token:
-        user = await oauth.User.from_token(token.credentials)
-        if not as_admin:
-            if user_id:
-                if len(user_id) > 1:
-                    raise HTTPException(
-                        status_code=status_codes.HTTP_400_BAD_REQUEST,
-                        detail="Only admins can directly query other users' jobs, try querying by collab",
-                    )
-                elif user_id[0] != user.username:  # todo: also support user_id_v1
-                    raise HTTPException(
-                        status_code=status_codes.HTTP_403_FORBIDDEN,
-                        detail=f"User id provided ({user_id[0]}) does not match authentication token ({user.username})",
-                    )
-            if collab:
-                for cid in collab:
-                    if not await user.can_view(cid):
-                        raise HTTPException(
-                            status_code=status_codes.HTTP_403_FORBIDDEN,
-                            detail=f"You do not have permission to view collab {cid}",
-                        )
-            else:
-                user_id = [user.username]
-        elif not user.is_admin:
-            raise HTTPException(
-                status_code=status_codes.HTTP_403_FORBIDDEN,
-                detail="The token provided does not give admin privileges",
-            )
-    elif api_key:
-        provider_name = await api_key
-        if hardware_platform:
-            for hp in hardware_platform:
-                utils.check_provider_matches_platform(provider_name, hp)
-        else:
-            hardware_platform = PROVIDER_QUEUE_NAMES[provider_name]
-    else:
-        raise HTTPException(
-            status_code=status_codes.HTTP_401_UNAUTHORIZED,
-            detail="You must provide either a token or an API key",
-        )
+    user_id, hardware_platform = await _check_auth_for_list(
+        token, api_key, collab, user_id, hardware_platform, as_admin
+    )
     jobs = await db.query_jobs(
         status=status,
         tags=tags,
@@ -1046,7 +1053,8 @@ async def query_sessions(
         False, description="Run this query with admin privileges, if you have them"
     ),
     # from header
-    token: HTTPAuthorizationCredentials = Depends(auth),
+    token: HTTPAuthorizationCredentials = Depends(auth_optional),
+    api_key: APIKey = Depends(oauth.get_provider_optional),
 ):
     """
     Return a list of sessions
@@ -1056,33 +1064,9 @@ async def query_sessions(
     #   - if user_id is provided, it must contain _only_ the user's id
     #   - if collab is not provided, only the user's own sessions are returned
     #   - if collab is provided the user must be a member of all collabs in the list
-    user = await oauth.User.from_token(token.credentials)
-    if not as_admin:
-        if user_id:
-            if len(user_id) > 1:
-                raise HTTPException(
-                    status_code=status_codes.HTTP_400_BAD_REQUEST,
-                    detail="Only admins can directly query other users' sessions, try querying by collab",
-                )
-            elif user_id[0] != user.username:  # todo: also support user_id_v1
-                raise HTTPException(
-                    status_code=status_codes.HTTP_403_FORBIDDEN,
-                    detail=f"User id provided ({user_id[0]}) does not match authentication token ({user.username})",
-                )
-        if collab:
-            for cid in collab:
-                if not await user.can_view(cid):
-                    raise HTTPException(
-                        status_code=status_codes.HTTP_403_FORBIDDEN,
-                        detail=f"You do not have permission to view collab {cid}",
-                    )
-        else:
-            user_id = [user.username]
-    elif not user.is_admin:
-        raise HTTPException(
-            status_code=status_codes.HTTP_403_FORBIDDEN,
-            detail="The token provided does not give admin privileges",
-        )
+    user_id, hardware_platform = await _check_auth_for_list(
+        token, api_key, collab, user_id, hardware_platform, as_admin
+    )
     sessions = await db.query_sessions(
         status=status,
         collab=collab,
