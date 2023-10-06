@@ -44,7 +44,7 @@ async def _check_auth_for_list(token, api_key, collab, user_id, hardware_platfor
                 if len(user_id) > 1:
                     raise HTTPException(
                         status_code=status_codes.HTTP_400_BAD_REQUEST,
-                        detail="Only admins can directly query other users' sessions, try querying by collab",
+                        detail="Only admins can directly query other users' jobs or sessions, try querying by collab",
                     )
                 elif user_id[0] != user.username:  # todo: also support user_id_v1
                     raise HTTPException(
