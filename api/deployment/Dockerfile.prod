@@ -31,7 +31,7 @@ ENV PYTHONPATH  /home/docker:/home/docker/site:/usr/local/lib/python3.9/dist-pac
 
 RUN echo "daemon off;" >> /etc/nginx/nginx.conf
 RUN rm /etc/nginx/sites-enabled/default
-COPY deployment/nginx-app-staging.conf /etc/nginx/sites-enabled/nginx-app.conf
+COPY deployment/nginx-app-prod.conf /etc/nginx/sites-enabled/nginx-app.conf
 COPY deployment/supervisor-app.conf /etc/supervisor/conf.d/
 
 EXPOSE 443

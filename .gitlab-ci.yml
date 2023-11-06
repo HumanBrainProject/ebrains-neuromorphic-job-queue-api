@@ -89,3 +89,18 @@ test_job_queue_v3_staging:
   tags:
     - docker-runner
   image: docker-registry.ebrains.eu/neuromorphic/python:3.10-slim
+
+
+build_job_queue_v3_production:
+  stage: build
+  only:
+    variables:
+      - $CI_COMMIT_BRANCH == "api-v3"
+  script:
+    - bash get_build_info.sh api-v3
+    - docker build -f api/deployment/Dockerfile.prod -t docker-registry.ebrains.eu/neuromorphic/nmpi_queue_server_v3:prod api
+    - echo $DOCKER_REGISTRY_USER
+    - docker login -u $DOCKER_REGISTRY_USER -p $DOCKER_REGISTRY_SECRET docker-registry.ebrains.eu
+    - docker push docker-registry.ebrains.eu/neuromorphic/nmpi_queue_server_v3:prod
+  tags:
+    - shell-runner
