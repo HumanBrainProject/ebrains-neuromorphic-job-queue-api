@@ -93,6 +93,26 @@ async def test_job_lifetime(database_connection, adequate_quota, mocker, provide
     """
 
     mocker.patch("simqueue.data_repositories.download_file_to_tmp_dir", fake_download)
+    # first we check the job queue is empty
+    # if an error in a previous test run has left a submitted job, it may not be
+    # in that case, we set all submitted jobs to "error"
+    async with AsyncClient(app=app, base_url="http://test") as client:
+        response0 = await client.get(
+            f"/jobs/?status=submitted&hardware_platform={TEST_PLATFORM}", headers=provider_auth
+        )
+        assert response0.status_code == 200
+        queued_jobs = response0.json()
+        if len(queued_jobs) > 0:
+            for leftover_job in queued_jobs:
+                response00 = await client.put(
+                    leftover_job["resource_uri"],
+                    json={
+                        "status": "error",
+                        "log": "Job was left over from previous test failure.",
+                    },
+                    headers=provider_auth,
+                )
+                assert response00.status_code == 200
 
     # user submits a job
     initial_job_data = {

@@ -265,7 +265,7 @@ async def update_log(job_id, log):
         ins = logs.insert().values(job_id=job_id, content=log)
         await database.execute(ins)
     else:
-        ins = logs.update().where(jobs.c.id == job_id).values(content=log)
+        ins = logs.update().where(logs.c.job_id == job_id).values(content=log)
         await database.execute(ins)
 
     return
