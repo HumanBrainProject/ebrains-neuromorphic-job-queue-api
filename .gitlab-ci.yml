@@ -2,61 +2,31 @@ stages:
   - build
   - test
 
-build_job_queue_production:
+build_job_queue_v2:
   stage: build
   only:
     variables:
-      - $CI_COMMIT_BRANCH == "main"
+      - $CI_COMMIT_BRANCH == "api-v2"
   script:
-    - export  # debugging environment variables
-    - bash get_build_info.sh production
-    - docker build -f job_manager/Dockerfile.prod -t docker-registry.ebrains.eu/neuromorphic/nmpi_queue_server:prod .
+    - bash get_build_info.sh v2
+    - docker build -f job_manager/Dockerfile.prod -t docker-registry.ebrains.eu/neuromorphic/nmpi_queue_server:v2 .
     - echo $DOCKER_REGISTRY_USER
     - docker login -u $DOCKER_REGISTRY_USER -p $DOCKER_REGISTRY_SECRET docker-registry.ebrains.eu
-    - docker push docker-registry.ebrains.eu/neuromorphic/nmpi_queue_server:prod
+    - docker push docker-registry.ebrains.eu/neuromorphic/nmpi_queue_server:v2
   tags:
     - shell-runner
 
-build_job_queue_staging:
+build_quotas_v2:
   stage: build
   only:
     variables:
-      - $CI_COMMIT_BRANCH == "staging"
+      - $CI_COMMIT_BRANCH == "api-v2"
   script:
-    - bash get_build_info.sh staging
-    - docker build -f job_manager/Dockerfile.staging -t docker-registry.ebrains.eu/neuromorphic/nmpi_queue_server:staging .
+    - bash get_build_info.sh v2
+    - docker build -f resource_manager/Dockerfile.prod -t docker-registry.ebrains.eu/neuromorphic/nmpi_resource_manager:v2 .
     - echo $DOCKER_REGISTRY_USER
     - docker login -u $DOCKER_REGISTRY_USER -p $DOCKER_REGISTRY_SECRET docker-registry.ebrains.eu
-    - docker push docker-registry.ebrains.eu/neuromorphic/nmpi_queue_server:staging
-  tags:
-    - shell-runner
-
-build_quotas_production:
-  stage: build
-  only:
-    variables:
-      - $CI_COMMIT_BRANCH == "main"
-  script:
-    - export  # debugging environment variables
-    - bash get_build_info.sh production
-    - docker build -f resource_manager/Dockerfile.prod -t docker-registry.ebrains.eu/neuromorphic/nmpi_resource_manager:prod .
-    - echo $DOCKER_REGISTRY_USER
-    - docker login -u $DOCKER_REGISTRY_USER -p $DOCKER_REGISTRY_SECRET docker-registry.ebrains.eu
-    - docker push docker-registry.ebrains.eu/neuromorphic/nmpi_resource_manager:prod
-  tags:
-    - shell-runner
-
-build_quotas_staging:
-  stage: build
-  only:
-    variables:
-      - $CI_COMMIT_BRANCH == "staging"
-  script:
-    - bash get_build_info.sh staging
-    - docker build -f resource_manager/Dockerfile.staging -t docker-registry.ebrains.eu/neuromorphic/nmpi_resource_manager:staging .
-    - echo $DOCKER_REGISTRY_USER
-    - docker login -u $DOCKER_REGISTRY_USER -p $DOCKER_REGISTRY_SECRET docker-registry.ebrains.eu
-    - docker push docker-registry.ebrains.eu/neuromorphic/nmpi_resource_manager:staging
+    - docker push docker-registry.ebrains.eu/neuromorphic/nmpi_resource_manager:v2
   tags:
     - shell-runner
 
@@ -65,9 +35,9 @@ build_job_queue_v3_staging:
   stage: build
   only:
     variables:
-      - $CI_COMMIT_BRANCH == "api-v3"
+      - $CI_COMMIT_BRANCH == "staging"
   script:
-    - bash get_build_info.sh api-v3
+    - bash get_build_info.sh staging
     - docker build -f api/deployment/Dockerfile.staging -t docker-registry.ebrains.eu/neuromorphic/nmpi_queue_server_v3:staging api
     - echo $DOCKER_REGISTRY_USER
     - docker login -u $DOCKER_REGISTRY_USER -p $DOCKER_REGISTRY_SECRET docker-registry.ebrains.eu
@@ -80,7 +50,7 @@ test_job_queue_v3_staging:
   stage: test
   only:
     variables:
-      - $CI_COMMIT_BRANCH == "api-v3"
+      - $CI_COMMIT_BRANCH == "staging"
   script:
     - python3 -m pip install -r api/requirements.txt.lock
     - python3 -m pip install -r api/requirements_testing.txt
@@ -95,9 +65,9 @@ build_job_queue_v3_production:
   stage: build
   only:
     variables:
-      - $CI_COMMIT_BRANCH == "api-v3"
+      - $CI_COMMIT_BRANCH == "main"
   script:
-    - bash get_build_info.sh api-v3
+    - bash get_build_info.sh production
     - docker build -f api/deployment/Dockerfile.prod -t docker-registry.ebrains.eu/neuromorphic/nmpi_queue_server_v3:prod api
     - echo $DOCKER_REGISTRY_USER
     - docker login -u $DOCKER_REGISTRY_USER -p $DOCKER_REGISTRY_SECRET docker-registry.ebrains.eu
