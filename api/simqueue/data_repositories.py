@@ -1,8 +1,11 @@
 import os
+import uuid
 from urllib.request import urlretrieve, urlcleanup, HTTPError
 from urllib.parse import urlparse
 from ebrains_drive.client import DriveApiClient, BucketApiClient
 from ebrains_drive.exceptions import DoesNotExist
+
+from . import settings
 
 
 class SourceFileDoesNotExist(Exception):
@@ -142,6 +145,36 @@ class EBRAINSDrive:
         target_repository = ebrains_drive_client.repos.get_repo_by_url(collab_name)
         dir_obj = target_repository.get_dir(path)
         dir_obj.delete()
+
+    @classmethod
+    def get_download_url(cls, drive_uri, user):
+        access_token = user.token["access_token"]
+        ebrains_drive_client = DriveApiClient(token=access_token)
+        assert drive_uri.startswith("drive://")
+        path = drive_uri[len("drive://") :]
+
+        collab_name, *path_parts = path.split("/")
+        remote_path = "/".join([""] + path_parts)
+
+        target_repository = ebrains_drive_client.repos.get_repo_by_url(collab_name)
+        try:
+            dir_obj = target_repository.get_dir(remote_path)
+            # todo: add option to overwrite files
+        except DoesNotExist:
+            raise SourceFileDoesNotExist(drive_uri)
+        # generate a random name but repeatable name for the temporary file
+        try:
+            os.makedirs(settings.TMP_FILE_ROOT, exist_ok=True)
+        except PermissionError as err:
+            raise Exception(os.getcwd()) from err
+        zipfile_name = f"{uuid.uuid5(uuid.NAMESPACE_URL, drive_uri)}.zip"
+        if zipfile_name not in os.listdir(settings.TMP_FILE_ROOT):
+            # download zip of Drive directory contents
+            local_zipfile_path = os.path.join(settings.TMP_FILE_ROOT, zipfile_name)
+            _response = dir_obj.download(local_zipfile_path)
+        # todo: check the response
+
+        return f"{settings.TMP_FILE_URL}/{zipfile_name}"
 
 
 class EBRAINSBucket:

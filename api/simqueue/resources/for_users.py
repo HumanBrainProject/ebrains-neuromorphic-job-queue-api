@@ -25,7 +25,7 @@ from ..data_models import (
     Session,
     SessionStatus,
 )
-from ..data_repositories import SourceFileDoesNotExist, SourceFileIsTooBig
+from ..data_repositories import SourceFileDoesNotExist, SourceFileIsTooBig, EBRAINSDrive
 from .. import db, oauth, utils
 from ..globals import PROVIDER_QUEUE_NAMES
 
@@ -348,6 +348,27 @@ async def update_output_data(
     )
 
 
+def normalize_code(code, collab, user):
+    """
+    The code field may contain:
+        1. the Python code to be run
+        2. the URL of a public version control repository containing Python code,
+        3. the URL of a zip file containing Python code
+        4. the path to a directory within the Drive for the job's collab
+
+    In case 4, this function copies the contents of the Drive directory to a local
+    temporary directory, creates a zip archive, moves the zip archive to a location
+    on the job queue server from which it can be downloaded, and returns the URL.
+
+    In all other cases, the function returns the value of `code` unchanged.
+    """
+    if code.startswith("drive://"):
+        # todo: add original `code` field to job provenance
+        return EBRAINSDrive.get_download_url(code, user)
+    else:
+        return code
+
+
 @router.post("/jobs/", response_model=AcceptedJob, status_code=status_codes.HTTP_201_CREATED)
 async def create_job(
     job: SubmittedJob,
@@ -359,6 +380,10 @@ async def create_job(
     get_user_task = asyncio.create_task(oauth.User.from_token(token.credentials))
     user = await get_user_task
     if (as_admin and user.is_admin) or user.can_edit(job.collab):
+        try:
+            job.code = normalize_code(job.code, job.collab, user)
+        except SourceFileDoesNotExist as err:
+            raise HTTPException(status_code=status_codes.HTTP_400_BAD_REQUEST, detail=str(err))
         proceed = await utils.check_quotas(job.collab, job.hardware_platform, user=user.username)
         if proceed:
             accepted_job = await db.create_job(user_id=user.username, job=job.to_db())
