@@ -17,19 +17,6 @@ build_job_queue_production:
   tags:
     - shell-runner
 
-build_job_queue_staging:
-  stage: build
-  only:
-    variables:
-      - $CI_COMMIT_BRANCH == "staging"
-  script:
-    - bash get_build_info.sh staging
-    - docker build -f job_manager/Dockerfile.staging -t docker-registry.ebrains.eu/neuromorphic/nmpi_queue_server:staging .
-    - echo $DOCKER_REGISTRY_USER
-    - docker login -u $DOCKER_REGISTRY_USER -p $DOCKER_REGISTRY_SECRET docker-registry.ebrains.eu
-    - docker push docker-registry.ebrains.eu/neuromorphic/nmpi_queue_server:staging
-  tags:
-    - shell-runner
 
 build_quotas_production:
   stage: build
@@ -46,28 +33,14 @@ build_quotas_production:
   tags:
     - shell-runner
 
-build_quotas_staging:
+
+build_job_queue_v3_staging:
   stage: build
   only:
     variables:
       - $CI_COMMIT_BRANCH == "staging"
   script:
     - bash get_build_info.sh staging
-    - docker build -f resource_manager/Dockerfile.staging -t docker-registry.ebrains.eu/neuromorphic/nmpi_resource_manager:staging .
-    - echo $DOCKER_REGISTRY_USER
-    - docker login -u $DOCKER_REGISTRY_USER -p $DOCKER_REGISTRY_SECRET docker-registry.ebrains.eu
-    - docker push docker-registry.ebrains.eu/neuromorphic/nmpi_resource_manager:staging
-  tags:
-    - shell-runner
-
-
-build_job_queue_v3_staging:
-  stage: build
-  only:
-    variables:
-      - $CI_COMMIT_BRANCH == "api-v3"
-  script:
-    - bash get_build_info.sh api-v3
     - docker build -f api/deployment/Dockerfile.staging -t docker-registry.ebrains.eu/neuromorphic/nmpi_queue_server_v3:staging api
     - echo $DOCKER_REGISTRY_USER
     - docker login -u $DOCKER_REGISTRY_USER -p $DOCKER_REGISTRY_SECRET docker-registry.ebrains.eu
@@ -80,7 +53,7 @@ test_job_queue_v3_staging:
   stage: test
   only:
     variables:
-      - $CI_COMMIT_BRANCH == "api-v3"
+      - $CI_COMMIT_BRANCH == "staging"
   script:
     - python3 -m pip install -r api/requirements.txt.lock
     - python3 -m pip install -r api/requirements_testing.txt

@@ -25,7 +25,7 @@ from ..data_models import (
     Session,
     SessionStatus,
 )
-from ..data_repositories import SourceFileDoesNotExist, SourceFileIsTooBig
+from ..data_repositories import SourceFileDoesNotExist, SourceFileIsTooBig, EBRAINSDrive
 from .. import db, oauth, utils
 from ..globals import PROVIDER_QUEUE_NAMES
 
@@ -362,7 +362,11 @@ def normalize_code(code, collab, user):
 
     In all other cases, the function returns the value of `code` unchanged.
     """
-    raise NotImplementedError
+    if code.startswith("drive://"):
+        # todo: add original `code` field to job provenance
+        return EBRAINSDrive.get_download_url(code, user)
+    else:
+        return code
 
 
 @router.post("/jobs/", response_model=AcceptedJob, status_code=status_codes.HTTP_201_CREATED)
@@ -376,7 +380,10 @@ async def create_job(
     get_user_task = asyncio.create_task(oauth.User.from_token(token.credentials))
     user = await get_user_task
     if (as_admin and user.is_admin) or user.can_edit(job.collab):
-        job.code = normalize_code(job.code, job.collab, user)
+        try:
+            job.code = normalize_code(job.code, job.collab, user)
+        except SourceFileDoesNotExist as err:
+            raise HTTPException(status_code=status_codes.HTTP_400_BAD_REQUEST, detail=str(err))
         proceed = await utils.check_quotas(job.collab, job.hardware_platform, user=user.username)
         if proceed:
             accepted_job = await db.create_job(user_id=user.username, job=job.to_db())

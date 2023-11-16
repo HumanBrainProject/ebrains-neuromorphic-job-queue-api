@@ -13,3 +13,5 @@ DATABASE_PORT = os.environ.get("NMPI_DATABASE_PORT")
 BASE_URL = os.environ.get("NMPI_BASE_URL")
 # ADMIN_GROUP_ID = ""
 AUTHENTICATION_TIMEOUT = 20
+TMP_FILE_URL = os.environ.get("NMPI_BASE_URL") + "/tmp_download"
+TMP_FILE_ROOT = "tmp_download"
