@@ -19,3 +19,4 @@ services:
       - NMPI_DATABASE_HOST=
       - NMPI_DATABASE_PORT=
       - NMPI_BASE_URL=https://nmpi-v3-staging.hbpneuromorphic.eu
+      - NMPI_TMP_FILE_ROOT=/home/docker/site/tmp_download
