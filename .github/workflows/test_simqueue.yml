@@ -2,7 +2,7 @@ name: Test simqueue API
 
 on:
   push:
-    branches: [ "api-v3" ]
+    branches: [ "master" ]
 
 permissions:
   contents: read
