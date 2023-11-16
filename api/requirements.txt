@@ -1,0 +1,13 @@
+urllib3 <=1.26.15
+uvicorn
+fastapi
+itsdangerous
+Authlib
+httpx
+databases[postgresql]
+sqlalchemy
+pytz
+requests
+numpy
+python-slugify
+ebrains-drive

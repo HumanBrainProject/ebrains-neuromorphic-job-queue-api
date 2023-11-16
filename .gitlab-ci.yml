@@ -1,5 +1,6 @@
 stages:
   - build
+  - test
 
 build_job_queue_production:
   stage: build
@@ -56,5 +57,50 @@ build_quotas_staging:
     - echo $DOCKER_REGISTRY_USER
     - docker login -u $DOCKER_REGISTRY_USER -p $DOCKER_REGISTRY_SECRET docker-registry.ebrains.eu
     - docker push docker-registry.ebrains.eu/neuromorphic/nmpi_resource_manager:staging
+  tags:
+    - shell-runner
+
+
+build_job_queue_v3_staging:
+  stage: build
+  only:
+    variables:
+      - $CI_COMMIT_BRANCH == "api-v3"
+  script:
+    - bash get_build_info.sh api-v3
+    - docker build -f api/deployment/Dockerfile.staging -t docker-registry.ebrains.eu/neuromorphic/nmpi_queue_server_v3:staging api
+    - echo $DOCKER_REGISTRY_USER
+    - docker login -u $DOCKER_REGISTRY_USER -p $DOCKER_REGISTRY_SECRET docker-registry.ebrains.eu
+    - docker push docker-registry.ebrains.eu/neuromorphic/nmpi_queue_server_v3:staging
+  tags:
+    - shell-runner
+
+
+test_job_queue_v3_staging:
+  stage: test
+  only:
+    variables:
+      - $CI_COMMIT_BRANCH == "api-v3"
+  script:
+    - python3 -m pip install -r api/requirements.txt.lock
+    - python3 -m pip install -r api/requirements_testing.txt
+    - cd api
+    - python3 -m pytest -v --cov=simqueue --cov-report=term
+  tags:
+    - docker-runner
+  image: docker-registry.ebrains.eu/neuromorphic/python:3.10-slim
+
+
+build_job_queue_v3_production:
+  stage: build
+  only:
+    variables:
+      - $CI_COMMIT_BRANCH == "api-v3"
+  script:
+    - bash get_build_info.sh api-v3
+    - docker build -f api/deployment/Dockerfile.prod -t docker-registry.ebrains.eu/neuromorphic/nmpi_queue_server_v3:prod api
+    - echo $DOCKER_REGISTRY_USER
+    - docker login -u $DOCKER_REGISTRY_USER -p $DOCKER_REGISTRY_SECRET docker-registry.ebrains.eu
+    - docker push docker-registry.ebrains.eu/neuromorphic/nmpi_queue_server_v3:prod
   tags:
     - shell-runner

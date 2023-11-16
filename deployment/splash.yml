@@ -1,3 +1,0 @@
-image: cnrsunic/neuromorphic_splash
-ports:
-  443: 443

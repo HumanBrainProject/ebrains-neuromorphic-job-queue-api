@@ -1,8 +1,0 @@
-image: cnrsunic/nmpi_queue_server
-ports:
-    443: 443
-env: [DEBUG,
-      NMPI_DATABASE_HOST,
-      NMPI_DATABASE_PORT]
-volumes: ["/etc/letsencrypt"]
-dockerfile: job_manager/Dockerfile

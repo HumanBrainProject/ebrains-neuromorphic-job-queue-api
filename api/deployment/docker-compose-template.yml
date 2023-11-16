@@ -1,0 +1,21 @@
+version: '3'
+services:
+  web:
+    image: docker-registry.ebrains.eu/neuromorphic/nmpi_queue_server_v3:staging
+    container_name: nmpi-v3
+    build:
+      context: .
+      dockerfile: deployment/Dockerfile.staging
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - /etc/letsencrypt:/etc/letsencrypt
+    environment:
+      - EBRAINS_IAM_CLIENT_ID=
+      - EBRAINS_IAM_SECRET=
+      - SESSIONS_SECRET_KEY=
+      - NMPI_DATABASE_PASSWORD=
+      - NMPI_DATABASE_HOST=
+      - NMPI_DATABASE_PORT=
+      - NMPI_BASE_URL=https://nmpi-v3-staging.hbpneuromorphic.eu
