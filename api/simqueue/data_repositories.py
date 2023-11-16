@@ -163,7 +163,10 @@ class EBRAINSDrive:
         except DoesNotExist:
             raise SourceFileDoesNotExist(drive_uri)
         # generate a random name but repeatable name for the temporary file
-        os.makedirs(settings.TMP_FILE_ROOT, exist_ok=True)
+        try:
+            os.makedirs(settings.TMP_FILE_ROOT, exist_ok=True)
+        except PermissionError as err:
+            raise Exception(os.getcwd()) from err
         zipfile_name = f"{uuid.uuid5(uuid.NAMESPACE_URL, drive_uri)}.zip"
         if zipfile_name not in os.listdir(settings.TMP_FILE_ROOT):
             # download zip of Drive directory contents
