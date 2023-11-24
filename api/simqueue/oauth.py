@@ -20,7 +20,7 @@ oauth.register(
     client_secret=settings.EBRAINS_IAM_SECRET,
     userinfo_endpoint=f"{settings.EBRAINS_IAM_SERVICE_URL}/protocol/openid-connect/userinfo",
     client_kwargs={
-        "scope": "openid profile collab.drive clb.drive:read clb.drive:write group team web-origins roles email",
+        "scope": "openid profile collab.drive group team roles email",
         "trust_env": False,
         "timeout": Timeout(timeout=settings.AUTHENTICATION_TIMEOUT),
     },
