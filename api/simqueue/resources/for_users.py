@@ -26,7 +26,7 @@ from ..data_models import (
     SessionStatus,
 )
 from ..data_repositories import SourceFileDoesNotExist, SourceFileIsTooBig, EBRAINSDrive
-from .. import db, oauth, utils
+from .. import db, oauth, utils, settings
 from ..globals import PROVIDER_QUEUE_NAMES
 
 logger = logging.getLogger("simqueue")
@@ -86,6 +86,11 @@ def about_this_api():
         "about": "This is the EBRAINS Neuromorphic Computing Job Queue API.",
         "version": "3",
         "links": {"documentation": "/docs"},
+        "authentication": {
+            "server": settings.EBRAINS_IAM_SERVICE_URL,
+            "client-id": settings.EBRAINS_IAM_CLIENT_ID,
+            "collaboratory": settings.EBRAINS_COLLAB_SERVICE_URL,
+        },
     }
 
 
