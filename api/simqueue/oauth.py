@@ -15,10 +15,10 @@ oauth = OAuth()
 
 oauth.register(
     name="ebrains",
-    server_metadata_url=settings.EBRAINS_IAM_CONF_URL,
+    server_metadata_url=f"{settings.EBRAINS_IAM_SERVICE_URL}/.well-known/openid-configuration",
     client_id=settings.EBRAINS_IAM_CLIENT_ID,
     client_secret=settings.EBRAINS_IAM_SECRET,
-    userinfo_endpoint=f"{settings.HBP_IDENTITY_SERVICE_URL}/userinfo",
+    userinfo_endpoint=f"{settings.EBRAINS_IAM_SERVICE_URL}/protocol/openid-connect/userinfo",
     client_kwargs={
         "scope": "openid profile collab.drive clb.drive:read clb.drive:write group team web-origins roles email",
         "trust_env": False,
@@ -28,7 +28,7 @@ oauth.register(
 
 
 async def get_collab_info(collab, token):
-    collab_info_url = f"{settings.HBP_COLLAB_SERVICE_URL}collabs/{collab}"
+    collab_info_url = f"{settings.EBRAINS_COLLAB_SERVICE_URL}collabs/{collab}"
     headers = {"Authorization": f"Bearer {token}"}
     res = requests.get(collab_info_url, headers=headers)
     response = res.json()
