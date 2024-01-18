@@ -347,7 +347,7 @@ class ProjectSubmission(BaseModel):
             "collab": self.collab,
             "title": self.title,
             "abstract": self.abstract,
-            "description": self.description,
+            "description": self.description or "",
             "accepted": False,
             "owner": owner,
         }
