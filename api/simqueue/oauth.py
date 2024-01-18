@@ -80,7 +80,7 @@ class User:
             role: f"collab-{collab}-{role}" for role in ("viewer", "editor", "administrator")
         }
         for role, team_name in target_team_names.items():
-            if team_name in self.roles["team"]:
+            if team_name in self.roles.get("team", []):
                 return True
         # if that fails, check if it's a public collab
         try:
@@ -95,12 +95,14 @@ class User:
             role: f"collab-{collab}-{role}" for role in ("editor", "administrator")
         }
         for role, team_name in target_team_names.items():
-            if team_name in self.roles["team"]:
+            if team_name in self.roles.get("team", []):
                 return True
 
     def get_collabs(self, access=["viewer", "editor", "administrator"]):
         collabs = set()
-        for team_access in self.roles["team"]:
+        for team_access in self.roles.get("team", []):
+            # note, if team information is missing from userinfo that means
+            # the user is not a member of any collab
             parts = team_access.split("-")
             assert parts[0] == "collab"
             collab = "-".join(parts[1:-1])

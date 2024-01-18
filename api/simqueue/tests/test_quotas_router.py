@@ -248,9 +248,24 @@ def test_get_project(mocker):
     assert simqueue.db.get_project.await_args.args == expected_args
 
 
+mock_project = {
+    "collab": "my-collab",
+    "title": "testing Collaboratory v2 integration",
+    "abstract": "abstract goes here",
+    "description": "dddddd",
+    "context": "3da3e111-6a73-4a78-a850-67fabd524cba",
+    "owner": "haroldlloyd",
+    "duration": 0,
+    "submission_date": None,
+    "decision_date": None,
+    "start_date": None,
+    "accepted": False,
+}
+
+
 def test_create_project_asmember(mocker):
     mocker.patch("simqueue.oauth.User", MockUser)
-    mocker.patch("simqueue.db.create_project")
+    mocker.patch("simqueue.db.create_project", return_value=mock_project)
 
     datap = {
         "collab": "my-collab",

@@ -803,7 +803,7 @@ async def query_quotas(
 ):
     query = quotas.select()
     if project_id:
-        query = query.where(quotas.c.project_id == str(project_id))
+        query = query.where(quotas.c.project_id == project_id)
     if platform:
         query = query.where(quotas.c.platform == platform)
     query = query.offset(from_index).limit(size)

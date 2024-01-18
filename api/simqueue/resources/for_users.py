@@ -792,7 +792,7 @@ async def delete_project(
 
     if project is not None:
         if (as_admin and user.is_admin) or user.can_edit(project["collab"]):
-            if await db.query_quotas([project_id]) is not None:
+            if await db.query_quotas(project_id) is not None:
                 await db.delete_quotas_from_project(str(project_id))
             await db.delete_project(str(project_id))
         else:
@@ -867,7 +867,8 @@ async def create_project(
             status_code=status_codes.HTTP_403_FORBIDDEN,
             detail="You do not have permisson to create projects in this Collab",
         )
-    await db.create_project(project)
+    created_project = await db.create_project(project)
+    return Project.from_db(created_project)
 
 
 @router.get("/projects/{project_id}/quotas/", response_model=List[Quota])
@@ -999,9 +1000,12 @@ async def query_collabs(
             status_code=status_codes.HTTP_501_NOT_IMPLEMENTED,
             detail="This option has not been implemented yet",
         )
-    projects = await db.query_projects(
-        status=status, collab=collabs, owner=None, from_index=from_index, size=size
-    )
+    if collabs:
+        projects = await db.query_projects(
+            status=status, collab=collabs, owner=None, from_index=from_index, size=size
+        )
+    else:
+        projects = []
     collabs = set(prj["collab"] for prj in projects)
     return sorted(collabs)
 
