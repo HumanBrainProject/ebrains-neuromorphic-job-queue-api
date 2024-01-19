@@ -99,14 +99,21 @@ class DemoTemporaryStorage:
 
 class EBRAINSDrive:
     name = "EBRAINS Drive"
-    host = "drive.ebrains.eu"
+    host = settings.EBRAINS_DRIVE_SERVICE_URL
     modes = ("read", "write")
     size_limit = 1.0  # GiB
 
     @classmethod
+    def _get_client(cls, token):
+        env = ""
+        if "-int." in cls.host:
+            env = "int"
+        return DriveApiClient(token=token, env=env)
+
+    @classmethod
     def copy(cls, file, user, collab=None):
         access_token = user.token["access_token"]
-        ebrains_drive_client = DriveApiClient(token=access_token)
+        ebrains_drive_client = cls._get_client(token=access_token)
 
         path_parts = file.path.split("/")
         if collab:
@@ -141,7 +148,7 @@ class EBRAINSDrive:
     @classmethod
     def _delete(cls, collab_name, path, access_token):
         # private method for use by test framework to clean up
-        ebrains_drive_client = DriveApiClient(token=access_token)
+        ebrains_drive_client = cls._get_client(token=access_token)
         target_repository = ebrains_drive_client.repos.get_repo_by_url(collab_name)
         dir_obj = target_repository.get_dir(path)
         dir_obj.delete()
@@ -149,7 +156,7 @@ class EBRAINSDrive:
     @classmethod
     def get_download_url(cls, drive_uri, user):
         access_token = user.token["access_token"]
-        ebrains_drive_client = DriveApiClient(token=access_token)
+        ebrains_drive_client = cls._get_client(token=access_token)
         assert drive_uri.startswith("drive://")
         path = drive_uri[len("drive://") :]
 
@@ -179,12 +186,19 @@ class EBRAINSDrive:
 
 class EBRAINSBucket:
     name = "EBRAINS Bucket"
-    host = "data-proxy.ebrains.eu"
+    host = settings.EBRAINS_BUCKET_SERVICE_URL
     modes = ("read", "write")
 
-    def copy(file, user, collab=None):
+    @classmethod
+    def _get_client(cls, token):
+        env = ""
+        if "-int." in cls.host:
+            pass  # env = "int"  # non-prod env not yet implemented in ebrains_drive
+        return BucketApiClient(token=token, env=env)
+
+    def copy(cls, file, user, collab=None):
         access_token = user.token["access_token"]
-        ebrains_bucket_client = BucketApiClient(token=access_token)
+        ebrains_bucket_client = cls._get_client(token=access_token)
 
         if collab:
             collab_name = collab
@@ -208,7 +222,7 @@ class EBRAINSBucket:
     @classmethod
     def _delete(cls, collab_name, path, access_token):
         # private method for use by test framework to clean up
-        ebrains_bucket_client = BucketApiClient(token=access_token)
+        ebrains_bucket_client = cls._get_client(token=access_token)
         bucket = ebrains_bucket_client.buckets.get_bucket(collab_name)
         file_obj = bucket.get_file(path)
         file_obj.delete()

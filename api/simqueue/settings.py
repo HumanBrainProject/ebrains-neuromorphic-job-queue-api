@@ -6,6 +6,8 @@ EBRAINS_IAM_SERVICE_URL = os.environ.get(
 EBRAINS_COLLAB_SERVICE_URL = os.environ.get(
     "EBRAINS_COLLAB_SERVICE_URL", "https://wiki.ebrains.eu/rest/v1/"
 )
+EBRAINS_DRIVE_SERVICE_URL = os.environ.get("EBRAINS_DRIVE_SERVICE_URL", "drive.ebrains.eu")
+EBRAINS_BUCKET_SERVICE_URL = os.environ.get("EBRAINS_BUCKET_SERVICE_URL", "data-proxy.ebrains.eu")
 EBRAINS_IAM_CLIENT_ID = os.environ.get("EBRAINS_IAM_CLIENT_ID")
 EBRAINS_IAM_SECRET = os.environ.get("EBRAINS_IAM_SECRET")
 SESSIONS_SECRET_KEY = os.environ.get("SESSIONS_SECRET_KEY")
