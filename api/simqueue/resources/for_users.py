@@ -335,7 +335,7 @@ async def update_output_data(
             )
 
         try:
-            return original_dataset.move_to(
+            updated_dataset_result = original_dataset.move_to(
                 updated_dataset.repository, user, collab=job["collab_id"]
             )
         except ValueError as err:  # requested repository does not exist
@@ -346,6 +346,11 @@ async def update_output_data(
             raise HTTPException(status_code=status_codes.HTTP_406_NOT_ACCEPTABLE, detail=str(err))
         except SourceFileDoesNotExist as err:
             raise HTTPException(status_code=status_codes.HTTP_410_GONE, detail=str(err))
+
+        # now update the job
+        await db.update_job_output_data_item(job_id, updated_dataset_result.to_db())
+
+        return updated_dataset_result
 
     raise HTTPException(
         status_code=status_codes.HTTP_404_NOT_FOUND,

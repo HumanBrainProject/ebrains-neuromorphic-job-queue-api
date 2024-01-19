@@ -248,7 +248,7 @@ async def create_job_input_data_item(job_id, input_data):
     return
 
 
-async def update_job_output_data_item(job_id, output_data):
+async def create_job_output_data_item(job_id, output_data):
     for item in output_data:
         ins_data_item = data_items.insert().values(**item)
         data_item_id = await database.execute(ins_data_item)
@@ -256,6 +256,23 @@ async def update_job_output_data_item(job_id, output_data):
         await database.execute(ins_job_output)
 
     return
+
+
+async def update_job_output_data_item(job_id, output_data):
+    for item in output_data:
+        if "hash" in item:
+            ins = (
+                data_items.update()
+                .where(
+                    data_items.c.id == job_output_data.c.dataitem_id,
+                    job_output_data.c.job_id == job_id,
+                    data_items.c.hash == item["hash"],
+                )
+                .values(**item)
+            )
+            await database.execute(ins)
+        else:
+            raise ValueError("Modification of data items without hashes not yet implemented.")
 
 
 async def update_log(job_id, log):
@@ -392,7 +409,7 @@ async def update_job(job_id: int, job_patch: dict):
             raise PostgresSyntaxError(f"job_patch was {job_patch}") from err
 
     if output_data:
-        await update_job_output_data_item(job_id, output_data)
+        await create_job_output_data_item(job_id, output_data)
     if log:
         await update_log(job_id, log)
     return await get_job(job_id)
