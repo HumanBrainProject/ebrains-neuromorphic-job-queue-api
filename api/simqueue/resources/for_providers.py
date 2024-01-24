@@ -2,7 +2,7 @@ from uuid import UUID
 import logging
 import asyncio
 
-from fastapi import APIRouter, Depends, Path, HTTPException, status as status_codes
+from fastapi import APIRouter, Depends, Path, Request, HTTPException, status as status_codes
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from fastapi.security.api_key import APIKey
 
@@ -75,7 +75,7 @@ async def update_job(
 
 @router.put("/jobs/{job_id}/log", status_code=status_codes.HTTP_200_OK)
 async def replace_log(
-    log_update: str,
+    request: Request,
     job_id: int = Path(
         ..., title="Job ID", description="ID of the job whose log should be updated"
     ),
@@ -95,13 +95,14 @@ async def replace_log(
             detail=f"Either there is no job with id {job_id}, or you do not have access to it",
         )
     utils.check_provider_matches_platform(provider_name, job["hardware_platform"])
-    result = await db.update_log(job_id, log_update, append=False)
+    log_update = await request.body()
+    result = await db.update_log(job_id, log_update.decode("utf-8"), append=False)
     return result
 
 
 @router.patch("/jobs/{job_id}/log", status_code=status_codes.HTTP_200_OK)
 async def append_to_log(
-    log_update: str,
+    request: Request,
     job_id: int = Path(
         ..., title="Job ID", description="ID of the job whose log should be updated"
     ),
@@ -121,7 +122,8 @@ async def append_to_log(
             detail=f"Either there is no job with id {job_id}, or you do not have access to it",
         )
     utils.check_provider_matches_platform(provider_name, job["hardware_platform"])
-    result = await db.update_log(job_id, log_update, append=True)
+    log_update = await request.body()
+    result = await db.update_log(job_id, log_update.decode("utf-8"), append=True)
     return result
 
 
