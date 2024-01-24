@@ -4,7 +4,15 @@ from datetime import date
 import logging
 import asyncio
 
-from fastapi import APIRouter, Depends, Query, Path, HTTPException, status as status_codes
+from fastapi import (
+    APIRouter,
+    Depends,
+    Query,
+    Path,
+    HTTPException,
+    status as status_codes,
+)
+from fastapi.responses import PlainTextResponse
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from fastapi.security.api_key import APIKey
 
@@ -199,7 +207,7 @@ async def get_job(
     )
 
 
-@router.get("/jobs/{job_id}/log", response_model=str)
+@router.get("/jobs/{job_id}/log", response_class=PlainTextResponse)
 async def get_log(
     job_id: int = Path(
         ..., title="Job ID", description="ID of the job whose log is to be retrieved"
