@@ -168,7 +168,12 @@ class EBRAINSDrive:
             dir_obj = target_repository.get_dir(remote_path)
             # todo: add option to overwrite files
         except DoesNotExist:
-            raise SourceFileDoesNotExist(drive_uri)
+            errmsg = (
+                f"Tried to get download URL for {remote_path} in collab {collab_name} "
+                f"from {ebrains_drive_client.server} but this path does not exist. "
+                f"(Drive URI was {drive_uri})"
+            )
+            raise SourceFileDoesNotExist(errmsg)
         # generate a random name but repeatable name for the temporary file
         try:
             os.makedirs(settings.TMP_FILE_ROOT, exist_ok=True)
