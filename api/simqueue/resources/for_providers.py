@@ -73,6 +73,58 @@ async def update_job(
     return result
 
 
+@router.put("/jobs/{job_id}/log", status_code=status_codes.HTTP_200_OK)
+async def replace_log(
+    log_update: str,
+    job_id: int = Path(
+        ..., title="Job ID", description="ID of the job whose log should be updated"
+    ),
+    api_key: APIKey = Depends(oauth.get_provider),
+):
+    """
+    For use by job handlers to update job logs by replacing the existing content.
+    This is available as a separate endpoint since logs can be very large,
+    and so might need separate error handling.
+    """
+
+    provider_name = await api_key
+    job = await db.get_job(job_id)
+    if job is None:
+        raise HTTPException(
+            status_code=status_codes.HTTP_404_NOT_FOUND,
+            detail=f"Either there is no job with id {job_id}, or you do not have access to it",
+        )
+    utils.check_provider_matches_platform(provider_name, job["hardware_platform"])
+    result = await db.update_log(job_id, log_update, append=False)
+    return result
+
+
+@router.patch("/jobs/{job_id}/log", status_code=status_codes.HTTP_200_OK)
+async def append_to_log(
+    log_update: str,
+    job_id: int = Path(
+        ..., title="Job ID", description="ID of the job whose log should be updated"
+    ),
+    api_key: APIKey = Depends(oauth.get_provider),
+):
+    """
+    For use by job handlers to update job logs by appending to the existing content.
+    This is available as a separate endpoint since logs can be very large,
+    and so might need separate error handling.
+    """
+
+    provider_name = await api_key
+    job = await db.get_job(job_id)
+    if job is None:
+        raise HTTPException(
+            status_code=status_codes.HTTP_404_NOT_FOUND,
+            detail=f"Either there is no job with id {job_id}, or you do not have access to it",
+        )
+    utils.check_provider_matches_platform(provider_name, job["hardware_platform"])
+    result = await db.update_log(job_id, log_update, append=True)
+    return result
+
+
 @router.put("/projects/{project_id}/quotas/{quota_id}", status_code=status_codes.HTTP_200_OK)
 async def update_quota(
     quota_update: QuotaUpdate,

@@ -275,13 +275,15 @@ async def update_job_output_data_item(job_id, output_data):
             raise ValueError("Modification of data items without hashes not yet implemented.")
 
 
-async def update_log(job_id, log):
+async def update_log(job_id, log, append=False):
     query = logs.select().where(logs.c.job_id == job_id)
     result = await database.fetch_one(query)
     if result is None:
         ins = logs.insert().values(job_id=job_id, content=log)
         await database.execute(ins)
     else:
+        if append:
+            log = result["log"] + log
         ins = logs.update().where(logs.c.job_id == job_id).values(content=log)
         await database.execute(ins)
 
