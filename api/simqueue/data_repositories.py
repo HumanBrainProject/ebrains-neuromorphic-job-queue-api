@@ -2,6 +2,7 @@ import os
 import uuid
 from urllib.request import urlretrieve, urlcleanup, HTTPError
 from urllib.parse import urlparse
+import zipfile
 from ebrains_drive.client import DriveApiClient, BucketApiClient
 from ebrains_drive.exceptions import DoesNotExist
 
@@ -168,25 +169,37 @@ class EBRAINSDrive:
             dir_obj = target_repository.get_dir(remote_path)
             # todo: add option to overwrite files
         except DoesNotExist:
-            errmsg = (
-                f"Tried to get download URL for {remote_path} in collab {collab_name} "
-                f"from {ebrains_drive_client.server} but this path does not exist. "
-                f"(Drive URI was {drive_uri})"
-            )
-            raise SourceFileDoesNotExist(errmsg)
-        # generate a random name but repeatable name for the temporary file
+            dir_obj = None
+            try:
+                file_obj = target_repository.get_file(remote_path)
+            except DoesNotExist:
+                errmsg = (
+                    f"Tried to get download URL for {remote_path} in collab {collab_name} "
+                    f"from {ebrains_drive_client.server} but this path does not exist. "
+                    f"(Drive URI was {drive_uri})"
+                )
+                raise SourceFileDoesNotExist(errmsg)
+
+        # generate a random but repeatable name for the temporary file
         try:
             os.makedirs(settings.TMP_FILE_ROOT, exist_ok=True)
         except PermissionError as err:
             raise Exception(os.getcwd()) from err
-        zipfile_name = f"{uuid.uuid5(uuid.NAMESPACE_URL, drive_uri)}.zip"
-        if zipfile_name not in os.listdir(settings.TMP_FILE_ROOT):
-            # download zip of Drive directory contents
-            local_zipfile_path = os.path.join(settings.TMP_FILE_ROOT, zipfile_name)
-            _response = dir_obj.download(local_zipfile_path)
-        # todo: check the response
 
-        return f"{settings.TMP_FILE_URL}/{zipfile_name}"
+        zip_file_name = f"{uuid.uuid5(uuid.NAMESPACE_URL, drive_uri)}.zip"
+        if zip_file_name not in os.listdir(settings.TMP_FILE_ROOT):
+            local_zip_file_path = os.path.join(settings.TMP_FILE_ROOT, zip_file_name)
+            if dir_obj:
+                # download zip of Drive directory contents
+                _response = dir_obj.download(local_zip_file_path)
+                # todo: check the response
+            else:
+                # create a zip archive and put the remote file in it
+                with zipfile.ZipFile(local_zip_file_path, mode="x") as zf:
+                    with zf.open(path_parts[-1], "w") as fp:
+                        fp.write(file_obj.get_content())
+
+        return f"{settings.TMP_FILE_URL}/{zip_file_name}"
 
 
 class EBRAINSBucket:
