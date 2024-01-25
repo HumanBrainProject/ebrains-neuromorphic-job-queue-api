@@ -24,7 +24,8 @@ async def delete_job(
     token: HTTPAuthorizationCredentials = Depends(auth),
 ):
     """
-    For use by job handlers to delete job metadata
+    If called normally this sets the job status to "removed".
+    If called by an admin with "?as_admin=true", the job is completely deleted from the database.
     """
 
     get_user_task = asyncio.create_task(oauth.User.from_token(token.credentials))
@@ -36,14 +37,19 @@ async def delete_job(
             status_code=status_codes.HTTP_404_NOT_FOUND,
             detail=f"Either there is no job with id {job_id}, or you do not have access to it",
         )
-    if (as_admin and user.is_admin) or job["user_id"] == user.username:
+    if as_admin and user.is_admin:
         result = await db.delete_job(job_id)
         return result
 
-    raise HTTPException(
-        status_code=status_codes.HTTP_404_NOT_FOUND,
-        detail=f"Either there is no job with id {job_id}, or you do not have access to it",
-    )
+    access_allowed = job["user_id"] == user.username or await user.can_edit(job["collab_id"])
+    if access_allowed:
+        result = await db.update_job(job_id, {"status": "removed"})
+        return None
+    else:
+        raise HTTPException(
+            status_code=status_codes.HTTP_404_NOT_FOUND,
+            detail=f"Either there is no job with id {job_id}, or you do not have access to it",
+        )
 
 
 @router.post("/projects/{project_id}/quotas/", status_code=status_codes.HTTP_201_CREATED)
@@ -57,7 +63,6 @@ async def create_quota(
     # from header
     token: HTTPAuthorizationCredentials = Depends(auth),
 ):
-
     get_user_task = asyncio.create_task(oauth.User.from_token(token.credentials))
     get_project_task = asyncio.create_task(db.get_project(project_id))
     user = await get_user_task
