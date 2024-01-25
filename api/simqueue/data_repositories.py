@@ -214,6 +214,7 @@ class EBRAINSBucket:
             pass  # env = "int"  # non-prod env not yet implemented in ebrains_drive
         return BucketApiClient(token=token, env=env)
 
+    @classmethod
     def copy(cls, file, user, collab=None):
         access_token = user.token["access_token"]
         ebrains_bucket_client = cls._get_client(token=access_token)
