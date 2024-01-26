@@ -308,8 +308,11 @@ async def query_jobs(
     fields: List[str] = None,
     from_index: int = 0,
     size: int = 10,
+    exclude_removed=False,
 ):
     filters = []
+    if exclude_removed:
+        filters.append(jobs.c.status != "removed")
     if status:
         filters.append(get_list_filter(jobs.c.status, status))
     if user_id:

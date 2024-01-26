@@ -143,6 +143,7 @@ async def query_jobs(
         date_range_end=date_range_end,
         from_index=from_index,
         size=size,
+        exclude_removed=True,
     )
 
     return [Job.from_db(job) for job in jobs]
