@@ -193,7 +193,9 @@ async def start_session(
 ):
     provider_name = await api_key
     utils.check_provider_matches_platform(provider_name, session.hardware_platform)
-    proceed = await utils.check_quotas(session.collab, session.hardware_platform)
+    proceed = await utils.check_quotas(
+        session.collab, session.hardware_platform, user=session.user_id
+    )
     if proceed:
         new_session = await db.create_session(session=session.to_db())
         return Session.from_db(new_session)
