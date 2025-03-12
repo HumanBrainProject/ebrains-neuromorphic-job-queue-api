@@ -860,7 +860,7 @@ async def delete_quota(
             detail="There is no quota with this id",
         )
 
-    await db.delete_quota(project_id, id)
+    await db.delete_quota(quota_id)
 
 
 @router.post("/projects/", status_code=status_codes.HTTP_201_CREATED)

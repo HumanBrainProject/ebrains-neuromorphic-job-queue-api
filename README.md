@@ -7,7 +7,7 @@ by submitting a [PyNN](http://neuralensemble.org/docs/PyNN/) script
 and associated job configuration information to a central queue.
 
 The service consists of:
-- a [web API](https://nmpi-v3-staging.hbpneuromorphic.eu/docs) (this repository)
+- a [web API](https://nmpi-v3.hbpneuromorphic.eu/docs) (this repository)
 - a GUI client (the [Job Manager app](https://job-manager.hbpneuromorphic.eu/); https://github.com/HumanBrainProject/nmpi-job-manager-app)
 - a [Python/command-line client](https://github.com/HumanBrainProject/hbp-neuromorphic-client).
 
