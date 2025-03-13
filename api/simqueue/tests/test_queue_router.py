@@ -93,7 +93,7 @@ mock_job_patch = {
         "repository": "data repository name/identifier",
         "files": [
             {
-                "url": "https://BrainScaleS-r.kip.uni-heidelberg.de:7443/nmpi/job_165928/run.py",
+                "url": "https://brainscales-r.kip.uni-heidelberg.de:7443/nmpi/job_165928/run.py",
                 "path": "job_165928/run.py",
                 "content_type": "application/x-python",
                 "size": 1,

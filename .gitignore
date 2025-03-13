@@ -8,6 +8,7 @@ packages_
 *_old
 htmlcov
 coverage
+.venv
 
 # ensure these are not tracked by git
 *secrets.yml

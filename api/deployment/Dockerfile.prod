@@ -11,7 +11,7 @@
 # To check the content of the docker container:
 #   sudo docker run -it nmpi_server /bin/bash
 
-FROM docker-registry.ebrains.eu/neuromorphic/debian:bullseye-slim
+FROM docker-registry.ebrains.eu/neuromorphic/debian:bookworm-slim
 MAINTAINER Andrew Davison <andrew.davison@cnrs.fr>
 
 ENV DEBIAN_FRONTEND noninteractive
@@ -29,7 +29,7 @@ COPY simqueue $SITEDIR/simqueue
 RUN mkdir -p $SITEDIR/tmp_download
 RUN chmod a+w $SITEDIR/tmp_download
 
-ENV PYTHONPATH  /home/docker:/home/docker/site:/usr/local/lib/python3.9/dist-packages:/usr/lib/python3.9/dist-packages
+ENV PYTHONPATH  /home/docker:/home/docker/site:/usr/local/lib/python3.11/dist-packages:/usr/lib/python3.11/dist-packages
 
 RUN echo "daemon off;" >> /etc/nginx/nginx.conf
 RUN rm /etc/nginx/sites-enabled/default
