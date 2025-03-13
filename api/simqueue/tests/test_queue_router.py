@@ -138,6 +138,7 @@ def test_query_jobs(mocker):
         "size": size,
         "from_index": from_index,
         "tags": None,
+        "exclude_removed": True,
     }
     assert simqueue.db.query_jobs.await_args.kwargs == expected_args
 
@@ -169,6 +170,7 @@ def test_query_jobs_with_valid_filters(mocker):
         "size": size,
         "from_index": from_index,
         "tags": None,
+        "exclude_removed": True,
     }
     assert simqueue.db.query_jobs.await_args.kwargs == expected_args
 
@@ -332,14 +334,26 @@ def test_put_job(mocker):
     assert simqueue.db.update_job.await_args.args == (999999, expected)
 
 
-def test_delete_job(mocker):
+def test_delete_job_as_admin(mocker):
     mocker.patch("simqueue.oauth.User", MockUser)
     mocker.patch("simqueue.db.get_job", return_value=mock_jobs[0])
     mocker.patch("simqueue.db.delete_job", return_value=None)
-    response = client.delete("/jobs/999999", headers={"Authorization": "Bearer notarealtoken"})
+    response = client.delete(
+        "/jobs/999999?as_admin=true", headers={"Authorization": "Bearer notarealtoken"}
+    )
     assert response.status_code == 200
     assert simqueue.db.get_job.await_args.args == (999999,)
     assert simqueue.db.delete_job.await_args.args == (999999,)
+
+
+def test_delete_job_as_user(mocker):
+    mocker.patch("simqueue.oauth.User", MockUser)
+    mocker.patch("simqueue.db.get_job", return_value=mock_jobs[0])
+    mocker.patch("simqueue.db.update_job", return_value=None)
+    response = client.delete("/jobs/999999", headers={"Authorization": "Bearer notarealtoken"})
+    assert response.status_code == 200
+    assert simqueue.db.get_job.await_args.args == (999999,)
+    assert simqueue.db.update_job.await_args.args == (999999, {"status": "removed"})
 
 
 def test_add_comment(mocker):
