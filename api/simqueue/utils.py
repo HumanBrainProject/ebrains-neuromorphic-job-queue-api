@@ -1,3 +1,4 @@
+from datetime import date
 from fastapi import HTTPException, status as status_codes
 
 from .data_models import ProjectStatus, ResourceUsage
@@ -68,6 +69,7 @@ def check_provider_matches_platform(provider_name: str, hardware_platform: str) 
 
 
 async def create_test_quota(collab, hardware_platform, owner):
+    today = date.today()
     project = await db.create_project(
         {
             "collab": collab,
@@ -81,10 +83,11 @@ async def create_test_quota(collab, hardware_platform, owner):
                 "through the Job Manager app or Python client, or by contacting EBRAINS support."
             ),
             "description": "",
+            "submission_date": today,
         }
     )
     project_id = project["context"]
-    project = await db.update_project(project_id, {"accepted": True})
+    project = await db.update_project(project_id, {"accepted": True, "decision_date": today})
     # for platform, limit in DEMO_QUOTA_SIZES.items():
     quota_data = {
         "platform": hardware_platform,
