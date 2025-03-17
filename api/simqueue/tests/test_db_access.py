@@ -12,7 +12,7 @@ from ..data_models import ProjectStatus
 
 TEST_COLLAB = "neuromorphic-testing-private"
 TEST_USER = "adavisontesting"
-EXPECTED_TEST_DB_ADDRESS = "148.187.148.64"
+EXPECTED_TEST_DB_ADDRESS = "localhost"
 
 
 # ---- Define fixtures ------------------------------------
@@ -24,8 +24,8 @@ async def database_connection():
         pytest.skip("Database address does not match the expected one")
     try:
         await db.database.connect()
-    except Exception:
-        pytest.skip("Database not available. Are the necessary environment variables set?")
+    except Exception as err:
+        pytest.skip(f"Database not available. Are the necessary environment variables set? {err}")
     yield
     await db.database.disconnect()
 
@@ -174,7 +174,7 @@ async def test_get_next_job(database_connection, submitted_job):
 
 @pytest.mark.asyncio
 async def test_get_comments(database_connection):
-    comments = await db.get_comments(122685)
+    comments = await db.get_comments(142972)
     expected_keys = {"user", "content", "job_id", "id", "created_time"}
     assert len(comments) > 0
     assert set(comments[0].keys()) == expected_keys
@@ -498,7 +498,7 @@ async def test_get_users_count(database_connection):
     count = await db.get_users_count(
         hardware_platform=["SpiNNaker"],
         date_range_start=date(2018, 1, 1),
-        date_range_end=date(2018, 12, 31),
+        date_range_end=date(2028, 12, 31),
     )
     assert count > 0
 
@@ -508,7 +508,7 @@ async def test_get_users_list(database_connection):
     users = await db.get_users_list(
         hardware_platform=["SpiNNaker"],
         date_range_start=date(2018, 1, 1),
-        date_range_end=date(2018, 12, 31),
+        date_range_end=date(2028, 12, 31),
     )
     assert len(users) > 0
     # to review - is this what we want this function to do?

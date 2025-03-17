@@ -47,7 +47,7 @@ def drive_mkdir_p(base_dir, relative_path):
 
 def download_file_to_tmp_dir(url):
     try:
-        local_path, headers = urlretrieve(url)
+        local_path, headers = urlretrieve(str(url))
     except HTTPError as err:
         if err.code == 404:
             raise SourceFileDoesNotExist(err.reason)
@@ -236,7 +236,7 @@ class EBRAINSBucket:
             local_path = download_file_to_tmp_dir(file.url)
             target_bucket.upload(local_path, remote_path)
 
-        return f"https://data-proxy.ebrains.eu/api/v1/buckets/{collab_name}{remote_path}"
+        return f"https://{cls.host}/api/v1/buckets/{collab_name}{remote_path}"
 
     @classmethod
     def _delete(cls, collab_name, path, access_token):
