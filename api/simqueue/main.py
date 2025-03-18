@@ -1,3 +1,4 @@
+from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from starlette.middleware.sessions import SessionMiddleware
 from starlette.middleware.cors import CORSMiddleware
@@ -37,20 +38,22 @@ under Specific Grant Agreements No. 720270, No. 785907 and No. 945539
 (Human Brain Project SGA1, SGA2 and SGA3).
 """
 
-app = FastAPI(
-    title="EBRAINS Neuromorphic Computing Job Queue API", description=description, version="3.0"
-)
 
-
-@app.on_event("startup")
-async def startup():
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    # Before the application starts, connect to the database
     await database.connect()
-
-
-@app.on_event("shutdown")
-async def shutdown():
+    yield
+    # When the application shuts down, disconnect from the database
     await database.disconnect()
 
+
+app = FastAPI(
+    title="EBRAINS Neuromorphic Computing Job Queue API",
+    description=description,
+    version="3.0",
+    lifespan=lifespan,
+)
 
 app.add_middleware(SessionMiddleware, secret_key=settings.SESSIONS_SECRET_KEY)
 app.add_middleware(

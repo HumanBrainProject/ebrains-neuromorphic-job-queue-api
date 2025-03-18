@@ -115,9 +115,8 @@ class TestBucket:
         assert response2.status_code == 200
         assert response2.text == "# test_file\n\n\n\nThis file is used for testing.\n\n\n"
 
-        with pytest.raises(AssertionError):  # temporary, need fix in ebrains_drive
-            repo._delete(
-                "neuromorphic-testing-private",
-                f"{target_remote_dir}/test_file.md",
-                mock_user.token["access_token"],
-            )
+        repo._delete(
+            "neuromorphic-testing-private",
+            f"{target_remote_dir}/test_file.md",
+            mock_user.token["access_token"],
+        )

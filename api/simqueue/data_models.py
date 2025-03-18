@@ -1,6 +1,6 @@
 from datetime import datetime, date, timezone
 from enum import Enum
-from typing import List, Dict
+from typing import List, Dict, Optional
 from uuid import UUID
 import json
 from urllib.parse import urlparse
@@ -129,19 +129,21 @@ class SubmittedJob(BaseModel):
     code: str
     command: str = None
     collab: str
-    input_data: List[DataItem] = None
+    input_data: Optional[List[DataItem]] = None
     hardware_platform: str
-    hardware_config: dict = None
-    tags: List[Tag] = None
+    hardware_config: Optional[dict] = None
+    tags: Optional[List[Tag]] = None
 
     def to_db(self):
         return {
             "code": self.code,
             "command": self.command,
             "collab_id": self.collab,
-            "input_data": [data_item.to_db() for data_item in self.input_data]
-            if self.input_data is not None
-            else None,
+            "input_data": (
+                [data_item.to_db() for data_item in self.input_data]
+                if self.input_data is not None
+                else None
+            ),
             "hardware_platform": self.hardware_platform,
             "hardware_config": json.dumps(self.hardware_config) if self.hardware_config else None,
             "tags": self.tags,
@@ -152,17 +154,17 @@ class AcceptedJob(SubmittedJob):
     id: int
     user_id: str
     status: JobStatus = JobStatus.submitted
-    timestamp_submission: datetime = None
+    timestamp_submission: Optional[datetime] = None
     resource_uri: str
 
 
 class CompletedJob(AcceptedJob):
-    output_data: DataSet = None
-    provenance: dict = None
-    timestamp_completion: datetime = None
-    resource_usage: ResourceUsage = None
-    comments: List[Comment] = None
-    log: str = None
+    output_data: Optional[DataSet] = None
+    provenance: Optional[dict] = None
+    timestamp_completion: Optional[datetime] = None
+    resource_usage: Optional[ResourceUsage] = None
+    comments: Optional[List[Comment]] = None
+    log: Optional[str] = None
 
 
 class Job(CompletedJob):
@@ -301,7 +303,7 @@ class QuotaSubmission(BaseModel):
 
 
 class QuotaUpdate(BaseModel):
-    limit: float = None  # "Quantity of resources granted"
+    limit: Optional[float] = None  # "Quantity of resources granted"
     usage: float  # "Quantity of resources used"
 
     def to_db(self):
@@ -359,8 +361,8 @@ class ProjectSubmission(BaseModel):
 class Project(ProjectSubmission):
     id: UUID
     owner: str
-    submission_date: date = None
-    decision_date: date = None
+    submission_date: Optional[date] = None
+    decision_date: Optional[date] = None
     resource_uri: str
     status: ProjectStatus = ProjectStatus.in_prep
     quotas: List[Quota] = None

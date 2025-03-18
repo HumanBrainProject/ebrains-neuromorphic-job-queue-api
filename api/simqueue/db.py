@@ -43,20 +43,6 @@ def now_in_utc():
     return datetime.now(pytz.UTC)
 
 
-job_input_data = Table(
-    "simqueue_job_input_data",
-    metadata,
-    Column("job_id", ForeignKey("simqueue_job.id"), primary_key=True),
-    Column("dataitem_id", ForeignKey("simqueue_dataitem.id"), primary_key=True),
-)
-
-job_output_data = Table(
-    "simqueue_job_output_data",
-    metadata,
-    Column("job_id", ForeignKey("simqueue_job.id"), primary_key=True),
-    Column("dataitem_id", ForeignKey("simqueue_dataitem.id"), primary_key=True),
-)
-
 data_items = Table(
     "simqueue_dataitem",
     metadata,
@@ -83,6 +69,20 @@ jobs = Table(
     Column("timestamp_completion", DateTime(timezone=True)),
     Column("provenance", String),
     Column("resource_usage", Float),
+)
+
+job_input_data = Table(
+    "simqueue_job_input_data",
+    metadata,
+    Column("job_id", ForeignKey("simqueue_job.id"), primary_key=True),
+    Column("dataitem_id", ForeignKey("simqueue_dataitem.id"), primary_key=True),
+)
+
+job_output_data = Table(
+    "simqueue_job_output_data",
+    metadata,
+    Column("job_id", ForeignKey("simqueue_job.id"), primary_key=True),
+    Column("dataitem_id", ForeignKey("simqueue_dataitem.id"), primary_key=True),
 )
 
 sessions = Table(
