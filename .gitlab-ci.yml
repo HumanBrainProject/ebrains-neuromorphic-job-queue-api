@@ -51,10 +51,27 @@ test_job_queue_v3_staging:
   only:
     variables:
       - $CI_COMMIT_BRANCH == "staging"
+  services:
+    - postgres:14
+  variables:
+    EBRAINS_IAM_SERVICE_URL: https://iam-int.ebrains.eu/auth/realms/hbp
+    EBRAINS_COLLAB_SERVICE_URL: https://wiki-int.ebrains.eu/rest/v1/
+    EBRAINS_DRIVE_SERVICE_URL: drive-int.ebrains.eu
+    EBRAINS_BUCKET_SERVICE_URL: data-proxy-int.ebrains.eu
+    NMPI_DATABASE_USER: test_user
+    NMPI_DATABASE_PASSWORD: abc123
+    NMPI_DATABASE_HOST: localhost
+    NMPI_BASE_URL: http://localhost:8000
+    POSTGRES_DB: nmpi
+    POSTGRES_USER: test_user
+    POSTGRES_HOST_AUTH_METHOD: trust
   script:
+    - export PGPASSWORD=$POSTGRES_PASSWORD
     - python3 -m pip install -r api/requirements.txt.lock
     - python3 -m pip install -r api/requirements_testing.txt
     - cd api
+    - psql -h "postgres" -U "$POSTGRES_USER" -d "$POSTGRES_DB" -c "CREATE DATABASE nmpi; CREATE USER test_user PASSWORD 'abc123'; ALTER DATABASE nmpi OWNER TO test_user;"
+    - python3 setup_test_db.py
     - python3 -m pytest -v --cov=simqueue --cov-report=term
   tags:
     - docker-runner
