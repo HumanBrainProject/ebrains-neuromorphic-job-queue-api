@@ -124,7 +124,18 @@ class EBRAINSDrive:
             collab_name = path_parts[0]
             remote_path = "/".join([""] + path_parts[1:])
 
-        target_repository = ebrains_drive_client.repos.get_repo_by_url(collab_name)
+        # ebrains_drive_client.repos.get_repo_by_url is currently broken
+        # while waiting for a release with a fix, we implement a fixed version here
+        # target_repository = ebrains_drive_client.repos.get_repo_by_url(collab_name)
+
+        match_repos = ebrains_drive_client.repos.get_repos_by_filter("name", collab_name)
+
+        if len(match_repos) == 0:
+            raise Exception("Couldn't identify any repo associated with specified URL!")
+        elif len(match_repos) > 1:
+            raise Exception("Couldn't uniquely identify the repo associated with specified URL!")
+        else:
+            target_repository = match_repos[0]
 
         try:
             file_obj = target_repository.get_file(remote_path)
@@ -211,8 +222,13 @@ class EBRAINSBucket:
     def _get_client(cls, token):
         env = ""
         if "-int." in cls.host:
-            pass  # env = "int"  # non-prod env not yet implemented in ebrains_drive
-        return BucketApiClient(token=token, env=env)
+            env = "int"
+        # Workaround, until https://github.com/HumanBrainProject/ebrains-storage/pull/31 is merged
+        # client = BucketApiClient(token=token, env=env)
+        client = BucketApiClient(token=token)
+        client._set_env(env)
+        client.server = f"https://data-proxy{client.suffix}.ebrains.eu/api"
+        return client
 
     @classmethod
     def copy(cls, file, user, collab=None):
