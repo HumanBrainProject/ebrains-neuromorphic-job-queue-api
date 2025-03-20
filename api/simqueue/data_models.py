@@ -433,6 +433,12 @@ class DateRangeCount(BaseModel):
     count: Dict[str, int]
 
 
+class DateRangeQuantity(BaseModel):
+    start: date
+    end: date
+    value: Dict[str, float]
+
+
 class QueueStatus(BaseModel):
     queue_name: str
     running: int
