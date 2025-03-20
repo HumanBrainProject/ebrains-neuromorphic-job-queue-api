@@ -5,7 +5,7 @@ Integration tests: exercise the full system from API requests to database access
 import os
 from datetime import date
 from tempfile import NamedTemporaryFile
-from httpx import AsyncClient
+from httpx import AsyncClient, ASGITransport
 import pytest
 import pytest_asyncio
 
@@ -15,10 +15,10 @@ from simqueue import db, settings
 
 
 TEST_COLLAB = "neuromorphic-testing-private"
-TEST_USER = "adavisontesting"
+TEST_USER = "adavison"
 TEST_REPOSITORY = "Fake repository used for testing"
 TEST_PLATFORM = "TestPlatform"
-EXPECTED_TEST_DB_ADDRESS = "148.187.148.64"
+EXPECTED_TEST_DB_ADDRESS = "localhost"
 
 
 @pytest.fixture(scope="module")
@@ -74,7 +74,7 @@ async def adequate_quota(database_connection):
 
 
 def fake_download(url):
-    if "example.com" in url:
+    if "example.com" in str(url):
         fp = NamedTemporaryFile(delete=False, mode="w")
         fp.write('{"foo": "bar"}\n')
         fp.close()
@@ -96,7 +96,7 @@ async def test_job_lifetime(database_connection, adequate_quota, mocker, provide
     # first we check the job queue is empty
     # if an error in a previous test run has left a submitted job, it may not be
     # in that case, we set all submitted jobs to "error"
-    async with AsyncClient(app=app, base_url="http://test") as client:
+    async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
         response0 = await client.get(
             f"/jobs/?status=submitted&hardware_platform={TEST_PLATFORM}", headers=provider_auth
         )
@@ -124,7 +124,7 @@ async def test_job_lifetime(database_connection, adequate_quota, mocker, provide
         "hardware_config": {"python_version": "3.9"},
         "tags": None,
     }
-    async with AsyncClient(app=app, base_url="http://test") as client:
+    async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
         response1 = await client.post(
             "/jobs/",
             json=initial_job_data,
@@ -135,7 +135,7 @@ async def test_job_lifetime(database_connection, adequate_quota, mocker, provide
         assert queued_job["resource_uri"] == f"/jobs/{queued_job['id']}"
 
     # user checks the job status
-    async with AsyncClient(app=app, base_url="http://test") as client:
+    async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
         response2 = await client.get(
             queued_job["resource_uri"],
             headers=user_auth,
@@ -144,7 +144,7 @@ async def test_job_lifetime(database_connection, adequate_quota, mocker, provide
         assert response2.json()["status"] == "submitted"
 
     # provider picks up the job and sets it to "running"
-    async with AsyncClient(app=app, base_url="http://test") as client:
+    async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
         response3 = await client.get(f"/jobs/next/{TEST_PLATFORM}", headers=provider_auth)
         assert response3.status_code == 200
         retrieved_job = response3.json()
@@ -162,7 +162,7 @@ async def test_job_lifetime(database_connection, adequate_quota, mocker, provide
         assert response4.status_code == 200
 
     # user checks the job status again
-    async with AsyncClient(app=app, base_url="http://test") as client:
+    async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
         response5 = await client.get(
             queued_job["resource_uri"],
             headers=user_auth,
@@ -171,7 +171,7 @@ async def test_job_lifetime(database_connection, adequate_quota, mocker, provide
         assert response5.json()["status"] == "running"
 
     # provider finishes handling the job and uploads the results
-    async with AsyncClient(app=app, base_url="http://test") as client:
+    async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
         job_id = retrieved_job["id"]
         job_update_data = {
             "status": "finished",
@@ -199,7 +199,7 @@ async def test_job_lifetime(database_connection, adequate_quota, mocker, provide
         assert response6.status_code == 200
 
     # user retrieves the results
-    async with AsyncClient(app=app, base_url="http://test") as client:
+    async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
         response7 = await client.get(
             queued_job["resource_uri"] + "?with_log=true",
             headers=user_auth,
@@ -217,7 +217,7 @@ async def test_job_lifetime(database_connection, adequate_quota, mocker, provide
             assert final_job[field] == expected_value
 
     # user copies data to the Drive
-    async with AsyncClient(app=app, base_url="http://test") as client:
+    async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
         response8 = await client.put(
             final_job["resource_uri"] + "/output_data",
             json={
@@ -228,10 +228,10 @@ async def test_job_lifetime(database_connection, adequate_quota, mocker, provide
         )
         assert response8.status_code == 200
         for item in response8.json()["files"]:
-            assert item["url"].startswith("https://drive.ebrains.eu")
+            assert item["url"].startswith(f"https://{settings.EBRAINS_DRIVE_SERVICE_URL}")
 
     # user checks their quota
-    async with AsyncClient(app=app, base_url="http://test") as client:
+    async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
         q = adequate_quota
         response9 = await client.get(
             f"/projects/{q['project_id']}/quotas/{q['id']}",
@@ -256,7 +256,7 @@ async def test_session_lifetime(database_connection, adequate_quota, provider_au
     """
 
     # start a session
-    async with AsyncClient(app=app, base_url="http://test") as client:
+    async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
         response1 = await client.post(
             "/sessions/",
             json={
@@ -276,7 +276,7 @@ async def test_session_lifetime(database_connection, adequate_quota, provider_au
         "resource_usage": {"units": "bushels", "value": 0.0},
         "status": "running",
         "timestamp_end": None,
-        "user_id": "adavisontesting",
+        "user_id": TEST_USER,
     }
     session_uri = result.pop("resource_uri")
     for field in ("id", "timestamp_start"):
@@ -284,7 +284,7 @@ async def test_session_lifetime(database_connection, adequate_quota, provider_au
     assert result == expected
 
     # close the session, and report resource usage
-    async with AsyncClient(app=app, base_url="http://test") as client:
+    async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
         response = await client.put(
             session_uri,
             json={"status": "finished", "resource_usage": {"value": 25, "units": "bushels"}},
@@ -296,7 +296,7 @@ async def test_session_lifetime(database_connection, adequate_quota, provider_au
     assert result == expected
 
     # check the quota has been updated to reflect the resource usage
-    async with AsyncClient(app=app, base_url="http://test") as client:
+    async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
         q = adequate_quota
         response = await client.get(
             f"/projects/{q['project_id']}/quotas/{q['id']}",
