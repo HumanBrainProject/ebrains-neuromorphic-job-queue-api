@@ -84,7 +84,7 @@ async def create_fake_job(database):
         timestamp_submission=fake.date_time_this_decade(),
     )
     # todo: add provenance, resource_usage for finished jobs
-    if job["status"] in ("completed", "error"):
+    if job["status"] in ("finished", "error"):
         job["timestamp_completion"] = job["timestamp_submission"] + timedelta(
             random.uniform(0, 1000)
         )
