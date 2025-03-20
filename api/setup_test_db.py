@@ -14,6 +14,7 @@ from uuid import UUID, uuid4
 from faker import Faker
 import asyncpg
 import sqlalchemy
+import databases
 
 from simqueue import settings
 
@@ -197,7 +198,20 @@ async def create_apikey(database):
         await database.execute(ins)
 
 
+async def initialize_db():
+    DATABASE_ADMIN_PASSWORD = os.environ["PGPASSWORD"]
+    SQLALCHEMY_DATABASE_URL = f"postgresql://postgres:{DATABASE_ADMIN_PASSWORD}@{settings.DATABASE_HOST}:{settings.DATABASE_PORT}/postgres?ssl=false"
+    database = databases.Database(SQLALCHEMY_DATABASE_URL)
+    await database.connect()
+    await database.execute("CREATE DATABASE nmpi")
+    await database.execute(f"CREATE USER test_user PASSWORD '{settings.DATABASE_PASSWORD}'")
+    await database.execute("ALTER DATABASE nmpi OWNER TO test_user")
+    await database.disconnect()
+
+
 async def main():
+
+    await initialize_db()
 
     await db.database.connect()
 

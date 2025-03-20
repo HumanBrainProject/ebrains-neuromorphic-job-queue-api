@@ -70,7 +70,6 @@ test_job_queue_v3_staging:
     - python3 -m pip install -r api/requirements.txt.lock
     - python3 -m pip install -r api/requirements_testing.txt
     - cd api
-    - psql -h "postgres" -U "$POSTGRES_USER" -d "$POSTGRES_DB" -c "CREATE DATABASE nmpi; CREATE USER test_user PASSWORD 'abc123'; ALTER DATABASE nmpi OWNER TO test_user;"
     - python3 setup_test_db.py
     - python3 -m pytest -v --cov=simqueue --cov-report=term
   tags:
