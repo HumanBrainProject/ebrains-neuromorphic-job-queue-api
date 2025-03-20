@@ -456,7 +456,7 @@ async def test_update_project(database_connection, new_project):
 
 @pytest.mark.asyncio
 async def test_query_quotas_no_filters(database_connection):
-    quotas = await db.query_quotas(size=5, from_index=5)
+    quotas = await db.query_quotas(size=5, from_index=1)
     assert len(quotas) > 0
     expected_keys = ("id", "project_id", "usage", "limit", "units", "platform")
     assert set(quotas[0].keys()) == set(expected_keys)
