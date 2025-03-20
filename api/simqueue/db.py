@@ -750,6 +750,7 @@ async def query_projects(
     owner: List[str] = None,
     # date_range_start: date = None,
     # date_range_end: date = None,
+    fields: List[str] = None,
     from_index: int = 0,
     size: int = 10,
 ):
@@ -773,13 +774,20 @@ async def query_projects(
     if owner:
         filters.append(get_list_filter(projects.c.owner, owner))
 
-    if filters:
-        query = projects.select().where(*filters).offset(from_index).limit(size)
+    if fields is None:
+        select = projects.select()
     else:
-        query = projects.select().offset(from_index).limit(size)
+        select = projects.select().with_only_columns(*[literal_column(field) for field in fields])
+
+    if filters:
+        query = select.where(*filters).offset(from_index).limit(size)
+    else:
+        query = select.offset(from_index).limit(size)
 
     results = await database.fetch_all(query)
 
+    if fields:
+        return [dict(result) for result in results]
     return results
 
 

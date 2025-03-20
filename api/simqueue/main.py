@@ -1,5 +1,6 @@
 from contextlib import asynccontextmanager
 from fastapi import FastAPI
+from fastapi.staticfiles import StaticFiles
 from starlette.middleware.sessions import SessionMiddleware
 from starlette.middleware.cors import CORSMiddleware
 
@@ -69,3 +70,5 @@ app.include_router(for_providers.router, tags=["For use by computing system prov
 app.include_router(for_admins.router, tags=["For use by administrators"])
 app.include_router(statistics.router, tags=["Statistics"])
 app.include_router(auth.router, tags=["Authentication and authorization"])
+
+app.mount("/dashboard", StaticFiles(directory="dashboard", html=True), name="dashboard")

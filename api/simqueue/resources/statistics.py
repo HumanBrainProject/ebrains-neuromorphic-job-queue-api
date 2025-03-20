@@ -6,7 +6,14 @@ import numpy as np
 
 from fastapi import APIRouter, Query
 
-from ..data_models import DateRangeCount, TimeSeries, QueueStatus, Histogram
+from ..data_models import (
+    DateRangeCount,
+    DateRangeQuantity,
+    TimeSeries,
+    QueueStatus,
+    Histogram,
+    ProjectStatus,
+)
 from .. import db
 from ..globals import STANDARD_QUEUES
 
@@ -170,6 +177,7 @@ async def job_duration(requested_max: int = None, n_bins: int = 50, scale: str =
             completed_jobs = await db.query_jobs(
                 status=[status],
                 hardware_platform=[platform],
+                size=100000,
             )
 
             durations = np.array(
@@ -213,3 +221,66 @@ async def job_duration(requested_max: int = None, n_bins: int = 50, scale: str =
                 )
 
     return job_durations
+
+
+@router.get("/statistics/cumulative-project-count", response_model=TimeSeries)
+async def cumulative_project_count(
+    status: ProjectStatus = Query(
+        description="Project status (accepted, rejected, ...)",
+        default=ProjectStatus.accepted,
+    )
+):
+    """
+    Cumulative number of projects (resource requests) with a given status
+    """
+
+    submission_dates = [
+        res["submission_date"]
+        for res in await db.query_projects(fields=["submission_date"], status=status)
+    ]
+
+    submission_dates.append(date.today())
+    project_counts = list(range(1, len(submission_dates)))
+    project_counts.append(project_counts[-1])  # repeat last value for today's date
+    return TimeSeries(dates=sorted(submission_dates), values=project_counts)
+
+
+@router.get("/statistics/resource-usage", response_model=List[DateRangeQuantity])
+async def resource_usage(start: date = None, end: date = None, interval: int = 7):
+    """
+    Cumulative quota usage
+    """
+    start, end = normalize_start_end(start, end)
+
+    results = []
+    usage_per_interval = defaultdict(lambda: 0.0)
+    n_bins = (end - start).days // interval + 1
+    for platform in STANDARD_QUEUES:
+        completed_jobs = await db.query_jobs(
+            status=["finished", "error"],
+            hardware_platform=[platform],
+            date_range_start=start,
+            date_range_end=end,
+            size=100000,
+            fields=["timestamp_completion", "resource_usage"],
+        )
+        completed = np.array(
+            [(job["timestamp_completion"].date() - start).days for job in completed_jobs],
+            dtype=int,
+        )
+        usage_per_job = np.array([job["resource_usage"] for job in completed_jobs])
+        index = completed // interval
+        usage_per_interval[platform] = np.zeros((n_bins,))
+        for i, usage in zip(index, usage_per_job):
+            if usage is not None:
+                usage_per_interval[platform][i] += usage
+
+    usage_cumul = defaultdict(lambda: 0.0)
+    for i in range(n_bins):
+        interval_start = start + timedelta(i * interval)
+        interval_end = interval_start + timedelta(interval)
+        for platform in STANDARD_QUEUES:
+            usage_cumul[platform] += usage_per_interval[platform][i]
+        new_obj = {"start": interval_start, "end": interval_end, "value": usage_cumul}
+        results.append(new_obj)
+    return results
