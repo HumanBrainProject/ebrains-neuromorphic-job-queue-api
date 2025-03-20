@@ -18,7 +18,6 @@ import databases
 
 from simqueue import settings
 
-assert settings.DATABASE_PASSWORD == "abc123"
 assert settings.DATABASE_USERNAME == "test_user"
 
 from simqueue import db
