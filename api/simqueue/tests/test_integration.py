@@ -18,7 +18,7 @@ TEST_COLLAB = "neuromorphic-testing-private"
 TEST_USER = "adavison"
 TEST_REPOSITORY = "Fake repository used for testing"
 TEST_PLATFORM = "TestPlatform"
-EXPECTED_TEST_DB_ADDRESS = "localhost"
+EXPECTED_TEST_DB_ADDRESS = ("localhost", "postgres")
 
 
 @pytest.fixture(scope="module")
@@ -41,7 +41,7 @@ def provider_auth():
 
 @pytest_asyncio.fixture()
 async def database_connection():
-    if settings.DATABASE_HOST != EXPECTED_TEST_DB_ADDRESS:
+    if settings.DATABASE_HOST not in EXPECTED_TEST_DB_ADDRESS:
         pytest.skip("Database address does not match the expected one")
     await db.database.connect()
     yield

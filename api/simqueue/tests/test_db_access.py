@@ -12,7 +12,7 @@ from ..data_models import ProjectStatus
 
 TEST_COLLAB = "neuromorphic-testing-private"
 TEST_USER = "adavisontesting"
-EXPECTED_TEST_DB_ADDRESS = "localhost"
+EXPECTED_TEST_DB_ADDRESS = ("localhost", "postgres")
 
 
 # ---- Define fixtures ------------------------------------
@@ -20,7 +20,7 @@ EXPECTED_TEST_DB_ADDRESS = "localhost"
 
 @pytest_asyncio.fixture()
 async def database_connection():
-    if settings.DATABASE_HOST != EXPECTED_TEST_DB_ADDRESS:
+    if settings.DATABASE_HOST not in EXPECTED_TEST_DB_ADDRESS:
         pytest.skip("Database address does not match the expected one")
     try:
         await db.database.connect()

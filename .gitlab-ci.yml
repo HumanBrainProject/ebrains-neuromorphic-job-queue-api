@@ -60,10 +60,10 @@ test_job_queue_v3_staging:
     EBRAINS_BUCKET_SERVICE_URL: data-proxy-int.ebrains.eu
     NMPI_DATABASE_USER: test_user
     NMPI_DATABASE_PASSWORD: abc123
-    NMPI_DATABASE_HOST: localhost
+    NMPI_DATABASE_HOST: postgres
     NMPI_BASE_URL: http://localhost:8000
-    POSTGRES_DB: nmpi
-    POSTGRES_USER: test_user
+    POSTGRES_DB: postgres
+    POSTGRES_USER: postgres
     POSTGRES_HOST_AUTH_METHOD: trust
   script:
     - export PGPASSWORD=$POSTGRES_PASSWORD

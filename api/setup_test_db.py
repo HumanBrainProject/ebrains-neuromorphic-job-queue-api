@@ -1,8 +1,6 @@
 """
 docker run --name nmpidb -e POSTGRES_PASSWORD=sehgc98y94t  -p 32768:5432 -d postgres:14
 
-echo "CREATE DATABASE nmpi; CREATE USER test_user PASSWORD 'abc123'; ALTER DATABASE nmpi OWNER TO test_user;" | psql -h localhost -p 32768 -U postgres
-
 """
 
 import asyncio
