@@ -20,3 +20,7 @@ BASE_URL = os.environ.get("NMPI_BASE_URL", "")
 AUTHENTICATION_TIMEOUT = 20
 TMP_FILE_URL = BASE_URL + "/tmp_download"
 TMP_FILE_ROOT = os.environ.get("NMPI_TMP_FILE_ROOT", "tmp_download")
+EMAIL_HOST = os.environ.get("NMPI_EMAIL_HOST")
+EMAIL_SENDER = "neuromorphic@ebrains.eu"
+EMAIL_PASSWORD = os.environ.get("NMPI_EMAIL_PASSWORD", None)
+ADMIN_EMAIL = os.environ.get("NMPI_ADMIN_EMAIL")

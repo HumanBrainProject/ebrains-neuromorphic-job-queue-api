@@ -1,9 +1,16 @@
 from datetime import date
+from email.mime.text import MIMEText
+from email.mime.multipart import MIMEMultipart
+import logging
+import smtplib
+
 from fastapi import HTTPException, status as status_codes
 
 from .data_models import ProjectStatus, ResourceUsage
-from . import db
+from . import db, settings
 from .globals import RESOURCE_USAGE_UNITS, PROVIDER_QUEUE_NAMES, DEMO_QUOTA_SIZES
+
+logger = logging.getLogger("simqueue")
 
 
 async def get_available_quotas(collab, hardware_platform):
@@ -97,3 +104,52 @@ async def create_test_quota(collab, hardware_platform, owner):
     }
     quota = await db.create_quota(project_id, quota_data)
     return project, quota
+
+
+def send_email(recipient_email: str, body: str):
+
+    # Sender and recipient information
+    sender_email = settings.EMAIL_SENDER
+    sender_password = settings.EMAIL_PASSWORD
+
+    success = False
+
+    if sender_password:
+
+        # SMTP server settings
+        smtp_server = settings.EMAIL_HOST
+        smtp_port = 587  # Use the appropriate SMTP port (587 for TLS)
+
+        # Create a MIME message
+        message = MIMEMultipart()
+        message["From"] = sender_email
+        message["To"] = recipient_email
+        message["Subject"] = "[EBRAINS] New neuromorphic computing resource request"
+
+        body = body
+        message.attach(MIMEText(body, "plain"))
+
+        try:
+            # Connect to the SMTP server
+            server = smtplib.SMTP(smtp_server, smtp_port)
+            server.starttls()  # Enable TLS encryption
+            server.login(sender_email, sender_password)
+
+            # Send the email
+            server.sendmail(sender_email, recipient_email, message.as_string())
+            logger.info(f"E-mail to {recipient_email} sent successfully")
+            success = True
+
+        except Exception as e:
+            logger.error(f"Failed to send e-mail. Error: {str(e)}")
+            server = None
+
+        finally:
+            # Disconnect from the SMTP server
+            if server:
+                server.quit()
+
+    else:
+        logger.info("Did not send e-mail because the password was not set")
+
+    return success
