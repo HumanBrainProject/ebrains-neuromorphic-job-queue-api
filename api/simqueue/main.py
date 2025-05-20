@@ -1,3 +1,4 @@
+import os
 from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
@@ -71,4 +72,6 @@ app.include_router(for_admins.router, tags=["For use by administrators"])
 app.include_router(statistics.router, tags=["Statistics"])
 app.include_router(auth.router, tags=["Authentication and authorization"])
 
-app.mount("/dashboard", StaticFiles(directory="dashboard", html=True), name="dashboard")
+this_dir = os.path.dirname(__file__)
+dashboard_path = os.path.join(this_dir, "..", "dashboard")
+app.mount("/dashboard", StaticFiles(directory=dashboard_path, html=True), name="dashboard")
