@@ -1091,7 +1091,9 @@ async def update_project(
             message = (
                 f"New NMPI project created\n\nUser:   {user.username}\n"
                 f"Collab: {original_project.collab}\nTitle:  {project_update.title or original_project.title}\n\n"
-                "Please visit https://adminapp.apps.tc.humanbrainproject.eu/ to review it\n"
+                "Please visit https://adminapp.apps.tc.humanbrainproject.eu/ to review it\n\n\n"
+                f"Abstract: {project_update.abstract or original_project.abstract}\n\n"
+                f"{project_update.description or original_project.description}\n"
             )
             background_tasks.add_task(send_email, settings.ADMIN_EMAIL, message)
 
