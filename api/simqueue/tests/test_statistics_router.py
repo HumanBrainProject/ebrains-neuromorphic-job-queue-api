@@ -12,24 +12,28 @@ mock_jobs = [
         "timestamp_completion": datetime.fromisoformat("2022-10-03T02:44:28+00:00"),
         "user_id": "haroldlloyd",
         "status": "finished",
+        "resource_usage": 7.07,
     },
     {
         "timestamp_submission": datetime.fromisoformat("2022-10-11T02:44:23+00:00"),
         "timestamp_completion": datetime.fromisoformat("2022-10-11T02:44:38+00:00"),
         "user_id": "charliechaplin",
         "status": "finished",
+        "resource_usage": 13.13,
     },
     {
         "timestamp_submission": datetime.fromisoformat("2022-10-12T02:44:23+00:00"),
         "timestamp_completion": datetime.fromisoformat("2022-10-12T02:44:28+00:00"),
         "user_id": "haroldlloyd",
         "status": "finished",
+        "resource_usage": 19.19,
     },
     {
         "timestamp_submission": datetime.fromisoformat("2022-10-16T02:44:23+00:00"),
         "timestamp_completion": datetime.fromisoformat("2022-10-16T02:44:48+00:00"),
         "user_id": "haroldlloyd",
         "status": "error",
+        "resource_usage": 23.23,
     },
 ]
 
@@ -204,5 +208,57 @@ def test_job_duration(mocker):
             "status": "error",
             "scale": "linear",
             "max": 30,
+        },
+    ]
+
+
+def test_resource_usage(mocker):
+    mocker.patch("simqueue.db.query_jobs", mock_query_jobs)
+    response = client.get("/statistics/resource-usage?interval=7&start=2022-10-01&end=2022-10-28")
+    assert response.status_code == 200
+    assert response.json() == [
+        {
+            "start": "2022-10-01",
+            "end": "2022-10-08",
+            "value": {
+                "BrainScaleS": 0.0,
+                "BrainScaleS-ESS": 0.0,
+                "Spikey": 0.0,
+                "SpiNNaker": 7.07,
+                "BrainScaleS-2": 0.0,
+            },
+        },
+        {
+            "start": "2022-10-08",
+            "end": "2022-10-15",
+            "value": {
+                "BrainScaleS": 0.0,
+                "BrainScaleS-ESS": 0.0,
+                "Spikey": 0.0,
+                "SpiNNaker": 39.39,
+                "BrainScaleS-2": 0.0,
+            },
+        },
+        {
+            "start": "2022-10-15",
+            "end": "2022-10-22",
+            "value": {
+                "BrainScaleS": 0.0,
+                "BrainScaleS-ESS": 0.0,
+                "Spikey": 0.0,
+                "SpiNNaker": 62.620000000000005,
+                "BrainScaleS-2": 0.0,
+            },
+        },
+        {
+            "start": "2022-10-22",
+            "end": "2022-10-29",
+            "value": {
+                "BrainScaleS": 0.0,
+                "BrainScaleS-ESS": 0.0,
+                "Spikey": 0.0,
+                "SpiNNaker": 62.620000000000005,
+                "BrainScaleS-2": 0.0,
+            },
         },
     ]

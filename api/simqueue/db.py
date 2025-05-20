@@ -291,7 +291,8 @@ async def update_log(job_id, log, append=False):
 
 
 def get_list_filter(attr, value):
-    if len(value) > 0:
+    assert isinstance(value, list)
+    if len(value) > 1:
         return attr.in_(value)
     else:
         return attr == value[0]

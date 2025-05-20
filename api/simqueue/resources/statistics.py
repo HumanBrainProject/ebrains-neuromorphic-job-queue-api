@@ -58,6 +58,7 @@ async def job_count(start: date = None, end: date = None, interval: int = 7):
             [
                 (timestamp["timestamp_completion"].date() - start).days
                 for timestamp in completion_timestamps
+                if timestamp["timestamp_completion"]
             ],
             dtype=int,
         )
@@ -178,6 +179,7 @@ async def job_duration(requested_max: int = None, n_bins: int = 50, scale: str =
                 status=[status],
                 hardware_platform=[platform],
                 size=100000,
+                fields=["timestamp_completion", "timestamp_submission"],
             )
 
             durations = np.array(
@@ -236,7 +238,7 @@ async def cumulative_project_count(
 
     submission_dates = [
         res["submission_date"]
-        for res in await db.query_projects(fields=["submission_date"], status=status)
+        for res in await db.query_projects(fields=["submission_date"], status=status, size=10000)
     ]
 
     submission_dates.append(date.today())
@@ -265,10 +267,16 @@ async def resource_usage(start: date = None, end: date = None, interval: int = 7
             fields=["timestamp_completion", "resource_usage"],
         )
         completed = np.array(
-            [(job["timestamp_completion"].date() - start).days for job in completed_jobs],
+            [
+                (job["timestamp_completion"].date() - start).days
+                for job in completed_jobs
+                if job["timestamp_completion"]
+            ],
             dtype=int,
         )
-        usage_per_job = np.array([job["resource_usage"] for job in completed_jobs])
+        usage_per_job = np.array(
+            [job["resource_usage"] for job in completed_jobs if job["timestamp_completion"]]
+        )
         index = completed // interval
         usage_per_interval[platform] = np.zeros((n_bins,))
         for i, usage in zip(index, usage_per_job):
@@ -281,6 +289,7 @@ async def resource_usage(start: date = None, end: date = None, interval: int = 7
         interval_end = interval_start + timedelta(interval)
         for platform in STANDARD_QUEUES:
             usage_cumul[platform] += usage_per_interval[platform][i]
-        new_obj = {"start": interval_start, "end": interval_end, "value": usage_cumul}
+        new_obj = {"start": interval_start, "end": interval_end, "value": usage_cumul.copy()}
         results.append(new_obj)
+
     return results

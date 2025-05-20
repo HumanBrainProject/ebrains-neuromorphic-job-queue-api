@@ -51,7 +51,7 @@ d3.json("/statistics/cumulative-user-count", function (error, data) {
 });
 
 d3.json(
-  "/statistics/cumulative-user-count?platform=BrainScaleS",
+  "/statistics/cumulative-user-count?hardware_platform=BrainScaleS",
   function (error, data) {
     if (error) return console.warn(error);
 
@@ -104,7 +104,7 @@ d3.json(
 );
 
 d3.json(
-  "/statistics/cumulative-user-count?platform=BrainScaleS-2",
+  "/statistics/cumulative-user-count?hardware_platform=BrainScaleS-2",
   function (error, data) {
     if (error) return console.warn(error);
 
@@ -157,7 +157,7 @@ d3.json(
 );
 
 d3.json(
-  "/statistics/cumulative-user-count?platform=SpiNNaker",
+  "/statistics/cumulative-user-count?hardware_platform=SpiNNaker",
   function (error, data) {
     if (error) return console.warn(error);
 
@@ -210,7 +210,7 @@ d3.json(
 );
 
 d3.json(
-  "/statistics/cumulative-user-count?platform=Spikey",
+  "/statistics/cumulative-user-count?hardware_platform=Spikey",
   function (error, data) {
     if (error) return console.warn(error);
 
