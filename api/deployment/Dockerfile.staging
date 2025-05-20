@@ -29,6 +29,7 @@ COPY requirements.txt.lock $SITEDIR/
 RUN $VENV/bin/pip install -r $SITEDIR/requirements.txt.lock
 
 COPY simqueue $SITEDIR/simqueue
+COPY dashboard $SITEDIR/dashboard
 RUN mkdir -p $SITEDIR/tmp_download
 RUN chmod a+w $SITEDIR/tmp_download
 
