@@ -868,7 +868,6 @@ async def delete_quota(
 @router.post("/projects/", status_code=status_codes.HTTP_201_CREATED)
 async def create_project(
     projectRB: ProjectSubmission,
-    background_tasks: BackgroundTasks,
     as_admin: bool = Query(
         False, description="Run this query with admin privileges, if you have them"
     ),
@@ -886,14 +885,6 @@ async def create_project(
         )
     created_project = await db.create_project(project)
     response = Project.from_db(created_project)
-
-    message = (
-        f"New NMPI project created\n\nUser:   {user.username}\n"
-        f"Collab: {projectRB.collab}\nTitle:  {projectRB.title}\n"
-        "Please visit https://adminapp.apps.tc.humanbrainproject.eu/ to review it\n"
-    )
-    background_tasks.add_task(send_email, settings.ADMIN_EMAIL, message)
-
     return response
 
 
@@ -1039,6 +1030,7 @@ async def query_collabs(
 @router.put("/projects/{project_id}", status_code=status_codes.HTTP_200_OK)
 async def update_project(
     project_update: ProjectUpdate,
+    background_tasks: BackgroundTasks,
     project_id: UUID = Path(
         ..., title="Project ID", description="ID of the project to be retrieved"
     ),
@@ -1094,6 +1086,15 @@ async def update_project(
 
         await db.update_project(project_id, project_update.to_db())
         logger.info("Updating project")
+
+        if new_status == "under review":
+            message = (
+                f"New NMPI project created\n\nUser:   {user.username}\n"
+                f"Collab: {original_project.collab}\nTitle:  {project_update.title or original_project.title}\n\n"
+                "Please visit https://adminapp.apps.tc.humanbrainproject.eu/ to review it\n"
+            )
+            background_tasks.add_task(send_email, settings.ADMIN_EMAIL, message)
+
         return status_codes.HTTP_201_CREATED
 
 
