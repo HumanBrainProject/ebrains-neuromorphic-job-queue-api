@@ -6,6 +6,7 @@ import asyncio
 
 from fastapi import (
     APIRouter,
+    BackgroundTasks,
     Depends,
     Query,
     Path,
@@ -36,6 +37,7 @@ from ..data_models import (
 from ..data_repositories import SourceFileDoesNotExist, SourceFileIsTooBig, EBRAINSDrive
 from .. import db, oauth, utils, settings
 from ..globals import PROVIDER_QUEUE_NAMES
+from ..utils import send_email
 
 logger = logging.getLogger("simqueue")
 
@@ -866,6 +868,7 @@ async def delete_quota(
 @router.post("/projects/", status_code=status_codes.HTTP_201_CREATED)
 async def create_project(
     projectRB: ProjectSubmission,
+    background_tasks: BackgroundTasks,
     as_admin: bool = Query(
         False, description="Run this query with admin privileges, if you have them"
     ),
@@ -882,7 +885,16 @@ async def create_project(
             detail="You do not have permisson to create projects in this Collab",
         )
     created_project = await db.create_project(project)
-    return Project.from_db(created_project)
+    response = Project.from_db(created_project)
+
+    message = (
+        f"New NMPI project created\n\nUser:   {user.username}\n"
+        f"Collab: {projectRB.collab}\nTitle:  {projectRB.title}\n"
+        "Please visit https://adminapp.apps.tc.humanbrainproject.eu/ to review it\n"
+    )
+    background_tasks.add_task(send_email, settings.ADMIN_EMAIL, message)
+
+    return response
 
 
 @router.get("/projects/{project_id}/quotas/", response_model=List[Quota])
