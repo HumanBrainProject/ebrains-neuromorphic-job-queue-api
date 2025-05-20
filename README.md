@@ -8,7 +8,7 @@ and associated job configuration information to a central queue.
 
 The service consists of:
 - a [web API](https://nmpi-v3.hbpneuromorphic.eu/docs) (this repository)
-- a GUI client (the [Job Manager app](https://job-manager.hbpneuromorphic.eu/); https://github.com/HumanBrainProject/nmpi-job-manager-app)
+- a GUI client (the [Job Manager app](https://neuromorphic-job-manager.apps.ebrains.eu/); [code](https://github.com/HumanBrainProject/nmpi-job-manager-app))
 - a [Python/command-line client](https://github.com/HumanBrainProject/hbp-neuromorphic-client).
 
 Users can submit scripts stored locally on their own machine, in a public Git repository,
@@ -20,7 +20,7 @@ log files, and provenance information.
 For more information, visit the [EBRAINS website](https://www.ebrains.eu/modelling-simulation-and-computing/simulation/neuromorphic-computing-3).
 
 
-All code is copyright 2015-2023 CNRS unless otherwise indicated.
+All code is copyright 2015-2025 CNRS unless otherwise indicated.
 
 This repository previously contained code for all components of the service.
 Each of these is now developed in a separate repository.
@@ -29,4 +29,5 @@ Each of these is now developed in a separate repository.
 
 This open source software code was developed in part or in whole in the Human Brain Project,
 funded from the European Union's Horizon 2020 Framework Programme for Research and Innovation
-under Specific Grant Agreements No. 720270, No. 785907 and No. 945539 (Human Brain Project SGA1, SGA2 and SGA3).
+under Specific Grant Agreements No. 720270, No. 785907 and No. 945539 (Human Brain Project SGA1, SGA2 and SGA3), and in the EBRAINS research infrastructure,
+funded from the European Union's Horizon Europe funding programme under grant agreement No. 101147319 (EBRAINS-2.0).
