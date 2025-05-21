@@ -61,10 +61,10 @@ class TimeSeries(BaseModel):
 
 class DataItem(BaseModel):
     url: AnyUrl
-    path: str = None
-    content_type: str = None
-    size: int = None  # in bytes
-    hash: str = None
+    path: Optional[str] = None
+    content_type: Optional[str] = None
+    size: Optional[int] = None  # in bytes
+    hash: Optional[str] = None
 
     @classmethod
     def from_db(cls, data_item, repository_obj=None):
@@ -127,7 +127,7 @@ class SubmittedJob(BaseModel):
     """
 
     code: str
-    command: str = None
+    command: Optional[str] = None
     collab: str
     input_data: Optional[List[DataItem]] = None
     hardware_platform: str
@@ -204,11 +204,11 @@ class Job(CompletedJob):
 
 
 class JobPatch(BaseModel):  # todo: rename to JobUpdate
-    status: JobStatus = None
-    output_data: DataSet = None
-    provenance: dict = None
-    resource_usage: ResourceUsage = None
-    log: str = None
+    status: Optional[JobStatus] = None
+    output_data: Optional[DataSet] = None
+    provenance: Optional[dict] = None
+    resource_usage: Optional[ResourceUsage] = None
+    log: Optional[str] = None
 
     def to_db(self):
         values = {}
@@ -231,7 +231,7 @@ class SessionCreation(BaseModel):
     collab: str
     user_id: str
     hardware_platform: str
-    hardware_config: dict = None
+    hardware_config: Optional[dict] = None
 
     def to_db(self):
         return {
@@ -248,10 +248,10 @@ class Session(SessionCreation):
     id: int
     user_id: str
     status: SessionStatus = SessionStatus.running
-    timestamp_start: datetime = None
-    timestamp_end: datetime = None
+    timestamp_start: Optional[datetime] = None
+    timestamp_end: Optional[datetime] = None
     resource_uri: str
-    resource_usage: ResourceUsage = None
+    resource_usage: Optional[ResourceUsage] = None
 
     @classmethod
     def from_db(cls, session):
@@ -313,7 +313,7 @@ class QuotaUpdate(BaseModel):
 class Quota(QuotaSubmission, QuotaUpdate):
     # id: int  # do we need this? or just use resource_uri
     project: str
-    resource_uri: str = None
+    resource_uri: Optional[str] = None
 
     @classmethod
     def from_db(cls, quota):
@@ -341,7 +341,7 @@ class ProjectSubmission(BaseModel):
     collab: str
     title: str
     abstract: str
-    description: str = None
+    description: Optional[str] = None
     status: ProjectStatus = ProjectStatus.in_prep
 
     def to_db(self, owner):
@@ -365,7 +365,7 @@ class Project(ProjectSubmission):
     decision_date: Optional[date] = None
     resource_uri: str
     status: ProjectStatus = ProjectStatus.in_prep
-    quotas: List[Quota] = None
+    quotas: Optional[List[Quota]] = None
 
     @classmethod
     def _get_status(cls, project):
@@ -401,11 +401,11 @@ class Project(ProjectSubmission):
 
 
 class ProjectUpdate(BaseModel):
-    title: str = None
-    abstract: str = None
-    description: str = None
-    owner: str = None
-    status: ProjectStatus = None
+    title: Optional[str] = None
+    abstract: Optional[str] = None
+    description: Optional[str] = None
+    owner: Optional[str] = None
+    status: Optional[ProjectStatus] = None
 
     def to_db(self):
         values = {}
