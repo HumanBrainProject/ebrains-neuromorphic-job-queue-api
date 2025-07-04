@@ -1,10 +1,12 @@
+import asyncio
 from typing import List
 from datetime import date, timedelta
-from collections import defaultdict
+from collections import defaultdict, Counter
 import logging
 import numpy as np
 
-from fastapi import APIRouter, Query
+from fastapi import APIRouter, Depends, Query, HTTPException, status as status_codes
+from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 
 from ..data_models import (
     DateRangeCount,
@@ -13,14 +15,17 @@ from ..data_models import (
     QueueStatus,
     Histogram,
     ProjectStatus,
+    UserStatistics,
 )
-from .. import db
+from .. import db, oauth
+
 from ..globals import STANDARD_QUEUES
 
 
 logger = logging.getLogger("simqueue")
 
 router = APIRouter()
+auth = HTTPBearer()
 
 
 def normalize_start_end(start: date = None, end: date = None):
@@ -293,3 +298,29 @@ async def resource_usage(start: date = None, end: date = None, interval: int = 7
         results.append(new_obj)
 
     return results
+
+
+@router.get("/statistics/per-user", response_model=List[UserStatistics])
+async def resource_usage(
+    start: date = None, end: date = None, token: HTTPAuthorizationCredentials = Depends(auth)
+):
+    """
+    Statistics at the level of individual users (only accessible by platform administrators)
+    """
+    user = await asyncio.create_task(oauth.User.from_token(token.credentials))
+    if not user.is_admin:
+        raise HTTPException(
+            status_code=status_codes.HTTP_403_FORBIDDEN,
+            detail="Only admins can access per-user statistics",
+        )
+    jobs = await db.query_jobs(
+        status=["finished", "error"],
+        date_range_start=start,
+        date_range_end=end,
+        size=100000,
+        fields=["user_id"],
+    )
+    jobs_per_user = Counter(job["user_id"] for job in jobs)
+    return [
+        UserStatistics(user=user_name, jobs=count) for user_name, count in jobs_per_user.items()
+    ]

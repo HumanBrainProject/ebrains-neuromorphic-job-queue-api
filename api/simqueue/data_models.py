@@ -452,3 +452,8 @@ class Histogram(BaseModel):
     status: str
     scale: str
     max: int
+
+
+class UserStatistics(BaseModel):
+    user: str
+    jobs: int
