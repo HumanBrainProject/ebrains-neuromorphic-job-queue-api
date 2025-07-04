@@ -320,7 +320,21 @@ async def resource_usage(
         size=100000,
         fields=["user_id"],
     )
+    sessions = await db.query_sessions(
+        status=["finished", "error"],
+        date_range_start=start,
+        date_range_end=end,
+        size=100000,
+        fields=["user_id"],
+    )
     jobs_per_user = Counter(job["user_id"] for job in jobs)
+    sessions_per_user = Counter(ses["user_id"] for ses in sessions)
+    all_users = set(jobs_per_user).union(sessions_per_user)
     return [
-        UserStatistics(user=user_name, jobs=count) for user_name, count in jobs_per_user.items()
+        UserStatistics(
+            user=user_name,
+            jobs=jobs_per_user.get(user_name, 0),
+            sessions=sessions_per_user.get(user_name, 0),
+        )
+        for user_name in all_users
     ]

@@ -457,3 +457,4 @@ class Histogram(BaseModel):
 class UserStatistics(BaseModel):
     user: str
     jobs: int
+    sessions: int
