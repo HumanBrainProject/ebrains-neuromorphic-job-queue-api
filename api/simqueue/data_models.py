@@ -456,5 +456,5 @@ class Histogram(BaseModel):
 
 class UserStatistics(BaseModel):
     user: str
-    jobs: int
-    sessions: int
+    jobs: Dict[str, int]
+    sessions: Dict[str, int]

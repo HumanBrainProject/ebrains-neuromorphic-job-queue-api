@@ -307,34 +307,47 @@ async def resource_usage(
     """
     Statistics at the level of individual users (only accessible by platform administrators)
     """
+    # check permissions
     user = await asyncio.create_task(oauth.User.from_token(token.credentials))
     if not user.is_admin:
         raise HTTPException(
             status_code=status_codes.HTTP_403_FORBIDDEN,
             detail="Only admins can access per-user statistics",
         )
+    # get data from the DB
     jobs = await db.query_jobs(
         status=["finished", "error"],
         date_range_start=start,
         date_range_end=end,
         size=100000,
-        fields=["user_id"],
+        fields=["user_id", "hardware_platform"],
     )
     sessions = await db.query_sessions(
         status=["finished", "error"],
         date_range_start=start,
         date_range_end=end,
         size=100000,
-        fields=["user_id"],
+        fields=["user_id", "hardware_platform"],
     )
-    jobs_per_user = Counter(job["user_id"] for job in jobs)
-    sessions_per_user = Counter(ses["user_id"] for ses in sessions)
-    all_users = set(jobs_per_user).union(sessions_per_user)
-    return [
-        UserStatistics(
-            user=user_name,
-            jobs=jobs_per_user.get(user_name, 0),
-            sessions=sessions_per_user.get(user_name, 0),
+    # count jobs/sessions by user and by platform
+    jobs_per_user = {}
+    sessions_per_user = {}
+    all_users = set()
+    for platform in STANDARD_QUEUES:
+        jobs_per_user[platform] = Counter(
+            job["user_id"] for job in jobs if job["hardware_platform"] == platform
         )
-        for user_name in all_users
-    ]
+        sessions_per_user[platform] = Counter(
+            ses["user_id"] for ses in sessions if ses["hardware_platform"] == platform
+        )
+        all_users = all_users.union(jobs_per_user[platform]).union(sessions_per_user[platform])
+    # restructure the data for returning
+    stats = []
+    for user_name in all_users:
+        user_jobs = {}
+        user_sessions = {}
+        for platform in STANDARD_QUEUES:
+            user_jobs[platform] = jobs_per_user[platform].get(user_name, 0)
+            user_sessions[platform] = sessions_per_user[platform].get(user_name, 0)
+        stats.append(UserStatistics(user=user_name, jobs=user_jobs, sessions=user_sessions))
+    return stats
