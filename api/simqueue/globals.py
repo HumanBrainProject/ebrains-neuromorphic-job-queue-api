@@ -26,3 +26,5 @@ DEMO_QUOTA_SIZES = {
     "Spikey": 1.0,
     "Demo": 1.0,
 }
+
+PRIVATE_SPACE = "private"

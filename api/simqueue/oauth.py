@@ -7,6 +7,7 @@ from fastapi.security.api_key import APIKeyHeader
 from fastapi import Security, HTTPException, status as status_codes
 
 from . import settings, db
+from .globals import PRIVATE_SPACE
 
 
 logger = logging.getLogger("simqueue")
@@ -75,6 +76,8 @@ class User:
         return self.preferred_username
 
     async def can_view(self, collab):
+        if collab == f"{PRIVATE_SPACE}-{self.username}":
+            return True
         # first of all, check team permissions
         target_team_names = {
             role: f"collab-{collab}-{role}" for role in ("viewer", "editor", "administrator")
@@ -91,6 +94,8 @@ class User:
             return collab_info.get("isPublic", False)
 
     def can_edit(self, collab):
+        if collab == f"{PRIVATE_SPACE}-{self.username}":
+            return True
         target_team_names = {
             role: f"collab-{collab}-{role}" for role in ("editor", "administrator")
         }
@@ -99,7 +104,7 @@ class User:
                 return True
 
     def get_collabs(self, access=["viewer", "editor", "administrator"]):
-        collabs = set()
+        collabs = set([f"{PRIVATE_SPACE}-{self.username}"])
         for team_access in self.roles.get("team", []):
             # note, if team information is missing from userinfo that means
             # the user is not a member of any collab
