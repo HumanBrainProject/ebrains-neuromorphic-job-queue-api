@@ -116,7 +116,7 @@ def test_query_projects(mocker):
     assert response.status_code == 200
 
     status = None
-    collab = ["my-collab", "some-other-collab"]  # user can_edit
+    collab = ["my-collab", "private-haroldlloyd", "some-other-collab"]  # user can_edit
     owner = None
     from_index = 0
     size = 10
@@ -205,7 +205,7 @@ def test_query_collabs(mocker):
     assert response.status_code == 200
 
     status = None
-    collabs = ["my-collab", "some-other-collab"]  # user can_edit
+    collabs = ["my-collab", "private-haroldlloyd", "some-other-collab"]  # user can_edit
     owner = None
     from_index = 0
     size = 100

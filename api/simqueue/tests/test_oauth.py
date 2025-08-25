@@ -37,6 +37,7 @@ def test_user_get_collabs(fake_user_data):
     assert user.get_collabs() == [
         "neuromorphic-platform-admin",
         "neuromorphic-testing-private",
+        f"private-{fake_user_data['preferred_username']}",
         "some-other-collab",
     ]
 
