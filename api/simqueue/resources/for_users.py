@@ -92,9 +92,11 @@ async def _check_auth_for_list(token, api_key, collab, user_id, hardware_platfor
 
 @router.get("/")
 def about_this_api():
+    service_status = getattr(settings, "SERVICE_STATUS", "ok")
     return {
         "about": "This is the EBRAINS Neuromorphic Computing Job Queue API.",
         "version": "3",
+        "status": service_status,
         "links": {"documentation": "/docs"},
         "authentication": {
             "server": settings.EBRAINS_IAM_SERVICE_URL,

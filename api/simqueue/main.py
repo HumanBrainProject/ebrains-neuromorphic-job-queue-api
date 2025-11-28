@@ -1,6 +1,7 @@
 import os
 from contextlib import asynccontextmanager
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
+from fastapi.responses import JSONResponse
 from fastapi.staticfiles import StaticFiles
 from starlette.middleware.sessions import SessionMiddleware
 from starlette.middleware.cors import CORSMiddleware
@@ -50,6 +51,12 @@ async def lifespan(app: FastAPI):
     await database.disconnect()
 
 
+service_status = getattr(settings, "SERVICE_STATUS", "ok")
+if service_status != "ok":
+    warning_message = f"---\n> ⚠️ **_NOTE:_**  _{service_status}_\n---\n\n"
+    description = warning_message + description
+
+
 app = FastAPI(
     title="EBRAINS Neuromorphic Computing Job Queue API",
     description=description,
@@ -65,6 +72,21 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+
+@app.middleware("http")
+async def check_service_status(request: Request, call_next):
+    if request.url.path != "/" and (
+        "down" in service_status
+        or ("read-only" in service_status and request.method in ("POST", "PUT", "PATCH"))
+    ):
+        return JSONResponse(
+            status_code=503,
+            content={"error": service_status},
+        )
+    response = await call_next(request)
+    return response
+
 
 app.include_router(for_users.router, tags=["For all users"])
 app.include_router(for_providers.router, tags=["For use by computing system providers"])

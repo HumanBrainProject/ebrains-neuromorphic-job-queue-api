@@ -24,3 +24,7 @@ EMAIL_HOST = os.environ.get("NMPI_EMAIL_HOST")
 EMAIL_SENDER = "neuromorphic@ebrains.eu"
 EMAIL_PASSWORD = os.environ.get("NMPI_EMAIL_PASSWORD", None)
 ADMIN_EMAIL = os.environ.get("NMPI_ADMIN_EMAIL")
+
+# SERVICE_STATUS = "The service is currently in read-only mode for maintenance"
+# SERVICE_STATUS = "The service is currently down for maintenance. We expect service to be restored on 4th December 2025"
+SERVICE_STATUS = os.environ.get("NMPI_SERVICE_STATUS", "ok")
