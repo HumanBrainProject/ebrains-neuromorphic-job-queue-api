@@ -8,7 +8,7 @@ charset-normalizer==3.4.1
 click==8.1.8
 cryptography==44.0.2
 databases==0.9.0
-ebrains-drive==0.6.0
+ebrains-drive==0.6.2
 fastapi==0.115.11
 h11==0.14.0
 httpcore==1.0.7
