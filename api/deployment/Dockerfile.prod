@@ -37,6 +37,7 @@ ENV PYTHONPATH  /home/docker:${SITEDIR}:${VENV}/lib/python3.11/site-packages:/us
 
 RUN echo "daemon off;" >> /etc/nginx/nginx.conf
 RUN rm /etc/nginx/sites-enabled/default
+COPY log_conf.yaml ${SITEDIR}/log_conf.yaml
 COPY deployment/nginx-app-prod.conf /etc/nginx/sites-enabled/nginx-app.conf
 COPY deployment/supervisor-app.conf /etc/supervisor/conf.d/
 

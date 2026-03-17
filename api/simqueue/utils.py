@@ -38,6 +38,9 @@ async def check_quotas(collab: str, hardware_platform: str, user: str = None):
     for quota in available_quotas:
         if quota["usage"] < quota["limit"]:
             return True
+    logger.info(
+        f"No quota available for user {user} on {hardware_platform}. collab={collab}, available quotas: {available_quotas}"
+    )
     return False
 
 
