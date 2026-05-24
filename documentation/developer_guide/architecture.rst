@@ -2,40 +2,17 @@
 Platform architecture
 =====================
 
-The platform provides the following components:
+The platform provides the following user-facing components:
 
-* Running on nmpi.hbpneuromorphic.eu:
-    * Job queue REST service
-    * Job manager Collaboratory app
-    * Dashboard Collaboratory app
-* Running on quotas.hbpneuromorphic.eu:
-    * Quotas REST service
-    * Resource manager Collaboratory app
-    * Resource manager coordination Collaboratory app
-* Running on benchmarks.hbpneuromorphic.eu:
-    * Benchmarks REST service
-    * Benchmarks website
-* Running on www.hbpneuromorphic.eu:
-    * Collaboratory home ("splash") page
-    * Development and Operations Guidebook (this document)
-* Monitoring service (commercial service)
-* Python client
-* User Guidebook
+- [Job queue and Quotas REST service](https://nmpi-v3.hbpneuromorphic.eu/docs)
+- [Job manager app](https://neuromorphic-job-manager.apps.ebrains.eu/)
+- [Dashboard app](https://nmpi-v3.hbpneuromorphic.eu/dashboard/)
+- [Administrator app](https://adminapp.apps.tc.humanbrainproject.eu/)
+- [Python client](https://pypi.org/project/hbp-neuromorphic-platform/)
+- [User Guidebook](https://electronicvisions.github.io/hbp-sp9-guidebook/index.html)
 
-In addition to the three web servers listed above, there is a staging server *nmpi-staging.hbpneuromorphic.eu*
-(a staging server for quotas is planned) and a database server.
+Behind the scenes there is a database server, a database backup service,
 
-The REST services are implemented with Django. The Collaboratory apps are implemented with AngularJS.
-Both services and apps are served using nginx, running in Docker containers on cloud servers
-from Digital Ocean.
-
-A migration from the commercial cloud provider (Digital Ocean) to servers provided by ICEI is planned for 2019.
-
-
-
-.. Coming later
-
-.. benchmark runner (webhook)
-.. nest server (for benchmarks): nest.hbpneuromorphic.eu
-.. nest data store: tmp-data.hbpneuromorphic.eu
-
+The REST services are implemented with FastAPI. The Collaboratory apps are implemented with React.
+Both services and apps are served using nginx,
+running in Kubernetes containers in the [JSC Cloud](https://www.fz-juelich.de/en/ias/jsc/systems/scientific-clouds/jsc-cloud).
