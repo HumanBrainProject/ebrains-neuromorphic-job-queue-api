@@ -1,5 +1,8 @@
 # EBRAINS Neuromorphic Computing Job Queue and Quota API
 
+> **This repository is archived.** Development continues at
+> https://gitlab.ebrains.eu/neuromorphic/job-queue-api
+
 The EBRAINS neuromorphic computing remote access service allows users to run simulations/emulations
 on the [SpiNNaker](https://www.ebrains.eu/tools/spinnaker)
 and [BrainScaleS](https://www.ebrains.eu/tools/brainscales) systems
