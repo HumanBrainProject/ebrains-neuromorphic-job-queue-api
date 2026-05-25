@@ -27,7 +27,7 @@ jobs:
         pip install -r api/requirements_testing.txt
     - name: Lint with ruff
       run: |
-        ruff check api/simqueue
+        ruff check --exit-zero api/simqueue
     - name: Test with pytest
       run: |
         cd api
@@ -50,7 +50,7 @@ jobs:
         pip install -r api/requirements_testing.txt
     - name: Lint with ruff (advisory)
       run: |
-        ruff check api/simqueue || true
+        ruff check --exit-zero api/simqueue
     - name: Test with pytest
       run: |
         cd api
