@@ -9,11 +9,27 @@ packages_
 htmlcov
 coverage
 .venv
+.coverage
+__pycache__/
+.pytest_cache/
+
+# local-only working files
+tmp.json
+tmp/
+build_info.json
+backups/
+sq.md
+.claude/
 
 # ensure these are not tracked by git
 *secrets.yml
 letsencrypt
 ssl
 env_local.sh
+env_local_prod.sh
+env_test.sh
+api_keys
+db.sql
+app.py
 docker-compose.yml
 docker-compose-staging.yml

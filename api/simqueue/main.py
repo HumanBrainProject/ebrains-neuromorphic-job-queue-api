@@ -19,7 +19,7 @@ by submitting a [PyNN](http://neuralensemble.org/docs/PyNN/) script
 and associated job configuration information to a central queue.
 
 The system consists of:
-- a web API (this service) [[Source code](https://github.com/HumanBrainProject/hbp_neuromorphic_platform)]
+- a web API (this service) [[Source code](https://gitlab.ebrains.eu/neuromorphic/job-queue-api)]
 - a GUI client (the [Job Manager app](https://job-manager.hbpneuromorphic.eu/))
 - a [Python/command-line client](https://github.com/HumanBrainProject/hbp-neuromorphic-client).
 

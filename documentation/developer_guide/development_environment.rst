@@ -2,114 +2,94 @@
 Setting up a development environment
 ====================================
 
-The following assumes you are working with Python 2.7 in a virtual environment (using virtualenv,
-conda, or similar).
+The service targets Python 3.11+. It is a FastAPI application backed by a
+PostgreSQL database and the EBRAINS authentication / storage services.
 
 Requirements
-------------
+============
 
-We suggest using `pip-tools`_ to install packages::
+Create a virtual environment and install the locked dependencies::
 
-    $ pip install pip-tools
+    $ python3.11 -m venv .venv
+    $ source .venv/bin/activate
+    $ pip install --upgrade pip
+    $ pip install -r api/requirements.txt.lock
+    $ pip install -r api/requirements_testing.txt
 
-The base development requirements are in :file:`deployment/requirements-deploy.txt`.
-Install them using::
-
-    $ pip-sync deployment/requirements-deploy.txt
-
-Some of the project requirements are private HBP/BlueBrain Project packages.
-To install these requires either a VPN connection to EPFL or a local copy of the packages.
-If you have VPN access, run::
-
-    $ pip download -i https://bbpteam.epfl.ch/repository/devpi/simple --pre -r deployment/requirements-bbp.txt -d packages
-
-and then un-tar the archives in the :file:`packages` directory.
-If you do not have VPN access, contact Andrew Davison to obtain a local copy.
-
-Finally, to install the remaining dependencies, run::
-
-    $ pip-sync -f packages deployment/requirements-deploy.txt job_manager/requirements.txt resource_manager/requirements.txt
-
-.. note:: If using conda, you may wish to install some or all of the dependencies with
-          ``conda install`` instead of ``pip``. On Linux, it may be easier to install
-          ``psycopg2`` via the package manager rather than using ``pip``.
-
-
-.. todo:: install nodejs, bower, Bower components
+``api/requirements.txt`` contains the loose top-level requirements (with
+minimum version bounds); ``api/requirements.txt.lock`` contains the
+fully pinned, reproducible set used in production Docker images.
 
 Setting up a database
----------------------
+=====================
 
-Most of the time while developing it is easiest to use SQLite. However, since we use PostgreSQL
-in production, it is important to at least test with a PostgreSQL database. This can be
-installed directly on your machine, but it may be easier to use Docker, both to minimize the
-differences with respect to production, and to make it simple to wipe out and recreate the
-test database.
+The application uses PostgreSQL in production. For development, run a
+local PostgreSQL instance via Docker::
 
-First, we pull the Docker image from the Docker registry::
+    $ docker run --name nmpidb -e POSTGRES_PASSWORD=<chosen-password> \
+        -p 32768:5432 -d postgres:14
 
-    $ docker pull tutum/postgresql
+Then, from the ``api/`` directory, initialise the test database::
 
-To run the image::
+    $ export PGPASSWORD=<chosen-password>
+    $ python setup_test_db.py
 
-    $ docker run -d -p 5432:5432 tutum/postgresql
+This drops and recreates the ``nmpi`` database and the ``test_user`` role,
+creates all tables, and populates them with synthetic test data.
 
-Run ``docker ps`` to get the container ID, then
+Configuration
+=============
 
-    $ docker logs <CONTAINER_ID>
+The application reads its configuration from environment variables. For
+local development, copy ``api/env_local.sh`` (excluded from version
+control), fill in your own values, and ``source`` it before starting the
+server. The variables you need are documented in
+``api/simqueue/settings.py``; the most important are:
 
-to show the randomly-generated password. Now we create the admin user that will be used by
-Django to connect::
+- ``EBRAINS_IAM_SERVICE_URL``, ``EBRAINS_IAM_CLIENT_ID``,
+  ``EBRAINS_IAM_SECRET`` — credentials for an OIDC client registered with
+  EBRAINS IAM (use the ``iam-int`` realm for development).
+- ``EBRAINS_COLLAB_SERVICE_URL``, ``EBRAINS_DRIVE_SERVICE_URL``,
+  ``EBRAINS_BUCKET_SERVICE_URL`` — endpoints for the Collaboratory
+  services.
+- ``NMPI_DATABASE_HOST``, ``NMPI_DATABASE_PORT``,
+  ``NMPI_DATABASE_PASSWORD``, ``NMPI_DATABASE_USER`` — connection to
+  the PostgreSQL database.
+- ``SESSIONS_SECRET_KEY`` — any random string for local development.
+- ``NMPI_BASE_URL`` — the base URL the running server should advertise
+  (``http://localhost:8000`` for local development).
 
-    $ psql --user postgres --command "CREATE USER nmpi_dbadmin WITH PASSWORD '<password>';"
-    $ psql --user postgres --command "CREATE DATABASE nmpi OWNER nmpi_dbadmin;"
-    $ psql --user postgres --command "GRANT ALL PRIVILEGES ON DATABASE nmpi TO nmpi_dbadmin;"
+Running the server
+==================
 
+From the ``api/`` directory::
 
-Configuring Django
-------------------
+    $ uvicorn simqueue.main:app --reload --port 8000
 
-When developing locally, set the following environment variable::
-
-    $ export NMPI_ENV=dev
-
-By default, when developing locally you will use a local SQLite database. To use a PostgreSQL
-database (either a local one or the production database), in :file:`settings.py` for the
-project you are working on set ``LOCAL_DB = False``.
-
-To tell Django which PostgreSQL database you are working on, set the environment
-variables ``NMPI_DATABASE_HOST``, ``NMPI_DATABASE_PORT``, ``NMPI_DATABASE_PASSWORD``.
-
-You also need to set the environment variables ``DJANGO_SECRET_KEY``,
-``HBP_OIDC_CLIENT_ID`` and ``HBP_OIDC_CLIENT_SECRET``. The former can be set to whatever you
-wish for development purposes. To obtain the latter two, you should
-`register an OpenID Connect client`_ using ``https://localhost:8001/complete/hbp`` as the URL.
-
-To check everything is working::
-
-    $ python manage.py check
-
-and to initialize the database::
-
-    $ python manage.py migrate
-
-Next you should `create a local SSL certificate`_; now you can run the development server using::
-
-    $ python manage.py runsslserver --certificate ~/.ssl/server.crt --key ~/.ssl/server.key 127.0.0.1:8001
-
+The interactive OpenAPI documentation is then available at
+``http://localhost:8000/docs``.
 
 Running the tests
------------------
+=================
 
-Unit tests are run as follows. In the :file:`job_manager` directory::
+From the ``api/`` directory, after setting up the test database::
 
-    $ python manage.py test simqueue
+    $ pytest --cov=simqueue --cov-report=term
 
-In the :file:`resource_manager` directory::
+Integration tests that exercise live EBRAINS services require additional
+environment variables:
 
-    $ python manage.py test quotas
+- ``EBRAINS_AUTH_TOKEN`` — a valid IAM access token (the tests skip if
+  this is not set).
+- ``NMPI_TESTING_APIKEY`` — the API key used by the synthetic hardware
+  provider in the test database (the tests skip if this is not set).
 
+CI runs the test suite on Python 3.11 and 3.13 — see
+:doc:`testing` for details.
 
-.. _`pip-tools`: https://github.com/nvie/pip-tools
-.. _`register an OpenID Connect client`: https://collab.humanbrainproject.eu/#/collab/54/nav/1051
-.. _`create a local SSL certificate`: https://developer.humanbrainproject.eu/docs/projects/HBP%20Collaboratory%20Documentation/1.7/app-developer-manual/quickstart/setup/ssl-certificate.html
+Code style
+==========
+
+The project uses `Ruff <https://docs.astral.sh/ruff/>`_ for linting and
+formatting; configuration lives in ``api/pyproject.toml``. See
+:doc:`coding_conventions` for the full conventions.

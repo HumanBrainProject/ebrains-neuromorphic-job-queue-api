@@ -20,10 +20,36 @@ log files, and provenance information.
 For more information, visit the [EBRAINS website](https://www.ebrains.eu/modelling-simulation-and-computing/simulation/neuromorphic-computing-3).
 
 
-All code is copyright 2015-2025 CNRS unless otherwise indicated.
+All code is copyright 2015-2026 CNRS unless otherwise indicated.
 
 This repository previously contained code for all components of the service.
 Each of these is now developed in a separate repository.
+
+
+## Versioning
+
+Releases follow a calendar-letter scheme `YYYY<letter>`, where the letter is
+incremented for each release within a year. For example, `2025D` was the
+fourth release of 2025. Tags are immutable; see [`CHANGELOG.md`](CHANGELOG.md)
+for the history.
+
+
+## Contributing
+
+Merge requests are welcome. Please read [`CONTRIBUTING.md`](CONTRIBUTING.md)
+for the branch and review workflow, coding conventions, and how to run the
+test suite, and [`CODE_OF_CONDUCT.md`](CODE_OF_CONDUCT.md) for community
+expectations. Security issues should be reported privately — see
+[`SECURITY.md`](SECURITY.md).
+
+
+## Communication and support
+
+- Bug reports and feature requests: [GitLab issues](https://gitlab.ebrains.eu/neuromorphic/job-queue-api/-/issues)
+- General EBRAINS support: [support@ebrains.eu](mailto:support@ebrains.eu)
+- Service status: <https://status.ebrains.eu>
+
+For data protection and privacy questions, see [`PRIVACY.md`](PRIVACY.md).
 
 <div><img src="https://www.braincouncil.eu/wp-content/uploads/2018/11/wsi-imageoptim-EU-Logo.jpg" alt="EU Logo" height="23%" width="15%" align="right" style="margin-left: 10px"></div>
 

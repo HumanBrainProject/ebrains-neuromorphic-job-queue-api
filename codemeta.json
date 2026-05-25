@@ -1,0 +1,125 @@
+{
+  "@context": "https://doi.org/10.5063/schema/codemeta-2.0",
+  "@type": "SoftwareSourceCode",
+  "name": "EBRAINS Neuromorphic Computing Job Queue and Quota API",
+  "identifier": "ebrains-neuromorphic-job-queue-api",
+  "description": "REST API that accepts PyNN scripts from neuroscientists and dispatches them to the SpiNNaker and BrainScaleS neuromorphic hardware systems. The API also allows management of quotas for batch jobs and interactive sessions.",
+  "codeRepository": "https://gitlab.ebrains.eu/neuromorphic/job-queue-api",
+  "issueTracker": "https://gitlab.ebrains.eu/neuromorphic/job-queue-api/-/issues",
+  "license": "https://spdx.org/licenses/Apache-2.0",
+  "version": "2025D",
+  "softwareVersion": "2025D",
+  "programmingLanguage": [
+    {
+      "@type": "ComputerLanguage",
+      "name": "Python"
+    }
+  ],
+  "runtimePlatform": ["Python 3.11", "Python 3.13"],
+  "operatingSystem": "Linux",
+  "softwareRequirements": [
+    "FastAPI >=0.115",
+    "uvicorn >=0.34",
+    "SQLAlchemy >=2.0",
+    "databases[postgresql] >=0.9",
+    "Authlib >=1.5",
+    "httpx >=0.28",
+    "PostgreSQL 14+"
+  ],
+  "developmentStatus": "active",
+  "keywords": [
+    "neuromorphic computing",
+    "neuroscience",
+    "SpiNNaker",
+    "BrainScaleS",
+    "PyNN",
+    "EBRAINS",
+    "Human Brain Project",
+    "REST API"
+  ],
+  "applicationCategory": "Neuroscience",
+  "url": "https://nmpi-v3.hbpneuromorphic.eu/",
+  "downloadUrl": "https://gitlab.ebrains.eu/neuromorphic/job-queue-api/-/releases",
+  "author": [
+    {
+      "@type": "Person",
+      "givenName": "Andrew",
+      "familyName": "Davison",
+      "@id": "https://orcid.org/0000-0002-4793-7541",
+      "affiliation": {
+        "@type": "Organization",
+        "name": "CNRS"
+      }
+    },
+    {
+      "@type": "Person",
+      "givenName": "Fatma",
+      "familyName": "Gara El Haddad",
+      "affiliation": {
+        "@type": "Organization",
+        "name": "CNRS"
+      }
+    },
+    {
+      "@type": "Person",
+      "givenName": "Onur",
+      "familyName": "Ates",
+      "affiliation": {
+        "@type": "Organization",
+        "name": "CNRS"
+      }
+    },
+    {
+      "@type": "Person",
+      "givenName": "Hassen",
+      "familyName": "Aguili",
+      "affiliation": {
+        "@type": "Organization",
+        "name": "CNRS"
+      }
+    },
+    {
+      "@type": "Person",
+      "givenName": "Matthieu",
+      "familyName": "Senoville",
+      "affiliation": {
+        "@type": "Organization",
+        "name": "CNRS"
+      }
+    }
+  ],
+  "maintainer": [
+    {
+      "@type": "Person",
+      "givenName": "Andrew",
+      "familyName": "Davison",
+      "email": "andrew.davison@cnrs.fr",
+      "@id": "https://orcid.org/0000-0002-4793-7541"
+    }
+  ],
+  "copyrightHolder": [
+    {
+      "@type": "Organization",
+      "name": "Centre National de la Recherche Scientifique (CNRS)"
+    }
+  ],
+  "copyrightYear": "2015-2026",
+  "funder": [
+    {
+      "@type": "Organization",
+      "name": "European Union",
+      "identifier": "https://ror.org/019w4f821"
+    }
+  ],
+  "funding": [
+    "Horizon 2020, Human Brain Project SGA1, Grant Agreement No. 720270",
+    "Horizon 2020, Human Brain Project SGA2, Grant Agreement No. 785907",
+    "Horizon 2020, Human Brain Project SGA3, Grant Agreement No. 945539",
+    "Horizon Europe, EBRAINS-2.0, Grant Agreement No. 101147319"
+  ],
+  "softwareHelp": "https://nmpi-v3.hbpneuromorphic.eu/docs",
+  "readme": "https://gitlab.ebrains.eu/neuromorphic/job-queue-api/-/blob/main/README.md",
+  "contIntegration": "https://gitlab.ebrains.eu/neuromorphic/job-queue-api/-/pipelines",
+  "releaseNotes": "https://gitlab.ebrains.eu/neuromorphic/job-queue-api/-/blob/main/CHANGELOG.md",
+  "isPartOf": "https://search.kg.ebrains.eu/instances/7b73d422-9dae-405b-a613-457a62231e22"
+}

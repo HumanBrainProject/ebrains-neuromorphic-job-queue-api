@@ -1,2 +1,18 @@
+[project]
+name = "ebrains-neuromorphic-job-queue-api"
+description = "EBRAINS Neuromorphic Computing Job Queue and Quota API"
+license = "Apache-2.0"
+requires-python = ">=3.11"
+
 [tool.pytest.ini_options]
 asyncio_default_fixture_loop_scope = "function"
+
+[tool.ruff]
+line-length = 119
+target-version = "py311"
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "UP", "B"]
+
+[tool.ruff.lint.pydocstyle]
+convention = "google"

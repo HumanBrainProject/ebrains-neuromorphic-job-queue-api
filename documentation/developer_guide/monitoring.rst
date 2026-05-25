@@ -2,47 +2,46 @@
 Monitoring
 ==========
 
-Monitoring of the Platform front-end services, and of the BrainScaleS and SpiNNaker services that
-interact with the Job Queue service, makes use of a commercial service, StatusCake_.
+Live operational monitoring of the Neuromorphic Job Queue API runs on the
+shared EBRAINS infrastructure.
 
-We are currently using the "Superior" plan, which unfortunately does not allow sub-accounts.
-The account is held by the CNRS partner.
+Dashboards
+==========
 
-The configuration dashboard is available at https://app.statuscake.com/. 
+- **Grafana** — resource usage, request rates, error counts, and
+  per-platform job throughput:
+  https://grafana.ebrains.eu/dashboards/f/b7a2de0a-e345-4ac3-9929-f946aa1328b5/neuromorphic-remote-access
+- **Status page** — public uptime indicator for all EBRAINS services,
+  including this API:
+  https://status.ebrains.eu
 
-Services monitored
-------------------
+Health endpoint
+===============
 
-The following URLs are monitored for uptime, response time and SSL certificate validity,
-on a 15-minute schedule:
+The API exposes ``/`` and ``/docs`` as smoke-test endpoints. Kubernetes
+liveness and readiness probes hit a lightweight endpoint defined in
+``api/simqueue/main.py``.
 
-- https://nmpi.hbpneuromorphic.eu/api/v2/ (Job Queue service)
-- https://quotas.hbpneuromorphic.eu/projects/ (Quota service)
-- http://neuralensemble.org/docs/PyNN/ (PyNN documentation)
-- https://www.hbpneuromorphic.eu/home.html (Collab homepage)
-- https://benchmarks.hbpneuromorphic.eu (Benchmarks service)
+Logs
+====
 
-In addition, the following services are monitored using "push" monitoring. 
-Each of these services sends an HTTP GET request to a StatusCake webhook every time it successfully runs.
-The monitoring service generates an alert if the "ping" is not received.
+The container streams logs to stdout (configured in
+``api/log_conf.yaml``), which the JSC Cloud cluster aggregates and makes
+available through the EBRAINS observability stack. Application logs
+include all Python loggers (not only uvicorn), so handlers added in the
+``simqueue`` package are captured automatically.
 
-- Database backups (script which performs a database backup hourly)
-- SpiNNaker job queue check (1 minute check interval)
-- BrainScaleS job queue check (2 minute check interval)
+Alerts
+======
 
-Three contact groups are defined: front-end, BrainScaleS and SpiNNaker. 
-Members of these groups receive e-mails when a monitor to which they are subscribed issues an alert.
+Alerts on the Grafana dashboards page maintainers via the EBRAINS
+operations rota. Maintenance windows and degraded-mode states can be
+signalled via the ``maintenance`` middleware (see
+``api/simqueue/main.py``) so that clients receive a structured error
+rather than a generic 5xx.
 
+Contacts
+========
 
-Public monitoring page
-----------------------
-
-A public monitoring webpage is available:
-
-- publicly at http://status.hbpneuromorphic.eu
-- within the Collaboratory at https://collab.humanbrainproject.eu/#/collab/51/nav/245013
-
-The monitoring service uses a commercial provider, StatusCake (http://statuscake.com). This service tests all of the Platform web services, from multiple locations, every 15 minutes. In addition, the BrainScaleS and SpiNNaker job retrieval systems notify the monitoring service every time they successfully check for new jobs (every 1-2 minutes). In case any of the services does not respond, the Platform administrators receive an e-mail notification.
-
-
-.. _StatusCake: http://statuscake.com
+- Maintainer: Andrew Davison (andrew.davison@cnrs.fr)
+- EBRAINS operations: support@ebrains.eu
